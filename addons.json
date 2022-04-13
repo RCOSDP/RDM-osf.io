@@ -138,7 +138,7 @@
         "binderhub": "BinderHub is a web-based interactive computational environment. Files on a GakuNin RDM project can be imported to/exported from BinderHub",
         "onedrivebusiness": "OneDrive for Office365 is a file storage add-on. Connect your Microsoft OneDrive account to a GakuNin RDM project to interact with files hosted on Microsoft OneDrive via the GakuNin RDM.",
         "metadata": "Metadata addon is ...",
-        "rushfiles": "RushFiles is a file storage add-on. Connect your RushFiles user to a GakuNin RDM project to interact with files hosted on RushFiles via the GakuNin RDM."
+        "rushfiles": "FileBako is a file storage add-on. Connect your FileBako user to a GakuNin RDM project to interact with files hosted on FileBako via the GakuNin RDM."
     },
     "addons_url": {
         "box": "http://www.box.com",
@@ -166,6 +166,6 @@
         "binderhub": "https://binder.cs.rcos.nii.ac.jp",
         "onedrivebusiness": "https://onedrive.live.com",
         "metadata": "https://dummy.nii.ac.jp/metadata",
-        "rushfiles": "https://rushfiles.com"
+        "rushfiles": "https://cloudfile.jp"
     }
 }

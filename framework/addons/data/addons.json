@@ -683,27 +683,27 @@
         "RushFiles": {
             "Permissions": {
                 "status": "partial",
-                "text": "Making a GakuNin RDM project public or private is independent of making an RushFiles share public or private. The GakuNin RDM does not alter the permissions of linked RushFiles share."
+                "text": "Making a GakuNin RDM project public or private is independent of making an FileBako share public or private. The GakuNin RDM does not alter the permissions of linked FileBako share."
             },
             "View / download file versions": {
                 "status": "partial",
-                "text": "Files in RushFiles can be viewed/downloaded via GakuNin RDM, but version history is not supported."
+                "text": "Files in FileBako can be viewed/downloaded via GakuNin RDM, but version history is not supported."
             },
             "Add / update files": {
                 "status": "full",
-                "text": "Adding/updating files in the project via GakuNin RDM will be reflected in RushFiles."
+                "text": "Adding/updating files in the project via GakuNin RDM will be reflected in FileBako."
             },
             "Delete files": {
                 "status": "full",
-                "text": "Files deleted via GakuNin RDM will be deleted in RushFiles."
+                "text": "Files deleted via GakuNin RDM will be deleted in FileBako."
             },
             "Logs": {
                 "status": "partial",
-                "text": "GakuNin RDM keeps track of changes you make to your RushFiles content through GakuNin RDM, but not for changes made using RushFiles directly."
+                "text": "GakuNin RDM keeps track of changes you make to your FileBako content through GakuNin RDM, but not for changes made using FileBako directly."
             },
             "Forking": {
                 "status": "partial",
-                "text": "Forking a project or component does not copy RushFiles authorization unless the user forking the project is the same user who authorized the RushFiles add-on in the source project being forked."
+                "text": "Forking a project or component does not copy FileBako authorization unless the user forking the project is the same user who authorized the FileBako add-on in the source project being forked."
             },
             "Registering": {
                 "status": "partial",

@@ -1,10 +1,10 @@
 {
-    "rushfiles_file_added": "A user added a file to RushFiles in a project",
-    "rushfiles_file_removed": "A user removed a file from RushFiles in a project",
-    "rushfiles_file_updated": "A user updated a file in RushFiles in a project",
-    "rushfiles_folder_created": "A user created a folder in RushFiles in a project",
-    "rushfiles_folder_selected": "A user linked a RushFiles folder to a project",
-    "rushfiles_node_authorized": "A user authorized the RushFiles addon for a project",
-    "rushfiles_node_deauthorized": "A user deauthorized the RushFiles addon for a project",
-    "rushfiles_node_deauthorized_no_user": "RushFiles addon for a project deauthorized"
+    "rushfiles_file_added": "A user added a file to FileBako in a project",
+    "rushfiles_file_removed": "A user removed a file from FileBako in a project",
+    "rushfiles_file_updated": "A user updated a file in FileBako in a project",
+    "rushfiles_folder_created": "A user created a folder in FileBako in a project",
+    "rushfiles_folder_selected": "A user linked a FileBako folder to a project",
+    "rushfiles_node_authorized": "A user authorized the FileBako addon for a project",
+    "rushfiles_node_deauthorized": "A user deauthorized the FileBako addon for a project",
+    "rushfiles_node_deauthorized_no_user": "FileBako addon for a project deauthorized"
 }
