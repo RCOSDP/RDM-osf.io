@@ -29,7 +29,7 @@ class TestRushfilesConfigViews(RushfilesAddonTestCase, OAuthAddonConfigViewsTest
 
     @mock.patch('addons.rushfiles.models.NodeSettings.fetch_access_token')
     def test_get_config(self, mock_access_token):
-        mock_access_token.return_value = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJwcmltYXJ5X2RvbWFpbiI6ImZha2VAZmFrZS5uZXQifQ._CTx5dIZ0piHbqnF63NV-G6nuFs9uN-9q-pnR0X5HYE"
+        mock_access_token.return_value = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJwcmltYXJ5X2RvbWFpbiI6ImZha2VAZmFrZS5uZXQifQ._CTx5dIZ0piHbqnF63NV-G6nuFs9uN-9q-pnR0X5HYE'
         super(TestRushfilesConfigViews, self).test_get_config()
 
 
@@ -39,11 +39,11 @@ class TestRushfilesConfigViews(RushfilesAddonTestCase, OAuthAddonConfigViewsTest
     def test_folder_list(self,mock_access_token, mock_share):
         fake_share_list = [
             {
-                "Id": "fakeId",
-                "Name": "fake share"
+                'Id': 'fakeId',
+                'Name': 'fake share'
             }
         ]
         mock_share.return_value = fake_share_list
-        mock_access_token.return_value = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJwcmltYXJ5X2RvbWFpbiI6ImZha2VAZmFrZS5uZXQifQ._CTx5dIZ0piHbqnF63NV-G6nuFs9uN-9q-pnR0X5HYE"
+        mock_access_token.return_value = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJwcmltYXJ5X2RvbWFpbiI6ImZha2VAZmFrZS5uZXQifQ._CTx5dIZ0piHbqnF63NV-G6nuFs9uN-9q-pnR0X5HYE'
 
         super(TestRushfilesConfigViews, self).test_folder_list()

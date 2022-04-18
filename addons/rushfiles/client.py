@@ -1,10 +1,6 @@
 # -*- coding: utf-8 -*-
-from framework.exceptions import HTTPError
-
 from website.util.client import BaseClient
-from addons.rushfiles import settings
 
-import sys
 import jwt
 
 class RushFilesAuthClient(BaseClient):
@@ -15,8 +11,8 @@ class RushFilesAuthClient(BaseClient):
         res = self._make_request(
             'GET',
             self._build_url('https://clientgateway.' + user_main_domain, 'api', 'client', 'fullprofile'),
-            headers={'Authorization':'Bearer ' + access_token},
-            params={'tick':1, 'api':1,'associationRequired':False},
+            headers={'Authorization': 'Bearer ' + access_token},
+            params={'tick': 1, 'api': 1, 'associationRequired': False},
             expects=(200, )
         ).json()
 
@@ -33,7 +29,7 @@ class RushFilesClient(BaseClient):
             return {'authorization': 'Bearer {}'.format(self.access_token)}
         return {}
 
-    def shares(self,user_id):
+    def shares(self, user_id):
         '''
         Fetch share list from https://clientgateway.rushfiles.com/swagger/ui/index#!/User/User_GetUserShares
         '''
@@ -55,9 +51,9 @@ class RushFilesClient(BaseClient):
             api_base_domain = 'https://clientgateway.' + domain
 
             res = self._make_request(
-            'GET',
-            self._build_url(api_base_domain, 'api', 'users', user_id, 'shares'),
-            expects=(200, )
+                'GET',
+                self._build_url(api_base_domain, 'api', 'users', user_id, 'shares'),
+                expects=(200, )
             ).json()
 
             shares = res['Data']

@@ -25,5 +25,5 @@ class TestRushfilesSerializer(StorageAddonSerializerTestSuiteMixin, OsfTestCase)
 
     @mock.patch('addons.rushfiles.models.NodeSettings.fetch_access_token')
     def test_serialize_settings_authorized_folder_is_set(self, mock_access_token):
-        mock_access_token.return_value = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJwcmltYXJ5X2RvbWFpbiI6ImZha2VAZmFrZS5uZXQifQ._CTx5dIZ0piHbqnF63NV-G6nuFs9uN-9q-pnR0X5HYE"
+        mock_access_token.return_value = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJwcmltYXJ5X2RvbWFpbiI6ImZha2VAZmFrZS5uZXQifQ._CTx5dIZ0piHbqnF63NV-G6nuFs9uN-9q-pnR0X5HYE'
         super(TestRushfilesSerializer, self).test_serialize_settings_authorized_folder_is_set()

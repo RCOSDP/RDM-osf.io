@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Persistence layer for the google drive addon.
 """
-import sys
 from addons.base.models import (BaseOAuthNodeSettings, BaseOAuthUserSettings,
                                 BaseStorageAddon)
 from django.db import models
@@ -109,22 +108,14 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
         self.domain = None
 
     def get_folders(self, **kwargs):
-        node = self.owner
-
         try:
             access_token = self.fetch_access_token()
         except exceptions.InvalidAuthError:
             raise HTTPError(403)
 
-        #TODO Return the list of shares available to the authenticated user
-        # https://clientgateway.rushfiles.com/swagger/ui/index#!/User/User_GetUserShares
-        # Get main user domain from access token (JWT)
-
         # I think handling only one level (shares) is enough. Permissions are configurable
         # on per-share basis and user can create sub-shares if they want different folder structure.
         # Question: How should we handle read-only shares?
-
-        payload = jwt.decode(access_token, verify=False)
 
         client = RushFilesClient(access_token=access_token)
 
@@ -137,14 +128,14 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
             'id': share['Id'],
             'name': share['Name'],
             'urls': {
-                'folders':''
+                'folders': ''
             }
-        } for share in share_list ]
+        } for share in share_list]
 
     def set_folder(self, folder, auth):
         """
         """
-        share_id, domain = folder['id'].split("@")
+        share_id, domain = folder['id'].split('@')
         self.share_id = share_id
         self.share_name = folder['name']
         self.domain = domain
@@ -195,7 +186,6 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
                 }
             },
         )
-
 
     def deauthorize(self, auth=None, add_log=True, save=False):
         if add_log:

@@ -47,8 +47,8 @@ class TestProvider(unittest.TestCase):
         assert_equal(res['profile_url'], None)
 
 class TestNodeSettings(OAuthAddonNodeSettingsTestSuiteMixin,unittest.TestCase):
-    short_name = "rushfiles"
-    full_name = "Rushfiles"
+    short_name = 'rushfiles'
+    full_name = 'Rushfiles'
     ExternalAccountFactory = RushfilesAccountFactory
 
     NodeSettingsFactory = RushfilesNodeSettingFactory
@@ -76,17 +76,17 @@ class TestNodeSettings(OAuthAddonNodeSettingsTestSuiteMixin,unittest.TestCase):
     def test_get_folder(self,mock_access_token, mock_share):
         fake_share_list = [
             {
-                "Id": "fakeId",
-                "Name": "fake share"
+                'Id': 'fakeId',
+                'Name': 'fake share'
             }
         ]
         mock_share.return_value = fake_share_list
-        mock_access_token.return_value = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJwcmltYXJ5X2RvbWFpbiI6ImZha2VAZmFrZS5uZXQifQ._CTx5dIZ0piHbqnF63NV-G6nuFs9uN-9q-pnR0X5HYE"
+        mock_access_token.return_value = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJwcmltYXJ5X2RvbWFpbiI6ImZha2VAZmFrZS5uZXQifQ._CTx5dIZ0piHbqnF63NV-G6nuFs9uN-9q-pnR0X5HYE'
 
         res = self.node_settings.get_folders()
-        assert_equal(res[0]["id"], fake_share_list[0]["Id"])
-        assert_equal(res[0]["name"], fake_share_list[0]["Name"])
-        assert_equal(res[0]["path"], fake_share_list[0]["Name"])
+        assert_equal(res[0]['id'], fake_share_list[0]['Id'])
+        assert_equal(res[0]['name'], fake_share_list[0]['Name'])
+        assert_equal(res[0]['path'], fake_share_list[0]['Name'])
 
     def test_set_folder(self):
         folderId = 'fakeFolderId'
