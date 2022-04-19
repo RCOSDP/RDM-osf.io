@@ -9,7 +9,7 @@ class RushFilesAddonConfig(BaseAddonAppConfig):
 
     name = 'addons.rushfiles'
     label = 'addons_rushfiles'
-    full_name = 'RushFiles'
+    full_name = 'FileBako'
     short_name = 'rushfiles'
     owners = ['user', 'node']
     configs = ['accounts', 'node']

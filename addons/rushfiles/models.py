@@ -33,7 +33,7 @@ class RushFilesFile(RushFilesFileNode, File):
 
 class RushFilesProvider(ExternalProvider):
     name = 'FileBako'
-    short_name = 'filebako'
+    short_name = 'rushfiles'
 
     client_id = settings.CLIENT_ID
     client_secret = settings.CLIENT_SECRET

@@ -6,7 +6,7 @@ from website.project.decorators import must_have_addon, must_be_addon_authorizer
 from addons.base import generic_views
 from addons.rushfiles.serializer import RushFilesSerializer
 
-SHORT_NAME = 'filebako'
+SHORT_NAME = 'rushfiles'
 FULL_NAME = 'FileBako'
 
 rushfiles_account_list = generic_views.account_list(
