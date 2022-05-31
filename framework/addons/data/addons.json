@@ -680,7 +680,7 @@
                 "text": "Metadata information will not be registered."
             }
         },
-        "RushFiles": {
+        "FileBako": {
             "Permissions": {
                 "status": "partial",
                 "text": "Making a GakuNin RDM project public or private is independent of making an FileBako share public or private. The GakuNin RDM does not alter the permissions of linked FileBako share."
