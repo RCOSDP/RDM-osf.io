@@ -20,6 +20,7 @@ JUPYTERHUB_OAUTH_CLIENTS = {
         token_url='http://192.168.168.167:12000/hub/api/oauth2/token',
         api_url='http://192.168.168.167:12000/hub/api/',
         scope=['identity'],
+        max_servers=2,
     )
 }
 
@@ -40,7 +41,7 @@ JUPYTERHUB_LAUNCHERS = [
     {
         'id': 'default',
         'name': 'Jupyter Notebook',
-        'path': None,
+        'path': 'tree',
         'image': 'jupyter-notebook.png',
     },
     {
