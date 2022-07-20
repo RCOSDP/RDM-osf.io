@@ -58,8 +58,30 @@ class RushFilesClient(BaseClient):
 
             shares = res['Data']
 
+            companies = self.user_companies(user_id, domain)
+
             for share in shares:
                 share['Id'] = share['Id'] + '@' + domain
+                share['Name'] = share['Name'] + ' @ ' + companies[share['CompanyId']]['Name']
+
                 share_list.append(share)
 
+        share_list.sort(key=lambda x: x.get('Name'))
+
         return share_list
+    
+    def user_companies(self, user_id, domain):
+        companies = {}
+
+        api_base_domain = 'https://clientgateway.' + domain
+
+        res = self._make_request(
+            'GET',
+            self._build_url(api_base_domain, 'api', 'users', user_id, 'companies'),
+            expects=(200,)
+        ).json()
+
+        for company in res['Data']:
+            companies[company['Id']] = company
+
+        return companies

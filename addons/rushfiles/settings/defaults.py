@@ -1,4 +1,4 @@
-# Drive credentials
+# RushFiles credentials
 CLIENT_ID = 'changeme'
 CLIENT_SECRET = 'changeme'
 
