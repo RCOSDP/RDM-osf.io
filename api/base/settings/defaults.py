@@ -126,6 +126,7 @@ INSTALLED_APPS = (
     'addons.binderhub',
     'addons.onedrivebusiness',
     'addons.metadata',
+    'addons.rushfiles',
 )
 
 # local development using https
@@ -299,7 +300,7 @@ VARNISH_SERVERS = osf_settings.VARNISH_SERVERS
 ESI_MEDIA_TYPES = osf_settings.ESI_MEDIA_TYPES
 
 ADDONS_FOLDER_CONFIGURABLE = ['box', 'dropbox', 's3', 'googledrive', 'figshare', 'owncloud', 'onedrive', 'swift', 'azureblobstorage', 'weko', 'iqbrims']
-ADDONS_OAUTH = ADDONS_FOLDER_CONFIGURABLE + ['dataverse', 'github', 'bitbucket', 'gitlab', 'mendeley', 'zotero', 'forward', 'binderhub', 'metadata']
+ADDONS_OAUTH = ADDONS_FOLDER_CONFIGURABLE + ['dataverse', 'github', 'bitbucket', 'gitlab', 'mendeley', 'zotero', 'forward', 'binderhub', 'metadata', 'rushfiles']
 
 BYPASS_THROTTLE_TOKEN = 'test-token'
 

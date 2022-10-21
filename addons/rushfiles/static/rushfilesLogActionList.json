@@ -1,0 +1,10 @@
+{
+  "rushfiles_file_added": "${user} added file ${rushfiles_path} to Tsukaeru FileBako in ${node}",
+  "rushfiles_file_removed": "${user} removed ${path_type} ${rushfiles_path} from Tsukaeru FileBako in ${node}",
+  "rushfiles_file_updated": "${user} updated file ${rushfiles_path} in Tsukaeru FileBako in ${node}",
+  "rushfiles_folder_created": "${user} created folder ${rushfiles_path} in Tsukaeru FileBako in ${node}",
+  "rushfiles_folder_selected": "${user} linked Tsukaeru FileBako folder ${rushfiles_folder} to ${node}",
+  "rushfiles_node_authorized": "${user} authorized the Tsukaeru FileBako addon for ${node}",
+  "rushfiles_node_deauthorized": "${user} deauthorized the Tsukaeru FileBako addon for ${node}",
+  "rushfiles_node_deauthorized_no_user": "Tsukaeru FileBako addon for ${node} deauthorized"
+}

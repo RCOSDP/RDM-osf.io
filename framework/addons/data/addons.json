@@ -679,6 +679,36 @@
                 "status": "none",
                 "text": "Metadata information will not be registered."
             }
+        },
+        "Tsukaeru FileBako": {
+            "Permissions": {
+                "status": "partial",
+                "text": "Making a GakuNin RDM project public or private is independent of making an Tsukaeru FileBako share public or private. The GakuNin RDM does not alter the permissions of linked Tsukaeru FileBako share."
+            },
+            "View / download file versions": {
+                "status": "partial",
+                "text": "Files in Tsukaeru FileBako can be viewed/downloaded via GakuNin RDM, but version history is not supported."
+            },
+            "Add / update files": {
+                "status": "full",
+                "text": "Adding/updating files in the project via GakuNin RDM will be reflected in Tsukaeru FileBako."
+            },
+            "Delete files": {
+                "status": "full",
+                "text": "Files deleted via GakuNin RDM will be deleted in Tsukaeru FileBako."
+            },
+            "Logs": {
+                "status": "partial",
+                "text": "GakuNin RDM keeps track of changes you make to your Tsukaeru FileBako content through GakuNin RDM, but not for changes made using Tsukaeru FileBako directly."
+            },
+            "Forking": {
+                "status": "partial",
+                "text": "Forking a project or component does not copy Tsukaeru FileBako authorization unless the user forking the project is the same user who authorized the Tsukaeru FileBako add-on in the source project being forked."
+            },
+            "Registering": {
+                "status": "partial",
+                "text": ""
+            }
         }
     },
     "disclaimers": [

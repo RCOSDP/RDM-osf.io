@@ -1,0 +1,10 @@
+{
+    "rushfiles_file_added": "A user added a file to Tsukaeru FileBako in a project",
+    "rushfiles_file_removed": "A user removed a file from Tsukaeru FileBako in a project",
+    "rushfiles_file_updated": "A user updated a file in Tsukaeru FileBako in a project",
+    "rushfiles_folder_created": "A user created a folder in Tsukaeru FileBako in a project",
+    "rushfiles_folder_selected": "A user linked a Tsukaeru FileBako folder to a project",
+    "rushfiles_node_authorized": "A user authorized the Tsukaeru FileBako addon for a project",
+    "rushfiles_node_deauthorized": "A user deauthorized the Tsukaeru FileBako addon for a project",
+    "rushfiles_node_deauthorized_no_user": "Tsukaeru FileBako addon for a project deauthorized"
+}
