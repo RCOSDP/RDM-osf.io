@@ -1989,3 +1989,34 @@ class TestViewUtils(OsfTestCase):
         default_addons = [addon['short_name'] for addon in addon_dicts if addon['default']]
         assert not any('/{}/'.format(addon) in asset_paths for addon in default_addons)
 
+    def zoommeetings_deauthorize_notification_ok(self):
+
+        url = self.project.api_url_for('zoommeetings_deauthorize_notification')
+
+        rv = self.app.post_json(url, {
+            'event': 'app_deauthorized',
+            'payload': {
+                'account_id': 'EabCDEFghiLHMA',
+                'user_id': 'z9jkdsfsdfjhdkfjQ',
+                'signature': '827edc3452044f0bc86bdd5684afb7d1e6becfa1a767f24df1b287853cf73000',
+                'deauthorization_time': '2019-06-17T13:52:28.632Z',
+                'client_id': 'ADZ9k9bTWmGUoUbECUKU_a'
+            }
+        }, headers={'authorization': 'changeme'})
+        assert_true(rv.body)
+
+    def zoommeetings_deauthorize_notification_ng(self):
+
+        url = self.project.api_url_for('zoommeetings_deauthorize_notification')
+
+        rv = self.app.post_json(url, {
+            'event': 'app_deauthorized',
+            'payload': {
+                'account_id': 'EabCDEFghiLHMA',
+                'user_id': 'z9jkdsfsdfjhdkfjQ',
+                'signature': '827edc3452044f0bc86bdd5684afb7d1e6becfa1a767f24df1b287853cf73000',
+                'deauthorization_time': '2019-06-17T13:52:28.632Z',
+                'client_id': 'ADZ9k9bTWmGUoUbECUKU_a'
+            }
+        }, headers={'authorization': 'changeme'})
+        assert_false(rv.body)

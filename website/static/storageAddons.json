@@ -94,5 +94,17 @@
     "onedrivebusiness": {
         "fullName": "OneDrive for Office365",
         "externalView": false
+    },
+    "microsoftteams": {
+        "fullName": "Microsoft Teams",
+        "externalView": false
+    },
+    "webexmeetings": {
+        "fullName": "Webex Meetings",
+        "externalView": false
+    },
+    "zoommeetings": {
+        "fullName": "Zoom Meetings",
+        "externalView": false
     }
 }

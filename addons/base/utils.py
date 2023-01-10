@@ -1,3 +1,4 @@
+import json
 import markupsafe
 from os.path import basename
 from website.settings import MFR_SERVER_URL
@@ -54,3 +55,21 @@ def format_last_known_metadata(auth, node, file, error_type):
         ]
         return ''.join(parts)
     return msg
+
+def getProjectContribs(node):
+
+    projectContribs = []
+    nodeContribs = node.contributors
+
+    for nodeContrib in nodeContribs:
+        if not nodeContrib.is_invited:
+            info = {}
+            info['guid'] = nodeContrib._id
+            info['fullname'] = nodeContrib.fullname
+            info['username'] = nodeContrib.username
+            info['institution'] = (nodeContrib.jobs[0]).get('institution', '') if len(nodeContrib.jobs) else ''
+            info['institutionJa'] = (nodeContrib.jobs[0]).get('institution_ja', '') if len(nodeContrib.jobs) else ''
+            projectContribs.append(info)
+
+    ret = json.dumps(projectContribs)
+    return ret

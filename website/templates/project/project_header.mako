@@ -43,7 +43,7 @@
                         <!-- Add-on tabs  -->
                         % for addon in addons_enabled:
 
-                            % if addon not in ['binderhub', 'metadata'] and addons[addon]['has_page']:
+                            % if addon not in ['binderhub', 'metadata', 'zoommeetings', 'microsoftteams', 'webexmeetings'] and addons[addon]['has_page']:
                                 <li>
                                     <a href="${node['url']}${addons[addon]['short_name']}">
 
@@ -96,6 +96,10 @@
 
                         % if permissions.WRITE in user['permissions'] and not node['is_registration']:
                             <li><a href="${node['url']}addons/">${ _("Add-ons") }</a></li>
+                        % endif
+
+                        % if 'microsoftteams' in addons_enabled or 'webexmeetings' in addons_enabled or 'zoommeetings' in addons_enabled:
+                            <li><a href="${node['url']}webmeetings/">${ _("Web Meetings") }</a></li>
                         % endif
 
                         % if user['has_read_permissions'] and not node['is_registration'] or (node['is_registration'] and permissions.WRITE in user['permissions']):

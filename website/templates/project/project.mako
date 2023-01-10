@@ -476,7 +476,7 @@
             <!-- Show widgets in left column if present -->
             % for addon in addons_enabled:
                 % if addons[addon]['has_widget']:
-                    %if addon != 'wiki' and addon != 'iqbrims': ## We already show the wiki widget at the top
+                    %if addon != 'wiki' and addon != 'iqbrims' and addon != 'zoommeetings' and addon != 'microsoftteams' and addon != 'webexmeetings': ## We already show the wiki widget at the top
                         ${ render_addon_widget.render_addon_widget(addon, addons_widget_data[addon]) }
                     %endif
                 % endif
@@ -491,10 +491,17 @@
     <div class="col-sm-12 col-md-6 osf-dash-col">
         % if addons:
             <!-- Show IQB-RIMS widgets in right column if present -->
+            <!-- Show Web Meetings widgets into one in right column if present -->
+            <% canDisp = True%>
             % for addon in addons_enabled:
                 % if addons[addon]['has_widget']:
                     %if addon == 'iqbrims':
                         ${ render_addon_widget.render_addon_widget(addon, addons_widget_data[addon]) }
+                    %elif addon == 'microsoftteams' or addon == 'webexmeetings' or addon == 'zoommeetings':
+                        %if addons_widget_data[addon]['complete'] and canDisp:
+                            ${ render_addon_widget.render_addon_widget(addon, addons_widget_data[addon]) }
+                            <% canDisp = False%>
+                        %endif
                     %endif
                 % endif
             % endfor

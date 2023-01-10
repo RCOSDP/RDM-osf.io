@@ -1564,6 +1564,44 @@ def make_url_map(app):
         )
     ])
 
+    ### Web Meeting HTML endpoints ###
+    ### Home (Base) | GET ###
+    process_rules(app, [
+        Rule(
+            [
+                '/<pid>/webmeetings/',
+                '/<pid>/node/<nid>/webmeetings/',
+            ],
+            'get',
+            addon_views.project_webmeetings,
+            notemplate
+        ),
+    ])
+
+    process_rules(app, [
+        Rule([
+            '/project/<pid>/webmeetings/config',
+            '/project/<pid>/node/<nid>/webmeetings/config',
+        ], 'get', addon_views.webmeetings_get_config_ember, json_renderer),
+        Rule([
+            '/project/<pid>/webmeetings/config',
+            '/project/<pid>/node/<nid>/webmeetings/config',
+        ], 'patch', addon_views.webmeetings_set_config_ember, json_renderer),
+        Rule([
+            '/project/<pid>/webmeetings/get_meetings',
+            '/project/<pid>/node/<nid>/webmeetings/get_meetings',
+        ], 'get', addon_views.webmeetings_get_meetings, json_renderer),
+    ], prefix='/api/v1')
+
+    process_rules(app, [
+        Rule(
+            '/zoommeetings/deauthorize_notification',
+            'post',
+            addon_views.zoommeetings_deauthorize_notification,
+            json_renderer,
+        ),
+    ], prefix='/api/v1')
+
     # API
 
     process_rules(app, [

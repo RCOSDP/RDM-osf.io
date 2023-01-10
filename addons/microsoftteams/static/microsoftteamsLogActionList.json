@@ -1,0 +1,5 @@
+{
+  "microsoftteams_node_authorized" : "${user} authorized the Microsoft Teams addon for ${node}",
+  "microsoftteams_node_deauthorized" : "${user} deauthorized the Microsoft Teams addon for ${node}",
+  "microsoftteams_node_deauthorized_no_user" : "Microsoft Teams addon for ${node} deauthorized"
+}

@@ -3119,6 +3119,11 @@ kind-of@^4.0.0:
   dependencies:
     is-buffer "^1.1.5"
 
+knockout-date-bindings@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/knockout-date-bindings/-/knockout-date-bindings-1.0.0.tgz#559e39db2d0eb1bc1fdc5ad0426b504c06a06b0f"
+  integrity sha1-VZ452y0Osbwf3FrQQmtQTAagaw8=
+
 knockout.validation@^2.0.2:
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/knockout.validation/-/knockout.validation-2.0.3.tgz#899de5232364e1ecd5d946e080f6a26293046329"

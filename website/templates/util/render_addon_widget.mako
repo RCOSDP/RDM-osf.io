@@ -2,17 +2,27 @@
 
     % if addon_data['complete'] or permissions.WRITE in user['permissions']:
         <div class="panel panel-default" name="${addon_data['short_name']}">
-            <div class="panel-heading clearfix">
-                <h3 class="panel-title">${addon_data['full_name']}</h3>
-                <div class="pull-right">
-                    % if addon_data['has_page']:
-                        <a href="${node['url']}${addon_data['short_name']}"><i class="fa fa-external-link"></i></a>
-                    % endif
-                    % if 'can_expand' in addon_data and addon_data['can_expand']:
+            %if addon_name == 'microsoftteams' or addon_name == 'webexmeetings' or addon_name == 'zoommeetings':
+                <div class="panel-heading clearfix">
+                    <h3 class="panel-title">${_("Web Meetings")}</h3>
+                    <div class="pull-right">
+                        <a href="${node['url']}webmeetings"><i class="fa fa-external-link"></i></a>
                         <button class="btn btn-link project-toggle"><i class="fa fa-angle-down"></i></button>
-                    % endif
+                    </div>
                 </div>
-            </div>
+            % else:
+                <div class="panel-heading clearfix">
+                    <h3 class="panel-title">${addon_data['full_name']}</h3>
+                    <div class="pull-right">
+                        % if addon_data['has_page']:
+                            <a href="${node['url']}${addon_data['short_name']}"><i class="fa fa-external-link"></i></a>
+                        % endif
+                        % if 'can_expand' in addon_data and addon_data['can_expand']:
+                            <button class="btn btn-link project-toggle"><i class="fa fa-angle-down"></i></button>
+                        % endif
+                    </div>
+                </div>
+            % endif
             % if addon_data['complete']:
                 <div class="panel-body">
 
@@ -229,6 +239,71 @@
                           <!-- /ko -->
                         <!-- /ko -->
                       <!-- /ko -->
+                    </div>
+                % endif
+
+                % if addon_name == 'microsoftteams' or addon_name == 'webexmeetings' or addon_name == 'zoommeetings':
+                    % if addon_name == 'microsoftteams':
+                        <div id="webmeetings-content-z" class="scripted"></div>
+                        <div id="webmeetings-content-w" class="scripted"></div>
+                        <div id="webmeetings-content-m" class="scripted">
+                    % elif addon_name == 'webexmeetings':
+                        <div id="webmeetings-content-m" class="scripted"></div>
+                        <div id="webmeetings-content-z" class="scripted"></div>
+                        <div id="webmeetings-content-w" class="scripted">
+                    % elif addon_name == 'zoommeetings':
+                        <div id="webmeetings-content-w" class="scripted"></div>
+                        <div id="webmeetings-content-m" class="scripted"></div>
+                        <div id="webmeetings-content-z" class="scripted">
+                    % endif
+                        <!-- ko if: loading -->
+                        <div>${_("Loading")}</div>
+                        <!-- /ko -->
+                        <!-- ko if: loadFailed -->
+                        <div class="text-danger">${_("Error occurred")}</div>
+                        <!-- /ko -->
+                        <!-- ko if: loadCompleted -->
+                        <h5>${_("Web Meeting Information")}</h5>
+                        <h5 data-bind="visible: !(todaysMeetings().length)" style="padding-top: 0.2em; padding-left: 1.0em;">${_("No Today's Meeting")}</h5>
+                        <div style="padding-left: 1.0em;" data-bind="if: todaysMeetings().length">
+                        <h5 style="display: inline;">${_("Today's Meeting")}</h5>(<h5 style="display: inline;" data-bind="text: today"></h5>)
+                            <table class="table">
+                                <tbody data-bind="foreach: todaysMeetings">
+                                    <tr>
+                                        <td style="width: 20%; padding: initial;">
+                                            <h5 style="margin-left: 10px"><span data-bind="date: fields.start_datetime, dateFormat: 'HH:mm'"></span><span>-</span><span data-bind="date: fields.end_datetime, dateFormat: 'HH:mm'"></span></h5>
+                                        </td>
+                                        <td style="width: 65%; max-width: 200px; padding: initial;">
+                                            <h5 data-bind="text: fields.subject, tooltip:{title: fields.subject}" style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"></h5>
+                                        </td>
+                                        <td style="padding: initial;">
+                                            <h5 style="margin-left: 20px"><button class="fa fa-play" data-bind="click: $root.startMeeting.bind($data, fields.join_url)"></button></h5>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div></div>
+                        <h5 data-bind="visible: !(tomorrowsMeetings().length)" style="padding-top: 0.2em; padding-left: 1.0em;">${_("No Tomorrow's Meeting")}</h5>
+                        <div style="padding-left: 1.0em;" data-bind="if: tomorrowsMeetings().length">
+                        <h5 style="display: inline;">${_("Tomorrow's Meeting")}</h5>(<h5 style="display: inline;" data-bind="text: tomorrow"></h5>)
+                            <table class="table">
+                                <tbody data-bind="foreach: tomorrowsMeetings">
+                                    <tr>
+                                        <td style="width: 20%; padding: initial;">
+                                            <h5 style="margin-left: 10px"><span data-bind="date: fields.start_datetime, dateFormat: 'HH:mm'"></span><span>-</span><span data-bind="date: fields.end_datetime, dateFormat: 'HH:mm'"></span></h5>
+                                        </td>
+                                        <td style="width: 65%; max-width: 200px; padding: initial;">
+                                            <h5 data-bind="text: fields.subject, tooltip:{title: fields.subject}" style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"></h5>
+                                        </td>
+                                        <td style="padding: initial;">
+                                            <h5 style="margin-left: 20px"><button class="fa fa-play" data-bind="click: $root.startMeeting.bind($data, fields.join_url)"></button></h5>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- /ko -->
                     </div>
                 % endif
 

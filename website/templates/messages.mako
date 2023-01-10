@@ -3,6 +3,7 @@ ${_("Fork this Project")}
 ${_("Citations")}
 ${_("Storage")}
 ${_("Other")}
+${_("Web meetings")}
 ${_("No license")}
 ${_("Analysis")}
 ${_("Communication")}

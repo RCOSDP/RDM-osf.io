@@ -1,0 +1,5 @@
+{
+    "zoommeetings_node_authorized" : "A user authorized the Zoom Meetings addon for a project",
+    "zoommeetings_node_deauthorized" : "A user deauthorized the Zoom Meetings addon for a project",
+    "zoommeetings_node_deauthorized_no_user" : "Zoom Meetings addon for a project deauthorized"
+}

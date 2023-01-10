@@ -1,0 +1,5 @@
+{
+  "webexmeetings_node_authorized" : "${user} authorized the Webex Meetings addon for ${node}",
+  "webexmeetings_node_deauthorized" : "${user} deauthorized the Webex Meetings addon for ${node}",
+  "webexmeetings_node_deauthorized_no_user" : "Webex Meetings addon for ${node} deauthorized"
+}

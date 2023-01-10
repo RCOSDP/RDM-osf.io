@@ -373,6 +373,15 @@ ADDONS_OAUTH.append('s3compatb3')
 INSTALLED_APPS += ('addons.nextcloud',)
 ADDONS_FOLDER_CONFIGURABLE.append('nextcloud')
 ADDONS_OAUTH.append('nextcloud')
+INSTALLED_APPS += ('addons.zoommeetings',)
+ADDONS_FOLDER_CONFIGURABLE.append('zoommeetings')
+ADDONS_OAUTH.append('zoommeetings')
+INSTALLED_APPS += ('addons.microsoftteams',)
+ADDONS_FOLDER_CONFIGURABLE.append('microsoftteams')
+ADDONS_OAUTH.append('microsoftteams')
+INSTALLED_APPS += ('addons.webexmeetings',)
+ADDONS_FOLDER_CONFIGURABLE.append('webexmeetings')
+ADDONS_OAUTH.append('webexmeetings')
 
 TST_COMMAND_DELIMITER = ' '
 # RSA key generation settings
