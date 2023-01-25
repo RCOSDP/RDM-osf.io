@@ -9,8 +9,10 @@ import logging
 from . import SHORT_NAME
 from .models import ERadRecord, RegistrationReportFormat, get_draft_files, FIELD_GRDM_FILES, schema_has_field
 from .utils import make_report_as_csv
+from .packages import start_importing, import_project, get_task_result
 from framework.exceptions import HTTPError
 from framework.auth.decorators import must_be_logged_in
+from framework.flask import redirect
 from osf.models import AbstractNode, DraftRegistration, Registration
 from osf.models.metaschema import RegistrationSchema
 from osf.utils.permissions import WRITE
@@ -21,6 +23,7 @@ from website.project.decorators import (
     must_be_contributor,
 )
 from website.ember_osf_web.views import use_ember_app
+from website.util import web_url_for
 
 
 logger = logging.getLogger(__name__)
@@ -153,7 +156,7 @@ def metadata_set_file(auth, filepath=None, **kwargs):
     try:
         addon.set_file_metadata(filepath, request.json, auth=auth)
     except ValueError as e:
-        logger.error('Invalid metadata: ' + str(e))
+        logger.exception('Invalid metadata')
         raise HTTPError(http_status.HTTP_400_BAD_REQUEST)
     return _response_file_metadata(addon, filepath)
 
@@ -320,3 +323,43 @@ def metadata_export_registrations_csv(auth, rid=None, **kwargs):
         return response
     except Registration.DoesNotExist:
         raise HTTPError(http_status.HTTP_404_NOT_FOUND)
+
+@must_be_logged_in
+def metadata_import_project_page(auth):
+    title = request.args.get('title', '')
+    url = request.args.get('url', None)
+    if url is None:
+        logger.warning('Missing parameters: url')
+        raise HTTPError(http_status.HTTP_400_BAD_REQUEST)
+    return {
+        'url': url,
+        'default_title': title,
+    }
+
+@must_be_logged_in
+def metadata_import_project(auth):
+    node = start_importing(auth, request.json['title'])
+    task = import_project.delay(
+        request.json['url'],
+        auth.user._id,
+        node._id,
+    )
+    return {
+        'node_id': node._id,
+        'task_id': task.task_id,
+        'progress_url': web_url_for('metadata_task_progress_page', taskid=task.task_id),
+    }
+
+@must_be_logged_in
+def metadata_task_progress_page(auth, taskid=None, **kwargs):
+    result = get_task_result(auth, taskid)
+    if result['state'] == 'SUCCESS':
+        return redirect(result['info']['node_url'])
+    return {
+        'task_id': taskid,
+        'result': result,
+    }
+
+@must_be_logged_in
+def metadata_task_progress(auth, taskid=None):
+    return get_task_result(auth, taskid)
