@@ -8,7 +8,6 @@ import tempfile
 from stream_unzip import stream_unzip
 from rocrate.rocrate import ROCrate
 from rest_framework import status as http_status
-from flask import request
 import requests
 
 from api.nodes.serializers import NodeSerializer
@@ -68,11 +67,11 @@ class WaterButlerClient(object):
     def upload_file(self, file, file_name, dest_path):
         path = self.resolve_file_path(dest_path)
         return waterbutler.upload_file(self.cookie, self.node._id, file, file_name, path)
-    
+
     def create_folder(self, folder_name, dest_path):
         path = self.resolve_file_path(dest_path)
         waterbutler.create_folder(self.cookie, self.node._id, folder_name, path)
-    
+
     def get_file(self, path):
         path_segments = path.split('/')
         folder = path_segments[-1] == ''

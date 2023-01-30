@@ -155,7 +155,7 @@ def metadata_set_file(auth, filepath=None, **kwargs):
     addon = node.get_addon(SHORT_NAME)
     try:
         addon.set_file_metadata(filepath, request.json, auth=auth)
-    except ValueError as e:
+    except ValueError:
         logger.exception('Invalid metadata')
         raise HTTPError(http_status.HTTP_400_BAD_REQUEST)
     return _response_file_metadata(addon, filepath)
