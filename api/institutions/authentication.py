@@ -408,6 +408,18 @@ class InstitutionAuthentication(BaseAuthentication):
             user.save()
             update_default_storage(user)
 
+        # Update DataSteward status after every time user login
+        if entitlement and 'GakuNinRDMDataSteward' in entitlement:
+            if not user.is_data_steward:
+                # Set user.is_data_steward to True
+                user.is_data_steward = True
+                user.save()
+            # TODO: (1)4.2.2 Force set ProjectAdmin to projects for user
+        else:
+            # Set user.is_data_steward to False
+            user.is_data_steward = False
+            user.save()
+
         # update every login. (for mAP API v1)
         init_cloud_gateway_groups(user, provider)
 
