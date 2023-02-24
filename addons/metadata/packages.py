@@ -218,11 +218,13 @@ def import_project(self, url, user_id, node_id):
 
 def get_task_result(auth, task_id):
     result = celery_app.AsyncResult(task_id)
+    if result.failed():
+        raise result.info
     if result.info is not None and auth.user._id != result.info['user']:
         raise HTTPError(http_status.HTTP_403_FORBIDDEN)
     info = {}
-    info.update(result.info)
-    if 'node' in result.info:
+    info.update(result.info or {})
+    if result.info is not None and 'node' in result.info:
         node = AbstractNode.load(result.info['node'])
         info['node_url'] = node.web_url_for('view_project')
     return {
