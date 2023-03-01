@@ -414,7 +414,6 @@ class InstitutionAuthentication(BaseAuthentication):
                 # Set user.is_data_steward to True
                 user.is_data_steward = True
                 user.save()
-            # TODO: (1)4.2.2 Force set ProjectAdmin to projects for user
         else:
             # Set user.is_data_steward to False
             user.is_data_steward = False
