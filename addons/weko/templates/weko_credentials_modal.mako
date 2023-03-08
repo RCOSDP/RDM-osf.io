@@ -20,7 +20,7 @@
                                         id="hostSelect"
                                         data-bind="options: repositories,
                                                    optionsText: 'name',
-                                                   optionsCaption: '${_("Select a JAIRO Cloud repository")}',
+                                                   optionsCaption: '${_("Select a WEKO repository")}',
                                                    value: selectedRepo,
                                                    event: { change: selectionChanged }">
                                 </select>

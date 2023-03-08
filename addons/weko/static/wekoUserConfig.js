@@ -18,8 +18,6 @@ var ExternalAccount = addonSettings.ExternalAccount;
 
 var $modal = $('#wekoInputCredentials');
 
-var $osf = require('js/osfHelpers');
-
 var _ = require('js/rdmGettext')._;
 var sprintf = require('agh.sprintf').sprintf;
 

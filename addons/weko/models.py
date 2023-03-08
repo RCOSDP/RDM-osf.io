@@ -4,8 +4,11 @@ import logging
 import re
 
 from addons.base import exceptions
-from addons.base.models import (BaseOAuthNodeSettings, BaseOAuthUserSettings,
-                                BaseStorageAddon)
+from addons.base.models import (
+    BaseOAuthNodeSettings,
+    BaseOAuthUserSettings,
+    BaseStorageAddon,
+)
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -44,6 +47,7 @@ class WEKOFolder(WEKOFileNode, Folder):
 class WEKOFile(WEKOFileNode, File):
     version_identifier = 'version'
 
+
 class UserSettings(BaseOAuthUserSettings):
     oauth_provider = WEKOProvider
     serializer = WEKOSerializer
@@ -55,7 +59,9 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
 
     index_title = models.TextField(blank=True, null=True)
     index_id = models.TextField(blank=True, null=True)
-    user_settings = models.ForeignKey(UserSettings, null=True, blank=True, on_delete=models.CASCADE)
+    user_settings = models.ForeignKey(
+        UserSettings, null=True, blank=True, on_delete=models.CASCADE
+    )
 
     _api = None
 
@@ -96,8 +102,11 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
 
         if provider.repoid is None:
             # Basic authentication - for compatibility
-            return Client(provider.sword_url, username=provider.userid,
-                          password=provider.password)
+            return Client(
+                provider.sword_url,
+                username=provider.userid,
+                password=provider.password,
+            )
         token = provider.fetch_access_token()
         return Client(provider.sword_url, token=token)
 
@@ -130,7 +139,7 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
                 project=self,
                 path=path,
                 updated=timezone.now(),
-                last_task_id=task_id
+                last_task_id=task_id,
             )
             return
         m = q.first()
@@ -173,7 +182,11 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
                     auth=auth,
                 )
             except Exception as e:
-                logger.exception('Error when deauthorizing node {0} for user {1}'.format(node._id, self.owner._id))
+                logger.exception(
+                    'Error when deauthorizing node {0} for user {1}'.format(
+                        node._id, self.owner._id
+                    )
+                )
                 raise e
 
     def serialize_waterbutler_credentials(self):
@@ -185,15 +198,19 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
             'default_storage': default_provider.serialize_waterbutler_credentials(),
         }
         if provider.repoid is not None:
-            r.update({
-                'token': self.fetch_access_token(),
-                'user_id': provider.userid,
-            })
+            r.update(
+                {
+                    'token': self.fetch_access_token(),
+                    'user_id': provider.userid,
+                }
+            )
         else:
-            r.update({
-                'password': provider.password,
-                'user_id': provider.userid,
-            })
+            r.update(
+                {
+                    'password': provider.password,
+                    'user_id': provider.userid,
+                }
+            )
         return r
 
     def serialize_waterbutler_settings(self):
@@ -210,11 +227,18 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
         }
 
     def create_waterbutler_log(self, auth, action, metadata):
-        if action in ['file_added', 'folder_created'] and self._is_top_level_draft(metadata) and \
-           not ROCRATE_FILENAME_PATTERN.match(metadata['name']):
+        if (
+            action in ['file_added', 'folder_created']
+            and self._is_top_level_draft(metadata)
+            and not ROCRATE_FILENAME_PATTERN.match(metadata['name'])
+        ):
             logger.debug(f'Generating file metadata: {action}, {metadata}')
             self._generate_draft_metadata(metadata, auth)
-        url = self.owner.web_url_for('addon_view_or_download_file', path=metadata['path'], provider='weko')
+        url = self.owner.web_url_for(
+            'addon_view_or_download_file',
+            path=metadata['path'],
+            provider='weko',
+        )
         self.owner.add_log(
             'weko_{0}'.format(action),
             auth=auth,
@@ -223,10 +247,7 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
                 'node': self.owner._id,
                 'dataset': self.index_title,
                 'filename': metadata['materialized'].strip('/'),
-                'urls': {
-                    'view': url,
-                    'download': url + '?action=download'
-                },
+                'urls': {'view': url, 'download': url + '?action=download'},
             },
         )
 
@@ -304,10 +325,10 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
         url = self.owner.api_url_for(
             'weko_publish_registration',
             index_id=index.identifier,
-            registration_id='<reg>'
+            registration_id='<reg>',
         )
         logger.info(f'URL: {url}')
-        url = url[:url.index('/%3Creg%3E')]
+        url = url[: url.index('/%3Creg%3E')]
         r = [
             {
                 'id': 'weko-' + schema_id + '-' + index.identifier,
@@ -315,16 +336,14 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
                 'url': url,
                 'schema_id': schema_id,
                 'acceptable': ['registration'],
-                'provider': SHORT_NAME,
-                'folder': f'{parent}{index.title}',
             },
         ]
         url = self.owner.api_url_for(
             'weko_publish_draft_registration',
             index_id=index.identifier,
-            draft_registration_id='<reg>'
+            draft_registration_id='<reg>',
         )
-        url = url[:url.index('/%3Creg%3E')]
+        url = url[: url.index('/%3Creg%3E')]
         r += [
             {
                 'id': 'weko-' + schema_id + '-' + index.identifier + '-draft',
@@ -332,12 +351,12 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
                 'url': url,
                 'schema_id': schema_id,
                 'acceptable': ['draft_registration'],
-                'provider': SHORT_NAME,
-                'folder': f'{parent}{index.title}',
             },
         ]
         for child in index.children:
-            r += self._as_destinations(schema_id, child, parent + index.title + ' > ')
+            r += self._as_destinations(
+                schema_id, child, parent + index.title + ' > '
+            )
         return r
 
     def _is_top_level_draft(self, metadata):
@@ -372,21 +391,29 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
 
     def _clean_expired_publish_tasks(self):
         q = self.publish_task.filter(
-            updated__lt=datetime.now() - timedelta(seconds=settings.PUBLISH_TASK_EXPIRATION),
+            updated__lt=datetime.now()
+            - timedelta(seconds=settings.PUBLISH_TASK_EXPIRATION),
         )
         q.delete()
 
 
 class RegistrationMetadataMapping(BaseModel):
-    registration_schema_id = models.CharField(max_length=64, blank=True, null=True)
+    registration_schema_id = models.CharField(
+        max_length=64, blank=True, null=True
+    )
 
     rules = DateTimeAwareJSONField(default=dict, blank=True)
 
 
 class PublishTask(BaseModel):
-    project = models.ForeignKey(NodeSettings, related_name='publish_task',
-                                db_index=True, null=True, blank=True,
-                                on_delete=models.CASCADE)
+    project = models.ForeignKey(
+        NodeSettings,
+        related_name='publish_task',
+        db_index=True,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+    )
 
     path = models.TextField()
 

@@ -2,6 +2,7 @@
 """Contains helper functions for generating correctly
 formatted hgrid list/folders.
 """
+
 import logging
 
 from django.utils import timezone
@@ -32,10 +33,15 @@ DEFAULT_PERMISSIONS = {
     'edit': False,
 }
 
+
 def default_urls(node_api, short_name):
     return {
-        'fetch': u'{node_api}{addonshort}/hgrid/'.format(node_api=node_api, addonshort=short_name),
-        'upload': u'{node_api}{addonshort}/'.format(node_api=node_api, addonshort=short_name),
+        'fetch': '{node_api}{addonshort}/hgrid/'.format(
+            node_api=node_api, addonshort=short_name
+        ),
+        'upload': '{node_api}{addonshort}/'.format(
+            node_api=node_api, addonshort=short_name
+        ),
     }
 
 
@@ -50,9 +56,17 @@ def to_hgrid(node, auth, **data):
     return NodeFileCollector(node, auth, **data).to_hgrid()
 
 
-def build_addon_root(node_settings, name, permissions=None,
-                     urls=None, extra=None, buttons=None, user=None,
-                     private_key=None, **kwargs):
+def build_addon_root(
+    node_settings,
+    name,
+    permissions=None,
+    urls=None,
+    extra=None,
+    buttons=None,
+    user=None,
+    private_key=None,
+    **kwargs,
+):
     """Builds the root or "dummy" folder for an addon.
 
     :param addonNodeSettingsBase node_settings: Addon settings
@@ -74,22 +88,30 @@ def build_addon_root(node_settings, name, permissions=None,
 
     permissions = permissions or DEFAULT_PERMISSIONS
     if name and not check_private_key_for_anonymized_link(private_key):
-        name = u'{0}: {1}'.format(node_settings.config.full_name, name)
+        name = '{0}: {1}'.format(node_settings.config.full_name, name)
     else:
         name = node_settings.config.full_name
     if hasattr(node_settings.config, 'urls') and node_settings.config.urls:
         urls = node_settings.config.urls
     if urls is None:
-        urls = default_urls(node_settings.owner.api_url, node_settings.config.short_name)
+        urls = default_urls(
+            node_settings.owner.api_url, node_settings.config.short_name
+        )
 
-    forbid_edit = DISK_SAVING_MODE if node_settings.config.short_name == 'osfstorage' else False
+    forbid_edit = (
+        DISK_SAVING_MODE
+        if node_settings.config.short_name == 'osfstorage'
+        else False
+    )
     if isinstance(permissions, Auth):
         auth = permissions
         permissions = {
             'view': node_settings.owner.can_view(auth),
-            'edit': (node_settings.owner.can_edit(auth)
-                     and not node_settings.owner.is_registration
-                     and not forbid_edit),
+            'edit': (
+                node_settings.owner.can_edit(auth)
+                and not node_settings.owner.is_registration
+                and not forbid_edit
+            ),
         }
 
     max_size = node_settings.config.max_file_size
@@ -139,27 +161,35 @@ def build_addon_button(text, action, title=''):
         'action': action,
     }
     if title:
-        button['attributes'] = 'title="{title}" data-toggle="tooltip" data-placement="right" '.format(title=title)
+        button['attributes'] = (
+            'title="{title}" data-toggle="tooltip" data-placement="right" '.format(
+                title=title
+            )
+        )
     return button
 
 
 def sort_by_name(hgrid_data):
     return_value = hgrid_data
     if hgrid_data is not None:
-        return_value = sorted(hgrid_data, key=lambda item: item['name'].lower())
+        return_value = sorted(
+            hgrid_data, key=lambda item: item['name'].lower()
+        )
     return return_value
 
 
 class NodeFileCollector(object):
-
     """A utility class for creating rubeus formatted node data"""
+
     def __init__(self, node, auth, **kwargs):
         NodeRelation = apps.get_model('osf.NodeRelation')
         self.node = node.child if isinstance(node, NodeRelation) else node
         self.auth = auth
         self.extra = kwargs
         self.can_view = self.node.can_view(auth)
-        self.can_edit = self.node.can_edit(auth) and not self.node.is_registration
+        self.can_edit = (
+            self.node.can_edit(auth) and not self.node.is_registration
+        )
 
     def to_hgrid(self):
         """
@@ -179,16 +209,25 @@ class NodeFileCollector(object):
 
         new_branches = []
 
-        linked_node_sqs = node.node_relations.filter(is_node_link=True, child=OuterRef('pk'))
+        linked_node_sqs = node.node_relations.filter(
+            is_node_link=True, child=OuterRef('pk')
+        )
         if self.auth and self.auth.user:
-            can_write = Node.objects.get_nodes_for_user(self.auth.user, WRITE_NODE, node._nodes.all())
+            can_write = Node.objects.get_nodes_for_user(
+                self.auth.user, WRITE_NODE, node._nodes.all()
+            )
         else:
             can_write = node._nodes.none()
         descendants_qs = (
-            node._nodes
-            .filter(is_deleted=False)
+            node._nodes.filter(is_deleted=False)
             .annotate(is_linked_node=Exists(linked_node_sqs))
-            .annotate(has_write_perm=Case(When(id__in=can_write, then=Value(1)), default=Value(0), output_field=IntegerField()))
+            .annotate(
+                has_write_perm=Case(
+                    When(id__in=can_write, then=Value(1)),
+                    default=Value(0),
+                    output_field=IntegerField(),
+                )
+            )
             .order_by('_parents')
         )
 
@@ -200,13 +239,21 @@ class NodeFileCollector(object):
                 visited.append(descendant._id)
 
         for bnode in new_branches:
-            for descendant in self.find_readable_descendants(bnode, visited=visited):
+            for descendant in self.find_readable_descendants(
+                bnode, visited=visited
+            ):
                 yield descendant
 
-    def _serialize_node(self, node, parent=None, grid_root=None, children=None):
+    def _serialize_node(
+        self, node, parent=None, grid_root=None, children=None
+    ):
         children = children or []
         is_pointer = parent and node.is_linked_node
-        can_edit = node.has_write_perm if hasattr(node, 'has_write_perm') else node.can_edit(auth=self.auth)
+        can_edit = (
+            node.has_write_perm
+            if hasattr(node, 'has_write_perm')
+            else node.can_edit(auth=self.auth)
+        )
 
         # Determines if `node` is within two levels of `grid_root`
         # Used to prevent complete serialization of deeply nested projects
@@ -249,20 +296,10 @@ class NodeFileCollector(object):
 
     def _collect_addons(self, node):
         rv = []
-        region_disabled = False
-        region_provider = None
-        osfstorage = node.get_addon('osfstorage')
-        if osfstorage:
-            region = osfstorage.region
-            if region and region.waterbutler_settings:
-                region_disabled = region.waterbutler_settings.get(
-                    'disabled', False)
-                storage = region.waterbutler_settings.get('storage', None)
-                if storage:
-                    region_provider = storage.get('provider', None)
 
         # GRDM-36019 Package Export/Import
         from addons.metadata.apps import SHORT_NAME as METADATA_SHORT_NAME
+
         metadata_addon = node.get_addon(METADATA_SHORT_NAME)
 
         for addon in node.get_addons():
@@ -275,37 +312,55 @@ class NodeFileCollector(object):
 
                 # WARNING: get_hgrid_data can return None if the addon is added but has no credentials.
                 try:
-                    temp = addon.config.get_hgrid_data(addon, self.auth, **self.extra)
+                    temp = addon.config.get_hgrid_data(
+                        addon, self.auth, **self.extra
+                    )
                     # GRDM-36019 Package Export/Import
                     # Display as error if add-on is not set and metadata add-on has settings
-                    if temp is None and metadata_addon is not None and metadata_addon.has_imported_addon_settings_for(addon):
-                        temp = [{
-                            KIND: FOLDER,
-                            'name': '{} is not configured'.format(addon.config.full_name),
-                            'addonFullname': addon.config.full_name,
-                            'provider': addon.config.short_name,
-                            'iconUrl': addon.config.icon_url,
-                            'permissions': {'view': False, 'edit': False},
-                            'unavailable': True,
-                        }]
+                    if (
+                        temp is None
+                        and metadata_addon is not None
+                        and metadata_addon.has_imported_addon_settings_for(
+                            addon
+                        )
+                    ):
+                        temp = [
+                            {
+                                KIND: FOLDER,
+                                'name': '{} is not configured'.format(
+                                    addon.config.full_name
+                                ),
+                                'addonFullname': addon.config.full_name,
+                                'provider': addon.config.short_name,
+                                'iconUrl': addon.config.icon_url,
+                                'permissions': {'view': False, 'edit': False},
+                                'unavailable': True,
+                            }
+                        ]
                 except Exception as e:
                     logger.warn(
                         getattr(
                             e,
                             'data',
-                            'Unexpected error when fetching file contents for {0}.'.format(addon.config.full_name)
+                            'Unexpected error when fetching file contents for {0}.'.format(
+                                addon.config.full_name
+                            ),
                         )
                     )
                     sentry.log_exception()
-                    rv.append({
-                        KIND: FOLDER,
-                        'unavailable': True,
-                        'iconUrl': addon.config.icon_url,
-                        'provider': addon.config.short_name,
-                        'addonFullname': addon.config.full_name,
-                        'permissions': {'view': False, 'edit': False},
-                        'name': '{} is currently unavailable'.format(addon.config.full_name),
-                    })
+                    rv.append(
+                        {
+                            KIND: FOLDER,
+                            'unavailable': True,
+                            'iconUrl': addon.config.icon_url,
+                            'provider': addon.config.short_name,
+                            'addonFullname': addon.config.full_name,
+                            'permissions': {'view': False, 'edit': False},
+                            'name': '{} is currently unavailable'.format(
+                                addon.config.full_name
+                            ),
+                        }
+                    )
                     continue
                 rv.extend(sort_by_name(temp) or [])
         return rv
@@ -325,7 +380,9 @@ def collect_addon_assets(node):
 
 
 # TODO: Abstract static collectors
-def collect_addon_js(node, visited=None, filename='files.js', config_entry='files'):
+def collect_addon_js(
+    node, visited=None, filename='files.js', config_entry='files'
+):
     """Collect JavaScript includes for all add-ons implementing HGrid views.
 
     :return list: List of JavaScript include paths

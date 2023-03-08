@@ -1488,10 +1488,6 @@ function _createFile(event, dismissCallback, helpText, extension) {
     });
 }
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 4e76d269f9 (Add office file edit function. (ONLYOFFICE interface))
 /**
  * Deletes the item, only appears for items
  * @param event DOM event object for click
@@ -1997,10 +1993,10 @@ function _connectCheckTemplate(item){
 function _addonConfigureTemplate(item){
     var tb = this;
     return m('span.text-warning', [
-        m('span', sprintf(gettext('%1$s is not configured'), item.data.addonFullname)),
+        m('span', item.data.name),
         m('a.btn.btn-xs.btn-default.m-l-xs', {
             href: 'addons/'
-        }, [m('i.fa.fa-cog'), gettext(' Restore Add-ons')])
+        }, [m('i.fa.fa-cog'), ' Configure'])
     ]);
 }
 

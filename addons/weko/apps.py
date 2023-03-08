@@ -4,18 +4,14 @@ from addons.base.apps import BaseAddonAppConfig, generic_root_folder
 weko_root_folder = generic_root_folder('weko')
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-TEMPLATE_PATH = os.path.join(
-    HERE,
-    'templates'
-)
+TEMPLATE_PATH = os.path.join(HERE, 'templates')
 
 SHORT_NAME = 'weko'
-FULL_NAME = 'JAIRO Cloud'
+FULL_NAME = 'WEKO'
 NAME = 'addons.weko'
 
 
 class WEKOAddonAppConfig(BaseAddonAppConfig):
-
     name = NAME
     label = 'addons_weko'
     full_name = FULL_NAME
@@ -25,8 +21,12 @@ class WEKOAddonAppConfig(BaseAddonAppConfig):
     categories = ['storage']
     has_hgrid_files = True
     max_file_size = 128  # MB
-    node_settings_template = os.path.join(TEMPLATE_PATH, 'weko_node_settings.mako')
-    user_settings_template = os.path.join(TEMPLATE_PATH, 'weko_user_settings.mako')
+    node_settings_template = os.path.join(
+        TEMPLATE_PATH, 'weko_node_settings.mako'
+    )
+    user_settings_template = os.path.join(
+        TEMPLATE_PATH, 'weko_user_settings.mako'
+    )
 
     # WEKO addon is not allowed by default
     # - It can be activated by the institution administrator.
@@ -45,18 +45,21 @@ class WEKOAddonAppConfig(BaseAddonAppConfig):
     NODE_DEAUTHORIZED = 'weko_node_deauthorized'
     NODE_DEAUTHORIZED_NO_USER = 'weko_node_deauthorized_no_user'
 
-    actions = (INDEX_LINKED,
+    actions = (
+        INDEX_LINKED,
         FILE_ADDED,
         FILE_REMOVED,
         FOLDER_CREATED,
         ITEM_DEPOSITED,
         NODE_AUTHORIZED,
         NODE_DEAUTHORIZED,
-        NODE_DEAUTHORIZED_NO_USER)
+        NODE_DEAUTHORIZED_NO_USER,
+    )
 
     @property
     def routes(self):
         from . import routes
+
         return [routes.oauth_routes, routes.api_routes]
 
     @property

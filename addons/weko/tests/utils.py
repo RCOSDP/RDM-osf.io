@@ -10,17 +10,7 @@ fake_weko_indices = [
     {
         'id': 100,
         'name': 'Sample Index',
-        'children': [
-            {
-                'id': 'more',
-            },
-            {
-                'id': 'dummy',
-            }
-        ],
-    },
-    {
-        'id': 'more',
+        'children': [],
     },
 ]
 fake_weko_item = {
@@ -33,12 +23,10 @@ fake_weko_items = {
     'hits': {
         'hits': [
             fake_weko_item,
-            {
-                'id': 'dummy',
-            }
         ]
     },
 }
+
 
 class MockResponse:
     def __init__(self, json, status_code):
@@ -58,14 +46,9 @@ mock_response_404 = MockResponse('404 not found', 404)
 
 
 class WEKOAddonTestCase(OAuthAddonTestCaseMixin, AddonTestCase):
-
     ADDON_SHORT_NAME = 'weko'
     ExternalAccountFactory = WEKOAccountFactory
     Provider = WEKOProvider
     Serializer = WEKOSerializer
     client = None
-    folder = {
-    	'path': 'container',
-    	'name': 'container',
-    	'id': 'container'
-	}
+    folder = {'path': 'container', 'name': 'container', 'id': 'container'}

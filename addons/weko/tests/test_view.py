@@ -7,38 +7,46 @@ from nose.tools import *  # noqa
 
 from framework.auth import Auth
 from tests.base import OsfTestCase, get_default_metaschema
-from osf_tests.factories import AuthUserFactory, InstitutionFactory, ExternalAccountFactory
+from osf_tests.factories import (
+    AuthUserFactory,
+    InstitutionFactory,
+    ExternalAccountFactory,
+)
 from framework.exceptions import HTTPError
 
-from addons.base.tests.views import (
-    OAuthAddonConfigViewsTestCaseMixin
-)
+from addons.base.tests.views import OAuthAddonConfigViewsTestCaseMixin
 from addons.weko.tests.utils import WEKOAddonTestCase
 from website.util import api_url_for
 from addons.weko.tests import utils
 from admin.rdm_addons.utils import get_rdm_addon_option
 
 
-logger = logging.getLogger(__name__)
 fake_host = 'https://weko3.test.nii.ac.jp/weko/sword/'
 
 
 def mock_requests_get(url, **kwargs):
-    if url == 'https://weko3.test.nii.ac.jp/weko/api/tree?action=browsing':
+    if url == 'https://weko3.test.nii.ac.jp/weko/api/tree':
         return utils.MockResponse(utils.fake_weko_indices, 200)
-    if url == 'https://weko3.test.nii.ac.jp/weko/api/index/?q=100':
+    if (
+        url
+        == 'https://weko3.test.nii.ac.jp/weko/api/index/?search_type=2&q=100'
+    ):
         return utils.MockResponse(utils.fake_weko_items, 200)
     if url == 'https://weko3.test.nii.ac.jp/weko/api/records/1000':
         return utils.MockResponse(utils.fake_weko_item, 200)
     return utils.mock_response_404
 
 
-class TestWEKOViews(WEKOAddonTestCase, OAuthAddonConfigViewsTestCaseMixin, OsfTestCase):
+class TestWEKOViews(
+    WEKOAddonTestCase, OAuthAddonConfigViewsTestCaseMixin, OsfTestCase
+):
     def setUp(self):
         self.mock_requests_get = mock.patch('requests.get')
         self.mock_requests_get.side_effect = mock_requests_get
         self.mock_requests_get.start()
-        self.mock_find_repository = mock.patch('addons.weko.provider.find_repository')
+        self.mock_find_repository = mock.patch(
+            'addons.weko.provider.find_repository'
+        )
         self.mock_find_repository.return_value = {
             'host': fake_host,
             'client_id': None,
@@ -53,21 +61,29 @@ class TestWEKOViews(WEKOAddonTestCase, OAuthAddonConfigViewsTestCaseMixin, OsfTe
         self.user.affiliated_institutions.add(self.institution)
         self.user.save()
 
-        rdm_addon_option = get_rdm_addon_option(self.institution.id, self.ADDON_SHORT_NAME)
+        rdm_addon_option = get_rdm_addon_option(
+            self.institution.id, self.ADDON_SHORT_NAME
+        )
         rdm_addon_option.is_allowed = True
         rdm_addon_option.save()
 
         self.repository_external_account = ExternalAccountFactory()
-        self.repository_external_account.display_name = 'https://test.nii.ac.jp#WEKO test account'
+        self.repository_external_account.display_name = (
+            'https://test.nii.ac.jp#WEKO test account'
+        )
         self.repository_external_account.save()
-        rdm_addon_option.external_accounts.add(self.repository_external_account)
+        rdm_addon_option.external_accounts.add(
+            self.repository_external_account
+        )
 
         self.user_has_repo = AuthUserFactory()
         self.user_has_repo.affiliated_institutions.add(self.institution)
 
         self.no_repo_institution = InstitutionFactory()
         self.user_has_no_repo = AuthUserFactory()
-        self.user_has_no_repo.affiliated_institutions.add(self.no_repo_institution)
+        self.user_has_no_repo.affiliated_institutions.add(
+            self.no_repo_institution
+        )
         self.project.add_contributor(self.user_has_no_repo)
 
     def tearDown(self):
@@ -85,12 +101,15 @@ class TestWEKOViews(WEKOAddonTestCase, OAuthAddonConfigViewsTestCaseMixin, OsfTe
         assert_false(res.json['result']['userHasAuth'])
         assert_in('urls', res.json['result'])
         assert_in('repositories', res.json['result'])
-        assert_equal(res.json['result']['repositories'], [
-            {
-                'id': self.repository_external_account.provider_id,
-                'name': 'WEKO test account'
-            }
-        ])
+        assert_equal(
+            res.json['result']['repositories'],
+            [
+                {
+                    'id': self.repository_external_account.provider_id,
+                    'name': 'WEKO test account',
+                }
+            ],
+        )
 
         res = self.app.get(url, auth=self.user_has_no_repo.auth)
         logger.info(res.json)
@@ -103,28 +122,21 @@ class TestWEKOViews(WEKOAddonTestCase, OAuthAddonConfigViewsTestCaseMixin, OsfTe
         assert_equal(res.json['result']['repositories'], [])
 
     def test_weko_settings_rdm_addons_denied(self):
-        rdm_addon_option = get_rdm_addon_option(self.institution.id, self.ADDON_SHORT_NAME)
+        rdm_addon_option = get_rdm_addon_option(
+            self.institution.id, self.ADDON_SHORT_NAME
+        )
         rdm_addon_option.is_allowed = False
         rdm_addon_option.save()
-        try:
-            url = self.project.api_url_for('weko_oauth_connect', repoid='test')
-            rv = self.app.get(
-                url,
-                auth=self.user.auth,
-                expect_errors=True
-            )
-            assert_equal(rv.status_int, http_status.HTTP_403_FORBIDDEN)
-        finally:
-            rdm_addon_option.is_allowed = True
-            rdm_addon_option.save()
+        url = self.project.api_url_for('weko_oauth_connect', repoid='test')
+        rv = self.app.get(url, auth=self.user.auth, expect_errors=True)
+        assert_equal(rv.status_int, http_status.HTTP_403_FORBIDDEN)
 
     def test_weko_set_index_no_settings(self):
         user = AuthUserFactory()
         self.project.add_contributor(user, save=True)
         url = self.project.api_url_for('weko_set_config')
         res = self.app.put_json(
-            url, {'index': 'hammertofall'}, auth=user.auth,
-            expect_errors=True
+            url, {'index': 'hammertofall'}, auth=user.auth, expect_errors=True
         )
         assert_equal(res.status_code, http_status.HTTP_400_BAD_REQUEST)
 
@@ -134,15 +146,16 @@ class TestWEKOViews(WEKOAddonTestCase, OAuthAddonConfigViewsTestCaseMixin, OsfTe
         self.project.add_contributor(user, save=True)
         url = self.project.api_url_for('weko_set_config')
         res = self.app.put_json(
-            url, {'index': 'hammertofall'}, auth=user.auth,
-            expect_errors=True
+            url, {'index': 'hammertofall'}, auth=user.auth, expect_errors=True
         )
         assert_equal(res.status_code, http_status.HTTP_403_FORBIDDEN)
 
     def test_weko_remove_node_settings_owner(self):
         url = self.node_settings.owner.api_url_for('weko_deauthorize_node')
         ret = self.app.delete(url, auth=self.user.auth)
-        result = self.Serializer().serialize_settings(node_settings=self.node_settings, current_user=self.user)
+        result = self.Serializer().serialize_settings(
+            node_settings=self.node_settings, current_user=self.user
+        )
         assert_equal(result['nodeHasAuth'], False)
 
     def test_weko_remove_node_settings_unauthorized(self):
@@ -171,34 +184,44 @@ class TestWEKOViews(WEKOAddonTestCase, OAuthAddonConfigViewsTestCaseMixin, OsfTe
         assert_equal(ret.status_code, 403)
 
     def test_get_config(self):
-        url = self.project.api_url_for('{0}_get_config'.format(self.ADDON_SHORT_NAME))
+        url = self.project.api_url_for(
+            '{0}_get_config'.format(self.ADDON_SHORT_NAME)
+        )
         res = self.app.get(url, auth=self.user.auth)
         assert_equal(res.status_code, http_status.HTTP_200_OK)
         assert_in('result', res.json)
         serialized = self.Serializer().serialize_settings(
-            self.node_settings,
-            self.user,
-            self.client
+            self.node_settings, self.user, self.client
         )
         serialized_except_repos = dict(
-            [(key, value) for key, value in serialized.items() if key != 'repositories']
+            [
+                (key, value)
+                for key, value in serialized.items()
+                if key != 'repositories'
+            ]
         )
         result_except_repos = dict(
-            [(key, value) for key, value in res.json['result'].items() if key != 'repositories']
+            [
+                (key, value)
+                for key, value in res.json['result'].items()
+                if key != 'repositories'
+            ]
         )
         assert_equal(serialized_except_repos, result_except_repos)
         assert_equal(len(res.json['result']['repositories']), 1)
-        assert_equal(res.json['result']['repositories'][0]['name'], 'WEKO test account')
+        assert_equal(
+            res.json['result']['repositories'][0]['name'], 'WEKO test account'
+        )
 
     def test_get_config_for_user_has_no_repo(self):
-        url = self.project.api_url_for('{0}_get_config'.format(self.ADDON_SHORT_NAME))
+        url = self.project.api_url_for(
+            '{0}_get_config'.format(self.ADDON_SHORT_NAME)
+        )
         res = self.app.get(url, auth=self.user_has_no_repo.auth)
         assert_equal(res.status_code, http_status.HTTP_200_OK)
         assert_in('result', res.json)
         serialized = self.Serializer().serialize_settings(
-            self.node_settings,
-            self.user_has_no_repo,
-            self.client
+            self.node_settings, self.user_has_no_repo, self.client
         )
         assert_equal(serialized, res.json['result'])
 

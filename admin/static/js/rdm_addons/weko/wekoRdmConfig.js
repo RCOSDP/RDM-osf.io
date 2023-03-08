@@ -34,7 +34,7 @@ function parseDisplayName(displayName) {
 
 const ViewModel = oop.extend(OAuthAddonSettingsViewModel, {
     constructor: function(url, institutionId) {
-        this.super.constructor.call(this, 'weko', 'JAIRO Cloud', institutionId);
+        this.super.constructor.call(this, 'weko', 'WEKO', institutionId);
         WEKOHostSettingsMixin.call(this);
 
         this.url = url;
@@ -61,9 +61,7 @@ const ViewModel = oop.extend(OAuthAddonSettingsViewModel, {
                     externalAccount.wekoName = displayName.name;
                     return externalAccount;
                 }));
-                $('#weko-header')
-                    .css('overflow', 'hidden')
-                    .osfToggleHeight({height: 160});
+                $('#weko-header').osfToggleHeight({height: 160});
             })
             .fail(function(xhr, status, error) {
                 self.changeMessage(language.accountsError, 'text-danger');
@@ -88,7 +86,7 @@ const ViewModel = oop.extend(OAuthAddonSettingsViewModel, {
             callback();
         }).fail(function(xhr, textStatus, error) {
             self.changeMessage(language.accountsError, 'text-danger');
-            Raven.captureMessage(_('Could not set accounts for JAIRO Cloud'), {
+            Raven.captureMessage(_('Could not set accounts for WEKO'), {
                 extra: {
                     url: self.url,
                     textStatus: textStatus,
@@ -104,9 +102,9 @@ const ViewModel = oop.extend(OAuthAddonSettingsViewModel, {
     askDisconnect: function(account) {
         var self = this;
         bootbox.confirm({
-            title: _('Delete JAIRO Cloud Application?'),
+            title: _('Disconnect WEKO Application?'),
             message: '<p class="overflow">' +
-                sprintf(_('Are you sure you want to delete the JAIRO Cloud application <strong>%1$s</strong>? JAIRO Cloud add-on connections already set up for the projects will be preserved.'),osfHelpers.htmlEscape(account.name)) +
+                sprintf(_('Are you sure you want to disconnect the WEKO application on <strong>%1$s</strong>? This will revoke access to WEKO for all projects associated with this account.'),osfHelpers.htmlEscape(account.name)) +
                 '</p>',
             callback: function (confirm) {
                 if (confirm) {

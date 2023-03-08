@@ -1,7 +1,6 @@
 import logging
 import requests
 from requests.exceptions import HTTPError
-from .settings import DEFAULT_TIMEOUT
 
 
 logger = logging.getLogger(__name__)
@@ -14,25 +13,12 @@ def _flatten_indices(indices):
         r += _flatten_indices(i.children)
     return r
 
-def _is_valid_index(desc):
-    if 'name' in desc and 'id' in desc:
-        return True
-    if 'id' in desc and desc['id'] == 'more':
-        return False
-    logger.warning('Unexpected index description: %s', desc)
-    return False
-
-def _is_valid_item(desc):
-    if 'metadata' in desc:
-        return True
-    logger.warning('Unexpected item description: %s', desc)
-    return False
-
 
 class Client(object):
     """
     WEKO Client
     """
+
     host = None
     token = None
     username = None
@@ -47,12 +33,16 @@ class Client(object):
             self.host += '/'
 
     def get_login_user(self, default_user=None):
-        resp = requests.get(self._base_host + 'api/get_profile_info/', **self._requests_args())
+        resp = requests.get(
+            self._base_host + 'api/get_profile_info/', **self._requests_args()
+        )
         if resp.status_code != 200:
             resp.raise_for_status()
         if self.username is not None:
             default_user = self.username
-        logger.debug(f'WEKO service-document headers={resp.headers}, json={resp.json()}')
+        logger.debug(
+            f'WEKO service-document headers={resp.headers}, json={resp.json()}'
+        )
         results = resp.json().get('results', {})
         return results.get('subitem_mail_address', default_user)
 
@@ -60,16 +50,18 @@ class Client(object):
         """
         Get all indices from the WEKO.
         """
-        root = self._get('api/tree?action=browsing')
+        root = self._get('api/tree')
         indices = []
         for desc in root:
-            if not _is_valid_index(desc):
-                continue
             indices.append(Index(self, desc))
         return indices
 
     def get_index_by_id(self, index_id):
-        indices = [i for i in _flatten_indices(self.get_indices()) if str(i.identifier) == str(index_id)]
+        indices = [
+            i
+            for i in _flatten_indices(self.get_indices())
+            if str(i.identifier) == str(index_id)
+        ]
         if len(indices) == 0:
             raise ValueError(f'No index for id = {index_id}')
         return indices[0]
@@ -78,10 +70,12 @@ class Client(object):
         return self._base_host + 'records/' + item_id
 
     def get_index_items_url(self, index_id):
-        return self._base_host + 'search?q=' + index_id
+        return self._base_host + 'search?search_type=2&q=' + index_id
 
     def deposit(self, files, headers=None):
-        return self._post('sword/service-document', files=files, headers=headers)
+        return self._post(
+            'sword/service-document', files=files, headers=headers
+        )
 
     def request_headers(self, headers=None):
         return self._requests_args(headers=headers).get('headers', {})
@@ -101,26 +95,31 @@ class Client(object):
         resp = requests.post(
             self._base_host + path,
             files=files,
-            **self._requests_args(headers=headers)
+            **self._requests_args(headers=headers),
         )
-        logger.info(f'_post: url={self._base_host + path}, status={resp.status_code}, response={resp.content}')
+        logger.info(
+            f'_post: url={self._base_host + path}, status={resp.status_code}, response={resp.content}'
+        )
         if resp.status_code == 400:
             error_reason = resp.json()
             error_type = error_reason.get('@type', 'Unknown')
             error_message = error_reason.get('error', 'Unknown')
-            raise HTTPError(f'Bad Request for URL: {self._base_host + path}: type={error_type}, message={error_message}')
+            raise HTTPError(
+                f'Bad Request for URL: {self._base_host + path}: type={error_type}, message={error_message}'
+            )
         resp.raise_for_status()
         return resp.json()
 
     def _requests_args(self, headers=None):
         if self.token is not None:
             headers = headers.copy() if headers is not None else {}
-            token = self.token.decode('utf8') if isinstance(self.token, bytes) else self.token
+            token = (
+                self.token.decode('utf8')
+                if isinstance(self.token, bytes)
+                else self.token
+            )
             headers['Authorization'] = 'Bearer ' + token
-            return {
-                'headers': headers,
-                'timeout': DEFAULT_TIMEOUT,
-            }
+            return {'headers': headers}
         elif headers is not None:
             return {
                 'auth': (self.username, self.password),
@@ -138,6 +137,7 @@ class Index(object):
     """
     WEKO Index
     """
+
     client = None
     raw = None
     parent = None
@@ -157,21 +157,17 @@ class Index(object):
 
     @property
     def children(self):
-        if 'children' not in self.raw:
-            return []
         return [
-            Index(self.client, i, parent=self)
-            for i in self.raw['children']
-            if _is_valid_index(i)
+            Index(self.client, i, parent=self) for i in self.raw['children']
         ]
 
     def get_items(self):
-        root = self.client._get(f'api/index/?q={self.identifier}')
+        root = self.client._get(
+            f'api/index/?search_type=2&q={self.identifier}'
+        )
         logger.debug(f'get_items: {root}')
         items = []
         for entry in root['hits']['hits']:
-            if not _is_valid_item(entry):
-                continue
             logger.debug(f'get_item: {entry}')
             items.append(Item(entry))
         return items
@@ -186,6 +182,7 @@ class Item(object):
     """
     WEKO Item
     """
+
     raw = None
     index = None
 
@@ -221,16 +218,26 @@ class Item(object):
 
     @property
     def files(self):
-        file_items = [k
-                      for k, v in self._metadata.items()
-                      if k.startswith('item_') and 'attribute_type' in v and v['attribute_type'] == 'file']
-        return [File(file_item) for file_item in self._metadata[file_items[0]]['attribute_value_mlt']]
+        file_items = [
+            k
+            for k, v in self._metadata.items()
+            if k.startswith('item_')
+            and 'attribute_type' in v
+            and v['attribute_type'] == 'file'
+        ]
+        return [
+            File(file_item)
+            for file_item in self._metadata[file_items[0]][
+                'attribute_value_mlt'
+            ]
+        ]
 
 
 class File(object):
     """
     WEKO File
     """
+
     raw = None
     item = None
 

@@ -1,13 +1,13 @@
 {
     "@metadata": {
         "itemtype": {
-            "name": "デフォルトアイテムタイプ（フル）(30002)",
-            "schema": "https://localhost:8443/items/jsonschema/30002"
+            "name": "デフォルトアイテムタイプ（フル）(15)",
+            "schema": "https://localhost:8443/items/jsonschema/15"
         }
     },
     "@files": {
         "@type": "object",
-        "metadata.item_30002_file35[]": {
+        "metadata.item_1617605131499[]": {
             "filename": "{{object_filename}}",
             "format": "{{object_format}}",
             "displaytype": "preview",
@@ -20,8 +20,8 @@
     },
     "@projects": {
         "@type": "object",
-        "metadata.item_30002_funding_reference21[]": {
-            "subitem_funder_identifiers": {
+        "metadata.item_1617186901218[]": {
+            "subitem_funder_identifier": {
                 "@createIf": "{{ funder_value }}",
                 "subitem_funder_identifier_type": "e-Rad_funder"
             },
@@ -40,17 +40,12 @@
                 "subitem_funding_stream_identifier": "{{funding_stream_code_value}}",
                 "subitem_funding_stream_identifier_type": "JGN_fundingStream"
             },
-            "subitem_funding_streams[FUNDING_STREAM_JA]": {
+            "subitem_funding_streams": {
                 "@createIf": "{{ program_name_ja_value }}",
                 "subitem_funding_stream": "{{program_name_ja_value}}",
                 "subitem_funding_stream_language": "ja"
             },
-            "subitem_funding_streams[FUNDING_STREAM_EN]": {
-                "@createIf": "{{ program_name_en_value }}",
-                "subitem_funding_stream": "{{program_name_en_value}}",
-                "subitem_funding_stream_language": "en"
-            },
-            "subitem_award_numbers": {
+            "subitem_award_number": {
                 "@createIf": "{{ japan_grant_number_value }}",
                 "subitem_award_number_type": "JGN",
                 "subitem_award_number": "{{japan_grant_number_value}}"
@@ -74,7 +69,7 @@
     "grdm-file:title-ja": {
         "@type": "string",
         "@createIf": "{{value}}",
-        "metadata.item_30002_title0[]": {
+        "metadata.item_1617186331708[]": {
             "subitem_title": "{{value}}",
             "subitem_title_language": "ja"
         }
@@ -82,7 +77,7 @@
     "grdm-file:title-en": {
         "@type": "string",
         "@createIf": "{{value}}",
-        "metadata.item_30002_title0[]": {
+        "metadata.item_1617186331708[]": {
             "subitem_title": "{{value}}",
             "subitem_title_language": "en"
         }
@@ -91,7 +86,7 @@
     "grdm-file:data-description-ja": {
         "@type": "string",
         "@createIf": "{{value}}",
-        "metadata.item_30002_description9[]": {
+        "metadata.item_1617186626617[]": {
             "subitem_description_type": "Abstract",
             "subitem_description": "{{value}}",
             "subitem_description_language": "ja"
@@ -100,7 +95,7 @@
     "grdm-file:data-description-en": {
         "@type": "string",
         "@createIf": "{{value}}",
-        "metadata.item_30002_description9[]": {
+        "metadata.item_1617186626617[]": {
             "subitem_description_type": "Abstract",
             "subitem_description": "{{value}}",
             "subitem_description_language": "en"
@@ -109,12 +104,12 @@
     "grdm-file:data-research-field": {
         "@type": "string",
         "@createIf": "{{grdm_file_data_research_field_value}}{{project_research_field_value}}",
-        "metadata.item_30002_subject8[RESEARCH_FIELD_JA]": {
+        "metadata.item_1617186609386[RESEARCH_FIELD_JA]": {
             "subitem_subject_scheme": "e-Rad_field",
             "subitem_subject": "{% if grdm_file_data_research_field_value != \"project\" %}{{grdm_file_data_research_field_tooltip_0}}{% else %}{{project_research_field_tooltip_0}}{% endif %}",
             "subitem_subject_language": "ja"
         },
-        "metadata.item_30002_subject8[RESEARCH_FIELD_EN]": {
+        "metadata.item_1617186609386[RESEARCH_FIELD_EN]": {
             "subitem_subject_scheme": "e-Rad_field",
             "subitem_subject": "{% if grdm_file_data_research_field_value != \"project\" %}{{grdm_file_data_research_field_tooltip_1}}{% else %}{{project_research_field_tooltip_1}}{% endif %}",
             "subitem_subject_language": "en"
@@ -123,7 +118,7 @@
     "grdm-file:data-type": {
         "@type": "string",
         "@createIf": "{{value}}",
-        "metadata.item_30002_resource_type13": {
+        "metadata.item_1617258105262": {
             "resourcetype": "{{value}}"
         }
     },
@@ -134,7 +129,7 @@
     "grdm-file:data-policy-free": {
         "@type": "string",
         "@createIf": "{{value}}",
-        "metadata.item_30002_rights6[]": [
+        "metadata.item_1617186499011[]": [
             {
                 "subitem_rights": "{{tooltip_0}}",
                 "subitem_rights_language": "ja"
@@ -148,7 +143,7 @@
     "grdm-file:data-policy-license": {
         "@type": "string",
         "@createIf": "{{value}}",
-        "metadata.item_30002_rights6[]": [
+        "metadata.item_1617186499011[]": [
             {
                 "@createIf": "{% if (value | has_license_def_for_jpcoar2) %}{{ value | to_normalized_ja_license_name_for_jpcoar2 }}{% endif %}",
                 "subitem_rights": "{{ value | to_normalized_ja_license_name_for_jpcoar2 }}",
@@ -176,7 +171,7 @@
     "grdm-file:data-policy-cite-ja": {
         "@type": "string",
         "@createIf": "{{value}}",
-        "metadata.item_30002_rights6[]": [
+        "metadata.item_1617186499011[]": [
             {
                 "subitem_rights": "{{value}}",
                 "subitem_rights_language": "ja"
@@ -186,7 +181,7 @@
     "grdm-file:data-policy-cite-en": {
         "@type": "string",
         "@createIf": "{{value}}",
-        "metadata.item_30002_rights6[]": [
+        "metadata.item_1617186499011[]": [
             {
                 "subitem_rights": "{{value}}",
                 "subitem_rights_language": "en"
@@ -196,14 +191,14 @@
     "grdm-file:access-rights": {
         "@type": "string",
         "@createIf": "{{value}}",
-        "metadata.item_30002_access_rights4": {
+        "metadata.item_1617186476635": {
             "subitem_access_right": "{{value}}"
         }
     },
     "grdm-file:available-date": {
         "@type": "string",
         "@createIf": "{{value}}",
-        "metadata.item_30002_date11[]": {
+        "metadata.item_1617186660861[]": {
             "subitem_date_issued_type": "Available",
             "subitem_date_issued_datetime": "{{value}}"
         }
@@ -213,7 +208,7 @@
     "grdm-file:repo-url-doi-link": null,
     "grdm-file:creators": {
         "@type": "array",
-        "metadata.item_30002_creator2[]": {
+        "metadata.item_1617186419668[]": {
             "nameIdentifiers[]": {
                 "@createIf": "{{object_number}}",
                 "nameIdentifierURI": "{{object_number}}",
@@ -221,14 +216,38 @@
             },
             "creatorNames[]": [
                 {
-                    "@createIf": "{{object_name_ja}}",
-                    "creatorName": "{{object_name_ja}}",
+                    "@createIf": "{{object_name_ja_last}}{{object_name_ja_middle}}{{object_name_ja_first}}",
+                    "creatorName": "{{object_name_ja_last}}, {{object_name_ja_middle}}{% if object_name_ja_middle %} {% endif %}{{object_name_ja_first}}",
                     "creatorNameLang": "ja"
                 },
                 {
-                    "@createIf": "{{object_name_en}}",
-                    "creatorName": "{{object_name_en}}",
+                    "@createIf": "{{object_name_en_last}}{{object_name_en_middle}}{{object_name_en_first}}",
+                    "creatorName": "{{object_name_en_last}}, {{object_name_en_middle}}{% if object_name_ja_middle %} {% endif %}{{object_name_en_first}}",
                     "creatorNameLang": "en"
+                }
+            ],
+            "familyNames[]": [
+                {
+                    "@createIf": "{{object_name_ja_last}}",
+                    "familyName": "{{object_name_ja_last}}",
+                    "familyNameLang": "ja"
+                },
+                {
+                    "@createIf": "{{object_name_en_last}}",
+                    "familyName": "{{object_name_en_last}}",
+                    "familyNameLang": "en"
+                }
+            ],
+            "givenNames[]": [
+                {
+                    "@createIf": "{{object_name_ja_middle}}{{object_name_ja_first}}",
+                    "givenName": "{{object_name_ja_middle}}{% if object_name_ja_middle %} {% endif %}{{object_name_ja_first}}",
+                    "givenNameLang": "ja"
+                },
+                {
+                    "@createIf": "{{object_name_en_middle}}{{object_name_en_first}}",
+                    "givenName": "{{object_name_en_middle}}{% if object_name_en_middle %} {% endif %}{{object_name_en_first}}",
+                    "givenNameLang": "en"
                 }
             ]
         }
@@ -236,7 +255,7 @@
     "grdm-file:hosting-inst-ja": {
         "@type": "string",
         "@createIf": "{{value}}",
-        "metadata.item_30002_contributor3[HOSTING_INSTITUTION]": {
+        "metadata.item_1617349709064[HOSTING_INSTITUTION]": {
             "contributorType": "HostingInstitution",
             "contributorNames[]": {
                 "contributorName": "{{value}}",
@@ -247,7 +266,7 @@
     "grdm-file:hosting-inst-en": {
         "@type": "string",
         "@createIf": "{{value}}",
-        "metadata.item_30002_contributor3[HOSTING_INSTITUTION]": {
+        "metadata.item_1617349709064[HOSTING_INSTITUTION]": {
             "contributorType": "HostingInstitution",
             "contributorNames[]": {
                 "contributorName": "{{value}}",
@@ -258,7 +277,7 @@
     "grdm-file:hosting-inst-id": {
         "@type": "string",
         "@createIf": "{{value}}",
-        "metadata.item_30002_contributor3[HOSTING_INSTITUTION]": {
+        "metadata.item_1617349709064[HOSTING_INSTITUTION]": {
             "contributorType": "HostingInstitution",
             "nameIdentifiers[]": {
                 "nameIdentifierURI": "{{value}}",
@@ -270,7 +289,7 @@
     "grdm-file:data-man-number": {
         "@type": "string",
         "@createIf": "{% if grdm_file_data_man_type_value == \"individual\" %}{{value}}{% endif %}",
-        "metadata.item_30002_contributor3[DATA_MANAGER]": {
+        "metadata.item_1617349709064[DATA_MANAGER]": {
             "contributorType": "DataManager",
             "nameIdentifiers[]": {
                 "nameIdentifierURI": "{{value}}",
@@ -279,23 +298,43 @@
         }
     },
     "grdm-file:data-man-name-ja": {
-        "@type": "string",
-        "@createIf": "{% if grdm_file_data_man_type_value == \"individual\" %}{{value}}{% endif %}",
-        "metadata.item_30002_contributor3[DATA_MANAGER]": {
+        "@type": "object",
+        "@createIf": "{% if grdm_file_data_man_type_value == \"individual\" %}{{object_last}}{{object_middle}}{{object_first}}{% endif %}",
+        "metadata.item_1617349709064[DATA_MANAGER]": {
             "contributorType": "DataManager",
             "contributorNames[]": {
-                "contributorName": "{{value}}",
+                "contributorName": "{{object_last}}, {{object_middle}}{% if object_middle %} {% endif %}{{object_first}}",
+                "lang": "ja"
+            },
+            "familyNames[]": {
+                "@createIf": "{{object_last}}",
+                "familyName": "{{object_last}}",
+                "lang": "ja"
+            },
+            "givenNames[]": {
+                "@createIf": "{{object_middle}}{{object_first}}",
+                "givenName": "{{object_middle}}{% if object_middle %} {% endif %}{{object_first}}",
                 "lang": "ja"
             }
         }
     },
     "grdm-file:data-man-name-en": {
-        "@type": "string",
-        "@createIf": "{% if grdm_file_data_man_type_value == \"individual\" %}{{value}}{% endif %}",
-        "metadata.item_30002_contributor3[DATA_MANAGER]": {
+        "@type": "object",
+        "@createIf": "{% if grdm_file_data_man_type_value == \"individual\" %}{{object_last}}{{object_middle}}{{object_first}}{% endif %}",
+        "metadata.item_1617349709064[DATA_MANAGER]": {
             "contributorType": "DataManager",
             "contributorNames[]": {
-                "contributorName": "{{value}}",
+                "contributorName": "{{object_last}}, {{object_middle}}{% if object_middle %} {% endif %}{{object_first}}",
+                "lang": "en"
+            },
+            "familyNames[]": {
+                "@createIf": "{{object_last}}",
+                "familyName": "{{object_last}}",
+                "lang": "en"
+            },
+            "givenNames[]": {
+                "@createIf": "{{object_middle}}{{object_first}}",
+                "givenName": "{{object_middle}}{% if object_middle %} {% endif %}{{object_first}}",
                 "lang": "en"
             }
         }
@@ -303,7 +342,7 @@
     "grdm-file:data-man-org-ja": {
         "@type": "string",
         "@createIf": "{% if grdm_file_data_man_type_value == \"organization\" %}{{value}}{% endif %}",
-        "metadata.item_30002_contributor3[DATA_MANAGER]": {
+        "metadata.item_1617349709064[DATA_MANAGER]": {
             "contributorType": "DataManager",
             "contributorNames[]": {
                 "contributorName": "{{value}}",
@@ -315,7 +354,7 @@
     "grdm-file:data-man-org-en": {
         "@type": "string",
         "@createIf": "{% if grdm_file_data_man_type_value == \"organization\" %}{{value}}{% endif %}",
-        "metadata.item_30002_contributor3[DATA_MANAGER]": {
+        "metadata.item_1617349709064[DATA_MANAGER]": {
             "contributorType": "DataManager",
             "contributorNames[]": {
                 "contributorName": "{{value}}",
@@ -327,7 +366,7 @@
     "grdm-file:data-man-address-ja grdm-file:data-man-tel grdm-file:data-man-email": {
         "@type": "string",
         "@createIf": "{{value}}",
-        "metadata.item_30002_contributor3[CONTACT_PERSON]": {
+        "metadata.item_1617349709064[CONTACT_PERSON]": {
             "contributorType": "ContactPerson",
             "contributorNames[CONTACT_PERSON_JA]": {
                 "contributorName": "{{grdm_file_data_man_org_ja_value}} {{grdm_file_data_man_address_ja_value}} {% if grdm_file_data_man_tel_value %}TEL: {{grdm_file_data_man_tel_value}} {% endif %}{% if grdm_file_data_man_email_value %}E-Mail: {{grdm_file_data_man_email_value}}{% endif %}",
@@ -339,7 +378,7 @@
     "grdm-file:data-man-address-en grdm-file:data-man-tel grdm-file:data-man-email": {
         "@type": "string",
         "@createIf": "{{value}}",
-        "metadata.item_30002_contributor3[CONTACT_PERSON]": {
+        "metadata.item_1617349709064[CONTACT_PERSON]": {
             "contributorType": "ContactPerson",
             "contributorNames[CONTACT_PERSON_EN]": {
                 "contributorName": "{{grdm_file_data_man_org_en_value}} {{grdm_file_data_man_address_en_value}} {% if grdm_file_data_man_tel_value %}TEL: {{grdm_file_data_man_tel_value}} {% endif %}{% if grdm_file_data_man_email_value %}E-Mail: {{grdm_file_data_man_email_value}}{% endif %}",

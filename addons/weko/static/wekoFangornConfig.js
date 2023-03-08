@@ -9,14 +9,18 @@ const fangorn = require('js/fangorn');
 const Fangorn = fangorn.Fangorn;
 const $osf = require('js/osfHelpers');
 
-const rdmGettext = require('js/rdmGettext');
-const _ = rdmGettext._;
+const _ = require('js/rdmGettext')._;
 const sprintf = require('agh.sprintf').sprintf;
 
 const logPrefix = '[weko]';
+const refreshingIds = {};
+const metadataRefreshingRetries = 3;
+const metadataRefreshingTimeout = 1000;
+const metadataRefreshingTimeoutExp = 2;
 var fileViewButtons = null;
 var hashProcessed = false;
-var lastTreebeard = null;
+var uploadCount = 0;
+var uploadReservedHandler = null;
 
 // Define Fangorn Button Actions
 const wekoItemButtons = {
@@ -27,8 +31,6 @@ const wekoItemButtons = {
         const mode = tb.toolbarMode;
 
         if (tb.options.placement !== 'fileview') {
-            lastTreebeard = tb;
-
             if ((item.data.extra || {}).weko === 'item') {
                 buttons.push(
                     m.component(Fangorn.Components.button, {
@@ -70,14 +72,11 @@ const wekoItemButtons = {
                         {treebeard : tb, mode : mode, item : aritem })
                 );
             } else if ((item.data.extra || {}).weko === 'draft') {
-                const projectMetadata = contextVars.metadata && contextVars.metadata.getProjectMetadata(
-                    item.data.nodeId
-                );
                 const metadata = contextVars.metadata && contextVars.metadata.getFileMetadata(
                     item.data.nodeId,
                     item.data.provider + item.data.materialized
                 );
-                if (projectMetadata && projectMetadata.editable && metadata) {
+                if (metadata) {
                     buttons.push(m.component(Fangorn.Components.button, {
                         onclick: function (event) {
                             deposit(tb, item);
@@ -132,22 +131,6 @@ function gotoItem (item) {
     window.open(item.data.extra.weko_web_url, '_blank');
 }
 
-function wekoLazyLoadOnLoad(tree, event) {
-    const lang = rdmGettext.getBrowserLang();
-    (tree.children || []).forEach(function(item) {
-        if (!item.data || !item.data.extra || item.data.extra.weko !== 'item') {
-            return;
-        }
-        const titles = (item.data.extra.item_title || []).filter(function(t) {
-            return t.subitem_title_language === lang;
-        });
-        if (titles.length === 0) {
-            return;
-        }
-        item.data.name = titles[0].subitem_title;
-    });
-}
-
 function wekoFolderIcons(item) {
     if (item.data.iconUrl) {
         return m('img', {
@@ -195,7 +178,17 @@ function wekoWEKOTitle(item, col) {
 }
 
 function wekoColumns(item) {
-    lastTreebeard = this;
+    const treebeard = this;
+    checkAndReserveRefreshingMetadata(
+        item,
+        function(item) {
+            const parentItem = findItem(treebeard.treeData, item.parentID);
+            reserveDeposit(treebeard, item, function() {
+                treebeard.updateFolder(null, parentItem);
+            });
+        }
+    );
+    var tb = this;
     var columns = [];
     columns.push({
         data : 'name',
@@ -223,7 +216,7 @@ function findItem(item, item_id) {
 
 function showError(tb, message) {
     if (!tb) {
-        $osf.growl('JAIRO Cloud Error:', message);
+        $osf.growl('WEKO Error:', message);
         return;
     }
     var modalContent = [
@@ -289,7 +282,7 @@ function checkDepositing(tb, contextItem, url) {
         }
         if (data.data && data.data.attributes && data.data.attributes.result) {
             console.log(logPrefix, 'uploaded', data.data.attributes.result);
-            if (tb && findItem(tb.treeData, contextItem.parentID)) {
+            if (tb) {
                 tb.updateFolder(null, findItem(tb.treeData, contextItem.parentID));
             } else {
                 $('#weko-deposit i')
@@ -365,8 +358,23 @@ function cancelDepositing(tb, item) {
     tb.redraw();
 }
 
+function reserveDeposit(treebeard, item, cancelCallback) {
+    if (uploadCount <= 0) {
+        deposit(treebeard, item, cancelCallback);
+        return;
+    }
+    if (uploadReservedHandler) {
+        console.warn(logPrefix, 'Upload handler already reserved', item);
+        return;
+    }
+    console.log(logPrefix, 'Reserve upload handler', item);
+    uploadReservedHandler = function() {
+        deposit(treebeard, item, cancelCallback);
+    };
+}
+
 function deposit(treebeard, item, cancelCallback) {
-    showConfirmDeposit(item, function(deposit, options) {
+    showConfirmDeposit(treebeard, item, function(deposit, options) {
         if (!deposit) {
             if (!cancelCallback) {
                 return;
@@ -431,22 +439,14 @@ function createMetadataSelectorBase(item, schemaCallback, projectMetadataCallbac
             type: 'GET',
             dataType: 'json'
         }).done(function (data) {
-            const availableSchemas = (data.data.attributes || []);
-            const schemas = availableSchemas
+            const schemas = (data.data.attributes || [])
                 .filter(function(r) {
                     const items = fileMetadata.items || [];
                     return items.find(function(i) {
                         return i.schema === r.id;
                     });
                 });
-            const disabledSchemas = availableSchemas
-                .filter(function(r) {
-                    const items = fileMetadata.items || [];
-                    return !items.find(function(i) {
-                        return i.schema === r.id;
-                    });
-                });
-            schemaCallback(schemas, disabledSchemas);
+            schemaCallback(schemas);
         })
         .fail(function(xhr, status, error) {
             Raven.captureMessage('Error while retrieving addon info', {
@@ -552,17 +552,10 @@ function createMetadataSelectorForJQuery(item, changedCallback) {
     const errorCallback = function(action, error) {
         errorView.text(_('Error occurred while ') + action + ': ' + error).show();
     };
-    const schemaCallback = function(schemas, disabledSchemas) {
+    const schemaCallback = function(schemas) {
         (schemas || []).forEach(function(s) {
             schemaSelect.append($('<option></option>').attr('value', s.id).text(s.attributes.name));
         });
-        (disabledSchemas || []).forEach(function(s) {
-            schemaSelect.append($('<option></option>').attr('value', s.id).attr('disabled', 'disabled')
-                .text(s.attributes.name));
-        });
-        if (schemas.length === 0) {
-            errorView.text(_('No file metadata is defined for the schema available for depositting to JAIRO Cloud.')).show();
-        }
         schemaLoading.hide();
         valueChanged();
     };
@@ -590,14 +583,14 @@ function createMetadataSelectorForJQuery(item, changedCallback) {
         .append(metadataLoading)
         .append(refreshButton)
         .append(metadataSelect)
-        .append($('<div></div>').addClass('help-block').text(_('Select a registration for the file. You can also select a draft registration.')));
+        .append($('<div></div>').addClass('help-block').text(_('Select a registration for the file.')));
     return $('<div></div>')
         .append(errorView)
         .append(schemaSelectPanel)
         .append(metadataSelectPanel);
 }
 
-function showConfirmDeposit(contextItem, callback) {
+function showConfirmDeposit(tb, contextItem, callback) {
     var options = {};
     const okHandler = function (dismiss) {
         dismiss()
@@ -614,7 +607,7 @@ function showConfirmDeposit(contextItem, callback) {
         callback(false);
     };
     const message = sprintf(
-        _('Do you want to deposit the file/folder "%1$s" to JAIRO Cloud? This operation is irreversible.'),
+        _('Do you want to deposit the file/folder "%1$s" to WEKO? This operation is irreversible.'),
         $osf.htmlEscape(contextItem.data.name)
     );
     const dialog = $('<div class="modal fade" data-backdrop="static"></div>');
@@ -624,7 +617,7 @@ function showConfirmDeposit(contextItem, callback) {
             dialog.modal('hide');
         });
     });
-    const save = $('<a href="#" class="btn btn-primary"></a>').text(_('OK')).attr('disabled', 'disabled');
+    const save = $('<a href="#" class="btn btn-primary"></a>').text(_('OK'));
     save.click(function() {
         okHandler(function() {
             dialog.modal('hide');
@@ -633,7 +626,6 @@ function showConfirmDeposit(contextItem, callback) {
     const optionsHandler = function(valid, schema, projectMetadatas) {
         options.schema = schema;
         options.project_metadatas = projectMetadatas;
-        save.attr('disabled', valid ? null : 'disabled');
     };
     dialog
         .append($('<div class="modal-dialog modal-lg"></div>')
@@ -652,6 +644,76 @@ function showConfirmDeposit(contextItem, callback) {
     dialog.modal('show');
 }
 
+function checkAndReserveRefreshingMetadata(item, callback) {
+    if (!item.data) {
+        return;
+    }
+    const id = item.data.id;
+    if (refreshingIds[id]) {
+        // Already reserved
+        return;
+    }
+    const metadatas = searchMetadatas(item);
+    if (metadatas.length === 0 || metadatas.some(function(m) {
+        return m.metadata === undefined;
+    })) {
+        // Not loaded
+        return;
+    }
+    if (metadatas.every(function(m) {
+        return m.metadata;
+    })) {
+        // Already loaded
+        return;
+    }
+    refreshingIds[id] = Date.now();
+    reserveMetadataRefresh(
+        item,
+        metadataRefreshingTimeout,
+        metadataRefreshingRetries,
+        callback
+    );
+}
+
+function reserveMetadataRefresh(item, timeout, retries, callback) {
+    if (!contextVars.metadata) {
+        console.warn('Metadata addon is not available');
+        return;
+    }
+    console.log(logPrefix, 'reserveRefreshMetadata', item);
+    setTimeout(function() {
+        contextVars.metadata.loadMetadata(
+            item.data.nodeId,
+            item.data.nodeApiUrl,
+            function() {
+                const metadatas = searchMetadatas(item);
+                if (metadatas.length > 0 && metadatas.every(function(m) {
+                    return m.metadata;
+                })) {
+                    console.log(logPrefix, 'metadata refreshed', metadatas, item);
+                    refreshingIds[item.data.id] = null;
+                    if (!callback) {
+                        return;
+                    }
+                    callback(item);
+                    return;
+                }
+                console.log(logPrefix, 'refreshMetadata', metadatas, item);
+                if (retries <= 0) {
+                    console.log(logPrefix, 'Metadata refreshing cancelled', item);
+                    return;
+                }
+                reserveMetadataRefresh(
+                    item,
+                    timeout * metadataRefreshingTimeoutExp,
+                    retries - 1,
+                    callback
+                );
+            }
+        );
+    }, timeout);
+}
+
 function searchMetadatas(tree, recursive) {
     const data = tree.data;
     var r = [];
@@ -667,7 +729,7 @@ function searchMetadatas(tree, recursive) {
             metadata: metadata,
             item: tree
         });
-    } else if (recursive && ((data.extra && data.extra.weko === 'index') || data.addonFullname === 'JAIRO Cloud')) {
+    } else if (recursive && ((data.extra && data.extra.weko === 'index') || data.addonFullname === 'WEKO')) {
         (tree.children || []).forEach(function(item) {
             r = r.concat(searchMetadatas(item, recursive));
         });
@@ -678,9 +740,6 @@ function searchMetadatas(tree, recursive) {
 function isTopLevelDraft(item) {
     const data = item.data;
     if (!data) {
-        return false;
-    }
-    if (data.provider !== 'weko') {
         return false;
     }
     const extra = data.extra;
@@ -703,17 +762,6 @@ function refreshFileViewButtons(item) {
         return;
     }
     if (!isTopLevelDraft(item)) {
-        return;
-    }
-    const projectMetadata = contextVars.metadata && contextVars.metadata.getProjectMetadata(
-        item.data.nodeId
-    );
-    if (!projectMetadata) {
-        console.warn(logPrefix, 'Project metadata not found', item);
-        return;
-    }
-    if (!projectMetadata.editable) {
-        console.log(logPrefix, 'Project metadata is not editable', item);
         return;
     }
     const metadata = contextVars.metadata && contextVars.metadata.getFileMetadata(
@@ -796,36 +844,34 @@ function initFileView() {
     observer.observe(toggleBar, {attributes: false, childList: true, subtree: false});
 }
 
-function attachMoveCompleteHandler() {
-    if (contextVars.metadataAddonEnabled && !contextVars.metadata) {
-        console.log(logPrefix, 'Waiting for metadata addon...');
-        setTimeout(attachMoveCompleteHandler, 500);
+function wekoUploadAdd(file, item) {
+    console.log(logPrefix, 'Detected: uploadAdded', file);
+    uploadCount ++;
+}
+
+function wekoUploadSuccess(file, row) {
+    console.log(logPrefix, 'Detected: uploadSuccess', file);
+    uploadCount --;
+    if (!uploadReservedHandler) {
         return;
     }
-    if (!contextVars.metadata) {
-        console.warn(logPrefix, 'Metadata addon is not available');
+    if (uploadCount > 0) {
+        console.log(logPrefix, 'Reserved upload handler exists. waiting for ', uploadCount, ' files');
         return;
     }
-    contextVars.metadata.addMoveCompleteHandler(function(item, nodeId, metadata) {
-        console.log(logPrefix, 'Move completed', item, nodeId, metadata);
-        if (!isTopLevelDraft(item)) {
+    console.log(logPrefix, 'Processing reserved upload handler...');
+    const f = uploadReservedHandler;
+    uploadReservedHandler = null;
+    setTimeout(function() {
+        // If uploadAdded is called immediately afterwards, then revert to the reserved state again.
+        if (uploadCount > 0) {
+            console.log(logPrefix, 'Reserved upload handler restored');
+            uploadReservedHandler = f;
             return;
         }
-        const metadatas = searchMetadatas(item);
-        if (metadatas.length === 0) {
-            return;
-        }
-        if (!metadatas.every(function(m) {
-            return m.metadata;
-        })) {
-            console.log(logPrefix, 'Metadata not found', item, metadatas);
-            return;
-        }
-        const parentItem = findItem(lastTreebeard.treeData, item.parentID);
-        deposit(lastTreebeard, item, function() {
-            lastTreebeard.updateFolder(null, parentItem);
-        });
-});
+        f();
+        console.log(logPrefix, 'Reserved upload handler processed');
+    }, 500);
 }
 
 function addDepositButtonToMetadataDialog() {
@@ -834,7 +880,7 @@ function addDepositButtonToMetadataDialog() {
         contextVars.metadataHandlers = metadataHandlers = {};
     }
     metadataHandlers.weko = {
-        text: _('Save and Deposit to JAIRO Cloud'),
+        text: _('Save and Deposit to WEKO'),
         click: function(item, schema, fileMetadata) {
             if (!item.data.nodeApiUrl) {
                 const item_ = {
@@ -842,19 +888,20 @@ function addDepositButtonToMetadataDialog() {
                         nodeApiUrl: contextVars.node.urls.api
                     }, item.data),
                 }
-                deposit(lastTreebeard, item_);
+                deposit(null, item_);
                 return;
             }
-            deposit(lastTreebeard, item);
+            deposit(null, item);
         }
     };
 }
 
 Fangorn.config.weko = {
-    lazyLoadOnLoad: wekoLazyLoadOnLoad,
     folderIcon: wekoFolderIcons,
     itemButtons: wekoItemButtons,
     resolveRows: wekoColumns,
+    uploadAdd: wekoUploadAdd,
+    uploadSuccess: wekoUploadSuccess,
 };
 
 addDepositButtonToMetadataDialog();
@@ -862,6 +909,4 @@ addDepositButtonToMetadataDialog();
 if ($('#fileViewPanelLeft').length > 0) {
     // File View
     initFileView();
-} else {
-    attachMoveCompleteHandler();
 }

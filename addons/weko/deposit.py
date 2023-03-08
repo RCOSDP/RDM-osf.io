@@ -24,8 +24,8 @@ ROCRATE_DATASET_MIME_TYPE = 'application/rdm-dataset'
 ROCRATE_PROJECT_MIME_TYPE = 'application/rdm-project'
 ROCRATE_FILENAME_PATTERN = re.compile(r'\.rdm-project([^\.]+)\.zip$')
 
-class ROCrateFactory(BaseROCrateFactory):
 
+class ROCrateFactory(BaseROCrateFactory):
     def __init__(self, node, work_dir, folder):
         super(ROCrateFactory, self).__init__(node, work_dir)
         self.folder = folder
@@ -36,7 +36,15 @@ class ROCrateFactory(BaseROCrateFactory):
         comment_ids = {}
         files = []
         for file in self.folder.get_files():
-            _, children = self._create_file_entities(crate, self.node, f'./', file, user_ids, schema_ids, comment_ids)
+            _, children = self._create_file_entities(
+                crate,
+                self.node,
+                f'./',
+                file,
+                user_ids,
+                schema_ids,
+                comment_ids,
+            )
             files += children
         for _, _, comments in files:
             crate.add(*comments)
@@ -62,16 +70,27 @@ def _download(node, file, tmp_dir, total_size):
     rocrate.download_to(download_file_path)
     return download_file_path, ROCRATE_DATASET_MIME_TYPE
 
+
 def _check_file_size(total_size):
     if total_size <= settings.MAX_UPLOAD_SIZE:
         return
     params = f'exported={total_size}, limit={settings.MAX_UPLOAD_SIZE}'
     raise IOError(f'Exported file size exceeded limit: {params}')
 
+
 @celery_app.task(bind=True, max_retries=5, default_retry_delay=60)
 def deposit_metadata(
-    self, user_id, index_id, node_id, metadata_node_id,
-    schema_id, file_metadatas, project_metadatas, metadata_paths, status_path, delete_after=False,
+    self,
+    user_id,
+    index_id,
+    node_id,
+    metadata_node_id,
+    schema_id,
+    file_metadatas,
+    project_metadatas,
+    metadata_paths,
+    status_path,
+    delete_after=False,
 ):
     user = OSFUser.load(user_id)
     logger.info(f'Deposit: {metadata_paths}, {status_path} {self.request.id}')
@@ -82,10 +101,13 @@ def deposit_metadata(
     tmp_dir = None
     try:
         tmp_dir = tempfile.mkdtemp()
-        self.update_state(state='downloading', meta={
-            'progress': 10,
-            'paths': metadata_paths,
-        })
+        self.update_state(
+            state='downloading',
+            meta={
+                'progress': 10,
+                'paths': metadata_paths,
+            },
+        )
         download_file_names = []
         download_files = []
         total_size = 0
@@ -93,26 +115,36 @@ def deposit_metadata(
             path = metadata_path
             if '/' not in path:
                 raise ValueError(f'Malformed path: {path}')
-            self.update_state(state='initializing', meta={
-                'progress': 0,
-                'path': metadata_path,
-            })
-            materialized_path = path[path.index('/'):]
+            self.update_state(
+                state='initializing',
+                meta={
+                    'progress': 0,
+                    'path': metadata_path,
+                },
+            )
+            materialized_path = path[path.index('/') :]
             file = wb.get_file_by_materialized_path(path)
             logger.debug(f'File: {file}, size={file.size}')
             if file is None:
                 raise KeyError(f'File not found: {materialized_path}')
-            download_file_path, download_file_type = _download(node, file, tmp_dir, total_size)
+            download_file_path, download_file_type = _download(
+                node, file, tmp_dir, total_size
+            )
             filesize = os.path.getsize(download_file_path)
             total_size += filesize
             _, download_file_name = os.path.split(download_file_path)
-            download_file_names.append((download_file_name, download_file_type))
+            download_file_names.append(
+                (download_file_name, download_file_type)
+            )
             download_files.append(file)
             logger.info(f'Downloaded: {download_file_path} {filesize}')
-        self.update_state(state='packaging', meta={
-            'progress': 50,
-            'paths': metadata_paths,
-        })
+        self.update_state(
+            state='packaging',
+            meta={
+                'progress': 50,
+                'paths': metadata_paths,
+            },
+        )
 
         c = weko_addon.create_client()
         target_index = c.get_index_by_id(index_id)
@@ -120,7 +152,9 @@ def deposit_metadata(
         zip_path = os.path.join(tmp_dir, 'payload.zip')
         with ZipFile(zip_path, 'w') as zf:
             for download_file_name, _ in download_file_names:
-                with zf.open(f'data/files/{download_file_name}', 'w') as df:
+                with zf.open(
+                    os.path.join('data/', download_file_name), 'w'
+                ) as df:
                     with open(download_file_path, 'rb') as sf:
                         shutil.copyfileobj(sf, df)
             with zf.open('data/index.csv', 'w') as f:
@@ -141,18 +175,30 @@ def deposit_metadata(
         files = {
             'file': ('payload.zip', open(zip_path, 'rb'), 'application/zip'),
         }
-        self.update_state(state='uploading', meta={
-            'progress': 60,
-            'paths': metadata_paths,
-        })
+        self.update_state(
+            state='uploading',
+            meta={
+                'progress': 60,
+                'paths': metadata_paths,
+            },
+        )
         logger.info(f'Uploading... {file_metadatas}')
         respbody = c.deposit(files, headers=headers)
         logger.info(f'Uploaded: {respbody}')
-        self.update_state(state='uploaded', meta={
-            'progress': 100,
-            'paths': metadata_paths,
-        })
-        links = [l for l in respbody['links'] if 'contentType' in l and '@id' in l and l['contentType'] == 'text/html']
+        self.update_state(
+            state='uploaded',
+            meta={
+                'progress': 100,
+                'paths': metadata_paths,
+            },
+        )
+        links = [
+            l
+            for l in respbody['links']
+            if 'contentType' in l
+            and '@id' in l
+            and l['contentType'] == 'text/html'
+        ]
         for file in download_files:
             if delete_after:
                 file.delete()

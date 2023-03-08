@@ -267,7 +267,7 @@ ViewModel.prototype.connectOAuth = function() {
     var self = this;
     // Selection should not be empty
     if(!self.selectedRepo()) {
-        self.changeMessage(_('Please select JAIRO Cloud repository.'), 'text-danger');
+        self.changeMessage(_('Please select WEKO repository.'), 'text-danger');
         return;
     }
     window.oauthComplete = function() {

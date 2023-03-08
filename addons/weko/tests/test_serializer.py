@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Serializer tests for the WEKO addon."""
+
 import mock
 from nose.tools import *  # noqa (PEP8 asserts)
 
@@ -16,9 +17,12 @@ fake_host = 'https://weko3.test.nii.ac.jp/weko/sword/'
 
 
 def mock_requests_get(url, **kwargs):
-    if url == 'https://weko3.test.nii.ac.jp/weko/api/tree?action=browsing':
+    if url == 'https://weko3.test.nii.ac.jp/weko/api/tree':
         return utils.MockResponse(utils.fake_weko_indices, 200)
-    if url == 'https://weko3.test.nii.ac.jp/weko/api/index/?q=100':
+    if (
+        url
+        == 'https://weko3.test.nii.ac.jp/weko/api/index/?search_type=2&q=100'
+    ):
         return utils.MockResponse(utils.fake_weko_items, 200)
     if url == 'https://weko3.test.nii.ac.jp/weko/api/records/1000':
         return utils.MockResponse(utils.fake_weko_item, 200)
@@ -38,7 +42,9 @@ class TestWEKOSerializer(StorageAddonSerializerTestSuiteMixin, OsfTestCase):
         self.mock_requests_get = mock.patch('requests.get')
         self.mock_requests_get.side_effect = mock_requests_get
         self.mock_requests_get.start()
-        self.mock_find_repository = mock.patch('addons.weko.provider.find_repository')
+        self.mock_find_repository = mock.patch(
+            'addons.weko.provider.find_repository'
+        )
         self.mock_find_repository.return_value = {
             'host': fake_host,
             'client_id': None,
@@ -69,17 +75,23 @@ class TestWEKOSerializer(StorageAddonSerializerTestSuiteMixin, OsfTestCase):
         assert_equal(self.ser.serialize_account(ea), expected)
 
     def test_serialize_settings_authorized(self):
-        with mock.patch.object(type(self.node_settings), 'has_auth', return_value=True):
-            serialized = self.ser.serialize_settings(self.node_settings, self.user, self.client)
+        with mock.patch.object(
+            type(self.node_settings), 'has_auth', return_value=True
+        ):
+            serialized = self.ser.serialize_settings(
+                self.node_settings, self.user, self.client
+            )
         for key in self.required_settings:
             assert_in(key, serialized)
         assert_in('owner', serialized['urls'])
-        assert_equal(serialized['urls']['owner'], web_url_for(
-            'profile_view_id',
-            uid=self.user_settings.owner._id
-        ))
+        assert_equal(
+            serialized['urls']['owner'],
+            web_url_for('profile_view_id', uid=self.user_settings.owner._id),
+        )
         assert_in('ownerName', serialized)
-        assert_equal(serialized['ownerName'], self.user_settings.owner.fullname)
+        assert_equal(
+            serialized['ownerName'], self.user_settings.owner.fullname
+        )
         assert_in('savedIndex', serialized)
 
     def test_serialize_settings_authorized_folder_is_set(self):

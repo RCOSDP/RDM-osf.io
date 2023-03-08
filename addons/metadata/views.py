@@ -11,6 +11,7 @@ from .models import RegistrationReportFormat, get_draft_files, FIELD_GRDM_FILES,
 from .utils import make_report_as_csv
 from .packages import import_project, export_project, get_task_result
 from .suggestion import suggestion_metadata, _erad_candidates, valid_suggestion_key
+from .packages import import_project, export_project, get_task_result
 from framework.exceptions import HTTPError
 from framework.auth.decorators import must_be_logged_in
 from framework.flask import redirect
@@ -444,3 +445,67 @@ def metadata_file_metadata_suggestions(auth, filepath=None, **kwargs):
             }
         }
     }
+
+@must_be_logged_in
+def metadata_import_project_page(auth):
+    title = request.args.get('title', '')
+    url = request.args.get('url', None)
+    if url is None:
+        logger.warning('Missing parameters: url')
+        raise HTTPError(http_status.HTTP_400_BAD_REQUEST)
+    return {
+        'url': url,
+        'default_title': title,
+    }
+
+@must_be_logged_in
+def metadata_import_project(auth):
+    task = import_project.delay(
+        request.json['url'],
+        auth.user._id,
+        request.json['title'],
+    )
+    return {
+        'task_id': task.task_id,
+        'progress_url': web_url_for('metadata_task_progress_page', taskid=task.task_id),
+    }
+
+@must_be_logged_in
+def metadata_task_progress_page(auth, taskid=None, **kwargs):
+    result = get_task_result(auth, taskid)
+    if result['state'] == 'SUCCESS':
+        return redirect(result['info']['node_url'])
+    return {
+        'task_id': taskid,
+        'result': result,
+    }
+
+@must_be_logged_in
+def metadata_task_progress(auth, taskid=None):
+    return get_task_result(auth, taskid)
+
+@must_be_valid_project
+@must_be_logged_in
+@must_have_permission('read')
+@must_have_addon(SHORT_NAME, 'node')
+def metadata_export_project(auth, **kwargs):
+    node = kwargs['node'] or kwargs['project']
+    task = export_project.delay(
+        auth.user._id,
+        node._id,
+        request.json,
+    )
+    return {
+        'node_id': node._id,
+        'task_id': task.task_id,
+        'progress_api_url': api_url_for(
+            'metadata_node_task_progress',
+            **dict([(k, v) for k, v in kwargs.items() if k in ['nid', 'pid']] + [('taskid', task.task_id)]),
+        ),
+    }
+
+@must_be_valid_project
+@must_have_permission('read')
+@must_have_addon(SHORT_NAME, 'node')
+def metadata_node_task_progress(auth, taskid=None, **kwargs):
+    return get_task_result(auth, taskid)

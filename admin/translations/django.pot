@@ -2490,27 +2490,27 @@ msgid "Secret Key"
 msgstr ""
 
 #: admin/templates/rdm_addons/addons/weko_applications_modal.html:7
-msgid "Configure a JAIRO Cloud application"
+msgid "Configure a WEKO application"
 msgstr ""
 
 #: admin/templates/rdm_addons/addons/weko_applications_modal.html:18
-msgid "JAIRO Cloud Display Name"
+msgid "WEKO Display Name"
 msgstr ""
 
 #: admin/templates/rdm_addons/addons/weko_applications_modal.html:22
-msgid "JAIRO Cloud URL"
+msgid "WEKO URL"
 msgstr ""
 
 #: admin/templates/rdm_addons/addons/weko_applications_modal.html:26
-msgid "JAIRO Cloud OAuth Client ID"
+msgid "WEKO OAuth Client ID"
 msgstr ""
 
 #: admin/templates/rdm_addons/addons/weko_applications_modal.html:30
-msgid "JAIRO Cloud OAuth Client Secret"
+msgid "WEKO OAuth Client Secret"
 msgstr ""
 
 #: admin/templates/rdm_addons/addons/weko_applications_modal.html:40
-msgid "JAIRO Cloud URL is invalid. JAIRO Cloud URL should be start with http(s)://"
+msgid "WEKO URL is invalid. WEKO URL should be start with http(s)://"
 msgstr ""
 
 #: admin/templates/rdm_addons/addons/weko_institution_settings.html:17
@@ -2518,7 +2518,7 @@ msgid "Add"
 msgstr ""
 
 #: admin/templates/rdm_addons/addons/weko_institution_settings.html:22
-msgid "Delete Application"
+msgid "Disconnect Application"
 msgstr ""
 
 #: admin/templates/rdm_addons/addons/weko_institution_settings.html:27

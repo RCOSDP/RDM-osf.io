@@ -8,23 +8,32 @@ from admin.rdm_addons.utils import get_rdm_addon_option
 from requests import exceptions as requests_exceptions
 
 
-def get_repository_options(user):
+def _get_repository_options(node_settings):
     repos = list(weko_settings.REPOSITORY_IDS)
-    for institution_id in user.affiliated_institutions.all():
-        rdm_addon_option = get_rdm_addon_option(institution_id, SHORT_NAME, create=False)
+    for institution_id in node_settings.owner.affiliated_institutions.all():
+        rdm_addon_option = get_rdm_addon_option(
+            institution_id, SHORT_NAME, create=False
+        )
         if rdm_addon_option is None:
             continue
         for account in rdm_addon_option.external_accounts.all():
-            display_name = account.display_name if '#' not in account.display_name else account.display_name[account.display_name.index('#') + 1:]
-            repos.append({
-                'id': account.provider_id,
-                'name': display_name,
-            })
+            display_name = (
+                account.display_name
+                if '#' not in account.display_name
+                else account.display_name[
+                    account.display_name.index('#') + 1 :
+                ]
+            )
+            repos.append(
+                {
+                    'id': account.provider_id,
+                    'name': display_name,
+                }
+            )
     return repos
 
 
 class WEKOSerializer(OAuthAddonSerializer):
-
     addon_short_name = 'weko'
 
     REQUIRED_URLS = []
@@ -43,9 +52,7 @@ class WEKOSerializer(OAuthAddonSerializer):
     def serialize_account(self, external_account):
         ret = super(WEKOSerializer, self).serialize_account(external_account)
         host = external_account.oauth_key
-        ret.update({
-            'host': host
-        })
+        ret.update({'host': host})
 
         return ret
 
@@ -65,7 +72,9 @@ class WEKOSerializer(OAuthAddonSerializer):
         addon_urls = self.addon_serialized_urls
         # Make sure developer returns set of needed urls
         for url in self.REQUIRED_URLS:
-            assert url in addon_urls, "addon_serilized_urls must include key '{0}'".format(url)
+            assert url in addon_urls, (
+                "addon_serilized_urls must include key '{0}'".format(url)
+            )
         ret.update(addon_urls)
         return ret
 
@@ -74,8 +83,7 @@ class WEKOSerializer(OAuthAddonSerializer):
         node = self.node_settings.owner
 
         return {
-            'auth': api_url_for('weko_oauth_connect',
-                                repoid='<repoid>'),
+            'auth': api_url_for('weko_oauth_connect', repoid='<repoid>'),
             'set': node.api_url_for('weko_set_config'),
             'importAuth': node.api_url_for('weko_import_auth'),
             'deauthorize': node.api_url_for('weko_deauthorize_node'),
@@ -85,51 +93,58 @@ class WEKOSerializer(OAuthAddonSerializer):
     @property
     def serialized_node_settings(self):
         result = super(WEKOSerializer, self).serialized_node_settings
+        result['repositories'] = _get_repository_options(self.node_settings)
 
         # Update with WEKO specific fields
         if self.node_settings.has_auth:
             c = self.node_settings.create_client()
             indices = c.get_indices()
 
-            result.update({
-                'validCredentials': True,
-                'indices': [self._serialize_index(index) for index in indices],
-                'savedIndex': {
-                    'title': self.node_settings.index_title,
-                    'id': self.node_settings.index_id,
+            result.update(
+                {
+                    'validCredentials': True,
+                    'indices': [
+                        self._serialize_index(index) for index in indices
+                    ],
+                    'savedIndex': {
+                        'title': self.node_settings.index_title,
+                        'id': self.node_settings.index_id,
+                    },
                 }
-            })
+            )
 
         return result
 
     def serialized_folder(self, node_settings):
         return {
             'id': node_settings.index_id,
-            'title': node_settings.index_title
+            'title': node_settings.index_title,
         }
 
     def serialize_settings(self, node_settings, current_user, client=None):
         self.user_settings = user_settings = node_settings.user_settings
         self.node_settings = node_settings
         current_user_settings = current_user.get_addon(self.addon_short_name)
-        user_is_owner = user_settings is not None and user_settings.owner == current_user
+        user_is_owner = (
+            user_settings is not None and user_settings.owner == current_user
+        )
 
         valid_credentials = self.credentials_are_valid(user_settings, client)
 
         result = {
-            'repositories': get_repository_options(current_user),
+            'repositories': _get_repository_options(self.node_settings),
             'userIsOwner': user_is_owner,
             'nodeHasAuth': node_settings.has_auth,
             'urls': self.serialized_urls,
             'validCredentials': valid_credentials,
-            'userHasAuth': current_user_settings is not None and current_user_settings.has_auth,
+            'userHasAuth': current_user_settings is not None
+            and current_user_settings.has_auth,
         }
 
         if node_settings.has_auth:
             # Add owner's profile URL
             result['urls']['owner'] = web_url_for(
-                'profile_view_id',
-                uid=user_settings.owner._id
+                'profile_view_id', uid=user_settings.owner._id
             )
             result['ownerName'] = user_settings.owner.fullname
             # Show available indices

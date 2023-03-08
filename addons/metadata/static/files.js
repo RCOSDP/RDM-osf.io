@@ -252,6 +252,56 @@ function MetadataButtons() {
   };
 
   self.lastQuestionPage = null;
+
+  // For Metadata-supported addon
+  self.loadRepositories = function(repos, callback) {
+    if (repos.length === 0) {
+      callback([]);
+      return;
+    }
+    self.loadRepository(repos[0], function(result) {
+      self.loadRepositories(repos.slice(1), function(results) {
+        results.splice(0, 0, result);
+        callback(results);
+      });
+    });
+  };
+
+  self.loadRepository = function(repo, callback) {
+    if (!repo.metadata) {
+      if (!callback) {
+        return;
+      }
+      callback(null);
+      return;
+    }
+    const url = repo.metadata.urls.get;
+    console.log(logPrefix, 'loading: ', repo, url);
+    return $.ajax({
+        url: url,
+        type: 'GET',
+        dataType: 'json'
+    }).done(function (data) {
+      console.log(logPrefix, 'loaded: ', data);
+      if (!callback) {
+        return;
+      }
+      callback(data);
+    }).fail(function(xhr, status, error) {
+      Raven.captureMessage('Error while retrieving addon info', {
+        extra: {
+            url: url,
+            status: status,
+            error: error
+        }
+      });
+      if (!callback) {
+        return;
+      }
+      callback(null);
+    });
+  };
+
   self.lastMetadata = null;
   self.lastFields = null;
   self.currentSchemaId = null;
@@ -562,27 +612,25 @@ function MetadataButtons() {
         .css('display', 'flex')
         .append(pasteButton));
     }
-    if (dialog.customHandler) {
-      dialog.customHandler.empty();
-      if (item.data && item.data.provider && contextVars.metadataHandlers && contextVars.metadataHandlers[item.data.provider]) {
-        const customButton = contextVars.metadataHandlers[item.data.provider];
-        const button = $('<a href="#" class="btn btn-success"></a>')
-          .text(customButton.text)
-          .css('margin-left', '5px');
-        button.click(function() {
-          osfBlock.block();
-          self.saveEditMetadataModal()
-            .finally(function() {
-              osfBlock.unblock();
-              $(dialog.dialog).modal('hide');
-              const activeItems = (self.lastMetadata.items || []).filter(function(item_) {
-                return item_.active;
-              });
-              customButton.click(item, self.currentSchemaId, activeItems[0] || null);
-            })
-        });
-        dialog.customHandler.append(button);
-      }
+    dialog.customHandler.empty();
+    if (item.data && item.data.provider && contextVars.metadataHandlers && contextVars.metadataHandlers[item.data.provider]) {
+      const customButton = contextVars.metadataHandlers[item.data.provider];
+      const button = $('<a href="#" class="btn btn-success"></a>')
+        .text(customButton.text)
+        .css('margin-left', '5px');
+      button.click(function() {
+        osfBlock.block();
+        self.saveEditMetadataModal()
+          .finally(function() {
+            osfBlock.unblock();
+            $(dialog.dialog).modal('hide');
+            const activeItems = (self.lastMetadata.items || []).filter(function(item_) {
+              return item_.active;
+            });
+            customButton.click(item, self.currentSchemaId, activeItems[0] || null);
+          })
+      });
+      dialog.customHandler.append(button);
     }
     self.prepareFields(
       context,
@@ -2220,7 +2268,7 @@ function MetadataButtons() {
       container: container,
       toolbar: toolbar,
       copyStatus: copyStatus,
-      customHandler: editable ? customHandler : null,
+      customHandler: customHandler,
     };
   };
 
@@ -2520,9 +2568,6 @@ if (contextVars.metadataAddonEnabled) {
         }
       );
       return questionPage;
-    },
-    addMoveCompleteHandler: function(handler) {
-      btn.addMoveCompleteHandler(handler);
     },
   };
   if ($('#fileViewPanelLeft').length > 0) {
