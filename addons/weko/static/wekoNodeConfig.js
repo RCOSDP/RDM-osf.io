@@ -13,6 +13,46 @@ var $modal = $('#wekoInputCredentials');
 var language = require('js/osfLanguage').Addons.weko;
 
 
+function _getIndexById(indices, id) {
+    for (var i = 0; i < indices.length; i++) {
+        const data = indices[i];
+        if (data.id === id) {
+            return data;
+        }
+        const index = _getIndexById(data.children, id);
+        if (index !== null) {
+            return index;
+        }
+    }
+    return null;
+}
+
+function _getIndexDisplayTitle(index, level) {
+    if (level === 0) {
+        return index.title;
+    }
+    var prefix = '';
+    for (var i = 0; i < level; i ++) {
+        prefix += ' ';
+    }
+    return prefix + '- ' + index.title;
+}
+
+function _flattenIndices(indices, level) {
+    const r = [];
+    indices.forEach(function(data) {
+        const displayTitle = _getIndexDisplayTitle(data, level);
+        r.push(Object.assign({
+            displayTitle: displayTitle,
+        }, data));
+        _flattenIndices(data.children, level + 1).forEach(function(child) {
+            r.push(child);
+        });
+    });
+    return r;
+}
+
+
 function ViewModel(url) {
     var self = this;
 
@@ -36,11 +76,6 @@ function ViewModel(url) {
     self.accounts = ko.observable([]);
     self.selectedRepo = ko.observable();
     self.repositories = ko.observableArray();
-    self.swordUrl = ko.observable('');
-    self.accessKey = ko.observable('');
-    self.secretKey = ko.observable('');
-
-    self.basicAuth = 'Other Repository (Basic Auth)';
 
     self.messages = {
         userSettingsError: ko.pureComputed(function() {
@@ -91,25 +126,25 @@ function ViewModel(url) {
         })
     };
 
+    self.selectedIndex = ko.pureComputed(function() {
+        return _getIndexById(self.indices(), self.selectedIndexId());
+    });
+
     self.savedIndexUrl = ko.pureComputed(function() {
-        for (var i = 0; i < self.indices().length; i++) {
-            var data = self.indices()[i];
-            if (data.id === self.selectedIndexId()) {
-                return data.about;
-            }
+        const index = self.selectedIndex();
+        if (!index) {
+            return null;
         }
-        return null;
+        return index.url;
     });
 
     self.selectedIndexId = ko.observable();
     self.selectedIndexTitle = ko.pureComputed(function() {
-        for (var i = 0; i < self.indices().length; i++) {
-            var data = self.indices()[i];
-            if (data.id === self.selectedIndexId()) {
-                return data.title;
-            }
+        const index = self.selectedIndex();
+        if (!index) {
+            return null;
         }
-        return null;
+        return index.title;
     });
 
     self.showLinkedIndex = ko.pureComputed(function() {
@@ -136,6 +171,10 @@ function ViewModel(url) {
         return !self.userHasAuth() && !self.nodeHasAuth() && self.loadedSettings();
     });
 
+    self.flattenIndices = ko.pureComputed(function() {
+        return _flattenIndices(self.indices(), 0);
+    });
+
     // Flashed messages
     self.message = ko.observable('');
     self.messageClass = ko.observable('text-info');
@@ -148,7 +187,7 @@ function ViewModel(url) {
     }).done(function(response) {
         // Update view model
         self.updateFromData(response.result);
-        self.repositories(response.result.repositories.concat([self.basicAuth]));
+        self.repositories(response.result.repositories);
         self.loadedSettings(true);
     }).fail(function(xhr, textStatus, error) {
         self.changeMessage(self.messages.userSettingsError, 'text-danger');
@@ -178,7 +217,6 @@ ViewModel.prototype.updateFromData = function(data) {
     self.userIsOwner(data.userIsOwner);
 
     if (self.nodeHasAuth()) {
-        self.selectedRepo(data.wekoHost);
         self.indices(data.indices);
         self.savedIndexId(data.savedIndex.id);
         self.savedIndexTitle(data.savedIndex.title);
@@ -193,9 +231,6 @@ ViewModel.prototype.clearModal = function() {
     self.message('');
     self.messageClass('text-info');
     self.selectedRepo(null);
-    self.swordUrl(null);
-    self.secretKey(null);
-    self.accessKey(null);
 };
 
 ViewModel.prototype.setInfo = function() {
@@ -235,11 +270,6 @@ ViewModel.prototype.connectOAuth = function() {
         self.changeMessage('Please select WEKO repository.', 'text-danger');
         return;
     }
-    if(self.selectedRepo() == self.basicAuth) {
-        self.connectBasicAccount();
-        return;
-    }
-    console.log('Connect via OAuth: ' + self.selectedRepo());
     window.oauthComplete = function() {
         self.clearModal();
         $modal.modal('hide');
@@ -248,56 +278,7 @@ ViewModel.prototype.connectOAuth = function() {
 
         self.updateAccounts();
     };
-    window.open('/oauth/connect/weko/' + self.selectedRepo() + '/');
-};
-
-/** Send POST request to authorize WEKO */
-ViewModel.prototype.connectBasicAccount = function() {
-    var self = this;
-    // Selection should not be empty
-    if(!self.swordUrl() && !self.accessKey() && !self.secretKey()){
-        self.changeMessage('Please enter all a SWORD URL, WEKO username and password.', 'text-danger');
-        return;
-    }
-
-    if (!self.swordUrl() ){
-        self.changeMessage('Please enter your SWORD URL.', 'text-danger');
-        return;
-    }
-
-    if (!self.accessKey() ){
-        self.changeMessage('Please enter a WEKO username.', 'text-danger');
-        return;
-    }
-
-    if (!self.secretKey() ){
-        self.changeMessage('Please enter a WEKO password.', 'text-danger');
-        return;
-    }
-
-    return $osf.postJSON(
-        self.urls().create,
-        ko.toJS({
-            sword_url: self.swordUrl,
-            access_key: self.accessKey,
-            secret_key: self.secretKey
-        })
-    ).done(function() {
-        self.clearModal();
-        $modal.modal('hide');
-        self.updateAccounts();
-
-    }).fail(function(xhr, textStatus, error) {
-        var errorMessage = (xhr.status === 400 && xhr.responseJSON.message !== undefined) ? xhr.responseJSON.message : language.authError;
-        self.changeMessage(errorMessage, 'text-danger');
-        Raven.captureMessage('Could not authenticate with WEKO', {
-            extra: {
-                url: self.urls().create,
-                textStatus: textStatus,
-                error: error
-            }
-        });
-    });
+    window.open('/oauth/connect/weko/' + self.selectedRepo().id + '/');
 };
 
 ViewModel.prototype.fetchAccounts = function() {

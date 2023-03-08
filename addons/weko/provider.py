@@ -1,3 +1,6 @@
+import logging
+from future.moves.urllib.parse import urljoin
+
 from rest_framework import status as http_status
 from flask import request
 from framework.exceptions import HTTPError
@@ -18,6 +21,29 @@ from addons.weko import settings as weko_settings
 OAUTH2 = 2
 REPOID_BASIC_AUTH = '_basic'
 
+logger = logging.getLogger(__name__)
+
+
+def _get_repoid(account):
+    rid = account.provider_id.split(':')[0]
+    if rid == REPOID_BASIC_AUTH:
+        return None
+    return rid
+
+def find_repository(repoid):
+    if repoid in weko_settings.REPOSITORIES:
+        return weko_settings.REPOSITORIES[repoid]
+    account = ExternalAccount.objects.get(provider_id=repoid)
+    url = account.display_name
+    if '#' in account.display_name:
+        url = account.display_name[:account.display_name.index('#')]
+    return {
+        'host': urljoin(url, 'sword/'),
+        'client_id': account.oauth_key,
+        'client_secret': account.oauth_secret,
+        'authorize_url': urljoin(url, 'oauth/authorize'),
+        'access_token_url': urljoin(url, 'oauth/token'),
+    }
 
 class WEKOProvider(ExternalProvider):
     """An alternative to `ExternalProvider` not tied to OAuth"""
@@ -26,10 +52,10 @@ class WEKOProvider(ExternalProvider):
     short_name = 'weko'
     serializer = WEKOSerializer
 
-    client_id = None
-    client_secret = None
     auth_url_base = None
     callback_url = None
+    default_scopes = ['deposit:actions deposit:write index:create user:activity user:email']
+    refresh_time = weko_settings.REFRESH_TIME
 
     def __init__(self, account=None, host=None, username=None, password=None):
         super(WEKOProvider, self).__init__(account=account)
@@ -50,10 +76,7 @@ class WEKOProvider(ExternalProvider):
 
     @property
     def repoid(self):
-        rid = self.account.provider_id.split(':')[0]
-        if rid == REPOID_BASIC_AUTH:
-            return None
-        return rid
+        return _get_repoid(self.account)
 
     @property
     def userid(self):
@@ -67,7 +90,7 @@ class WEKOProvider(ExternalProvider):
     def sword_url(self):
         repoid = self.repoid
         if repoid is not None:
-            return weko_settings.REPOSITORIES[repoid]['host']
+            return find_repository(_get_repoid(self.account))['host']
         else:
             return self.account.profile_url
 
@@ -79,11 +102,34 @@ class WEKOProvider(ExternalProvider):
             return self.account.oauth_key
 
     @property
-    def token(self):
-        if self.repoid is not None:
-            return self.account.oauth_key
-        else:
+    def auto_refresh_url(self):
+        repoid = self.repoid
+        if repoid is None:
             return None
+        repo_settings = find_repository(_get_repoid(self.account))
+        return repo_settings['access_token_url']
+
+    @property
+    def client_id(self):
+        repoid = self.repoid
+        if repoid is None:
+            return None
+        repo_settings = find_repository(_get_repoid(self.account))
+        return repo_settings['client_id']
+
+    @property
+    def client_secret(self):
+        repoid = self.repoid
+        if repoid is None:
+            return None
+        repo_settings = find_repository(_get_repoid(self.account))
+        return repo_settings['client_secret']
+
+    def fetch_access_token(self, force_refresh=False):
+        refreshed = self.refresh_oauth_key(force=force_refresh)
+        logger.debug('auto_refresh_url: ' + self.auto_refresh_url)
+        logger.debug('refresh_oauth_key returns {}, {}'.format(refreshed, self.account.oauth_key))
+        return self.account.oauth_key
 
     def get_repo_auth_url(self, repoid):
         """The URL to begin the OAuth dance.
@@ -98,7 +144,7 @@ class WEKOProvider(ExternalProvider):
         if session.data.get('oauth_states') is None:
             session.data['oauth_states'] = {}
 
-        repo_settings = weko_settings.REPOSITORIES[repoid]
+        repo_settings = find_repository(repoid)
 
         assert self._oauth_version == OAUTH2
         # build the URL
@@ -128,7 +174,7 @@ class WEKOProvider(ExternalProvider):
         if 'error' in request.args:
             return False
 
-        repo_settings = weko_settings.REPOSITORIES[repoid]
+        repo_settings = find_repository(repoid)
 
         # make sure the user has temporary credentials for this provider
         try:
@@ -166,13 +212,12 @@ class WEKOProvider(ExternalProvider):
     def handle_callback(self, repoid, response):
         """View called when the OAuth flow is completed.
         """
-        from addons.weko.client import connect_or_error
+        from addons.weko.client import Client
 
-        repo_settings = weko_settings.REPOSITORIES[repoid]
-        connection = connect_or_error(repo_settings['host'],
-                                      token=response.get('access_token'))
-        login_user = connection.get_login_user('unknown')
+        repo_settings = find_repository(repoid)
+        c = Client(repo_settings['host'], token=response.get('access_token'))
+        login_user = c.get_login_user('unknown@' + repoid)
         return {
             'provider_id': '{}:{}'.format(repoid, login_user),
-            'display_name': login_user + '@' + repoid
+            'display_name': login_user
         }

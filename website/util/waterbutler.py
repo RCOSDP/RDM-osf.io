@@ -116,3 +116,13 @@ def get_node_info(osf_cookie, pid, provider, path):
         content = response.json()
     response.close()
     return content
+
+def delete_file(osf_cookie, pid, provider, path):
+    response = requests.delete(
+        waterbutler_api_url_for(
+            pid, provider, path=path, _internal=True, meta=''
+        ),
+        headers={'content-type': 'application/json'},
+        cookies={settings.COOKIE_NAME: osf_cookie}
+    )
+    response.raise_for_status()

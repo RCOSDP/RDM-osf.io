@@ -246,6 +246,9 @@ class NodeSettings(BaseNodeSettings):
         r.update({
             'files': self.get_file_metadatas(),
         })
+        r.update({
+            'repositories': self._get_repositories(),
+        })
         return r
 
     def get_report_formats_for(self, schemas):
@@ -278,8 +281,8 @@ class NodeSettings(BaseNodeSettings):
             source_addon = source_node.get_addon(SHORT_NAME)
             if source_addon is None:
                 return
-        src_path = os.path.join(src['provider'], src['materialized'])
-        dest_path = os.path.join(dest['provider'], dest['materialized'])
+        src_path = os.path.join(src['provider'], src['materialized'].lstrip('/'))
+        dest_path = os.path.join(dest['provider'], dest['materialized'].lstrip('/'))
         if src_path.endswith('/'):
             q = source_addon.file_metadata.filter(path__startswith=src_path)
             path_suffixes = [fm.path[len(src_path):] for fm in q.all()]
@@ -383,6 +386,16 @@ class NodeSettings(BaseNodeSettings):
         except RegistrationSchema.DoesNotExist:
             return []
 
+    def _get_repositories(self):
+        r = []
+        for addon in self.owner.get_addons():
+            if not hasattr(addon, 'has_metadata') or not addon.has_metadata:
+                continue
+            repo = addon.get_metadata_repository()
+            if repo is None:
+                continue
+            r.append(repo)
+        return r
 
 class FileMetadata(BaseModel):
     project = models.ForeignKey(NodeSettings, related_name='file_metadata',

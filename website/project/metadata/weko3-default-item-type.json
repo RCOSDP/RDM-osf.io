@@ -1,0 +1,3483 @@
+{
+  "name": "WEKO3 デフォルトアイテムタイプ",
+  "version": 2,
+  "description": "WEKO3 デフォルトアイテムタイプ",
+  "pages": [
+    {
+      "id": "page1",
+      "title": "登録データ|Registered Data",
+      "description": "WEKO3 デフォルトアイテムタイプ用のメタデータ入力画面です。|Metadata input screen for WEKO3 default item type.",
+      "questions": [
+        {
+          "type": "string",
+          "format": "date",
+          "qid": "grdm-file:pubdate",
+          "nav": "PubDate",
+          "title": "公開日|PubDate",
+          "required": true
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Title.ja",
+          "nav": "タイトル (日本語)",
+          "title": "タイトル (日本語)",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Title.en",
+          "nav": "Title (English)",
+          "title": "Title (English)",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Alternative Title.ja",
+          "nav": "その他のタイトル (日本語)",
+          "title": "その他のタイトル (日本語)",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Alternative Title.en",
+          "nav": "Alternative Title (English)",
+          "title": "Alternative Title (English)",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "file-creators",
+          "qid": "grdm-file:Creator",
+          "nav": "Creator",
+          "title": "作成者|Creator",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "file-creators",
+          "qid": "grdm-file:Contributor",
+          "nav": "Contributor",
+          "title": "寄与者|Contributor",
+          "required": false
+        },
+        {
+          "type": "choose",
+          "format": "singleselect",
+          "options": [
+            {
+              "text": "embargoed access",
+              "tooltip": "embargoed access"
+            },
+            {
+              "text": "metadata only access",
+              "tooltip": "metadata only access"
+            },
+            {
+              "text": "open access",
+              "tooltip": "open access"
+            },
+            {
+              "text": "restricted access",
+              "tooltip": "restricted access"
+            }
+          ],
+          "qid": "grdm-file:アクセス権",
+          "nav": "Access Rights",
+          "title": "アクセス権|Access Rights",
+          "required": false
+        },
+        {
+          "type": "choose",
+          "format": "singleselect",
+          "options": [
+            {
+              "text": "Paid",
+              "tooltip": "Paid"
+            },
+            {
+              "text": "Fully waived",
+              "tooltip": "Fully waived"
+            },
+            {
+              "text": "Not required",
+              "tooltip": "Not required"
+            },
+            {
+              "text": "Partially waived",
+              "tooltip": "Partially waived"
+            },
+            {
+              "text": "Not charged",
+              "tooltip": "Not charged"
+            },
+            {
+              "text": "Unknown",
+              "tooltip": "Unknown"
+            }
+          ],
+          "qid": "grdm-file:APC",
+          "nav": "APC",
+          "title": "APC|APC",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Rights.権利情報Resource.ja",
+          "nav": "権利情報 - 権利情報Resource (日本語)",
+          "title": "権利情報 - 権利情報Resource (日本語)",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Rights.権利情報Resource.en",
+          "nav": "Rights - Rights Information Resource (English)",
+          "title": "Rights - Rights Information Resource (English)",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Rights.権利情報.ja",
+          "nav": "権利情報 - 権利情報 (日本語)",
+          "title": "権利情報 - 権利情報 (日本語)",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Rights.権利情報.en",
+          "nav": "Rights - Rights Information (English)",
+          "title": "Rights - Rights Information (English)",
+          "required": false
+        },
+        {
+          "type": "choose",
+          "format": "singleselect",
+          "options": [],
+          "qid": "grdm-file:Rights Holder.nameIdentifiers.nameIdentifierScheme",
+          "nav": "Rights Holder - Right Holder Identifier Scheme",
+          "title": "権利者情報 - 権利者識別子Scheme|Rights Holder - Right Holder Identifier Scheme",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Rights Holder.nameIdentifiers.nameIdentifierURI",
+          "nav": "Rights Holder - Right Holder Identifier URI",
+          "title": "権利者情報 - 権利者識別子URI|Rights Holder - Right Holder Identifier URI",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Rights Holder.nameIdentifiers.nameIdentifier",
+          "nav": "Rights Holder - Right Holder Identifier",
+          "title": "権利者情報 - 権利者識別子|Rights Holder - Right Holder Identifier",
+          "required": false
+        },
+        {
+          "type": "choose",
+          "format": "singleselect",
+          "options": [
+            {
+              "text": "ja",
+              "tooltip": "ja"
+            },
+            {
+              "text": "ja-Kana",
+              "tooltip": "ja-Kana"
+            },
+            {
+              "text": "en",
+              "tooltip": "en"
+            },
+            {
+              "text": "fr",
+              "tooltip": "fr"
+            },
+            {
+              "text": "it",
+              "tooltip": "it"
+            },
+            {
+              "text": "de",
+              "tooltip": "de"
+            },
+            {
+              "text": "es",
+              "tooltip": "es"
+            },
+            {
+              "text": "zh-cn",
+              "tooltip": "zh-cn"
+            },
+            {
+              "text": "zh-tw",
+              "tooltip": "zh-tw"
+            },
+            {
+              "text": "ru",
+              "tooltip": "ru"
+            },
+            {
+              "text": "la",
+              "tooltip": "la"
+            },
+            {
+              "text": "ms",
+              "tooltip": "ms"
+            },
+            {
+              "text": "eo",
+              "tooltip": "eo"
+            },
+            {
+              "text": "ar",
+              "tooltip": "ar"
+            },
+            {
+              "text": "el",
+              "tooltip": "el"
+            },
+            {
+              "text": "ko",
+              "tooltip": "ko"
+            }
+          ],
+          "qid": "grdm-file:Rights Holder.rightHolderNames.rightHolderLanguage",
+          "nav": "Rights Holder - Language",
+          "title": "権利者情報 - 言語|Rights Holder - Language",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Rights Holder.rightHolderNames.rightHolderName",
+          "nav": "Rights Holder - Right Holder Name",
+          "title": "権利者情報 - 権利者名|Rights Holder - Right Holder Name",
+          "required": false
+        },
+        {
+          "type": "choose",
+          "format": "singleselect",
+          "options": [
+            {
+              "text": "BSH",
+              "tooltip": "BSH"
+            },
+            {
+              "text": "DDC",
+              "tooltip": "DDC"
+            },
+            {
+              "text": "LCC",
+              "tooltip": "LCC"
+            },
+            {
+              "text": "LCSH",
+              "tooltip": "LCSH"
+            },
+            {
+              "text": "MeSH",
+              "tooltip": "MeSH"
+            },
+            {
+              "text": "NDC",
+              "tooltip": "NDC"
+            },
+            {
+              "text": "NDLC",
+              "tooltip": "NDLC"
+            },
+            {
+              "text": "NDLSH",
+              "tooltip": "NDLSH"
+            },
+            {
+              "text": "SciVal",
+              "tooltip": "SciVal"
+            },
+            {
+              "text": "UDC",
+              "tooltip": "UDC"
+            },
+            {
+              "text": "Other",
+              "tooltip": "Other"
+            }
+          ],
+          "qid": "grdm-file:Subject.主題Scheme.ja",
+          "nav": "主題 - 主題Scheme (日本語)",
+          "title": "主題 - 主題Scheme (日本語)",
+          "required": false
+        },
+        {
+          "type": "choose",
+          "format": "singleselect",
+          "options": [
+            {
+              "text": "BSH",
+              "tooltip": "BSH"
+            },
+            {
+              "text": "DDC",
+              "tooltip": "DDC"
+            },
+            {
+              "text": "LCC",
+              "tooltip": "LCC"
+            },
+            {
+              "text": "LCSH",
+              "tooltip": "LCSH"
+            },
+            {
+              "text": "MeSH",
+              "tooltip": "MeSH"
+            },
+            {
+              "text": "NDC",
+              "tooltip": "NDC"
+            },
+            {
+              "text": "NDLC",
+              "tooltip": "NDLC"
+            },
+            {
+              "text": "NDLSH",
+              "tooltip": "NDLSH"
+            },
+            {
+              "text": "SciVal",
+              "tooltip": "SciVal"
+            },
+            {
+              "text": "UDC",
+              "tooltip": "UDC"
+            },
+            {
+              "text": "Other",
+              "tooltip": "Other"
+            }
+          ],
+          "qid": "grdm-file:Subject.主題Scheme.en",
+          "nav": "Subject - Subject Scheme (English)",
+          "title": "Subject - Subject Scheme (English)",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Subject.主題URI.ja",
+          "nav": "主題 - 主題URI (日本語)",
+          "title": "主題 - 主題URI (日本語)",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Subject.主題URI.en",
+          "nav": "Subject - Subject URI (English)",
+          "title": "Subject - Subject URI (English)",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Subject.主題.ja",
+          "nav": "主題 - 主題 (日本語)",
+          "title": "主題 - 主題 (日本語)",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Subject.主題.en",
+          "nav": "Subject - Subject (English)",
+          "title": "Subject - Subject (English)",
+          "required": false
+        },
+        {
+          "type": "choose",
+          "format": "singleselect",
+          "options": [
+            {
+              "text": "Abstract",
+              "tooltip": "Abstract"
+            },
+            {
+              "text": "Methods",
+              "tooltip": "Methods"
+            },
+            {
+              "text": "TableOfContents",
+              "tooltip": "TableOfContents"
+            },
+            {
+              "text": "TechnicalInfo",
+              "tooltip": "TechnicalInfo"
+            },
+            {
+              "text": "Other",
+              "tooltip": "Other"
+            }
+          ],
+          "qid": "grdm-file:Description.subitem_description_type.ja",
+          "nav": "内容記述 - 内容記述タイプ (日本語)",
+          "title": "内容記述 - 内容記述タイプ (日本語)",
+          "required": false
+        },
+        {
+          "type": "choose",
+          "format": "singleselect",
+          "options": [
+            {
+              "text": "Abstract",
+              "tooltip": "Abstract"
+            },
+            {
+              "text": "Methods",
+              "tooltip": "Methods"
+            },
+            {
+              "text": "TableOfContents",
+              "tooltip": "TableOfContents"
+            },
+            {
+              "text": "TechnicalInfo",
+              "tooltip": "TechnicalInfo"
+            },
+            {
+              "text": "Other",
+              "tooltip": "Other"
+            }
+          ],
+          "qid": "grdm-file:Description.subitem_description_type.en",
+          "nav": "Description - Description Type (English)",
+          "title": "Description - Description Type (English)",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "textarea",
+          "qid": "grdm-file:Description.subitem_description.ja",
+          "nav": "内容記述 - 内容記述 (日本語)",
+          "title": "内容記述 - 内容記述 (日本語)",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "textarea",
+          "qid": "grdm-file:Description.subitem_description.en",
+          "nav": "Description - Description (English)",
+          "title": "Description - Description (English)",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:出版者.ja",
+          "nav": "出版者 (日本語)",
+          "title": "出版者 (日本語)",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:出版者.en",
+          "nav": "Publisher (English)",
+          "title": "Publisher (English)",
+          "required": false
+        },
+        {
+          "type": "choose",
+          "format": "singleselect",
+          "options": [
+            {
+              "text": "Accepted",
+              "tooltip": "Accepted"
+            },
+            {
+              "text": "Available",
+              "tooltip": "Available"
+            },
+            {
+              "text": "Collected",
+              "tooltip": "Collected"
+            },
+            {
+              "text": "Copyrighted",
+              "tooltip": "Copyrighted"
+            },
+            {
+              "text": "Created",
+              "tooltip": "Created"
+            },
+            {
+              "text": "Issued",
+              "tooltip": "Issued"
+            },
+            {
+              "text": "Submitted",
+              "tooltip": "Submitted"
+            },
+            {
+              "text": "Updated",
+              "tooltip": "Updated"
+            },
+            {
+              "text": "Valid",
+              "tooltip": "Valid"
+            }
+          ],
+          "qid": "grdm-file:Date.日付タイプ",
+          "nav": "Date - Date Type",
+          "title": "日付 - 日付タイプ|Date - Date Type",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "date",
+          "qid": "grdm-file:Date.日付",
+          "nav": "Date - Date",
+          "title": "日付 - 日付|Date - Date",
+          "required": false
+        },
+        {
+          "type": "choose",
+          "format": "singleselect",
+          "options": [
+            {
+              "text": "jpn",
+              "tooltip": "jpn"
+            },
+            {
+              "text": "eng",
+              "tooltip": "eng"
+            },
+            {
+              "text": "fra",
+              "tooltip": "fra"
+            },
+            {
+              "text": "ita",
+              "tooltip": "ita"
+            },
+            {
+              "text": "spa",
+              "tooltip": "spa"
+            },
+            {
+              "text": "zho",
+              "tooltip": "zho"
+            },
+            {
+              "text": "rus",
+              "tooltip": "rus"
+            },
+            {
+              "text": "lat",
+              "tooltip": "lat"
+            },
+            {
+              "text": "msa",
+              "tooltip": "msa"
+            },
+            {
+              "text": "epo",
+              "tooltip": "epo"
+            },
+            {
+              "text": "ara",
+              "tooltip": "ara"
+            },
+            {
+              "text": "ell",
+              "tooltip": "ell"
+            },
+            {
+              "text": "kor",
+              "tooltip": "kor"
+            }
+          ],
+          "qid": "grdm-file:Language",
+          "nav": "Language",
+          "title": "言語|Language",
+          "required": false
+        },
+        {
+          "type": "choose",
+          "format": "singleselect",
+          "options": [
+            {
+              "text": "conference paper",
+              "tooltip": "conference paper"
+            },
+            {
+              "text": "data paper",
+              "tooltip": "data paper"
+            },
+            {
+              "text": "departmental bulletin paper",
+              "tooltip": "departmental bulletin paper"
+            },
+            {
+              "text": "editorial",
+              "tooltip": "editorial"
+            },
+            {
+              "text": "journal article",
+              "tooltip": "journal article"
+            },
+            {
+              "text": "newspaper",
+              "tooltip": "newspaper"
+            },
+            {
+              "text": "periodical",
+              "tooltip": "periodical"
+            },
+            {
+              "text": "review article",
+              "tooltip": "review article"
+            },
+            {
+              "text": "software paper",
+              "tooltip": "software paper"
+            },
+            {
+              "text": "article",
+              "tooltip": "article"
+            },
+            {
+              "text": "book",
+              "tooltip": "book"
+            },
+            {
+              "text": "book part",
+              "tooltip": "book part"
+            },
+            {
+              "text": "cartographic material",
+              "tooltip": "cartographic material"
+            },
+            {
+              "text": "map",
+              "tooltip": "map"
+            },
+            {
+              "text": "conference object",
+              "tooltip": "conference object"
+            },
+            {
+              "text": "conference proceedings",
+              "tooltip": "conference proceedings"
+            },
+            {
+              "text": "conference poster",
+              "tooltip": "conference poster"
+            },
+            {
+              "text": "dataset",
+              "tooltip": "dataset"
+            },
+            {
+              "text": "interview",
+              "tooltip": "interview"
+            },
+            {
+              "text": "image",
+              "tooltip": "image"
+            },
+            {
+              "text": "still image",
+              "tooltip": "still image"
+            },
+            {
+              "text": "moving image",
+              "tooltip": "moving image"
+            },
+            {
+              "text": "video",
+              "tooltip": "video"
+            },
+            {
+              "text": "lecture",
+              "tooltip": "lecture"
+            },
+            {
+              "text": "patent",
+              "tooltip": "patent"
+            },
+            {
+              "text": "internal report",
+              "tooltip": "internal report"
+            },
+            {
+              "text": "report",
+              "tooltip": "report"
+            },
+            {
+              "text": "research report",
+              "tooltip": "research report"
+            },
+            {
+              "text": "technical report",
+              "tooltip": "technical report"
+            },
+            {
+              "text": "policy report",
+              "tooltip": "policy report"
+            },
+            {
+              "text": "report part",
+              "tooltip": "report part"
+            },
+            {
+              "text": "working paper",
+              "tooltip": "working paper"
+            },
+            {
+              "text": "data management plan",
+              "tooltip": "data management plan"
+            },
+            {
+              "text": "sound",
+              "tooltip": "sound"
+            },
+            {
+              "text": "thesis",
+              "tooltip": "thesis"
+            },
+            {
+              "text": "bachelor thesis",
+              "tooltip": "bachelor thesis"
+            },
+            {
+              "text": "master thesis",
+              "tooltip": "master thesis"
+            },
+            {
+              "text": "doctoral thesis",
+              "tooltip": "doctoral thesis"
+            },
+            {
+              "text": "interactive resource",
+              "tooltip": "interactive resource"
+            },
+            {
+              "text": "learning object",
+              "tooltip": "learning object"
+            },
+            {
+              "text": "manuscript",
+              "tooltip": "manuscript"
+            },
+            {
+              "text": "musical notation",
+              "tooltip": "musical notation"
+            },
+            {
+              "text": "research proposal",
+              "tooltip": "research proposal"
+            },
+            {
+              "text": "software",
+              "tooltip": "software"
+            },
+            {
+              "text": "technical documentation",
+              "tooltip": "technical documentation"
+            },
+            {
+              "text": "workflow",
+              "tooltip": "workflow"
+            },
+            {
+              "text": "other",
+              "tooltip": "other"
+            }
+          ],
+          "qid": "grdm-file:resourcetype",
+          "nav": "Resource Type",
+          "title": "資源タイプ|Resource Type",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:バージョン情報",
+          "nav": "Version",
+          "title": "バージョン情報|Version",
+          "required": false
+        },
+        {
+          "type": "choose",
+          "format": "singleselect",
+          "options": [
+            {
+              "text": "AO",
+              "tooltip": "AO"
+            },
+            {
+              "text": "SMUR",
+              "tooltip": "SMUR"
+            },
+            {
+              "text": "AM",
+              "tooltip": "AM"
+            },
+            {
+              "text": "P",
+              "tooltip": "P"
+            },
+            {
+              "text": "VoR",
+              "tooltip": "VoR"
+            },
+            {
+              "text": "CVoR",
+              "tooltip": "CVoR"
+            },
+            {
+              "text": "EVoR",
+              "tooltip": "EVoR"
+            },
+            {
+              "text": "NA",
+              "tooltip": "NA"
+            }
+          ],
+          "qid": "grdm-file:出版タイプ",
+          "nav": "Version Type",
+          "title": "出版タイプ|Version Type",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Identifier.subitem_identifier_uri",
+          "nav": "Identifier - Identifier",
+          "title": "識別子 - 識別子|Identifier - Identifier",
+          "required": false
+        },
+        {
+          "type": "choose",
+          "format": "singleselect",
+          "options": [
+            {
+              "text": "DOI",
+              "tooltip": "DOI"
+            },
+            {
+              "text": "HDL",
+              "tooltip": "HDL"
+            },
+            {
+              "text": "URI",
+              "tooltip": "URI"
+            }
+          ],
+          "qid": "grdm-file:Identifier.subitem_identifier_type",
+          "nav": "Identifier - Identifier Type",
+          "title": "識別子 - 識別子タイプ|Identifier - Identifier Type",
+          "required": false
+        },
+        {
+          "type": "choose",
+          "format": "singleselect",
+          "options": [
+            {
+              "text": "isVersionOf",
+              "tooltip": "isVersionOf"
+            },
+            {
+              "text": "hasVersion",
+              "tooltip": "hasVersion"
+            },
+            {
+              "text": "isPartOf",
+              "tooltip": "isPartOf"
+            },
+            {
+              "text": "hasPart",
+              "tooltip": "hasPart"
+            },
+            {
+              "text": "isReferencedBy",
+              "tooltip": "isReferencedBy"
+            },
+            {
+              "text": "references",
+              "tooltip": "references"
+            },
+            {
+              "text": "isFormatOf",
+              "tooltip": "isFormatOf"
+            },
+            {
+              "text": "hasFormat",
+              "tooltip": "hasFormat"
+            },
+            {
+              "text": "isReplacedBy",
+              "tooltip": "isReplacedBy"
+            },
+            {
+              "text": "replaces",
+              "tooltip": "replaces"
+            },
+            {
+              "text": "isRequiredBy",
+              "tooltip": "isRequiredBy"
+            },
+            {
+              "text": "requires",
+              "tooltip": "requires"
+            },
+            {
+              "text": "isSupplementTo",
+              "tooltip": "isSupplementTo"
+            },
+            {
+              "text": "isSupplementedBy",
+              "tooltip": "isSupplementedBy"
+            },
+            {
+              "text": "isIdenticalTo",
+              "tooltip": "isIdenticalTo"
+            },
+            {
+              "text": "isDerivedFrom",
+              "tooltip": "isDerivedFrom"
+            },
+            {
+              "text": "isSourceOf",
+              "tooltip": "isSourceOf"
+            }
+          ],
+          "qid": "grdm-file:Relation.関連タイプ",
+          "nav": "Relation - Relation Type",
+          "title": "関連情報 - 関連タイプ|Relation - Relation Type",
+          "required": false
+        },
+        {
+          "type": "choose",
+          "format": "singleselect",
+          "options": [
+            {
+              "text": "ARK",
+              "tooltip": "ARK"
+            },
+            {
+              "text": "arXiv",
+              "tooltip": "arXiv"
+            },
+            {
+              "text": "DOI",
+              "tooltip": "DOI"
+            },
+            {
+              "text": "HDL",
+              "tooltip": "HDL"
+            },
+            {
+              "text": "ICHUSHI",
+              "tooltip": "ICHUSHI"
+            },
+            {
+              "text": "ISBN",
+              "tooltip": "ISBN"
+            },
+            {
+              "text": "J-GLOBAL",
+              "tooltip": "J-GLOBAL"
+            },
+            {
+              "text": "Local",
+              "tooltip": "Local"
+            },
+            {
+              "text": "PISSN",
+              "tooltip": "PISSN"
+            },
+            {
+              "text": "EISSN",
+              "tooltip": "EISSN"
+            },
+            {
+              "text": "ISSN（非推奨）",
+              "tooltip": "ISSN（非推奨）"
+            },
+            {
+              "text": "NAID",
+              "tooltip": "NAID"
+            },
+            {
+              "text": "NCID",
+              "tooltip": "NCID"
+            },
+            {
+              "text": "PMID",
+              "tooltip": "PMID"
+            },
+            {
+              "text": "PURL",
+              "tooltip": "PURL"
+            },
+            {
+              "text": "SCOPUS",
+              "tooltip": "SCOPUS"
+            },
+            {
+              "text": "URI",
+              "tooltip": "URI"
+            },
+            {
+              "text": "WOS",
+              "tooltip": "WOS"
+            }
+          ],
+          "qid": "grdm-file:Relation.関連識別子.識別子タイプ",
+          "nav": "Relation - Identifier Type",
+          "title": "関連情報 - 識別子タイプ|Relation - Identifier Type",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Relation.関連識別子.関連識別子",
+          "nav": "Relation - Relation Identifier",
+          "title": "関連情報 - 関連識別子|Relation - Relation Identifier",
+          "required": false
+        },
+        {
+          "type": "choose",
+          "format": "singleselect",
+          "options": [
+            {
+              "text": "ja",
+              "tooltip": "ja"
+            },
+            {
+              "text": "en",
+              "tooltip": "en"
+            },
+            {
+              "text": "fr",
+              "tooltip": "fr"
+            },
+            {
+              "text": "it",
+              "tooltip": "it"
+            },
+            {
+              "text": "de",
+              "tooltip": "de"
+            },
+            {
+              "text": "es",
+              "tooltip": "es"
+            },
+            {
+              "text": "zh-cn",
+              "tooltip": "zh-cn"
+            },
+            {
+              "text": "zh-tw",
+              "tooltip": "zh-tw"
+            },
+            {
+              "text": "ru",
+              "tooltip": "ru"
+            },
+            {
+              "text": "la",
+              "tooltip": "la"
+            },
+            {
+              "text": "ms",
+              "tooltip": "ms"
+            },
+            {
+              "text": "eo",
+              "tooltip": "eo"
+            },
+            {
+              "text": "ar",
+              "tooltip": "ar"
+            },
+            {
+              "text": "el",
+              "tooltip": "el"
+            },
+            {
+              "text": "ko",
+              "tooltip": "ko"
+            }
+          ],
+          "qid": "grdm-file:Relation.関連名称.言語",
+          "nav": "Relation - Language",
+          "title": "関連情報 - 言語|Relation - Language",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Relation.関連名称.関連名称",
+          "nav": "Relation - Related Title",
+          "title": "関連情報 - 関連名称|Relation - Related Title",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:時間的範囲.ja",
+          "nav": "時間的範囲 (日本語)",
+          "title": "時間的範囲 (日本語)",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:時間的範囲.en",
+          "nav": "Temporal (English)",
+          "title": "Temporal (English)",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Geo Location.subitem_geolocation_point.subitem_point_longitude",
+          "nav": "Geo Location - Point Longitude",
+          "title": "位置情報 - 経度|Geo Location - Point Longitude",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Geo Location.subitem_geolocation_point.subitem_point_latitude",
+          "nav": "Geo Location - Point Latitude",
+          "title": "位置情報 - 緯度|Geo Location - Point Latitude",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Geo Location.subitem_geolocation_box.subitem_west_longitude",
+          "nav": "Geo Location - West Bound Longitude",
+          "title": "位置情報 - 西部経度|Geo Location - West Bound Longitude",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Geo Location.subitem_geolocation_box.subitem_east_longitude",
+          "nav": "Geo Location - East Bound Longitude",
+          "title": "位置情報 - 東部経度|Geo Location - East Bound Longitude",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Geo Location.subitem_geolocation_box.subitem_south_latitude",
+          "nav": "Geo Location - South Bound Latitude",
+          "title": "位置情報 - 南部緯度|Geo Location - South Bound Latitude",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Geo Location.subitem_geolocation_box.subitem_north_latitude",
+          "nav": "Geo Location - North Bound Latitude",
+          "title": "位置情報 - 北部緯度|Geo Location - North Bound Latitude",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Geo Location.subitem_geolocation_place.subitem_geolocation_place_text",
+          "nav": "Geo Location - Geo Location Place",
+          "title": "位置情報 - 位置情報（自由記述）|Geo Location - Geo Location Place",
+          "required": false
+        },
+        {
+          "type": "choose",
+          "format": "singleselect",
+          "options": [
+            {
+              "text": "Crossref Funder",
+              "tooltip": "Crossref Funder"
+            },
+            {
+              "text": "GRID",
+              "tooltip": "GRID"
+            },
+            {
+              "text": "ISNI",
+              "tooltip": "ISNI"
+            },
+            {
+              "text": "Other",
+              "tooltip": "Other"
+            },
+            {
+              "text": "kakenhi",
+              "tooltip": "kakenhi"
+            }
+          ],
+          "qid": "grdm-file:Funding Reference.助成機関識別子.助成機関識別子タイプ",
+          "nav": "Funding Reference - Funder Identifier Type",
+          "title": "助成情報 - 助成機関識別子タイプ|Funding Reference - Funder Identifier Type",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Funding Reference.助成機関識別子.助成機関識別子",
+          "nav": "Funding Reference - Funder Identifier",
+          "title": "助成情報 - 助成機関識別子|Funding Reference - Funder Identifier",
+          "required": false
+        },
+        {
+          "type": "choose",
+          "format": "singleselect",
+          "options": [
+            {
+              "text": "ja",
+              "tooltip": "ja"
+            },
+            {
+              "text": "en",
+              "tooltip": "en"
+            },
+            {
+              "text": "fr",
+              "tooltip": "fr"
+            },
+            {
+              "text": "it",
+              "tooltip": "it"
+            },
+            {
+              "text": "de",
+              "tooltip": "de"
+            },
+            {
+              "text": "es",
+              "tooltip": "es"
+            },
+            {
+              "text": "zh-cn",
+              "tooltip": "zh-cn"
+            },
+            {
+              "text": "zh-tw",
+              "tooltip": "zh-tw"
+            },
+            {
+              "text": "ru",
+              "tooltip": "ru"
+            },
+            {
+              "text": "la",
+              "tooltip": "la"
+            },
+            {
+              "text": "ms",
+              "tooltip": "ms"
+            },
+            {
+              "text": "eo",
+              "tooltip": "eo"
+            },
+            {
+              "text": "ar",
+              "tooltip": "ar"
+            },
+            {
+              "text": "el",
+              "tooltip": "el"
+            },
+            {
+              "text": "ko",
+              "tooltip": "ko"
+            }
+          ],
+          "qid": "grdm-file:Funding Reference.助成機関名.言語",
+          "nav": "Funding Reference - Language",
+          "title": "助成情報 - 言語|Funding Reference - Language",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Funding Reference.助成機関名.助成機関名",
+          "nav": "Funding Reference - Funder Name",
+          "title": "助成情報 - 助成機関名|Funding Reference - Funder Name",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Funding Reference.研究課題番号.研究課題URI",
+          "nav": "Funding Reference - Award URI",
+          "title": "助成情報 - 研究課題URI|Funding Reference - Award URI",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Funding Reference.研究課題番号.研究課題番号",
+          "nav": "Funding Reference - Award Number",
+          "title": "助成情報 - 研究課題番号|Funding Reference - Award Number",
+          "required": false
+        },
+        {
+          "type": "choose",
+          "format": "singleselect",
+          "options": [
+            {
+              "text": "ja",
+              "tooltip": "ja"
+            },
+            {
+              "text": "en",
+              "tooltip": "en"
+            },
+            {
+              "text": "fr",
+              "tooltip": "fr"
+            },
+            {
+              "text": "it",
+              "tooltip": "it"
+            },
+            {
+              "text": "de",
+              "tooltip": "de"
+            },
+            {
+              "text": "es",
+              "tooltip": "es"
+            },
+            {
+              "text": "zh-cn",
+              "tooltip": "zh-cn"
+            },
+            {
+              "text": "zh-tw",
+              "tooltip": "zh-tw"
+            },
+            {
+              "text": "ru",
+              "tooltip": "ru"
+            },
+            {
+              "text": "la",
+              "tooltip": "la"
+            },
+            {
+              "text": "ms",
+              "tooltip": "ms"
+            },
+            {
+              "text": "eo",
+              "tooltip": "eo"
+            },
+            {
+              "text": "ar",
+              "tooltip": "ar"
+            },
+            {
+              "text": "el",
+              "tooltip": "el"
+            },
+            {
+              "text": "ko",
+              "tooltip": "ko"
+            }
+          ],
+          "qid": "grdm-file:Funding Reference.研究課題名.言語",
+          "nav": "Funding Reference - Language",
+          "title": "助成情報 - 言語|Funding Reference - Language",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Funding Reference.研究課題名.研究課題名",
+          "nav": "Funding Reference - Award Title",
+          "title": "助成情報 - 研究課題名|Funding Reference - Award Title",
+          "required": false
+        },
+        {
+          "type": "choose",
+          "format": "singleselect",
+          "options": [
+            {
+              "text": "PISSN",
+              "tooltip": "PISSN"
+            },
+            {
+              "text": "EISSN",
+              "tooltip": "EISSN"
+            },
+            {
+              "text": "ISSN",
+              "tooltip": "ISSN"
+            },
+            {
+              "text": "NCID",
+              "tooltip": "NCID"
+            }
+          ],
+          "qid": "grdm-file:Source Identifier.収録物識別子タイプ",
+          "nav": "Source Identifier - Source Identifier Type",
+          "title": "収録物識別子 - 収録物識別子タイプ|Source Identifier - Source Identifier Type",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Source Identifier.収録物識別子",
+          "nav": "Source Identifier - Source Identifier",
+          "title": "収録物識別子 - 収録物識別子|Source Identifier - Source Identifier",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:収録物名.ja",
+          "nav": "収録物名 (日本語)",
+          "title": "収録物名 (日本語)",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:収録物名.en",
+          "nav": "Source Title (English)",
+          "title": "Source Title (English)",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Volume Number",
+          "nav": "Volume Number",
+          "title": "巻|Volume Number",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Issue Number",
+          "nav": "Issue Number",
+          "title": "号|Issue Number",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Number of Pages",
+          "nav": "Number of Pages",
+          "title": "ページ数|Number of Pages",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Page Start",
+          "nav": "Page Start",
+          "title": "開始ページ|Page Start",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Page End",
+          "nav": "Page End",
+          "title": "終了ページ|Page End",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Bibliographic Information.bibliographic_titles.bibliographic_title",
+          "nav": "Bibliographic Information - Title",
+          "title": "書誌情報 - タイトル|Bibliographic Information - Title",
+          "required": false
+        },
+        {
+          "type": "choose",
+          "format": "singleselect",
+          "options": [
+            {
+              "text": "ja",
+              "tooltip": "ja"
+            },
+            {
+              "text": "en",
+              "tooltip": "en"
+            },
+            {
+              "text": "fr",
+              "tooltip": "fr"
+            },
+            {
+              "text": "it",
+              "tooltip": "it"
+            },
+            {
+              "text": "de",
+              "tooltip": "de"
+            },
+            {
+              "text": "es",
+              "tooltip": "es"
+            },
+            {
+              "text": "zh-cn",
+              "tooltip": "zh-cn"
+            },
+            {
+              "text": "zh-tw",
+              "tooltip": "zh-tw"
+            },
+            {
+              "text": "ru",
+              "tooltip": "ru"
+            },
+            {
+              "text": "la",
+              "tooltip": "la"
+            },
+            {
+              "text": "ms",
+              "tooltip": "ms"
+            },
+            {
+              "text": "eo",
+              "tooltip": "eo"
+            },
+            {
+              "text": "ar",
+              "tooltip": "ar"
+            },
+            {
+              "text": "el",
+              "tooltip": "el"
+            },
+            {
+              "text": "ko",
+              "tooltip": "ko"
+            }
+          ],
+          "qid": "grdm-file:Bibliographic Information.bibliographic_titles.bibliographic_titleLang",
+          "nav": "Bibliographic Information - Language",
+          "title": "書誌情報 - 言語|Bibliographic Information - Language",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Bibliographic Information.bibliographicVolumeNumber",
+          "nav": "Bibliographic Information - Volume Number",
+          "title": "書誌情報 - 巻|Bibliographic Information - Volume Number",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Bibliographic Information.bibliographicIssueNumber",
+          "nav": "Bibliographic Information - Issue Number",
+          "title": "書誌情報 - 号|Bibliographic Information - Issue Number",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Bibliographic Information.bibliographicPageStart",
+          "nav": "Bibliographic Information - Page Start",
+          "title": "書誌情報 - 開始ページ|Bibliographic Information - Page Start",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Bibliographic Information.bibliographicPageEnd",
+          "nav": "Bibliographic Information - Page End",
+          "title": "書誌情報 - 終了ページ|Bibliographic Information - Page End",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Bibliographic Information.bibliographicNumberOfPages",
+          "nav": "Bibliographic Information - Number of Page",
+          "title": "書誌情報 - ページ数|Bibliographic Information - Number of Page",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "date",
+          "qid": "grdm-file:Bibliographic Information.bibliographicIssueDates.bibliographicIssueDate",
+          "nav": "Bibliographic Information - Date",
+          "title": "書誌情報 - 日付|Bibliographic Information - Date",
+          "required": false
+        },
+        {
+          "type": "choose",
+          "format": "singleselect",
+          "options": [
+            {
+              "text": "Issued",
+              "tooltip": "Issued"
+            }
+          ],
+          "qid": "grdm-file:Bibliographic Information.bibliographicIssueDates.bibliographicIssueDateType",
+          "nav": "Bibliographic Information - Date Type",
+          "title": "書誌情報 - 日付タイプ|Bibliographic Information - Date Type",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Dissertation Number",
+          "nav": "Dissertation Number",
+          "title": "学位授与番号|Dissertation Number",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Degree Name.ja",
+          "nav": "学位名 (日本語)",
+          "title": "学位名 (日本語)",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Degree Name.en",
+          "nav": "Degree Name (English)",
+          "title": "Degree Name (English)",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "date",
+          "qid": "grdm-file:Date Granted",
+          "nav": "Date Granted",
+          "title": "学位授与年月日|Date Granted",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Degree Grantor.Degree Grantor Name Identifier.Degree Grantor Name Identifier",
+          "nav": "Degree Grantor - Degree Grantor Name Identifier",
+          "title": "学位授与機関 - 学位授与機関識別子|Degree Grantor - Degree Grantor Name Identifier",
+          "required": false
+        },
+        {
+          "type": "choose",
+          "format": "singleselect",
+          "options": [
+            {
+              "text": "kakenhi",
+              "tooltip": "kakenhi"
+            }
+          ],
+          "qid": "grdm-file:Degree Grantor.Degree Grantor Name Identifier.Degree Grantor Name Identifier Scheme",
+          "nav": "Degree Grantor - Degree Grantor Name Identifier Scheme",
+          "title": "学位授与機関 - 学位授与機関識別子Scheme|Degree Grantor - Degree Grantor Name Identifier Scheme",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Degree Grantor.Degree Grantor Name.Degree Grantor Name",
+          "nav": "Degree Grantor - Degree Grantor Name",
+          "title": "学位授与機関 - 学位授与機関名|Degree Grantor - Degree Grantor Name",
+          "required": false
+        },
+        {
+          "type": "choose",
+          "format": "singleselect",
+          "options": [
+            {
+              "text": "ja",
+              "tooltip": "ja"
+            },
+            {
+              "text": "en",
+              "tooltip": "en"
+            },
+            {
+              "text": "fr",
+              "tooltip": "fr"
+            },
+            {
+              "text": "it",
+              "tooltip": "it"
+            },
+            {
+              "text": "de",
+              "tooltip": "de"
+            },
+            {
+              "text": "es",
+              "tooltip": "es"
+            },
+            {
+              "text": "zh-cn",
+              "tooltip": "zh-cn"
+            },
+            {
+              "text": "zh-tw",
+              "tooltip": "zh-tw"
+            },
+            {
+              "text": "ru",
+              "tooltip": "ru"
+            },
+            {
+              "text": "la",
+              "tooltip": "la"
+            },
+            {
+              "text": "ms",
+              "tooltip": "ms"
+            },
+            {
+              "text": "eo",
+              "tooltip": "eo"
+            },
+            {
+              "text": "ar",
+              "tooltip": "ar"
+            },
+            {
+              "text": "el",
+              "tooltip": "el"
+            },
+            {
+              "text": "ko",
+              "tooltip": "ko"
+            }
+          ],
+          "qid": "grdm-file:Degree Grantor.Degree Grantor Name.Language",
+          "nav": "Degree Grantor - Language",
+          "title": "学位授与機関 - 言語|Degree Grantor - Language",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Conference.Conference Name.Conference Name",
+          "nav": "Conference - Conference Name",
+          "title": "会議記述 - 会議名|Conference - Conference Name",
+          "required": false
+        },
+        {
+          "type": "choose",
+          "format": "singleselect",
+          "options": [
+            {
+              "text": "ja",
+              "tooltip": "ja"
+            },
+            {
+              "text": "en",
+              "tooltip": "en"
+            },
+            {
+              "text": "fr",
+              "tooltip": "fr"
+            },
+            {
+              "text": "it",
+              "tooltip": "it"
+            },
+            {
+              "text": "de",
+              "tooltip": "de"
+            },
+            {
+              "text": "es",
+              "tooltip": "es"
+            },
+            {
+              "text": "zh-cn",
+              "tooltip": "zh-cn"
+            },
+            {
+              "text": "zh-tw",
+              "tooltip": "zh-tw"
+            },
+            {
+              "text": "ru",
+              "tooltip": "ru"
+            },
+            {
+              "text": "la",
+              "tooltip": "la"
+            },
+            {
+              "text": "ms",
+              "tooltip": "ms"
+            },
+            {
+              "text": "eo",
+              "tooltip": "eo"
+            },
+            {
+              "text": "ar",
+              "tooltip": "ar"
+            },
+            {
+              "text": "el",
+              "tooltip": "el"
+            },
+            {
+              "text": "ko",
+              "tooltip": "ko"
+            }
+          ],
+          "qid": "grdm-file:Conference.Conference Name.Language",
+          "nav": "Conference - Language",
+          "title": "会議記述 - 言語|Conference - Language",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Conference.Conference Sequence",
+          "nav": "Conference - Conference Sequence",
+          "title": "会議記述 - 回次|Conference - Conference Sequence",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Conference.Conference Sponsor.Conference Sponsor",
+          "nav": "Conference - Conference Sponsor",
+          "title": "会議記述 - 主催機関|Conference - Conference Sponsor",
+          "required": false
+        },
+        {
+          "type": "choose",
+          "format": "singleselect",
+          "options": [
+            {
+              "text": "ja",
+              "tooltip": "ja"
+            },
+            {
+              "text": "en",
+              "tooltip": "en"
+            },
+            {
+              "text": "fr",
+              "tooltip": "fr"
+            },
+            {
+              "text": "it",
+              "tooltip": "it"
+            },
+            {
+              "text": "de",
+              "tooltip": "de"
+            },
+            {
+              "text": "es",
+              "tooltip": "es"
+            },
+            {
+              "text": "zh-cn",
+              "tooltip": "zh-cn"
+            },
+            {
+              "text": "zh-tw",
+              "tooltip": "zh-tw"
+            },
+            {
+              "text": "ru",
+              "tooltip": "ru"
+            },
+            {
+              "text": "la",
+              "tooltip": "la"
+            },
+            {
+              "text": "ms",
+              "tooltip": "ms"
+            },
+            {
+              "text": "eo",
+              "tooltip": "eo"
+            },
+            {
+              "text": "ar",
+              "tooltip": "ar"
+            },
+            {
+              "text": "el",
+              "tooltip": "el"
+            },
+            {
+              "text": "ko",
+              "tooltip": "ko"
+            }
+          ],
+          "qid": "grdm-file:Conference.Conference Sponsor.Language",
+          "nav": "Conference - Language",
+          "title": "会議記述 - 言語|Conference - Language",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Conference.Conference Date.Start Year",
+          "nav": "Conference - Start Year",
+          "title": "会議記述 - 開始年|Conference - Start Year",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Conference.Conference Date.Start Month",
+          "nav": "Conference - Start Month",
+          "title": "会議記述 - 開始月|Conference - Start Month",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Conference.Conference Date.Start Day",
+          "nav": "Conference - Start Day",
+          "title": "会議記述 - 開始日|Conference - Start Day",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Conference.Conference Date.End Year",
+          "nav": "Conference - End Year",
+          "title": "会議記述 - 終了年|Conference - End Year",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Conference.Conference Date.End Month",
+          "nav": "Conference - End Month",
+          "title": "会議記述 - 終了月|Conference - End Month",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Conference.Conference Date.Conference Date",
+          "nav": "Conference - Conference Date",
+          "title": "会議記述 - 開催期間|Conference - Conference Date",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Conference.Conference Date.End Day",
+          "nav": "Conference - End Day",
+          "title": "会議記述 - 終了日|Conference - End Day",
+          "required": false
+        },
+        {
+          "type": "choose",
+          "format": "singleselect",
+          "options": [
+            {
+              "text": "ja",
+              "tooltip": "ja"
+            },
+            {
+              "text": "en",
+              "tooltip": "en"
+            },
+            {
+              "text": "fr",
+              "tooltip": "fr"
+            },
+            {
+              "text": "it",
+              "tooltip": "it"
+            },
+            {
+              "text": "de",
+              "tooltip": "de"
+            },
+            {
+              "text": "es",
+              "tooltip": "es"
+            },
+            {
+              "text": "zh-cn",
+              "tooltip": "zh-cn"
+            },
+            {
+              "text": "zh-tw",
+              "tooltip": "zh-tw"
+            },
+            {
+              "text": "ru",
+              "tooltip": "ru"
+            },
+            {
+              "text": "la",
+              "tooltip": "la"
+            },
+            {
+              "text": "ms",
+              "tooltip": "ms"
+            },
+            {
+              "text": "eo",
+              "tooltip": "eo"
+            },
+            {
+              "text": "ar",
+              "tooltip": "ar"
+            },
+            {
+              "text": "el",
+              "tooltip": "el"
+            },
+            {
+              "text": "ko",
+              "tooltip": "ko"
+            }
+          ],
+          "qid": "grdm-file:Conference.Conference Date.Language",
+          "nav": "Conference - Language",
+          "title": "会議記述 - 言語|Conference - Language",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Conference.Conference Venue.Conference Venue",
+          "nav": "Conference - Conference Venue",
+          "title": "会議記述 - 開催会場|Conference - Conference Venue",
+          "required": false
+        },
+        {
+          "type": "choose",
+          "format": "singleselect",
+          "options": [
+            {
+              "text": "ja",
+              "tooltip": "ja"
+            },
+            {
+              "text": "en",
+              "tooltip": "en"
+            },
+            {
+              "text": "fr",
+              "tooltip": "fr"
+            },
+            {
+              "text": "it",
+              "tooltip": "it"
+            },
+            {
+              "text": "de",
+              "tooltip": "de"
+            },
+            {
+              "text": "es",
+              "tooltip": "es"
+            },
+            {
+              "text": "zh-cn",
+              "tooltip": "zh-cn"
+            },
+            {
+              "text": "zh-tw",
+              "tooltip": "zh-tw"
+            },
+            {
+              "text": "ru",
+              "tooltip": "ru"
+            },
+            {
+              "text": "la",
+              "tooltip": "la"
+            },
+            {
+              "text": "ms",
+              "tooltip": "ms"
+            },
+            {
+              "text": "eo",
+              "tooltip": "eo"
+            },
+            {
+              "text": "ar",
+              "tooltip": "ar"
+            },
+            {
+              "text": "el",
+              "tooltip": "el"
+            },
+            {
+              "text": "ko",
+              "tooltip": "ko"
+            }
+          ],
+          "qid": "grdm-file:Conference.Conference Venue.Language",
+          "nav": "Conference - Language",
+          "title": "会議記述 - 言語|Conference - Language",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Conference.Conference Place.Conference Place",
+          "nav": "Conference - Conference Place",
+          "title": "会議記述 - 開催地|Conference - Conference Place",
+          "required": false
+        },
+        {
+          "type": "choose",
+          "format": "singleselect",
+          "options": [
+            {
+              "text": "ja",
+              "tooltip": "ja"
+            },
+            {
+              "text": "en",
+              "tooltip": "en"
+            },
+            {
+              "text": "fr",
+              "tooltip": "fr"
+            },
+            {
+              "text": "it",
+              "tooltip": "it"
+            },
+            {
+              "text": "de",
+              "tooltip": "de"
+            },
+            {
+              "text": "es",
+              "tooltip": "es"
+            },
+            {
+              "text": "zh-cn",
+              "tooltip": "zh-cn"
+            },
+            {
+              "text": "zh-tw",
+              "tooltip": "zh-tw"
+            },
+            {
+              "text": "ru",
+              "tooltip": "ru"
+            },
+            {
+              "text": "la",
+              "tooltip": "la"
+            },
+            {
+              "text": "ms",
+              "tooltip": "ms"
+            },
+            {
+              "text": "eo",
+              "tooltip": "eo"
+            },
+            {
+              "text": "ar",
+              "tooltip": "ar"
+            },
+            {
+              "text": "el",
+              "tooltip": "el"
+            },
+            {
+              "text": "ko",
+              "tooltip": "ko"
+            }
+          ],
+          "qid": "grdm-file:Conference.Conference Place.Language",
+          "nav": "Conference - Language",
+          "title": "会議記述 - 言語|Conference - Language",
+          "required": false
+        },
+        {
+          "type": "choose",
+          "format": "singleselect",
+          "options": [
+            {
+              "text": "JPN",
+              "tooltip": "JPN"
+            },
+            {
+              "text": "ABW",
+              "tooltip": "ABW"
+            },
+            {
+              "text": "AFG",
+              "tooltip": "AFG"
+            },
+            {
+              "text": "AGO",
+              "tooltip": "AGO"
+            },
+            {
+              "text": "AIA",
+              "tooltip": "AIA"
+            },
+            {
+              "text": "ALA",
+              "tooltip": "ALA"
+            },
+            {
+              "text": "ALB",
+              "tooltip": "ALB"
+            },
+            {
+              "text": "AND",
+              "tooltip": "AND"
+            },
+            {
+              "text": "ARE",
+              "tooltip": "ARE"
+            },
+            {
+              "text": "ARG",
+              "tooltip": "ARG"
+            },
+            {
+              "text": "ARM",
+              "tooltip": "ARM"
+            },
+            {
+              "text": "ASM",
+              "tooltip": "ASM"
+            },
+            {
+              "text": "ATA",
+              "tooltip": "ATA"
+            },
+            {
+              "text": "ATF",
+              "tooltip": "ATF"
+            },
+            {
+              "text": "ATG",
+              "tooltip": "ATG"
+            },
+            {
+              "text": "AUS",
+              "tooltip": "AUS"
+            },
+            {
+              "text": "AUT",
+              "tooltip": "AUT"
+            },
+            {
+              "text": "AZE",
+              "tooltip": "AZE"
+            },
+            {
+              "text": "BDI",
+              "tooltip": "BDI"
+            },
+            {
+              "text": "BEL",
+              "tooltip": "BEL"
+            },
+            {
+              "text": "BEN",
+              "tooltip": "BEN"
+            },
+            {
+              "text": "BES",
+              "tooltip": "BES"
+            },
+            {
+              "text": "BFA",
+              "tooltip": "BFA"
+            },
+            {
+              "text": "BGD",
+              "tooltip": "BGD"
+            },
+            {
+              "text": "BGR",
+              "tooltip": "BGR"
+            },
+            {
+              "text": "BHR",
+              "tooltip": "BHR"
+            },
+            {
+              "text": "BHS",
+              "tooltip": "BHS"
+            },
+            {
+              "text": "BIH",
+              "tooltip": "BIH"
+            },
+            {
+              "text": "BLM",
+              "tooltip": "BLM"
+            },
+            {
+              "text": "BLR",
+              "tooltip": "BLR"
+            },
+            {
+              "text": "BLZ",
+              "tooltip": "BLZ"
+            },
+            {
+              "text": "BMU",
+              "tooltip": "BMU"
+            },
+            {
+              "text": "BOL",
+              "tooltip": "BOL"
+            },
+            {
+              "text": "BRA",
+              "tooltip": "BRA"
+            },
+            {
+              "text": "BRB",
+              "tooltip": "BRB"
+            },
+            {
+              "text": "BRN",
+              "tooltip": "BRN"
+            },
+            {
+              "text": "BTN",
+              "tooltip": "BTN"
+            },
+            {
+              "text": "BVT",
+              "tooltip": "BVT"
+            },
+            {
+              "text": "BWA",
+              "tooltip": "BWA"
+            },
+            {
+              "text": "CAF",
+              "tooltip": "CAF"
+            },
+            {
+              "text": "CAN",
+              "tooltip": "CAN"
+            },
+            {
+              "text": "CCK",
+              "tooltip": "CCK"
+            },
+            {
+              "text": "CHE",
+              "tooltip": "CHE"
+            },
+            {
+              "text": "CHL",
+              "tooltip": "CHL"
+            },
+            {
+              "text": "CHN",
+              "tooltip": "CHN"
+            },
+            {
+              "text": "CIV",
+              "tooltip": "CIV"
+            },
+            {
+              "text": "CMR",
+              "tooltip": "CMR"
+            },
+            {
+              "text": "COD",
+              "tooltip": "COD"
+            },
+            {
+              "text": "COG",
+              "tooltip": "COG"
+            },
+            {
+              "text": "COK",
+              "tooltip": "COK"
+            },
+            {
+              "text": "COL",
+              "tooltip": "COL"
+            },
+            {
+              "text": "COM",
+              "tooltip": "COM"
+            },
+            {
+              "text": "CPV",
+              "tooltip": "CPV"
+            },
+            {
+              "text": "CRI",
+              "tooltip": "CRI"
+            },
+            {
+              "text": "CUB",
+              "tooltip": "CUB"
+            },
+            {
+              "text": "CUW",
+              "tooltip": "CUW"
+            },
+            {
+              "text": "CXR",
+              "tooltip": "CXR"
+            },
+            {
+              "text": "CYM",
+              "tooltip": "CYM"
+            },
+            {
+              "text": "CYP",
+              "tooltip": "CYP"
+            },
+            {
+              "text": "CZE",
+              "tooltip": "CZE"
+            },
+            {
+              "text": "DEU",
+              "tooltip": "DEU"
+            },
+            {
+              "text": "DJI",
+              "tooltip": "DJI"
+            },
+            {
+              "text": "DMA",
+              "tooltip": "DMA"
+            },
+            {
+              "text": "DNK",
+              "tooltip": "DNK"
+            },
+            {
+              "text": "DOM",
+              "tooltip": "DOM"
+            },
+            {
+              "text": "DZA",
+              "tooltip": "DZA"
+            },
+            {
+              "text": "ECU",
+              "tooltip": "ECU"
+            },
+            {
+              "text": "EGY",
+              "tooltip": "EGY"
+            },
+            {
+              "text": "ERI",
+              "tooltip": "ERI"
+            },
+            {
+              "text": "ESH",
+              "tooltip": "ESH"
+            },
+            {
+              "text": "ESP",
+              "tooltip": "ESP"
+            },
+            {
+              "text": "EST",
+              "tooltip": "EST"
+            },
+            {
+              "text": "ETH",
+              "tooltip": "ETH"
+            },
+            {
+              "text": "FIN",
+              "tooltip": "FIN"
+            },
+            {
+              "text": "FJI",
+              "tooltip": "FJI"
+            },
+            {
+              "text": "FLK",
+              "tooltip": "FLK"
+            },
+            {
+              "text": "FRA",
+              "tooltip": "FRA"
+            },
+            {
+              "text": "FRO",
+              "tooltip": "FRO"
+            },
+            {
+              "text": "FSM",
+              "tooltip": "FSM"
+            },
+            {
+              "text": "GAB",
+              "tooltip": "GAB"
+            },
+            {
+              "text": "GBR",
+              "tooltip": "GBR"
+            },
+            {
+              "text": "GEO",
+              "tooltip": "GEO"
+            },
+            {
+              "text": "GGY",
+              "tooltip": "GGY"
+            },
+            {
+              "text": "GHA",
+              "tooltip": "GHA"
+            },
+            {
+              "text": "GIB",
+              "tooltip": "GIB"
+            },
+            {
+              "text": "GIN",
+              "tooltip": "GIN"
+            },
+            {
+              "text": "GLP",
+              "tooltip": "GLP"
+            },
+            {
+              "text": "GMB",
+              "tooltip": "GMB"
+            },
+            {
+              "text": "GNB",
+              "tooltip": "GNB"
+            },
+            {
+              "text": "GNQ",
+              "tooltip": "GNQ"
+            },
+            {
+              "text": "GRC",
+              "tooltip": "GRC"
+            },
+            {
+              "text": "GRD",
+              "tooltip": "GRD"
+            },
+            {
+              "text": "GRL",
+              "tooltip": "GRL"
+            },
+            {
+              "text": "GTM",
+              "tooltip": "GTM"
+            },
+            {
+              "text": "GUF",
+              "tooltip": "GUF"
+            },
+            {
+              "text": "GUM",
+              "tooltip": "GUM"
+            },
+            {
+              "text": "GUY",
+              "tooltip": "GUY"
+            },
+            {
+              "text": "HKG",
+              "tooltip": "HKG"
+            },
+            {
+              "text": "HMD",
+              "tooltip": "HMD"
+            },
+            {
+              "text": "HND",
+              "tooltip": "HND"
+            },
+            {
+              "text": "HRV",
+              "tooltip": "HRV"
+            },
+            {
+              "text": "HTI",
+              "tooltip": "HTI"
+            },
+            {
+              "text": "HUN",
+              "tooltip": "HUN"
+            },
+            {
+              "text": "IDN",
+              "tooltip": "IDN"
+            },
+            {
+              "text": "IMN",
+              "tooltip": "IMN"
+            },
+            {
+              "text": "IND",
+              "tooltip": "IND"
+            },
+            {
+              "text": "IOT",
+              "tooltip": "IOT"
+            },
+            {
+              "text": "IRL",
+              "tooltip": "IRL"
+            },
+            {
+              "text": "IRN",
+              "tooltip": "IRN"
+            },
+            {
+              "text": "IRQ",
+              "tooltip": "IRQ"
+            },
+            {
+              "text": "ISL",
+              "tooltip": "ISL"
+            },
+            {
+              "text": "ISR",
+              "tooltip": "ISR"
+            },
+            {
+              "text": "ITA",
+              "tooltip": "ITA"
+            },
+            {
+              "text": "JAM",
+              "tooltip": "JAM"
+            },
+            {
+              "text": "JEY",
+              "tooltip": "JEY"
+            },
+            {
+              "text": "JOR",
+              "tooltip": "JOR"
+            },
+            {
+              "text": "KAZ",
+              "tooltip": "KAZ"
+            },
+            {
+              "text": "KEN",
+              "tooltip": "KEN"
+            },
+            {
+              "text": "KGZ",
+              "tooltip": "KGZ"
+            },
+            {
+              "text": "KHM",
+              "tooltip": "KHM"
+            },
+            {
+              "text": "KIR",
+              "tooltip": "KIR"
+            },
+            {
+              "text": "KNA",
+              "tooltip": "KNA"
+            },
+            {
+              "text": "KOR",
+              "tooltip": "KOR"
+            },
+            {
+              "text": "KWT",
+              "tooltip": "KWT"
+            },
+            {
+              "text": "LAO",
+              "tooltip": "LAO"
+            },
+            {
+              "text": "LBN",
+              "tooltip": "LBN"
+            },
+            {
+              "text": "LBR",
+              "tooltip": "LBR"
+            },
+            {
+              "text": "LBY",
+              "tooltip": "LBY"
+            },
+            {
+              "text": "LCA",
+              "tooltip": "LCA"
+            },
+            {
+              "text": "LIE",
+              "tooltip": "LIE"
+            },
+            {
+              "text": "LKA",
+              "tooltip": "LKA"
+            },
+            {
+              "text": "LSO",
+              "tooltip": "LSO"
+            },
+            {
+              "text": "LTU",
+              "tooltip": "LTU"
+            },
+            {
+              "text": "LUX",
+              "tooltip": "LUX"
+            },
+            {
+              "text": "LVA",
+              "tooltip": "LVA"
+            },
+            {
+              "text": "MAC",
+              "tooltip": "MAC"
+            },
+            {
+              "text": "MAF",
+              "tooltip": "MAF"
+            },
+            {
+              "text": "MAR",
+              "tooltip": "MAR"
+            },
+            {
+              "text": "MCO",
+              "tooltip": "MCO"
+            },
+            {
+              "text": "MDA",
+              "tooltip": "MDA"
+            },
+            {
+              "text": "MDG",
+              "tooltip": "MDG"
+            },
+            {
+              "text": "MDV",
+              "tooltip": "MDV"
+            },
+            {
+              "text": "MEX",
+              "tooltip": "MEX"
+            },
+            {
+              "text": "MHL",
+              "tooltip": "MHL"
+            },
+            {
+              "text": "MKD",
+              "tooltip": "MKD"
+            },
+            {
+              "text": "MLI",
+              "tooltip": "MLI"
+            },
+            {
+              "text": "MLT",
+              "tooltip": "MLT"
+            },
+            {
+              "text": "MMR",
+              "tooltip": "MMR"
+            },
+            {
+              "text": "MNE",
+              "tooltip": "MNE"
+            },
+            {
+              "text": "MNG",
+              "tooltip": "MNG"
+            },
+            {
+              "text": "MNP",
+              "tooltip": "MNP"
+            },
+            {
+              "text": "MOZ",
+              "tooltip": "MOZ"
+            },
+            {
+              "text": "MRT",
+              "tooltip": "MRT"
+            },
+            {
+              "text": "MSR",
+              "tooltip": "MSR"
+            },
+            {
+              "text": "MTQ",
+              "tooltip": "MTQ"
+            },
+            {
+              "text": "MUS",
+              "tooltip": "MUS"
+            },
+            {
+              "text": "MWI",
+              "tooltip": "MWI"
+            },
+            {
+              "text": "MYS",
+              "tooltip": "MYS"
+            },
+            {
+              "text": "MYT",
+              "tooltip": "MYT"
+            },
+            {
+              "text": "NAM",
+              "tooltip": "NAM"
+            },
+            {
+              "text": "NCL",
+              "tooltip": "NCL"
+            },
+            {
+              "text": "NER",
+              "tooltip": "NER"
+            },
+            {
+              "text": "NFK",
+              "tooltip": "NFK"
+            },
+            {
+              "text": "NGA",
+              "tooltip": "NGA"
+            },
+            {
+              "text": "NIC",
+              "tooltip": "NIC"
+            },
+            {
+              "text": "NIU",
+              "tooltip": "NIU"
+            },
+            {
+              "text": "NLD",
+              "tooltip": "NLD"
+            },
+            {
+              "text": "NOR",
+              "tooltip": "NOR"
+            },
+            {
+              "text": "NPL",
+              "tooltip": "NPL"
+            },
+            {
+              "text": "NRU",
+              "tooltip": "NRU"
+            },
+            {
+              "text": "NZL",
+              "tooltip": "NZL"
+            },
+            {
+              "text": "OMN",
+              "tooltip": "OMN"
+            },
+            {
+              "text": "PAK",
+              "tooltip": "PAK"
+            },
+            {
+              "text": "PAN",
+              "tooltip": "PAN"
+            },
+            {
+              "text": "PCN",
+              "tooltip": "PCN"
+            },
+            {
+              "text": "PER",
+              "tooltip": "PER"
+            },
+            {
+              "text": "PHL",
+              "tooltip": "PHL"
+            },
+            {
+              "text": "PLW",
+              "tooltip": "PLW"
+            },
+            {
+              "text": "PNG",
+              "tooltip": "PNG"
+            },
+            {
+              "text": "POL",
+              "tooltip": "POL"
+            },
+            {
+              "text": "PRI",
+              "tooltip": "PRI"
+            },
+            {
+              "text": "PRK",
+              "tooltip": "PRK"
+            },
+            {
+              "text": "PRT",
+              "tooltip": "PRT"
+            },
+            {
+              "text": "PRY",
+              "tooltip": "PRY"
+            },
+            {
+              "text": "PSE",
+              "tooltip": "PSE"
+            },
+            {
+              "text": "PYF",
+              "tooltip": "PYF"
+            },
+            {
+              "text": "QAT",
+              "tooltip": "QAT"
+            },
+            {
+              "text": "REU",
+              "tooltip": "REU"
+            },
+            {
+              "text": "ROU",
+              "tooltip": "ROU"
+            },
+            {
+              "text": "RUS",
+              "tooltip": "RUS"
+            },
+            {
+              "text": "RWA",
+              "tooltip": "RWA"
+            },
+            {
+              "text": "SAU",
+              "tooltip": "SAU"
+            },
+            {
+              "text": "SDN",
+              "tooltip": "SDN"
+            },
+            {
+              "text": "SEN",
+              "tooltip": "SEN"
+            },
+            {
+              "text": "SGP",
+              "tooltip": "SGP"
+            },
+            {
+              "text": "SGS",
+              "tooltip": "SGS"
+            },
+            {
+              "text": "SHN",
+              "tooltip": "SHN"
+            },
+            {
+              "text": "SJM",
+              "tooltip": "SJM"
+            },
+            {
+              "text": "SLB",
+              "tooltip": "SLB"
+            },
+            {
+              "text": "SLE",
+              "tooltip": "SLE"
+            },
+            {
+              "text": "SLV",
+              "tooltip": "SLV"
+            },
+            {
+              "text": "SMR",
+              "tooltip": "SMR"
+            },
+            {
+              "text": "SOM",
+              "tooltip": "SOM"
+            },
+            {
+              "text": "SPM",
+              "tooltip": "SPM"
+            },
+            {
+              "text": "SRB",
+              "tooltip": "SRB"
+            },
+            {
+              "text": "SSD",
+              "tooltip": "SSD"
+            },
+            {
+              "text": "STP",
+              "tooltip": "STP"
+            },
+            {
+              "text": "SUR",
+              "tooltip": "SUR"
+            },
+            {
+              "text": "SVK",
+              "tooltip": "SVK"
+            },
+            {
+              "text": "SVN",
+              "tooltip": "SVN"
+            },
+            {
+              "text": "SWE",
+              "tooltip": "SWE"
+            },
+            {
+              "text": "SWZ",
+              "tooltip": "SWZ"
+            },
+            {
+              "text": "SXM",
+              "tooltip": "SXM"
+            },
+            {
+              "text": "SYC",
+              "tooltip": "SYC"
+            },
+            {
+              "text": "SYR",
+              "tooltip": "SYR"
+            },
+            {
+              "text": "TCA",
+              "tooltip": "TCA"
+            },
+            {
+              "text": "TCD",
+              "tooltip": "TCD"
+            },
+            {
+              "text": "TGO",
+              "tooltip": "TGO"
+            },
+            {
+              "text": "THA",
+              "tooltip": "THA"
+            },
+            {
+              "text": "TJK",
+              "tooltip": "TJK"
+            },
+            {
+              "text": "TKL",
+              "tooltip": "TKL"
+            },
+            {
+              "text": "TKM",
+              "tooltip": "TKM"
+            },
+            {
+              "text": "TLS",
+              "tooltip": "TLS"
+            },
+            {
+              "text": "TON",
+              "tooltip": "TON"
+            },
+            {
+              "text": "TTO",
+              "tooltip": "TTO"
+            },
+            {
+              "text": "TUN",
+              "tooltip": "TUN"
+            },
+            {
+              "text": "TUR",
+              "tooltip": "TUR"
+            },
+            {
+              "text": "TUV",
+              "tooltip": "TUV"
+            },
+            {
+              "text": "TWN",
+              "tooltip": "TWN"
+            },
+            {
+              "text": "TZA",
+              "tooltip": "TZA"
+            },
+            {
+              "text": "UGA",
+              "tooltip": "UGA"
+            },
+            {
+              "text": "UKR",
+              "tooltip": "UKR"
+            },
+            {
+              "text": "UMI",
+              "tooltip": "UMI"
+            },
+            {
+              "text": "URY",
+              "tooltip": "URY"
+            },
+            {
+              "text": "USA",
+              "tooltip": "USA"
+            },
+            {
+              "text": "UZB",
+              "tooltip": "UZB"
+            },
+            {
+              "text": "VAT",
+              "tooltip": "VAT"
+            },
+            {
+              "text": "VCT",
+              "tooltip": "VCT"
+            },
+            {
+              "text": "VEN",
+              "tooltip": "VEN"
+            },
+            {
+              "text": "VGB",
+              "tooltip": "VGB"
+            },
+            {
+              "text": "VIR",
+              "tooltip": "VIR"
+            },
+            {
+              "text": "VNM",
+              "tooltip": "VNM"
+            },
+            {
+              "text": "VUT",
+              "tooltip": "VUT"
+            },
+            {
+              "text": "WLF",
+              "tooltip": "WLF"
+            },
+            {
+              "text": "WSM",
+              "tooltip": "WSM"
+            },
+            {
+              "text": "YEM",
+              "tooltip": "YEM"
+            },
+            {
+              "text": "ZAF",
+              "tooltip": "ZAF"
+            },
+            {
+              "text": "ZMB",
+              "tooltip": "ZMB"
+            },
+            {
+              "text": "ZWE",
+              "tooltip": "ZWE"
+            }
+          ],
+          "qid": "grdm-file:Conference.Conference Country",
+          "nav": "Conference - Conference Country",
+          "title": "会議記述 - 開催国|Conference - Conference Country",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Heading.Banner Headline.ja",
+          "nav": "見出し - 大見出し (日本語)",
+          "title": "見出し - 大見出し (日本語)",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Heading.Banner Headline.en",
+          "nav": "Heading - Banner Headline (English)",
+          "title": "Heading - Banner Headline (English)",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Heading.Subheading.ja",
+          "nav": "見出し - 小見出し (日本語)",
+          "title": "見出し - 小見出し (日本語)",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:Heading.Subheading.en",
+          "nav": "Heading - Subheading (English)",
+          "title": "Heading - Subheading (English)",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:system_identifier_doi.subitem_systemidt_identifier",
+          "nav": "Persistent Identifier(DOI) - SYSTEMIDT Identifier",
+          "title": "永続識別子（DOI） - SYSTEMIDT Identifier|Persistent Identifier(DOI) - SYSTEMIDT Identifier",
+          "required": false
+        },
+        {
+          "type": "choose",
+          "format": "singleselect",
+          "options": [
+            {
+              "text": "DOI",
+              "tooltip": "DOI"
+            },
+            {
+              "text": "HDL",
+              "tooltip": "HDL"
+            },
+            {
+              "text": "URI",
+              "tooltip": "URI"
+            }
+          ],
+          "qid": "grdm-file:system_identifier_doi.subitem_systemidt_identifier_type",
+          "nav": "Persistent Identifier(DOI) - SYSTEMIDT Identifier Type",
+          "title": "永続識別子（DOI） - SYSTEMIDT Identifier Type|Persistent Identifier(DOI) - SYSTEMIDT Identifier Type",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:system_identifier_hdl.subitem_systemidt_identifier",
+          "nav": "Persistent Identifier(HDL) - SYSTEMIDT Identifier",
+          "title": "永続識別子（HDL） - SYSTEMIDT Identifier|Persistent Identifier(HDL) - SYSTEMIDT Identifier",
+          "required": false
+        },
+        {
+          "type": "choose",
+          "format": "singleselect",
+          "options": [
+            {
+              "text": "DOI",
+              "tooltip": "DOI"
+            },
+            {
+              "text": "HDL",
+              "tooltip": "HDL"
+            },
+            {
+              "text": "URI",
+              "tooltip": "URI"
+            }
+          ],
+          "qid": "grdm-file:system_identifier_hdl.subitem_systemidt_identifier_type",
+          "nav": "Persistent Identifier(HDL) - SYSTEMIDT Identifier Type",
+          "title": "永続識別子（HDL） - SYSTEMIDT Identifier Type|Persistent Identifier(HDL) - SYSTEMIDT Identifier Type",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:system_identifier_uri.subitem_systemidt_identifier",
+          "nav": "Persistent Identifier(URI) - SYSTEMIDT Identifier",
+          "title": "永続識別子（URI） - SYSTEMIDT Identifier|Persistent Identifier(URI) - SYSTEMIDT Identifier",
+          "required": false
+        },
+        {
+          "type": "choose",
+          "format": "singleselect",
+          "options": [
+            {
+              "text": "DOI",
+              "tooltip": "DOI"
+            },
+            {
+              "text": "HDL",
+              "tooltip": "HDL"
+            },
+            {
+              "text": "URI",
+              "tooltip": "URI"
+            }
+          ],
+          "qid": "grdm-file:system_identifier_uri.subitem_systemidt_identifier_type",
+          "nav": "Persistent Identifier(URI) - SYSTEMIDT Identifier Type",
+          "title": "永続識別子（URI） - SYSTEMIDT Identifier Type|Persistent Identifier(URI) - SYSTEMIDT Identifier Type",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:system_file.subitem_systemfile_filename.subitem_systemfile_filename_label",
+          "nav": "File Information - SYSTEMFILE Filename Label",
+          "title": "ファイル情報 - SYSTEMFILE Filename Label|File Information - SYSTEMFILE Filename Label",
+          "required": false
+        },
+        {
+          "type": "choose",
+          "format": "singleselect",
+          "options": [
+            {
+              "text": "Abstract",
+              "tooltip": "Abstract"
+            },
+            {
+              "text": "Fulltext",
+              "tooltip": "Fulltext"
+            },
+            {
+              "text": "Summary",
+              "tooltip": "Summary"
+            },
+            {
+              "text": "Thumbnail",
+              "tooltip": "Thumbnail"
+            },
+            {
+              "text": "Other",
+              "tooltip": "Other"
+            }
+          ],
+          "qid": "grdm-file:system_file.subitem_systemfile_filename.subitem_systemfile_filename_type",
+          "nav": "File Information - SYSTEMFILE Filename Type",
+          "title": "ファイル情報 - SYSTEMFILE Filename Type|File Information - SYSTEMFILE Filename Type",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:system_file.subitem_systemfile_filename.subitem_systemfile_filename_uri",
+          "nav": "File Information - SYSTEMFILE Filename URI",
+          "title": "ファイル情報 - SYSTEMFILE Filename URI|File Information - SYSTEMFILE Filename URI",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:system_file.subitem_systemfile_mimetype",
+          "nav": "File Information - SYSTEMFILE MimeType",
+          "title": "ファイル情報 - SYSTEMFILE MimeType|File Information - SYSTEMFILE MimeType",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:system_file.subitem_systemfile_size",
+          "nav": "File Information - SYSTEMFILE Size",
+          "title": "ファイル情報 - SYSTEMFILE Size|File Information - SYSTEMFILE Size",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "date",
+          "qid": "grdm-file:system_file.subitem_systemfile_datetime.subitem_systemfile_datetime_date",
+          "nav": "File Information - SYSTEMFILE DateTime Date",
+          "title": "ファイル情報 - SYSTEMFILE DateTime Date|File Information - SYSTEMFILE DateTime Date",
+          "required": false
+        },
+        {
+          "type": "choose",
+          "format": "singleselect",
+          "options": [
+            {
+              "text": "Accepted",
+              "tooltip": "Accepted"
+            },
+            {
+              "text": "Available",
+              "tooltip": "Available"
+            },
+            {
+              "text": "Collected",
+              "tooltip": "Collected"
+            },
+            {
+              "text": "Copyrighted",
+              "tooltip": "Copyrighted"
+            },
+            {
+              "text": "Created",
+              "tooltip": "Created"
+            },
+            {
+              "text": "Issued",
+              "tooltip": "Issued"
+            },
+            {
+              "text": "Submitted",
+              "tooltip": "Submitted"
+            },
+            {
+              "text": "Updated",
+              "tooltip": "Updated"
+            },
+            {
+              "text": "Valid",
+              "tooltip": "Valid"
+            }
+          ],
+          "qid": "grdm-file:system_file.subitem_systemfile_datetime.subitem_systemfile_datetime_type",
+          "nav": "File Information - SYSTEMFILE DateTime Type",
+          "title": "ファイル情報 - SYSTEMFILE DateTime Type|File Information - SYSTEMFILE DateTime Type",
+          "required": false
+        },
+        {
+          "type": "string",
+          "format": "text",
+          "qid": "grdm-file:system_file.subitem_systemfile_version",
+          "nav": "File Information - SYSTEMFILE Version",
+          "title": "ファイル情報 - SYSTEMFILE Version|File Information - SYSTEMFILE Version",
+          "required": false
+        }
+      ]
+    }
+  ]
+}

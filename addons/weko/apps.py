@@ -9,12 +9,16 @@ TEMPLATE_PATH = os.path.join(
     'templates'
 )
 
+SHORT_NAME = 'weko'
+FULL_NAME = 'WEKO'
+
+
 class WEKOAddonAppConfig(BaseAddonAppConfig):
 
     name = 'addons.weko'
     label = 'addons_weko'
-    full_name = 'WEKO'
-    short_name = 'weko'
+    full_name = FULL_NAME
+    short_name = SHORT_NAME
     owners = ['user', 'node']
     configs = ['accounts', 'node']
     categories = ['storage']
@@ -28,21 +32,11 @@ class WEKOAddonAppConfig(BaseAddonAppConfig):
         return weko_root_folder
 
     INDEX_LINKED = 'weko_index_linked'
-    INDEX_CREATED = 'weko_index_created'
-    FILE_ADDED = 'weko_file_added'
-    FILE_REMOVED = 'weko_file_removed'
-    INDEX_CREATED = 'weko_index_created'
-    ITEM_CREATED = 'weko_item_created'
     NODE_AUTHORIZED = 'weko_node_authorized'
     NODE_DEAUTHORIZED = 'weko_node_deauthorized'
     NODE_DEAUTHORIZED_NO_USER = 'weko_node_deauthorized_no_user'
 
     actions = (INDEX_LINKED,
-        INDEX_CREATED,
-        FILE_ADDED,
-        FILE_REMOVED,
-        INDEX_CREATED,
-        ITEM_CREATED,
         NODE_AUTHORIZED,
         NODE_DEAUTHORIZED,
         NODE_DEAUTHORIZED_NO_USER)
