@@ -37,7 +37,7 @@ from framework.transactions.handlers import no_auto_transaction
 from website import mails
 from website import settings
 from addons.base import signals as file_signals
-from addons.base.utils import format_last_known_metadata, get_mfr_url
+from addons.base.utils import format_last_known_metadata, get_mfr_url, get_root_institutional_storage
 from osf import features
 from osf.models import (BaseFileNode, TrashedFileNode, BaseFileVersionsThrough,
                         OSFUser, AbstractNode, Preprint,
@@ -127,13 +127,18 @@ WATERBUTLER_JWE_KEY = jwe.kdf(settings.WATERBUTLER_JWE_SECRET.encode('utf-8'), s
 @decorators.must_have_permission(permissions.WRITE)
 @decorators.must_not_be_registration
 def disable_addon(auth, **kwargs):
+    region_id = request.GET.get('region_id', None)
     node = kwargs['node'] or kwargs['project']
 
     addon_name = kwargs.get('addon')
     if addon_name is None:
         raise HTTPError(http_status.HTTP_400_BAD_REQUEST)
 
-    deleted = node.delete_addon(addon_name, auth)
+    try:
+        # Delete addon by region_id, if region_id is not found then raise 400 error
+        deleted = node.delete_addon(addon_name, auth, region_id=region_id)
+    except Exception:
+        raise HTTPError(http_status.HTTP_400_BAD_REQUEST)
 
     return {'deleted': deleted}
 
@@ -627,6 +632,7 @@ def addon_view_or_download_file_legacy(**kwargs):
 
     action = query_params.pop('action', 'view')
     provider = kwargs.get('provider', 'osfstorage')
+    path = None
 
     if kwargs.get('path'):
         path = kwargs['path']
@@ -641,8 +647,12 @@ def addon_view_or_download_file_legacy(**kwargs):
 
     # If provider is OSFstorage, check existence of requested file in the filetree
     # This prevents invalid GUIDs from being created
-    if provider == 'osfstorage':
-        node_settings = node.get_addon('osfstorage')
+    if provider == 'osfstorage' and path is not None:
+        file_id = path.strip('/').split('/')[0]
+        # Get root storage folder from file id
+        # Using this root folder to get osfstorage node_settings
+        file_node_root_id = get_root_institutional_storage(file_id).id
+        node_settings = node.get_addon('osfstorage', root_id=file_node_root_id)
 
         try:
             path = node_settings.get_root().find_child_by_name(path)._id

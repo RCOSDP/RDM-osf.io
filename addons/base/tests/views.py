@@ -1,17 +1,22 @@
-from rest_framework import status as http_status
-from future.moves.urllib.parse import urlparse, urljoin, parse_qs
-
+from unittest import mock
 import mock
+import pytest
 import responses
-from addons.base.tests.base import OAuthAddonTestCaseMixin
-from framework.auth import Auth
-from framework.exceptions import HTTPError
+from future.moves.urllib.parse import urlparse, parse_qs
 from nose.tools import (assert_equal, assert_false, assert_in, assert_is_none,
                         assert_not_equal, assert_raises, assert_true)
-from osf_tests.factories import AuthUserFactory, ProjectFactory, InstitutionFactory
-from osf.utils import permissions
-from website.util import api_url_for, web_url_for
+from rest_framework import status as http_status
+
+from addons.base.tests.base import OAuthAddonTestCaseMixin
+from addons.osfstorage.models import OsfStorageFileNode
+from addons.osfstorage.tests.utils import StorageTestCase
 from admin.rdm_addons.utils import get_rdm_addon_option
+from api_tests.utils import create_test_file
+from framework.auth import Auth
+from framework.exceptions import HTTPError
+from osf.utils import permissions
+from osf_tests.factories import AuthUserFactory, ProjectFactory, InstitutionFactory
+from website.util import api_url_for, web_url_for
 
 
 class OAuthAddonAuthViewsTestCaseMixin(OAuthAddonTestCaseMixin):
@@ -455,3 +460,48 @@ class OAuthCitationAddonConfigViewsTestCaseMixin(OAuthAddonConfigViewsTestCaseMi
             expect_errors=True
         )
         assert_equal(res.status_code, http_status.HTTP_403_FORBIDDEN)
+
+
+@pytest.mark.django_db
+class TestAddonsBaseView(StorageTestCase):
+    def setUp(self):
+        super(TestAddonsBaseView, self).setUp()
+
+    def test_addon_view_or_download_file_legacy_not_found(self):
+        mock_request = mock.MagicMock()
+        mock_request.return_value = {'region_id': '123', 'action': 'view'}
+        self.user_addon = self.user.get_or_add_addon('twofactor')
+        self.user_addon.is_confirmed = True
+        self.user_addon.save()
+        file = create_test_file(target=self.node, user=self.user)
+        with mock.patch('addons.twofactor.models.UserSettings.verify_code', return_value=True):
+            with mock.patch('addons.base.views.request', mock_request):
+                with mock.patch('osf.models.mixins.AddonModelMixin.get_addon', side_effect=[self.user_addon, self.node.get_addon('osfstorage')]):
+                    with mock.patch('addons.osfstorage.models.NodeSettings.get_root', side_effect=OsfStorageFileNode.DoesNotExist('mock error')):
+                        url = self.node.web_url_for(
+                            'addon_view_or_download_file_legacy',
+                            path=file._id,
+                            provider=file.provider
+                        )
+                        resp = self.app.get(
+                            url,
+                            auth=self.user.auth,
+                            headers={'X-OSF-OTP': 'fake_otp'},
+                            expect_errors=True
+                        )
+                        assert resp.status_code == 404
+
+    def test_disable_addon_exception(self):
+        mock_request = mock.MagicMock()
+        mock_request.return_value = {'region_id': '123'}
+        with mock.patch('addons.base.views.request', mock_request):
+            verify_url = self.node.api_url_for('disable_addon', addon='osfstorage')
+            resp = self.app.post(
+                verify_url,
+                {
+                    'addon': 'fake_addon',
+                    'node': self.node,
+                },
+                auth=self.user.auth,
+                expect_errors=True)
+            assert resp.status_code == 400

@@ -134,7 +134,11 @@ class ComplexFileEvent(FileEvent):
 
         source_nid = self.payload['source']['node']['_id']
         self.source_node = AbstractNode.load(source_nid) or Preprint.load(source_nid)
-        self.addon = self.node.get_addon(self.payload['destination']['provider'])
+        try:
+            self.addon = self.node.get_addon(self.payload['destination']['provider'])
+        except Exception:
+            # Get the first addon if multiple values are returned
+            self.addon = self.node.get_first_addon(self.payload['destination']['provider'])
 
     def _build_message(self, lang, html=False):
         addon, f_type, action = tuple(self.action.split('_'))
