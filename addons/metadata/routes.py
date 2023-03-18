@@ -4,9 +4,12 @@ Routes associated with the metadata addon
 """
 
 from framework.routing import Rule, json_renderer
-from website.routes import notemplate
+from website.routes import notemplate, OsfWebRenderer
+
 from . import SHORT_NAME
 from . import views
+
+TEMPLATE_DIR = './addons/metadata/templates/'
 
 api_routes = {
     'rules': [
@@ -46,6 +49,12 @@ api_routes = {
             '/project/<pid>/{}/draft_registrations/<did>/files/<mnode>/<path:filepath>'.format(SHORT_NAME),
             '/project/<pid>/node/<nid>/{}/draft_registrations/<did>/files/<mnode>/<path:filepath>'.format(SHORT_NAME),
         ], 'delete', views.metadata_delete_file_from_drafts, json_renderer),
+        Rule([
+            '/{}/packages/projects/'.format(SHORT_NAME),
+        ], 'put', views.metadata_import_project, json_renderer),
+        Rule([
+            '/{}/packages/tasks/<taskid>/'.format(SHORT_NAME),
+        ], 'get', views.metadata_task_progress, json_renderer),
     ],
     'prefix': '/api/v1',
 }
@@ -78,6 +87,22 @@ page_routes = {
             'get',
             views.metadata_export_registrations_csv,
             notemplate
+        ),
+        Rule(
+            [
+                '/{}/packages/projects/'.format(SHORT_NAME),
+            ],
+            'get',
+            views.metadata_import_project_page,
+            OsfWebRenderer('metadata_project_importer.mako', trust=False, template_dir=TEMPLATE_DIR)
+        ),
+        Rule(
+            [
+                '/{}/packages/tasks/<taskid>/'.format(SHORT_NAME),
+            ],
+            'get',
+            views.metadata_task_progress_page,
+            OsfWebRenderer('metadata_progress.mako', trust=False, template_dir=TEMPLATE_DIR)
         ),
     ]
 }
