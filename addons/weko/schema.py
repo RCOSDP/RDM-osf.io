@@ -238,6 +238,8 @@ def _get_metadata_value(file_metadata_data, item, lang, index):
     key = f'grdm-file:{item["key"]}'
     if lang is not None:
         key += f'.{lang}'
+    if key not in file_metadata_data:
+        return ''
     value = file_metadata_data[key]['value']
     if item['type'] == 'property':
         return value

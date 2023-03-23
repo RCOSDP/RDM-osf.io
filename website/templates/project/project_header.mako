@@ -65,6 +65,14 @@
                                     ${_("Metadata")}
                                 </a>
                             </li>
+                            <li>
+                                <a href="${node['url']}package">
+                                    % if addons['metadata']['icon'] and addons['metadata']['has_page_icon']:
+                                        <img src="${addons['metadata']['icon']}" class="addon-logo"/>
+                                    % endif
+                                    ${_("Package")}
+                                </a>
+                            </li>
                         % endif
 
                         % if 'binderhub' in addons_enabled and addons['binderhub']['has_page']:

@@ -55,6 +55,14 @@ api_routes = {
         Rule([
             '/{}/packages/tasks/<taskid>/'.format(SHORT_NAME),
         ], 'get', views.metadata_task_progress, json_renderer),
+        Rule([
+            '/project/<pid>/{}/packages/'.format(SHORT_NAME),
+            '/project/<pid>/node/<nid>/{}/packages/'.format(SHORT_NAME),
+        ], 'put', views.metadata_export_project, json_renderer),
+        Rule([
+            '/project/<pid>/{}/packages/tasks/<taskid>/'.format(SHORT_NAME),
+            '/project/<pid>/node/<nid>/{}/packages/tasks/<taskid>/'.format(SHORT_NAME),
+        ], 'get', views.metadata_node_task_progress, json_renderer),
     ],
     'prefix': '/api/v1',
 }
@@ -68,6 +76,15 @@ page_routes = {
             ],
             'get',
             views.metadata_report_list_view,
+            notemplate
+        ),
+        Rule(
+            [
+                '/<pid>/package',
+                '/<pid>/node/<nid>/package',
+            ],
+            'get',
+            views.metadata_package_view,
             notemplate
         ),
         Rule(

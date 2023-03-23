@@ -9,7 +9,7 @@ import logging
 from . import SHORT_NAME
 from .models import ERadRecord, RegistrationReportFormat, get_draft_files, FIELD_GRDM_FILES, schema_has_field
 from .utils import make_report_as_csv
-from .packages import start_importing, import_project, get_task_result
+from .packages import start_importing, import_project, export_project, get_task_result
 from framework.exceptions import HTTPError
 from framework.auth.decorators import must_be_logged_in
 from framework.flask import redirect
@@ -23,7 +23,7 @@ from website.project.decorators import (
     must_be_contributor,
 )
 from website.ember_osf_web.views import use_ember_app
-from website.util import web_url_for
+from website.util import web_url_for, api_url_for
 
 
 logger = logging.getLogger(__name__)
@@ -270,6 +270,12 @@ def metadata_report_list_view(**kwargs):
     return use_ember_app()
 
 @must_be_valid_project
+@must_be_contributor
+@must_have_addon(SHORT_NAME, 'node')
+def metadata_package_view(**kwargs):
+    return use_ember_app()
+
+@must_be_valid_project
 @must_be_logged_in
 @must_have_permission('read')
 @must_have_addon(SHORT_NAME, 'node')
@@ -363,4 +369,31 @@ def metadata_task_progress_page(auth, taskid=None, **kwargs):
 
 @must_be_logged_in
 def metadata_task_progress(auth, taskid=None):
+    return get_task_result(auth, taskid)
+
+@must_be_valid_project
+@must_be_logged_in
+@must_have_permission('read')
+@must_have_addon(SHORT_NAME, 'node')
+def metadata_export_project(auth, **kwargs):
+    node = kwargs['node'] or kwargs['project']
+    task = export_project.delay(
+        auth.user._id,
+        node._id,
+        request.json,
+    )
+    return {
+        'node_id': node._id,
+        'task_id': task.task_id,
+        'progress_api_url': api_url_for(
+            'metadata_node_task_progress',
+            **dict([(k, v) for k, v in kwargs.items() if k in ['nid', 'pid']] + [('taskid', task.task_id)]),
+        ),
+    }
+
+@must_be_valid_project
+@must_be_logged_in
+@must_have_permission('read')
+@must_have_addon(SHORT_NAME, 'node')
+def metadata_node_task_progress(auth, taskid=None, **kwargs):
     return get_task_result(auth, taskid)
