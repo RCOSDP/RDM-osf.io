@@ -63,6 +63,11 @@ class S3CompatB3Connection:
         )
 
 
+class S3CompatB3Identity:
+    """Dummy user information. s3compatb3 does not support getting user information"""
+    pass
+
+
 def connect_s3compatb3(host=None, access_key=None, secret_key=None, node_settings=None):
     """Helper to build an S3CompatB3Connection object
     """
@@ -175,10 +180,9 @@ def get_user_info(host, access_key, secret_key):
 
     try:
         connection = connect_s3compatb3(host, access_key, secret_key)
-        buckets = connection.buckets.all()
-        [bucket.name for bucket in buckets]
-        identity = boto3.client('sts').get_caller_identity()
-        return identity
+        # test connection
+        connection.buckets.all()
+        return S3CompatB3Identity()
     except ClientError:
         return None
     return None
