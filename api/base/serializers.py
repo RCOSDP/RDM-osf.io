@@ -1190,7 +1190,7 @@ class WaterbutlerLink(Link):
             return obj.provider
         if obj.path != '/':
             return obj.provider
-        ext_addons = institutions_utils.get_configured_external_institutional_storages(obj.target)
+        ext_addons = institutions_utils.get_configured_extended_institutional_storages(obj.target)
         if len(ext_addons) == 0:
             return obj.provider
         ext_addons = sorted(ext_addons, key=lambda addon: addon.short_name)

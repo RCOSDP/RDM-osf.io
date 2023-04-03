@@ -463,13 +463,15 @@ def is_available(node):
         return False
     return True
 
-def get_configured_external_institutional_storages(node):
+def get_configured_extended_institutional_storages(node):
     if not is_available(node):
         return []
     if not hasattr(node, 'get_addons'):
         return []
     addons = []
     for addon in node.get_addons():
+        if not hasattr(addon.config, 'for_institutions'):
+            continue
         if not addon.config.for_institutions:
             continue
         if not hasattr(addon, 'configured'):

@@ -4,6 +4,7 @@ import importlib
 import pkgutil
 
 import pytest
+import mock
 from pytz import utc
 from datetime import datetime
 from future.moves.urllib.parse import quote
@@ -19,7 +20,7 @@ from osf.models import RegistrationSchema
 
 from api.base.settings.defaults import API_BASE
 from api.schemas.serializers import SchemaSerializer
-from api.base.serializers import JSONAPISerializer, BaseAPISerializer
+from api.base.serializers import JSONAPISerializer, BaseAPISerializer, WaterbutlerLink
 from api.base import serializers as base_serializers
 from api.nodes.serializers import NodeSerializer, RelationshipField
 from api.waffle.serializers import WaffleSerializer, BaseWaffleSerializer
@@ -739,4 +740,144 @@ class VersionedDateTimeField(DbTestCase):
         assert_equal(
             datetime.strftime(self.old_date, self.new_format),
             data['attributes']['date_modified']
+        )
+
+
+class TestWaterbutlerLink(ApiTestCase):
+    """
+    Test of URL resolution for the Waterbutler API.
+    The osfstorage will not work if the institutional storage is mounted with
+    the extended institutional storage mode, so it returns the URL of the institutional
+    storage instead.
+    """
+
+    class TestObject:
+        def __init__(self, target, path=None, provider=None, ):
+            self.target = target
+            self.path = path
+            self.provider = provider
+
+    class TestRequest:
+        def __init__(self, query_params=None):
+            self.query_params = query_params
+
+    def test_link_for_osfstorage_without_institutional_storage(self):
+        node = factories.ProjectFactory(is_public=True)
+        wblink = WaterbutlerLink()
+
+        obj = self.TestObject(node, path='/sample/', provider='osfstorage')
+        request = self.TestRequest(query_params={})
+        url = wblink.resolve_url(obj, request)
+        assert_in(
+            '/providers/osfstorage/sample/',
+            url,
+        )
+
+        obj = self.TestObject(node, path='/', provider='osfstorage')
+        request = self.TestRequest(query_params={})
+        url = wblink.resolve_url(obj, request)
+        assert_in(
+            '/providers/osfstorage/',
+            url,
+        )
+
+    def test_link_for_external_storage_without_institutional_storage(self):
+        node = factories.ProjectFactory(is_public=True)
+        wblink = WaterbutlerLink()
+
+        obj = self.TestObject(node, path='/sample/', provider='extdrive')
+        request = self.TestRequest(query_params={})
+        url = wblink.resolve_url(obj, request)
+        assert_in(
+            '/providers/extdrive/sample/',
+            url,
+        )
+
+        obj = self.TestObject(node, path='/', provider='extdrive')
+        request = self.TestRequest(query_params={})
+        url = wblink.resolve_url(obj, request)
+        assert_in(
+            '/providers/extdrive/',
+            url,
+        )
+
+    def test_link_for_osfstorage_with_institutional_storage(self):
+        node = factories.ProjectFactory(is_public=True)
+        mock_inst_storage = mock.MagicMock()
+        mock_inst_addon_app = mock.MagicMock()
+        mock_inst_addon_app.for_institutions = True
+        mock_inst_storage.config = mock_inst_addon_app
+        mock_inst_storage.configured = True
+        mock_inst_storage.short_name = 'inststorage'
+        node.get_addons = mock.MagicMock(return_value=[mock_inst_storage])
+        wblink = WaterbutlerLink()
+
+        obj = self.TestObject(node, path='/sample/', provider='osfstorage')
+        request = self.TestRequest(query_params={})
+        url = wblink.resolve_url(obj, request)
+        assert_in(
+            '/providers/osfstorage/sample/',
+            url,
+        )
+
+        obj = self.TestObject(node, path='/', provider='osfstorage')
+        request = self.TestRequest(query_params={})
+        url = wblink.resolve_url(obj, request)
+        assert_in(
+            '/providers/inststorage/',
+            url,
+        )
+
+    def test_link_for_osfstorage_with_regional_institutional_storage(self):
+        node = factories.ProjectFactory(is_public=True)
+        mock_inst_storage = mock.MagicMock()
+        mock_inst_addon_app = mock.MagicMock()
+        del mock_inst_addon_app.for_institutions
+        mock_inst_storage.config = mock_inst_addon_app
+        mock_inst_storage.configured = True
+        mock_inst_storage.short_name = 'inststorage'
+        node.get_addons = mock.MagicMock(return_value=[mock_inst_storage])
+        wblink = WaterbutlerLink()
+
+        obj = self.TestObject(node, path='/sample/', provider='osfstorage')
+        request = self.TestRequest(query_params={})
+        url = wblink.resolve_url(obj, request)
+        assert_in(
+            '/providers/osfstorage/sample/',
+            url,
+        )
+
+        obj = self.TestObject(node, path='/', provider='osfstorage')
+        request = self.TestRequest(query_params={})
+        url = wblink.resolve_url(obj, request)
+        assert_in(
+            '/providers/osfstorage/',
+            url,
+        )
+
+    def test_link_for_external_storage_with_institutional_storage(self):
+        node = factories.ProjectFactory(is_public=True)
+        mock_inst_storage = mock.MagicMock()
+        mock_inst_addon_app = mock.MagicMock()
+        mock_inst_addon_app.for_institutions = True
+        mock_inst_storage.config = mock_inst_addon_app
+        mock_inst_storage.configured = True
+        mock_inst_storage.short_name = 'inststorage'
+        node.get_addons = mock.MagicMock(return_value=[mock_inst_storage])
+        wblink = WaterbutlerLink()
+
+        obj = self.TestObject(node, path='/sample/', provider='extdrive')
+        request = self.TestRequest(query_params={})
+        url = wblink.resolve_url(obj, request)
+        assert_in(
+            '/providers/extdrive/sample/',
+            url,
+        )
+
+        obj = self.TestObject(node, path='/', provider='extdrive')
+        request = self.TestRequest(query_params={})
+        url = wblink.resolve_url(obj, request)
+        assert_in(
+            '/providers/extdrive/',
+            url,
         )
