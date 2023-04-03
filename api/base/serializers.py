@@ -1,4 +1,5 @@
 import collections
+import logging
 import re
 from future.moves.urllib.parse import urlparse
 
@@ -25,8 +26,13 @@ from osf.models import AbstractNode, DraftRegistration, MaintenanceState, Prepri
 from website import settings
 from website.project.model import has_anonymous_link
 from api.base.versioning import KEBAB_CASE_VERSION, get_kebab_snake_case_field
+from addons.base import institutions_utils
 
 from osf.models.validators import SwitchValidator
+
+
+logger = logging.getLogger(__name__)
+
 
 def get_meta_type(serializer_class, request):
     meta = getattr(serializer_class, 'Meta', None)
@@ -1168,15 +1174,29 @@ class WaterbutlerLink(Link):
             if view_only:
                 self.kwargs['view_only'] = view_only
 
+        provider = self._resolve_provider(obj)
         base_url = None
         if hasattr(obj.target, 'osfstorage_region'):
             base_url = obj.target.osfstorage_region.waterbutler_url
 
-        url = utils.waterbutler_api_url_for(obj.target._id, obj.provider, obj.path, base_url=base_url, **self.kwargs)
+        url = utils.waterbutler_api_url_for(obj.target._id, provider, obj.path, base_url=base_url, **self.kwargs)
         if not url:
             raise SkipField
         else:
             return url
+
+    def _resolve_provider(self, obj):
+        if obj.provider != 'osfstorage':
+            return obj.provider
+        if obj.path != '/':
+            return obj.provider
+        ext_addons = institutions_utils.get_configured_external_institutional_storages(obj.target)
+        if len(ext_addons) == 0:
+            return obj.provider
+        ext_addons = sorted(ext_addons, key=lambda addon: addon.short_name)
+        provider = ext_addons[0].short_name
+        logger.debug(f'Provider resolved: provider={obj.provider}, alternative={provider}')
+        return provider
 
 
 class NodeFileHyperLinkField(RelationshipField):

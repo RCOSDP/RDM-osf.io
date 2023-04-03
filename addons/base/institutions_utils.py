@@ -463,6 +463,22 @@ def is_available(node):
         return False
     return True
 
+def get_configured_external_institutional_storages(node):
+    if not is_available(node):
+        return []
+    if not hasattr(node, 'get_addons'):
+        return []
+    addons = []
+    for addon in node.get_addons():
+        if not addon.config.for_institutions:
+            continue
+        if not hasattr(addon, 'configured'):
+            continue
+        if not addon.configured:
+            continue
+        addons.append(addon)
+    return addons
+
 def check_existence_and_create(node, ns, op_name):
     if ns.exists:
         return True

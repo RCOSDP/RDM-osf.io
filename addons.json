@@ -37,7 +37,8 @@
         "osfstorage",
         "nextcloudinstitutions",
         "dropboxbusiness",
-        "onedrivebusiness"
+        "onedrivebusiness",
+        "ociinstitutions"
     ],
     "addons_archivable": {
         "osfstorage": "full",
