@@ -1174,29 +1174,16 @@ class WaterbutlerLink(Link):
             if view_only:
                 self.kwargs['view_only'] = view_only
 
-        provider = self._resolve_provider(obj)
+        obj = institutions_utils.resolve_file_for_institutional_storage(obj)
         base_url = None
         if hasattr(obj.target, 'osfstorage_region'):
             base_url = obj.target.osfstorage_region.waterbutler_url
 
-        url = utils.waterbutler_api_url_for(obj.target._id, provider, obj.path, base_url=base_url, **self.kwargs)
+        url = utils.waterbutler_api_url_for(obj.target._id, obj.provider, obj.path, base_url=base_url, **self.kwargs)
         if not url:
             raise SkipField
         else:
             return url
-
-    def _resolve_provider(self, obj):
-        if obj.provider != 'osfstorage':
-            return obj.provider
-        if obj.path != '/':
-            return obj.provider
-        ext_addons = institutions_utils.get_configured_extended_institutional_storages(obj.target)
-        if len(ext_addons) == 0:
-            return obj.provider
-        ext_addons = sorted(ext_addons, key=lambda addon: addon.short_name)
-        provider = ext_addons[0].short_name
-        logger.debug(f'Provider resolved: provider={obj.provider}, alternative={provider}')
-        return provider
 
 
 class NodeFileHyperLinkField(RelationshipField):

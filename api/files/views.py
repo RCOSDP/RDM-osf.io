@@ -31,6 +31,7 @@ from api.files.serializers import FileDetailSerializer, QuickFilesDetailSerializ
 from api.files.serializers import FileMetadataRecordSerializer
 from api.files.serializers import FileVersionSerializer
 from osf.utils.permissions import ADMIN
+from addons.base import institutions_utils
 
 
 class FileMixin(object):
@@ -57,6 +58,8 @@ class FileMixin(object):
         if getattr(obj.target, 'is_quickfiles', False) and getattr(obj.target, 'creator'):
             if obj.target.creator.is_disabled:
                 raise Gone(detail='This user has been deactivated and their quickfiles are no longer available.')
+
+        obj = institutions_utils.resolve_file_for_institutional_storage(obj)
 
         if check_permissions:
             # May raise a permission denied

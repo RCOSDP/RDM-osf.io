@@ -808,7 +808,7 @@ class TestWaterbutlerLink(ApiTestCase):
         mock_inst_addon_app.for_institutions = True
         mock_inst_storage.config = mock_inst_addon_app
         mock_inst_storage.configured = True
-        mock_inst_storage.short_name = 'inststorage'
+        mock_inst_storage.short_name = 'ociinstitutions'
         node.get_addons = mock.MagicMock(return_value=[mock_inst_storage])
         wblink = WaterbutlerLink()
 
@@ -821,10 +821,28 @@ class TestWaterbutlerLink(ApiTestCase):
         )
 
         obj = self.TestObject(node, path='/', provider='osfstorage')
+        obj.is_root = False
         request = self.TestRequest(query_params={})
         url = wblink.resolve_url(obj, request)
         assert_in(
-            '/providers/inststorage/',
+            '/providers/osfstorage/',
+            url,
+        )
+
+        obj = self.TestObject(node, path='/sample/', provider='osfstorage')
+        obj.is_root = True
+        request = self.TestRequest(query_params={})
+        url = wblink.resolve_url(obj, request)
+        assert_in(
+            '/providers/ociinstitutions/',
+            url,
+        )
+
+        obj = self.TestObject(node, path='/', provider='osfstorage')
+        request = self.TestRequest(query_params={})
+        url = wblink.resolve_url(obj, request)
+        assert_in(
+            '/providers/ociinstitutions/',
             url,
         )
 

@@ -4,10 +4,12 @@ import six
 import logging
 import time
 
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 
+from osf.models import BaseFileNode
 from osf.models.node import Node
 from osf.models.rdm_addons import RdmAddonOption
 from website import settings as website_settings
@@ -480,6 +482,31 @@ def get_configured_extended_institutional_storages(node):
             continue
         addons.append(addon)
     return addons
+
+def resolve_file_for_institutional_storage(obj):
+    if obj.provider != 'osfstorage':
+        return obj
+    if hasattr(obj, 'is_root'):
+        if not obj.is_root:
+            return obj
+    elif obj.path != '/':
+        return obj
+    ext_addons = get_configured_extended_institutional_storages(obj.target)
+    if len(ext_addons) == 0:
+        return obj
+    ext_addons = sorted(ext_addons, key=lambda addon: addon.short_name)
+    provider = ext_addons[0].short_name
+    logger.debug(f'Provider resolved: provider={obj.provider}, alternative={provider}')
+    target = obj.target
+    return BaseFileNode(
+        type='osf.{}folder'.format(provider),
+        provider=provider,
+        _path='/',
+        _materialized_path='/',
+        parent_id=target.id,
+        target_object_id=target.id,
+        target_content_type=ContentType.objects.get_for_model(target)
+    )
 
 def check_existence_and_create(node, ns, op_name):
     if ns.exists:
