@@ -483,6 +483,19 @@ def get_configured_extended_institutional_storages(node):
         addons.append(addon)
     return addons
 
+def resolve_file_for_institutional_storage_provider(target, provider, path):
+    if provider != 'osfstorage':
+        return provider
+    if path != '/':
+        return provider
+    ext_addons = get_configured_extended_institutional_storages(target)
+    if len(ext_addons) == 0:
+        return provider
+    ext_addons = sorted(ext_addons, key=lambda addon: addon.short_name)
+    provider_ = ext_addons[0].short_name
+    logger.debug(f'Provider resolved: provider={provider}, alternative={provider_}')
+    return provider_
+
 def resolve_file_for_institutional_storage(obj):
     if obj.provider != 'osfstorage':
         return obj

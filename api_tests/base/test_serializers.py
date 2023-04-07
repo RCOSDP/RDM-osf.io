@@ -26,6 +26,7 @@ from api.nodes.serializers import NodeSerializer, RelationshipField
 from api.waffle.serializers import WaffleSerializer, BaseWaffleSerializer
 from api.registrations.serializers import RegistrationSerializer
 from api.base.versioning import KEBAB_CASE_VERSION
+from addons.base import institutions_utils
 
 SER_MODULES = []
 for loader, name, _ in pkgutil.iter_modules(['api']):
@@ -772,6 +773,10 @@ class TestWaterbutlerLink(ApiTestCase):
             '/providers/osfstorage/sample/',
             url,
         )
+        assert_equal(
+            institutions_utils.resolve_file_for_institutional_storage_provider(obj.target, obj.provider, obj.path),
+            'osfstorage'
+        )
 
         obj = self.TestObject(node, path='/', provider='osfstorage')
         request = self.TestRequest(query_params={})
@@ -779,6 +784,10 @@ class TestWaterbutlerLink(ApiTestCase):
         assert_in(
             '/providers/osfstorage/',
             url,
+        )
+        assert_equal(
+            institutions_utils.resolve_file_for_institutional_storage_provider(obj.target, obj.provider, obj.path),
+            'osfstorage'
         )
 
     def test_link_for_external_storage_without_institutional_storage(self):
@@ -792,6 +801,10 @@ class TestWaterbutlerLink(ApiTestCase):
             '/providers/extdrive/sample/',
             url,
         )
+        assert_equal(
+            institutions_utils.resolve_file_for_institutional_storage_provider(obj.target, obj.provider, obj.path),
+            'extdrive'
+        )
 
         obj = self.TestObject(node, path='/', provider='extdrive')
         request = self.TestRequest(query_params={})
@@ -799,6 +812,10 @@ class TestWaterbutlerLink(ApiTestCase):
         assert_in(
             '/providers/extdrive/',
             url,
+        )
+        assert_equal(
+            institutions_utils.resolve_file_for_institutional_storage_provider(obj.target, obj.provider, obj.path),
+            'extdrive'
         )
 
     def test_link_for_osfstorage_with_institutional_storage(self):
@@ -818,6 +835,10 @@ class TestWaterbutlerLink(ApiTestCase):
         assert_in(
             '/providers/osfstorage/sample/',
             url,
+        )
+        assert_equal(
+            institutions_utils.resolve_file_for_institutional_storage_provider(obj.target, obj.provider, obj.path),
+            'osfstorage'
         )
 
         obj = self.TestObject(node, path='/', provider='osfstorage')
@@ -844,6 +865,10 @@ class TestWaterbutlerLink(ApiTestCase):
         assert_in(
             '/providers/ociinstitutions/',
             url,
+        )
+        assert_equal(
+            institutions_utils.resolve_file_for_institutional_storage_provider(obj.target, obj.provider, obj.path),
+            'ociinstitutions'
         )
 
     def test_link_for_osfstorage_with_regional_institutional_storage(self):

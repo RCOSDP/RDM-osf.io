@@ -44,6 +44,7 @@ from osf.models import Contributor, MaintenanceState, BaseFileNode
 from osf.utils.permissions import API_CONTRIBUTOR_PERMISSIONS, READ, WRITE, ADMIN
 from waffle.models import Flag, Switch, Sample
 from waffle import sample_is_active
+from addons.base import institutions_utils
 
 
 class JSONAPIBaseView(generics.GenericAPIView):
@@ -682,6 +683,7 @@ class WaterButlerMixin(object):
         return self.get_node(check_object_permissions=check_object_permissions)
 
     def get_file_object(self, target, path, provider, check_object_permissions=True):
+        provider = institutions_utils.resolve_file_for_institutional_storage_provider(target, provider, path)
         obj = get_file_object(target=target, path=path, provider=provider, request=self.request)
         if provider == 'osfstorage':
             if check_object_permissions:
