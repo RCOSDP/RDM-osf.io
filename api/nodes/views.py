@@ -158,6 +158,22 @@ HTTP_CODE_MAP = {
 }
 
 
+def _get_provider_from(files, default):
+    if len(files) == 0:
+        return default
+    item = files[0]
+    if 'attributes' not in item:
+        logger.warn(f'attributes not found: {item}')
+        return default
+    attrs = item['attributes']
+    if 'provider' not in attrs:
+        logger.warn(f'attributes.provider not found: {attrs}')
+        return default
+    provider = attrs['provider']
+    logger.debug(f'Provider: default={default}, resolved={provider}')
+    return provider
+
+
 class NodeMixin(object):
     """Mixin with convenience methods for retrieving the current node based on the
     current URL. By default, fetches the current node based on the node_id kwarg.
@@ -1178,7 +1194,7 @@ class NodeFilesList(JSONAPIBaseView, generics.ListAPIView, WaterButlerMixin, Lis
         files_list = self.fetch_from_waterbutler()
 
         if isinstance(files_list, list):
-            provider = self.kwargs[self.provider_lookup_url_kwarg]
+            provider = _get_provider_from(files_list, self.kwargs[self.provider_lookup_url_kwarg])
             # Resolve to a provider-specific subclass, so that
             # trashed file nodes are filtered out automatically
             ConcreteFileNode = BaseFileNode.resolve_class(provider, BaseFileNode.ANY)
@@ -1201,7 +1217,8 @@ class NodeFilesList(JSONAPIBaseView, generics.ListAPIView, WaterButlerMixin, Lis
 
             if isinstance(fobj, list):
                 node = self.get_node(check_object_permissions=False)
-                base_class = BaseFileNode.resolve_class(self.kwargs[self.provider_lookup_url_kwarg], BaseFileNode.FOLDER)
+                provider = _get_provider_from(fobj, self.kwargs[self.provider_lookup_url_kwarg])
+                base_class = BaseFileNode.resolve_class(provider, BaseFileNode.FOLDER)
                 return base_class.objects.filter(
                     target_object_id=node.id, target_content_type=ContentType.objects.get_for_model(node), _path=path,
                 )
