@@ -496,6 +496,14 @@ msgstr ""
 msgid "Disallow"
 msgstr ""
 
+#: admin/templates/rdm_custom_storage_location/institutional_storage.html:82
+msgid "Allow"
+msgstr ""
+
+#: admin/templates/rdm_custom_storage_location/institutional_storage.html:83
+msgid "Read only"
+msgstr ""
+
 #: admin/static/js/rdm_addons/rdm-addons-page.js:85
 msgid "Strings did not match"
 msgstr ""
@@ -698,6 +706,10 @@ msgstr ""
 
 #: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:84
 msgid "Are you sure you want to change institutional storage?"
+msgstr ""
+
+#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:130
+msgid "Are you sure you want to add institutional storage?"
 msgstr ""
 
 #: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:85
@@ -3770,6 +3782,15 @@ msgstr ""
 #: website/static/js/folderPickerNodeConfig.js:349
 #: website/static/js/folderPickerNodeConfig.js:382
 msgid "Failed to update %1$s settings."
+msgstr ""
+
+#: admin/rdm_custom_storage_location/view.py:631
+#: admin/rdm_custom_storage_location/view.py:639
+msgid "Failed to change Read-only settings."
+msgstr ""
+
+#: admin/rdm_custom_storage_location/view.py:608
+msgid "Failed to change Allow settings."
 msgstr ""
 
 #: website/static/js/folderPickerNodeConfig.js:431

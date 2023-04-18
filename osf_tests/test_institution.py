@@ -3,6 +3,7 @@ from osf.models import Institution
 
 from .factories import InstitutionFactory, AuthUserFactory
 import pytest
+from django.db.models import QuerySet
 
 
 @pytest.mark.django_db
@@ -55,6 +56,12 @@ def test_institution_banner_path():
     inst = InstitutionFactory(banner_name='osf-banner.png')
     expected_banner_path = '/static/img/institutions/banners/osf-banner.png'
     assert inst.banner_path == expected_banner_path
+
+@pytest.mark.django_db
+def test_get_institutional_storage():
+    inst = InstitutionFactory()
+    res = inst.get_institutional_storage()
+    assert isinstance(res, QuerySet)
 
 
 class TestInstitutionPermissions:

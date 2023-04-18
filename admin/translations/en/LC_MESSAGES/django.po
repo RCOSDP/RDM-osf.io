@@ -21,6 +21,19 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.7.0\n"
 
+
+#: admin/templates/rdm_custom_storage_location/institutional_storage.html:53
+msgid "This field is required."
+msgstr ""
+
+#: admin/templates/rdm_custom_storage_location/institutional_storage.html:82
+msgid "Allow"
+msgstr ""
+
+#: admin/templates/rdm_custom_storage_location/institutional_storage.html:83
+msgid "Read only"
+msgstr ""
+
 #: addons/base/models.py:466
 #, python-brace-format
 msgid ""
