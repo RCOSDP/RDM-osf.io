@@ -20,7 +20,6 @@ from framework.exceptions import HTTPError
 from nose.tools import *  # noqa
 from osf_tests import factories
 from tests.base import OsfTestCase, get_default_metaschema
-from api_tests.utils import create_test_file
 from osf_tests.factories import (AuthUserFactory, ProjectFactory,
                              RegistrationFactory, DraftRegistrationFactory,)
 from website import settings
@@ -29,7 +28,7 @@ from addons.base import views
 from addons.github.exceptions import ApiError
 from addons.github.models import GithubFolder, GithubFile, GithubFileNode
 from addons.github.tests.factories import GitHubAccountFactory, GoogleDriveAccountFactory
-from addons.osfstorage.models import OsfStorageFileNode, OsfStorageFolder
+from addons.osfstorage.models import OsfStorageFileNode, OsfStorageFolder, NodeSettings
 from addons.osfstorage.tests.factories import FileVersionFactory
 from osf.models import NodeLog, Session, RegistrationSchema, QuickFilesNode, RdmFileTimestamptokenVerifyResult, RdmUserKey
 from osf.models import files as file_models
@@ -43,6 +42,7 @@ from website.util.timestamp import userkey_generation
 from dateutil.parser import parse as parse_date
 from framework import sentry
 from tests.test_timestamp import create_test_file
+from osf.models.mixins import AddonModelMixin
 
 
 class SetEnvironMiddleware(object):
@@ -1777,146 +1777,246 @@ class TestAddonFileViews(OsfTestCase):
         file_node.update(revision=None, user=None, data=data)
         mock_capture.assert_called_with(str('update() receives metatdata older than the newest entry in file history.'), extra={'session': {}})
 
+@pytest.mark.django_db
 class TestLegacyViews(OsfTestCase):
 
     def setUp(self):
         super(TestLegacyViews, self).setUp()
+        from api_tests.utils import create_test_file
         self.path = 'mercury.png'
         self.user = AuthUserFactory()
         self.project = ProjectFactory(creator=self.user)
         self.node_addon = self.project.get_addon('osfstorage')
         file_record = self.node_addon.get_root().append_file(self.path)
         self.expected_path = file_record._id
-        self.node_addon.save()
         file_record.save()
+        self.file = create_test_file(target=self.project, user=self.user)
+        self.file_path = self.node_addon.get_root().append_file(self.file._id)
+        self.file_path.save()
+        self.node_addon.save()
+        self.user_addon = self.user.get_or_add_addon('twofactor')
+        self.user_addon.is_confirmed = True
+        self.user_addon.save()
 
     def test_view_file_redirect(self):
-        url = '/{0}/osffiles/{1}/'.format(self.project._id, self.path)
-        res = self.app.get(url, auth=self.user.auth)
-        assert_equal(res.status_code, 301)
-        expected_url = self.project.web_url_for(
-            'addon_view_or_download_file',
-            action='view',
-            path=self.expected_path,
-            provider='osfstorage',
-        )
-        assert_urls_equal(res.location, expected_url)
+        mock_request = mock.MagicMock()
+        mock_request.args.to_dict.return_value = {'action': 'view'}
+        mock_request.path = 'view'
+        url = '/{0}/osffiles/{1}/'.format(self.project._id, self.file._id)
+        with mock.patch('addons.twofactor.models.UserSettings.verify_code', return_value=True):
+            with mock.patch('addons.base.views.request', mock_request):
+                with mock.patch('osf.models.mixins.AddonModelMixin.get_addon', side_effect=[self.user_addon, self.node_addon]):
+                    res = self.app.get(
+                        url,
+                        auth=self.user.auth,
+                        headers={'X-OSF-OTP': 'fake_otp'},
+                        expect_errors=True
+                    )
+                    assert_equal(res.status_code, 301)
+                    expected_url = self.project.web_url_for(
+                        'addon_view_or_download_file',
+                        action='view',
+                        path=self.file_path._id,
+                        provider='osfstorage',
+                    )
+                    assert_urls_equal(res.location, expected_url)
 
     def test_download_file_redirect(self):
-        url = '/{0}/osffiles/{1}/download/'.format(self.project._id, self.path)
-        res = self.app.get(url, auth=self.user.auth)
-        assert_equal(res.status_code, 301)
-        expected_url = self.project.web_url_for(
-            'addon_view_or_download_file',
-            path=self.expected_path,
-            action='download',
-            provider='osfstorage',
-        )
-        assert_urls_equal(res.location, expected_url)
+        mock_request = mock.MagicMock()
+        mock_request.return_value = {'region_id': '123', 'action': 'view'}
+        url = '/{0}/osffiles/{1}/download/'.format(self.project._id, self.file._id)
+        with mock.patch('addons.twofactor.models.UserSettings.verify_code', return_value=True):
+            with mock.patch('addons.base.views.request', mock_request):
+                with mock.patch('osf.models.mixins.AddonModelMixin.get_addon', side_effect=[self.user_addon, self.node_addon]):
+                    res = self.app.get(
+                        url,
+                        auth=self.user.auth,
+                        headers={'X-OSF-OTP': 'fake_otp'},
+                        expect_errors=True
+                    )
+                    assert_equal(res.status_code, 301)
+                    expected_url = self.project.web_url_for(
+                        'addon_view_or_download_file',
+                        path=self.file_path._id,
+                        action='download',
+                        provider='osfstorage',
+                    )
+                    assert_urls_equal(res.location, expected_url)
 
     def test_download_file_version_redirect(self):
+        mock_request = mock.MagicMock()
+        mock_request.args.to_dict.return_value = {'action': 'view', 'version': '3'}
         url = '/{0}/osffiles/{1}/version/3/download/'.format(
             self.project._id,
-            self.path,
+            self.file._id,
         )
-        res = self.app.get(url, auth=self.user.auth)
-        assert_equal(res.status_code, 301)
-        expected_url = self.project.web_url_for(
-            'addon_view_or_download_file',
-            version=3,
-            path=self.expected_path,
-            action='download',
-            provider='osfstorage',
-        )
-        assert_urls_equal(res.location, expected_url)
+        with mock.patch('addons.twofactor.models.UserSettings.verify_code', return_value=True):
+            with mock.patch('addons.base.views.request', mock_request):
+                with mock.patch('osf.models.mixins.AddonModelMixin.get_addon', side_effect=[self.user_addon, self.node_addon]):
+                    res = self.app.get(
+                        url,
+                        auth=self.user.auth,
+                        headers={'X-OSF-OTP': 'fake_otp'},
+                        expect_errors=True
+                    )
+                    assert_equal(res.status_code, 301)
+                    expected_url = self.project.web_url_for(
+                        'addon_view_or_download_file',
+                        version=3,
+                        path=self.file_path._id,
+                        action='download',
+                        provider='osfstorage',
+                    )
+                    assert_urls_equal(res.location, expected_url)
 
     def test_api_download_file_redirect(self):
-        url = '/api/v1/project/{0}/osffiles/{1}/'.format(self.project._id, self.path)
-        res = self.app.get(url, auth=self.user.auth)
-        assert_equal(res.status_code, 301)
-        expected_url = self.project.web_url_for(
-            'addon_view_or_download_file',
-            path=self.expected_path,
-            action='download',
-            provider='osfstorage',
-        )
-        assert_urls_equal(res.location, expected_url)
+        mock_request = mock.MagicMock()
+        mock_request.return_value = {'region_id': '123', 'action': 'view'}
+        url = '/api/v1/project/{0}/osffiles/{1}/'.format(self.project._id, self.file._id)
+        with mock.patch('addons.twofactor.models.UserSettings.verify_code', return_value=True):
+            with mock.patch('addons.base.views.request', mock_request):
+                with mock.patch('osf.models.mixins.AddonModelMixin.get_addon', side_effect=[self.user_addon, self.node_addon]):
+                    res = self.app.get(
+                        url,
+                        auth=self.user.auth,
+                        headers={'X-OSF-OTP': 'fake_otp'},
+                        expect_errors=True
+                    )
+                    assert_equal(res.status_code, 301)
+                    expected_url = self.project.web_url_for(
+                        'addon_view_or_download_file',
+                        path=self.file_path._id,
+                        action='download',
+                        provider='osfstorage',
+                    )
+                    assert_urls_equal(res.location, expected_url)
 
     def test_api_download_file_version_redirect(self):
+        mock_request = mock.MagicMock()
+        mock_request.args.to_dict.return_value = {'action': 'view', 'version': '3'}
         url = '/api/v1/project/{0}/osffiles/{1}/version/3/'.format(
             self.project._id,
-            self.path,
+            self.file._id,
         )
-        res = self.app.get(url, auth=self.user.auth)
-        assert_equal(res.status_code, 301)
-        expected_url = self.project.web_url_for(
-            'addon_view_or_download_file',
-            version=3,
-            path=self.expected_path,
-            action='download',
-            provider='osfstorage',
-        )
-        assert_urls_equal(res.location, expected_url)
+        with mock.patch('addons.twofactor.models.UserSettings.verify_code', return_value=True):
+            with mock.patch('addons.base.views.request', mock_request):
+                with mock.patch('osf.models.mixins.AddonModelMixin.get_addon', side_effect=[self.user_addon, self.node_addon]):
+                    res = self.app.get(
+                        url,
+                        auth=self.user.auth,
+                        headers={'X-OSF-OTP': 'fake_otp'},
+                        expect_errors=True
+                    )
+                    assert_equal(res.status_code, 301)
+                    expected_url = self.project.web_url_for(
+                        'addon_view_or_download_file',
+                        version=3,
+                        path=self.file_path._id,
+                        action='download',
+                        provider='osfstorage',
+                    )
+                    assert_urls_equal(res.location, expected_url)
 
     def test_no_provider_name(self):
+        mock_request = mock.MagicMock()
+        mock_request.args.to_dict.return_value = {'action': 'view'}
+        mock_request.path = 'view'
         url = '/{0}/files/{1}'.format(
             self.project._id,
-            self.path,
+            self.file._id,
         )
-        res = self.app.get(url, auth=self.user.auth)
-        assert_equal(res.status_code, 301)
-        expected_url = self.project.web_url_for(
-            'addon_view_or_download_file',
-            action='view',
-            path=self.expected_path,
-            provider='osfstorage',
-        )
-        assert_urls_equal(res.location, expected_url)
+        with mock.patch('addons.twofactor.models.UserSettings.verify_code', return_value=True):
+            with mock.patch('addons.base.views.request', mock_request):
+                with mock.patch('osf.models.mixins.AddonModelMixin.get_addon', side_effect=[self.user_addon, self.node_addon]):
+                    res = self.app.get(
+                        url,
+                        auth=self.user.auth,
+                        headers={'X-OSF-OTP': 'fake_otp'},
+                        expect_errors=True
+                    )
+                    assert_equal(res.status_code, 301)
+                    expected_url = self.project.web_url_for(
+                        'addon_view_or_download_file',
+                        action='view',
+                        path=self.file_path._id,
+                        provider='osfstorage',
+                    )
+                    assert_urls_equal(res.location, expected_url)
 
     def test_action_as_param(self):
+        mock_request = mock.MagicMock()
+        mock_request.return_value = {'region_id': '123', 'action': 'view'}
         url = '/{}/osfstorage/files/{}/?action=download'.format(
             self.project._id,
-            self.path,
+            self.file._id,
         )
-        res = self.app.get(url, auth=self.user.auth)
-        assert_equal(res.status_code, 301)
-        expected_url = self.project.web_url_for(
-            'addon_view_or_download_file',
-            path=self.expected_path,
-            action='download',
-            provider='osfstorage',
-        )
-        assert_urls_equal(res.location, expected_url)
+        with mock.patch('addons.twofactor.models.UserSettings.verify_code', return_value=True):
+            with mock.patch('addons.base.views.request', mock_request):
+                with mock.patch('osf.models.mixins.AddonModelMixin.get_addon', side_effect=[self.user_addon, self.node_addon]):
+                    res = self.app.get(
+                        url,
+                        auth=self.user.auth,
+                        headers={'X-OSF-OTP': 'fake_otp'},
+                        expect_errors=True
+                    )
+                    assert_equal(res.status_code, 301)
+                    expected_url = self.project.web_url_for(
+                        'addon_view_or_download_file',
+                        path=self.file_path._id,
+                        action='download',
+                        provider='osfstorage',
+                    )
+                    assert_urls_equal(res.location, expected_url)
 
     def test_other_addon_redirect(self):
+        mock_request = mock.MagicMock()
+        mock_request.return_value = {'region_id': '123', 'action': 'view'}
         url = '/project/{0}/mycooladdon/files/{1}/'.format(
             self.project._id,
-            self.path,
+            self.file._id,
         )
-        res = self.app.get(url, auth=self.user.auth)
-        assert_equal(res.status_code, 301)
-        expected_url = self.project.web_url_for(
-            'addon_view_or_download_file',
-            action='view',
-            path=self.path,
-            provider='mycooladdon',
-        )
-        assert_urls_equal(res.location, expected_url)
+        with mock.patch('addons.twofactor.models.UserSettings.verify_code', return_value=True):
+            with mock.patch('addons.base.views.request', mock_request):
+                with mock.patch('osf.models.mixins.AddonModelMixin.get_addon', side_effect=[self.user_addon, self.node_addon]):
+                    res = self.app.get(
+                        url,
+                        auth=self.user.auth,
+                        headers={'X-OSF-OTP': 'fake_otp'},
+                        expect_errors=True
+                    )
+                    assert_equal(res.status_code, 301)
+                    expected_url = self.project.web_url_for(
+                        'addon_view_or_download_file',
+                        path=self.file._id,
+                        action='download',
+                        provider='mycooladdon',
+                    )
+                    assert_urls_equal(res.location, expected_url)
 
     def test_other_addon_redirect_download(self):
+        mock_request = mock.MagicMock()
+        mock_request.return_value = {'region_id': '123', 'action': 'view'}
         url = '/project/{0}/mycooladdon/files/{1}/download/'.format(
             self.project._id,
-            self.path,
+            self.file._id,
         )
-        res = self.app.get(url, auth=self.user.auth)
-        assert_equal(res.status_code, 301)
-        expected_url = self.project.web_url_for(
-            'addon_view_or_download_file',
-            path=self.path,
-            action='download',
-            provider='mycooladdon',
-        )
-        assert_urls_equal(res.location, expected_url)
+        with mock.patch('addons.twofactor.models.UserSettings.verify_code', return_value=True):
+            with mock.patch('addons.base.views.request', mock_request):
+                with mock.patch('osf.models.mixins.AddonModelMixin.get_addon', side_effect=[self.user_addon, self.node_addon]):
+                    res = self.app.get(
+                        url,
+                        auth=self.user.auth,
+                        headers={'X-OSF-OTP': 'fake_otp'},
+                        expect_errors=True
+                    )
+                    assert_equal(res.status_code, 301)
+                    expected_url = self.project.web_url_for(
+                        'addon_view_or_download_file',
+                        path=self.file._id,
+                        action='download',
+                        provider='mycooladdon',
+                    )
+                    assert_urls_equal(res.location, expected_url)
 
 class TestViewUtils(OsfTestCase):
 
@@ -1989,3 +2089,17 @@ class TestViewUtils(OsfTestCase):
         default_addons = [addon['short_name'] for addon in addon_dicts if addon['default']]
         assert not any('/{}/'.format(addon) in asset_paths for addon in default_addons)
 
+
+    def test_get_first_addon(self):
+        res = AddonModelMixin.get_first_addon(self.node, 'osfstorage')
+        assert_is_instance(res, NodeSettings)
+
+    def test_get_first_addon_not_correct_addon_name(self):
+        res = AddonModelMixin.get_first_addon(self.node, 'not_correct_name')
+        assert res == None
+
+    @mock.patch('osf.models.mixins.AddonModelMixin._settings_model')
+    def test_get_first_addon_settings_model_is_none(self, mock_settings_model):
+        mock_settings_model.return_value = None
+        res = AddonModelMixin.get_first_addon(self.node, 'osfstorage')
+        assert res is None

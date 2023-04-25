@@ -408,7 +408,10 @@ def serialize_addons(node, auth):
         config['default'] = addon.short_name in settings.ADDONS_DEFAULT
 
         if node.has_addon(addon.short_name):
-            node_json = node.get_addon(addon.short_name).to_json(auth.user)
+            if addon.short_name == 'osfstorage':
+                node_json = node.get_first_addon(addon.short_name).to_json(auth.user)
+            else:
+                node_json = node.get_addon(addon.short_name).to_json(auth.user)
             config.update(node_json)
 
         if addon.short_name in addons_allowed:

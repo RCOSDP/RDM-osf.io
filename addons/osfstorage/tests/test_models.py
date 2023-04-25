@@ -1,13 +1,13 @@
 from __future__ import unicode_literals
 
 import mock
-import unittest
+import unittest  # noqa
 
 import pytest
 import pytz
 from django.utils import timezone
 from nose.tools import *  # noqa
-
+from unittest import mock
 from framework.auth import Auth
 from addons.osfstorage.models import OsfStorageFile, OsfStorageFileNode, OsfStorageFolder
 from osf.models import BaseFileNode
@@ -1026,3 +1026,70 @@ class TestOsfStorageCheckout(StorageTestCase):
         self.file.target.remove_contributors([self.user], save=True)
         self.file.reload()
         assert_equal(self.file.checkout, None)
+
+
+@pytest.mark.django_db
+class TestRegion(StorageTestCase):
+    def setUp(self):
+        super(TestRegion, self).setUp()
+        self.config = {
+            'storage': {
+                'provider': 'osfstorage',
+                'container': 'osf_storage',
+                'use_public': True,
+            }
+        }
+        self.user = factories.AuthUserFactory()
+        self.project = ProjectFactory(creator=self.user)
+        self.region = RegionFactory(waterbutler_settings=self.config)
+        self.new_component = NodeFactory(parent=self.project)
+        self.component_node_settings = self.new_component.get_addon('osfstorage')
+        self.component_node_settings.region = self.region
+        self.component_node_settings.full_name = self.config['storage']['provider']
+        self.component_node_settings.save()
+
+    def test_provider_name(self):
+        res = self.region.provider_name
+        assert res is self.config['storage']['provider']
+
+    def test_addon(self):
+        mock_addon = mock.MagicMock()
+        mock_addon.ADDONS_AVAILABLE = [self.component_node_settings]
+        with mock.patch('addons.osfstorage.models.website_settings', mock_addon):
+            res = self.region.addon
+            assert res is not None
+
+    def test_addon_none(self):
+        mock_addon = mock.MagicMock()
+        mock_addon.ADDONS_AVAILABLE = []
+        with mock.patch('addons.osfstorage.models.website_settings', mock_addon):
+            res = self.region.addon
+            assert res is None
+
+    def test_provider_short_name(self):
+        mock_addon = mock.MagicMock()
+        mock_addon.ADDONS_AVAILABLE = [self.component_node_settings]
+        with mock.patch('addons.osfstorage.models.website_settings', mock_addon):
+            res = self.region.provider_short_name
+            assert res is not None
+
+    def test_provider_short_name_none(self):
+        mock_addon = mock.MagicMock()
+        mock_addon.ADDONS_AVAILABLE = []
+        with mock.patch('addons.osfstorage.models.website_settings', mock_addon):
+            res = self.region.provider_short_name
+            assert res is None
+
+    def test_provider_full_name(self):
+        mock_addon = mock.MagicMock()
+        mock_addon.ADDONS_AVAILABLE = [self.component_node_settings]
+        with mock.patch('addons.osfstorage.models.website_settings', mock_addon):
+            res = self.region.provider_full_name
+            assert res is not None
+
+    def test_provider_full_name_none(self):
+        mock_addon = mock.MagicMock()
+        mock_addon.ADDONS_AVAILABLE = []
+        with mock.patch('addons.osfstorage.models.website_settings', mock_addon):
+            res = self.region.provider_full_name
+            assert res is None

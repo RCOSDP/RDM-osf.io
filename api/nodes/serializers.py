@@ -856,12 +856,13 @@ class NodeSerializer(TaxonomizableSerializerMixin, JSONAPISerializer):
             except ValidationError as e:
                 raise InvalidModelValueError(detail=str(e.message))
 
-        if not region_id:
-            region_id = self.context.get('region_id')
-        if region_id:
-            node_settings = node.get_addon('osfstorage')
-            node_settings.region_id = region_id
-            node_settings.save()
+        if not user.affiliated_institutions.exists():
+            if not region_id:
+                region_id = self.context.get('region_id')
+            if region_id:
+                node_settings = node.get_addon('osfstorage')
+                node_settings.region_id = region_id
+                node_settings.save()
 
         return node
 

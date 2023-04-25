@@ -2290,8 +2290,8 @@ class AbstractNode(DirtyFieldsMixin, TypedModel, AddonModelMixin, IdentifierMixi
 
         return True
 
-    def add_addon(self, name, auth, log=True):
-        ret = super(AbstractNode, self).add_addon(name, auth)
+    def add_addon(self, name, auth, log=True, region_id=None):
+        ret = super(AbstractNode, self).add_addon(name, auth, region_id=region_id)
         if ret and log:
             self.add_log(
                 action=NodeLog.ADDON_ADDED,
@@ -2550,14 +2550,25 @@ def send_osf_signal(sender, instance, created, **kwargs):
 @receiver(post_save, sender=Node)
 @receiver(post_save, sender='osf.DraftNode')
 def add_default_node_addons(sender, instance, created, **kwargs):
+    from addons.osfstorage.models import Region
     if (created or instance._is_templated_clone) and instance.is_original and not instance._suppress_log:
         # update_default_storage cannot be imported in the head of this file.
         from website.util.quota import update_default_storage
+        # Update the default storage (first storage) for user setting
         update_default_storage(instance.creator)
 
+        institution = instance.creator.affiliated_institutions.first()
         for addon in settings.ADDONS_AVAILABLE:
             if 'node' in addon.added_default:
-                instance.add_addon(addon.short_name, auth=None, log=False)
+                if addon.short_name == 'osfstorage' and institution is not None:
+                    regions = Region.objects.filter(_id=institution._id)
+                    if regions:
+                        for region in regions:
+                            instance.add_addon(addon.short_name, auth=None, log=False, region_id=region.id)
+                    else:
+                        instance.add_addon(addon.short_name, auth=None, log=False, region_id=api_settings.NII_STORAGE_REGION_ID)
+                else:
+                    instance.add_addon(addon.short_name, auth=None, log=False)
         set_project_storage_type(instance)
 
 @receiver(post_save, sender=Node)

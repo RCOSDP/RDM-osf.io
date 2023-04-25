@@ -146,9 +146,17 @@ class ArchiveJob(ObjectIDMixin, BaseModel):
 
     def set_targets(self):
         addons = []
-        for addon in [self.src_node.get_addon(name)
-                      for name in settings.ADDONS_ARCHIVABLE
-                      if settings.ADDONS_ARCHIVABLE[name] != 'none']:
+        result = []
+        for name in settings.ADDONS_ARCHIVABLE:
+            if settings.ADDONS_ARCHIVABLE[name] != 'none':
+                try:
+                    addon = self.src_node.get_addon(name)
+                except Exception:
+                    # Get the first addon if multiple values are returned
+                    addon = self.src_node.get_first_addon(name)
+                result.append(addon)
+
+        for addon in result:
             if not addon or not isinstance(addon, BaseStorageAddon) or not addon.complete:
                 continue
             archive_errors = getattr(addon, 'archive_errors', None)

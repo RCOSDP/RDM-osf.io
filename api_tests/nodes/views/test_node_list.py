@@ -25,6 +25,7 @@ from osf_tests.factories import (
     DraftNodeFactory,
 )
 from addons.osfstorage.settings import DEFAULT_REGION_ID
+from api.base import settings as api_settings
 from rest_framework import exceptions
 from tests.utils import assert_equals
 from website.views import find_bookmark_collection
@@ -1759,7 +1760,7 @@ class TestNodeCreate:
         )
         assert res.status_code == 201
         region_id = res.json['data']['relationships']['region']['data']['id']
-        assert region_id == region._id
+        assert region_id == DEFAULT_REGION_ID
 
         institution_two = InstitutionFactory()
         user_one.affiliated_institutions.add(institution_two)
@@ -1789,7 +1790,7 @@ class TestNodeCreate:
         )
         assert res.status_code == 201
         region_id = res.json['data']['relationships']['region']['data']['id']
-        assert region_id == region._id
+        assert region_id == DEFAULT_REGION_ID
 
         node_id = res.json['data']['id']
         node = AbstractNode.load(node_id)
@@ -1806,7 +1807,7 @@ class TestNodeCreate:
         project = AbstractNode.load(pid)
 
         node_settings = project.get_addon('osfstorage')
-        assert node_settings.region_id == region.id
+        assert node_settings.region_id == api_settings.NII_STORAGE_REGION_ID
 
     def test_create_project_with_no_region_specified(self, app, user_one, private_project, url):
         res = app.post_json_api(

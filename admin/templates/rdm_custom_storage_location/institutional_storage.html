@@ -4,81 +4,153 @@
 {% load i18n %}
 
 {% block top_includes %}
-<link rel="stylesheet" type="text/css" href="/static/css/institutions.css" />
-<link rel="stylesheet" href="/static/css/rdm_addons.css">
-<link rel="stylesheet" href="/static/css/rdm_institutional_storage.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/institutions.css"/>
+    <link rel="stylesheet" href="/static/css/rdm_addons.css">
+    <link rel="stylesheet" href="/static/css/rdm_institutional_storage.css">
 {% endblock %}
 
 {% load user_extras %}
 {% load spam_extras %}
 
 {% block title %}
-<title>{% trans "Institutional Storage" %}</title>
+    <title>{% trans "Institutional Storage" %}</title>
 {% endblock title %}
 
 {% block content %}
-<h2>{% trans "Institutional Storage " %}<small>({{ institution.name }})</small></h2>
+    <style>
+        .table > tbody > tr > td {
+            vertical-align: middle;
+        }
 
-<div id="content-main">
-    <form role="form" id="institutional_storage_form">
-       {% csrf_token %}
-        <div id="addonSettings">
-            <div class="row form-inline storage-name">
-                <div class="form-group">
-                    <label for="storage_name" class="label-large">{% trans "Name:" %}</label>
-                    <input type="text" required class="form-control" id="storage_name" name="storage_name" value="{% if have_storage_name %}{{ region.name }}{% endif %}" oninvalid="this.setCustomValidity('This field is required.') " oninput="setCustomValidity('')" {% if not have_storage_name %}disabled{% endif %}>
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table > thead > tr > th {
+            border: none;
+            font-size: large;
+        }
+
+        .table tbody tr .storage_input_content {
+            width: 300px;
+        }
+        .right-button-element {
+            display: flex;
+            justify-content: right;
+        }
+        .right-button-element .btn-default {
+            margin-right: 10px;
+        }
+    </style>
+    <h2 style="margin-bottom:40px;">{% trans "Institutional Storage " %}<small>({{ institution.name }})</small></h2>
+    <div class="row">
+        <div class="col-md-6">
+            <form role="form" id="institutional_storage_form">
+                {% csrf_token %}
+                <div class="row form-inline storage-name">
+                    <div class="form-group">
+                        <label for="storage_name" style="width:80px;">{% trans  "Name" %}:</label>
+                        <input type="text" class="form-control" id="storage_name" name="storage_name" maxlength="200" data-title="{% trans 'This field is required.' %}">
+                    </div>
                 </div>
-            </div>
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            <h3 class="panel-title label-large">{% trans "Configure Institutional Storage Accounts" %}</h3>
-                        </div>
-                        <div class="panel-body">
-
-                            <table class="table table-condensed">
-                                {% for provider_item in providers %}
+                <div class="row form-inline storage-name">
+                    <div class="form-group">
+                        <label for="providers" style="width:80px;">{% trans "Provider" %}:</label>
+                        <select id="providers" name="options" class="form-control">
+                            {% for provider_item in providers %}
+                                <option value="{{ provider_item.short_name }}">{{ provider_item.full_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <button id="add_storage" style="width:90px; margin-bottom:30px; margin-top:10px" class="btn btn-success">{% trans "Add" %}</button>
+            </form>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title label-large">{% trans "Institutional Storage Configurations" %}</h3>
+                </div>
+                <div class="panel-body">
+                    <table class="table table-condensed">
+                        <thead>
+                        <tr>
+                            <th style="width: 25%;">{% trans "Name" %}</th>
+                            <th style="width: auto;">{% trans "Provider" %}</th>
+                            <th style="width: 15%;">{% trans "Allow" %}</th>
+                            <th style="width: 15%;">{% trans "Read only" %}</th>
+                            <th style="width: 15%;"></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for provider_item in providers_configured %}
+                            <form role="form" id="institutional_storage_form_update_{{provider_item.region.id}}">
                                 <tr>
-                                    <td class="is_allowed">
-                                        <div class="radio">
-                                            <label class="center-block">
-                                                <input type="radio" name="options" id="{{provider_item.short_name}}"
-                                                    value="{{provider_item.short_name}}"
-                                                    {% if selected_provider_short_name == provider_item.short_name %}checked{% endif %}>
-                                                <h4 class="addon-title">
-                                                    <img src="{{provider_item.icon_url_admin}}" class="addon-icon">
-                                                    <span>{{provider_item.full_name}}</span>
-                                                </h4>
-                                            </label>
+                                    <td class="storage_input_content">
+                                        <div>
+                                            <input {% if provider_item.provider.short_name != 'osfstorage' and provider_item.provider.short_name != 'onedrivebusiness' %}
+                                                value="{{ provider_item.region.name }}"
+                                            {% else %}
+                                                disabled
+                                                value=""
+                                            {% endif %}
+                                                class="form-control storage_input_value" required type="text"
+                                                name="{{ provider_item.provider.short_name }}" id="{{ provider_item.region.id }}" maxlength="200" data-title="{% trans 'This field is required.' %}">
                                         </div>
                                     </td>
+                                    <td>
+                                        <div>
+                                            <h4>
+                                                <img src="{{ provider_item.provider.icon_url_admin }}">
+                                                <span>{{ provider_item.provider.full_name }}</span>
+                                            </h4>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="input-group form-check">
+                                            <input type="checkbox" checked="checked"
+                                                   data-provider="{{ provider_item.provider.short_name }}"
+                                                   data-id="{{ provider_item.region.id }}"
+                                                   value="{% if provider_item.region.is_allowed %}on{% else %}off{% endif %}"
+                                                   class="btn apple-switch change_allow {% if provider_item.region.is_allowed %} checked {% endif %}"
+                                                   data-toggle="toggle" data-onstyle="success">
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="input-group form-check">
+                                            <input type="checkbox" checked="checked"
+                                                   data-provider="{{ provider_item.provider.short_name }}"
+                                                   data-id="{{ provider_item.region.id }}"
+                                                   value="{% if provider_item.region.is_readonly %}on{% else %}off{% endif %}"
+                                                   class="btn apple-switch change_readonly {% if provider_item.region.is_readonly %} checked {% endif %}"
+                                                   data-toggle="toggle" data-onstyle="success">
+                                        </div>
+                                    </td>
+                                    <td class="right-button-element">
+                                        <button class="btn btn-default" type="reset" id="{{ provider_item.region.id }}">{% trans "Cancel" %}</button>
+                                        <button class="btn btn-success save_button" id="{{ provider_item.region.id }}"
+                                                type="button">{% trans "Save" %}</button>
+                                    </td>
                                 </tr>
-                                {% endfor %}
-                            </table>
-
-                        </div>
-                    </div>
-                    <div class="pull-right">
-                        <button class="btn btn-default" type="reset">{% trans "Cancel" %}</button>
-                        <button class="btn btn-success next-btn" type="submit">{% trans "Save" %}</button>
-                    </div>
+                            </form>
+                        {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
-
         </div>
-    </form>
+    </div>
     {% for provider_item in providers %}
-    {% include provider_item.modal_path %}
+        {% include provider_item.modal_path %}
     {% endfor %}
 
-</div>
+    <input type="hidden" id="osf_domain" value="{{ osf_domain }}">
 
-<input type="hidden" id="osf_domain" value="{{ osf_domain }}">
-
-<br class="clear">
+    <br class="clear">
 {% endblock content %}
 
 {% block bottom_js %}
-{% render_bundle 'rdm-institutional-storage-page' %}
+    {% render_bundle 'rdm-institutional-storage-page' %}
 {% endblock %}
