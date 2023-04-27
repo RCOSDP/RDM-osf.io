@@ -406,6 +406,21 @@ class TestSaveUsedQuota(OsfTestCase):
         user_quota = user_quota[0]
         assert_equal(user_quota.used, 1000)
 
+    def test_update_default_storage(self):
+        user = self.user
+        institution = InstitutionFactory()
+        user.affiliated_institutions.add(institution)
+        RegionFactory(_id=institution._id)
+        res = quota.update_default_storage(user)
+        assert_equal(res, None)
+
+    def test_update_default_storage_no_region(self):
+        user = self.user
+        institution = InstitutionFactory()
+        user.affiliated_institutions.add(institution)
+        res = quota.update_default_storage(user)
+        assert_equal(res, None)
+
     def test_add_first_file_custom_storage(self):
         assert_false(UserQuota.objects.filter(user=self.project_creator).exists())
 

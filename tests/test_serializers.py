@@ -71,6 +71,8 @@ class TestUserSerializers(OsfTestCase):
         assert_equal(d['profile_image_url'], profile_image_url)
         assert_equal(d['absolute_url'], user.absolute_url)
         assert_equal(d['date_registered'], user.date_registered.strftime('%Y-%m-%d'))
+        assert_equal(d['default_region']['id'], user.get_addon('osfstorage').default_region.id)
+        assert_equal(d['available_regions'][0]['id'], user.get_addon('osfstorage').default_region.id)
         projects = [
             node
             for node in user.contributed

@@ -1799,6 +1799,11 @@ class OSFUser(DirtyFieldsMixin, GuidMixin, BaseModel, AbstractBaseUser, Permissi
         return '{base_url}user/{uid}/{project_id}/claim/?token={token}'\
                     .format(**locals())
 
+    @property
+    def representative_affiliated_institution(self):
+        """Return representative ``institution`` this user is affiliated with."""
+        return self.affiliated_institutions.first()
+
     def is_affiliated_with_institution(self, institution):
         """Return if this user is affiliated with ``institution``."""
         return self.affiliated_institutions.filter(id=institution.id).exists()

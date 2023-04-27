@@ -33,10 +33,11 @@ def get_region_external_account(node):
     ).first()
     if addon_option is None:
         return None
-    try:
-        region = Region.objects.get(_id=institution._id)
-        return RegionExternalAccount.objects.get(region=region)
-    except Region.DoesNotExist:
+
+    regions = Region.objects.filter(_id=institution._id, waterbutler_settings__storage__provider=SHORT_NAME)
+    if regions.exists():
+        return RegionExternalAccount.objects.get(region=regions)
+    else:
         return None
 
 def get_column_id(sheet, text):

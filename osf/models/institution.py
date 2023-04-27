@@ -154,6 +154,16 @@ class Institution(DirtyFieldsMixin, Loggable, base.ObjectIDMixin, base.BaseModel
         self.update_search()
         return rv
 
+    def get_institutional_storage(self):
+        from addons.osfstorage.models import Region
+        return Region.objects.filter(_id=self._id).order_by('pk')
+
+    # Get the default region of this institution
+    def get_default_region(self):
+        from addons.osfstorage.models import Region
+        return Region.objects.filter(_id=self._id).order_by('id').first()
+
+
 @receiver(post_save, sender=Institution)
 def create_institution_auth_groups(sender, instance, created, **kwargs):
     if created:

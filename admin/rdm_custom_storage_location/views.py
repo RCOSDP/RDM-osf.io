@@ -20,6 +20,8 @@ from osf.models.external import ExternalAccountTemporary
 from scripts import refresh_addon_tokens
 from website import settings as osf_settings
 from distutils.util import strtobool
+from framework.exceptions import HTTPError
+
 
 logger = logging.getLogger(__name__)
 
@@ -39,21 +41,28 @@ class InstitutionalStorageView(InstitutionalStorageBaseView, TemplateView):
     template_name = 'rdm_custom_storage_location/institutional_storage.html'
 
     def get_context_data(self, *args, **kwargs):
-        institution = self.request.user.affiliated_institutions.first()
+        institution = self.request.user.representative_affiliated_institution
 
-        region = None
-        if Region.objects.filter(_id=institution._id).exists():
-            region = Region.objects.get(_id=institution._id)
-        else:
+        list_region = institution.get_institutional_storage()
+        if not list_region:
             region = Region.objects.first()
             region.name = ''
+            list_region = [region]
 
-        provider_name = region.waterbutler_settings['storage']['provider']
-        provider_name = provider_name if provider_name != 'filesystem' else 'osfstorage'
+        list_providers = utils.get_providers()
+        list_providers_configured = []
+        provider_name = None
 
+        for i in reversed(range(len(list_region))):
+            provider_name = list_region[i].waterbutler_settings['storage']['provider']
+            provider_name = provider_name if provider_name != 'filesystem' else 'osfstorage'
+            for provider in list_providers:
+                if (provider.__dict__['name'].split('.')[-1]) == provider_name:
+                    list_providers_configured.append({'region': list_region[i], 'provider': provider})
         kwargs['institution'] = institution
-        kwargs['region'] = region
-        kwargs['providers'] = utils.get_providers()
+        kwargs['region'] = list_region
+        kwargs['providers'] = list_providers
+        kwargs['providers_configured'] = list_providers_configured
         kwargs['selected_provider_short_name'] = provider_name
         kwargs['have_storage_name'] = utils.have_storage_name(provider_name)
         kwargs['osf_domain'] = osf_settings.DOMAIN
@@ -190,6 +199,11 @@ class SaveCredentialsView(InstitutionalStorageBaseView, View):
             return JsonResponse(response, status=http_status.HTTP_400_BAD_REQUEST)
 
         storage_name = data.get('storage_name')
+        if storage_name is not None:
+            storage_name = storage_name.strip()
+        new_storage_name = data.get('new_storage_name')
+        if new_storage_name is not None:
+            new_storage_name = new_storage_name.strip()
         if not storage_name and utils.have_storage_name(provider_short_name):
             return JsonResponse({
                 'message': 'Storage name is missing.'
@@ -204,6 +218,7 @@ class SaveCredentialsView(InstitutionalStorageBaseView, View):
                 data.get('s3_access_key'),
                 data.get('s3_secret_key'),
                 data.get('s3_bucket'),
+                new_storage_name=new_storage_name,
             )
         elif provider_short_name == 's3compat':
             result = utils.save_s3compat_credentials(
@@ -214,6 +229,7 @@ class SaveCredentialsView(InstitutionalStorageBaseView, View):
                 data.get('s3compat_secret_key'),
                 data.get('s3compat_bucket'),
                 bool(strtobool(data.get('s3compat_server_side_encryption'))),
+                new_storage_name=new_storage_name,
             )
         elif provider_short_name == 's3compatb3':
             result = utils.save_s3compatb3_credentials(
@@ -223,6 +239,7 @@ class SaveCredentialsView(InstitutionalStorageBaseView, View):
                 data.get('s3compatb3_access_key'),
                 data.get('s3compatb3_secret_key'),
                 data.get('s3compatb3_bucket'),
+                new_storage_name=new_storage_name,
             )
         elif provider_short_name == 's3compatinstitutions':
             result = utils.save_s3compatinstitutions_credentials(
@@ -233,6 +250,7 @@ class SaveCredentialsView(InstitutionalStorageBaseView, View):
                 data.get('s3compatinstitutions_secret_key'),
                 data.get('s3compatinstitutions_bucket'),
                 provider_short_name,
+                new_storage_name=new_storage_name,
             )
         elif provider_short_name == 'ociinstitutions':
             result = utils.save_ociinstitutions_credentials(
@@ -243,6 +261,7 @@ class SaveCredentialsView(InstitutionalStorageBaseView, View):
                 data.get('ociinstitutions_secret_key'),
                 data.get('ociinstitutions_bucket'),
                 provider_short_name,
+                new_storage_name=new_storage_name,
             )
         elif provider_short_name == 'swift':
             result = utils.save_swift_credentials(
@@ -256,6 +275,7 @@ class SaveCredentialsView(InstitutionalStorageBaseView, View):
                 data.get('swift_project_domain_name'),
                 data.get('swift_auth_url'),
                 data.get('swift_container'),
+                new_storage_name=new_storage_name,
             )
         elif provider_short_name == 'osfstorage':
             result = utils.save_osfstorage_credentials(
@@ -266,6 +286,7 @@ class SaveCredentialsView(InstitutionalStorageBaseView, View):
                 request.user,
                 storage_name,
                 data.get('googledrive_folder'),
+                new_storage_name=new_storage_name,
             )
         elif provider_short_name == 'owncloud':
             result = utils.save_owncloud_credentials(
@@ -275,7 +296,8 @@ class SaveCredentialsView(InstitutionalStorageBaseView, View):
                 data.get('owncloud_username'),
                 data.get('owncloud_password'),
                 data.get('owncloud_folder'),
-                'owncloud'
+                'owncloud',
+                new_storage_name=new_storage_name,
             )
         elif provider_short_name == 'nextcloud':
             result = utils.save_nextcloud_credentials(
@@ -286,6 +308,7 @@ class SaveCredentialsView(InstitutionalStorageBaseView, View):
                 data.get('nextcloud_password'),
                 data.get('nextcloud_folder'),
                 'nextcloud',
+                new_storage_name=new_storage_name,
             )
         elif provider_short_name == 'nextcloudinstitutions':
             result = utils.save_nextcloudinstitutions_credentials(
@@ -297,24 +320,29 @@ class SaveCredentialsView(InstitutionalStorageBaseView, View):
                 data.get('nextcloudinstitutions_folder'),  # base folder
                 data.get('nextcloudinstitutions_notification_secret'),
                 provider_short_name,
+                new_storage_name=new_storage_name,
             )
         elif provider_short_name == 'box':
             result = utils.save_box_credentials(
                 request.user,
                 storage_name,
                 data.get('box_folder'),
+                new_storage_name=new_storage_name,
             )
         elif provider_short_name == 'dropboxbusiness':
             result = utils.save_dropboxbusiness_credentials(
                 institution,
                 storage_name,
-                provider_short_name)
+                provider_short_name,
+                new_storage_name=new_storage_name,
+            )
         elif provider_short_name == 'onedrivebusiness':
             result = utils.save_onedrivebusiness_credentials(
                 request.user,
                 storage_name,
                 provider_short_name,
                 data.get('onedrivebusiness_folder'),
+                new_storage_name=new_storage_name,
             )
         else:
             result = ({'message': 'Invalid provider.'}, http_status.HTTP_400_BAD_REQUEST)
@@ -572,3 +600,48 @@ class UserMapView(InstitutionalStorageBaseView, View):
         resp = HttpResponse(s.getvalue(), content_type='text/%s' % ext)
         resp['Content-Disposition'] = 'attachment; filename=%s.%s' % (name, ext)
         return resp
+
+
+class ChangeAllowedViews(InstitutionalStorageBaseView, View):
+    def post(self, request):
+        data = json.loads(request.body)
+        region_id = data.get('id')
+        is_allowed = data.get('is_allowed')
+        if not region_id:
+            response = {
+                'message': 'Failed to change Allow settings.'
+            }
+            return JsonResponse(response, status=http_status.HTTP_400_BAD_REQUEST)
+        region = Region.objects.filter(id=region_id)
+        if region is None:
+            raise HTTPError(http_status.HTTP_404_NOT_FOUND)
+
+        allowed_regions = Region.objects.filter(_id=region[0]._id, is_allowed=True)
+        # At least 1 region is allowed
+        if allowed_regions.count() > 1 \
+                or (allowed_regions.count() == 1 and is_allowed is True):
+            region.update(is_allowed=is_allowed)
+
+        return JsonResponse({}, status=http_status.HTTP_200_OK)
+
+
+class ChangeReadonlyViews(InstitutionalStorageBaseView, View):
+    def post(self, request):
+        data = json.loads(request.body)
+        region_id = data.get('id')
+        is_readonly = data.get('is_readonly')
+        if not region_id:
+            response = {
+                'message': 'Failed to change Read-only settings.'
+            }
+            return JsonResponse(response, status=http_status.HTTP_400_BAD_REQUEST)
+
+        regions = Region.objects.filter(id=region_id)
+
+        if regions is None:
+            return JsonResponse(
+                {'message': 'Failed to change Read-only settings.'},
+                status=http_status.HTTP_400_BAD_REQUEST
+            )
+        regions.update(is_readonly=is_readonly)
+        return JsonResponse({}, status=http_status.HTTP_200_OK)

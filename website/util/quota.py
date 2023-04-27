@@ -2,7 +2,7 @@
 import logging
 
 from addons.base import signals as file_signals
-from addons.osfstorage.models import OsfStorageFileNode, Region
+from addons.osfstorage.models import OsfStorageFileNode
 from api.base import settings as api_settings
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Sum
@@ -285,15 +285,16 @@ def update_default_storage(user):
             user_settings = user.add_addon('osfstorage')
         institution = user.affiliated_institutions.first()
         if institution is not None:
-            try:
-                # logger.info(u'Institution: {}'.format(institution.name))
-                region = Region.objects.get(_id=institution._id)
-            except Region.DoesNotExist:
+            # logger.info(u'Institution: {}'.format(institution.name))
+            # In case of multiple regions, use the first region of the institution to assign to the user
+            region = institution.get_default_region()
+            if region is None:
                 # logger.info('Inside update_default_storage: region does not exist.')
                 pass
             else:
                 if user_settings.default_region._id != region._id:
-                    user_settings.set_region(region._id)
+                    # Set region by id not _id
+                    user_settings.set_region(region.id)
                     logger.info(u'user={}, institution={}, user_settings.set_region({})'.format(user, institution.name, region.name))
 
 def get_node_file_list(file_node):

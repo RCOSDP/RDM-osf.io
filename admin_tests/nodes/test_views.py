@@ -483,6 +483,25 @@ class TestRestartStuckRegistrationsView(AdminTestCase):
 
         nt.assert_equal(self.registration.archive_job.status, u'SUCCESS')
 
+    def test_restart_stuck_registration_exception(self):
+        # Prevents circular import that prevents admin app from starting up
+        from django.contrib.messages.storage.fallback import FallbackStorage
+
+        view = RestartStuckRegistrationsView()
+        view = setup_log_view(view, self.request, guid=self.registration._id)
+        nt.assert_equal(self.registration.archive_job.status, u'INITIATED')
+
+        # django.contrib.messages has a bug which effects unittests
+        # more info here -> https://code.djangoproject.com/ticket/17971
+        setattr(self.request, 'session', 'session')
+        messages = FallbackStorage(self.request)
+        setattr(self.request, '_messages', messages)
+
+        with mock.patch('osf.management.commands.force_archive.archive', side_effect=Exception('mocked error')):
+            view.post(self.request)
+
+            nt.assert_equal(self.registration.archive_job.status, u'INITIATED')
+
 
 class TestRemoveStuckRegistrationsView(AdminTestCase):
     def setUp(self):

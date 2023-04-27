@@ -121,7 +121,12 @@ def archive_provider_for(node, user):
     :param user: target user (currently unused, but left in for future-proofing
     the code for use with archive providers other than OSF Storage)
     """
-    return node.get_addon(settings.ARCHIVE_PROVIDER)
+    try:
+        addon = node.get_addon(settings.ARCHIVE_PROVIDER)
+    except Exception:
+        # Get the first addon if multiple values are returned
+        addon = node.get_first_addon(settings.ARCHIVE_PROVIDER)
+    return addon
 
 def has_archive_provider(node, user):
     """A generic function for checking whether or not some node, user pair has
@@ -141,7 +146,13 @@ def link_archive_provider(node, user):
     :param user: target user (currently unused, but left in for future-proofing
     the code for use with archive providers other than OSF Storage)
     """
-    addon = node.get_or_add_addon(settings.ARCHIVE_PROVIDER, auth=Auth(user), log=False)
+    try:
+        addon = node.get_addon(settings.ARCHIVE_PROVIDER, auth=Auth(user), log=False)
+        if addon is None:
+            addon = node.add_addon(settings.ARCHIVE_PROVIDER, auth=Auth(user), log=False)
+    except Exception:
+        # Get the first addon if multiple values are returned
+        addon = node.get_first_addon(settings.ARCHIVE_PROVIDER)
     if hasattr(addon, 'on_add'):
         addon.on_add()
     node.save()
@@ -199,7 +210,11 @@ def _memoize_get_file_map(func):
     @functools.wraps(func)
     def wrapper(node):
         if node._id not in cache:
-            osf_storage = node.get_addon('osfstorage')
+            try:
+                osf_storage = node.get_addon('osfstorage')
+            except Exception:
+                # Get the first addon if multiple values are returned
+                osf_storage = node.get_first_addon('osfstorage')
             file_tree = osf_storage._get_file_tree(user=node.creator)
             cache[node._id] = _do_get_file_map(file_tree)
         return func(node, cache[node._id])

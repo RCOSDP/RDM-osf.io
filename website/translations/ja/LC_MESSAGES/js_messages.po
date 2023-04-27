@@ -500,6 +500,14 @@ msgstr "次を入力して続行します。<strong>%1$s</ strong><br><br>"
 msgid "Disallow"
 msgstr "禁止"
 
+#: admin/templates/rdm_custom_storage_location/institutional_storage.html:82
+msgid "Allow"
+msgstr "許可"
+
+#: admin/templates/rdm_custom_storage_location/institutional_storage.html:83
+msgid "Read only"
+msgstr "読み取り専用"
+
 #: admin/static/js/rdm_addons/rdm-addons-page.js:85
 msgid "Strings did not match"
 msgstr "文字列が一致しませんでした"
@@ -707,6 +715,10 @@ msgstr ""
 #: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:84
 msgid "Are you sure you want to change institutional storage?"
 msgstr "機関のストレージを変更してもよろしいですか？"
+
+#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:130
+msgid "Are you sure you want to add institutional storage?"
+msgstr "機関ストレージを追加してよろしいですか？"
 
 #: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:85
 msgid ""
@@ -4990,6 +5002,15 @@ msgstr "%1$sの設定を取得できませんでした"
 #: website/static/js/folderPickerNodeConfig.js:382
 msgid "Failed to update %1$s settings."
 msgstr "%1$sの設定を更新できませんでした。"
+
+#: admin/rdm_custom_storage_location/view.py:631
+#: admin/rdm_custom_storage_location/view.py:639
+msgid "Failed to change Read-only settings."
+msgstr "読み取り専用の設定を変更できませんでした。"
+
+#: admin/rdm_custom_storage_location/view.py:608
+msgid "Failed to change Allow settings."
+msgstr "許可の設定を変更できませんでした。"
 
 #: website/static/js/folderPickerNodeConfig.js:431
 msgid "Failed to import %1$s access token."

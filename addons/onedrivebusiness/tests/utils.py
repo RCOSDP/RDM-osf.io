@@ -64,7 +64,7 @@ class OneDriveBusinessAddonTestCase(OAuthAddonTestCaseMixin, AddonTestCase):
         ])
 
     @mock.patch('addons.onedrivebusiness.utils.RdmAddonOption.objects.filter')
-    @mock.patch('addons.onedrivebusiness.utils.Region.objects.get')
+    @mock.patch('addons.onedrivebusiness.utils.Region.objects.filter')
     @mock.patch('addons.onedrivebusiness.utils.RegionExternalAccount.objects.get')
     def test_get_region_external_account_with_configured_institutions(
         self,
