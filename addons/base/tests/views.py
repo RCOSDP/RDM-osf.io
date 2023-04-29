@@ -1,17 +1,36 @@
-from rest_framework import status as http_status
-from future.moves.urllib.parse import urlparse, urljoin, parse_qs
+# -*- coding: utf-8 -*-
 
+import time
+from unittest import mock
+
+import itsdangerous
 import mock
+import pytest
 import responses
-from addons.base.tests.base import OAuthAddonTestCaseMixin
-from framework.auth import Auth
-from framework.exceptions import HTTPError
+from addons.osfstorage.tests.utils import StorageTestCase
+from addons.osfstorage.tests import factories
+from future.moves.urllib.parse import urlparse, parse_qs
+from nose.tools import *  # noqa
 from nose.tools import (assert_equal, assert_false, assert_in, assert_is_none,
                         assert_not_equal, assert_raises, assert_true)
-from osf_tests.factories import AuthUserFactory, ProjectFactory, InstitutionFactory
-from osf.utils import permissions
-from website.util import api_url_for, web_url_for
+from rest_framework import status as http_status
+
+from addons.base.tests.base import OAuthAddonTestCaseMixin
+from addons.github.tests.factories import GitHubAccountFactory
+from addons.osfstorage.models import OsfStorageFileNode
 from admin.rdm_addons.utils import get_rdm_addon_option
+from api_tests.utils import create_test_file
+from framework.auth import signing
+from framework.auth.core import Auth
+from framework.exceptions import HTTPError
+from osf.models import Session
+from tests.base import OsfTestCase
+from tests.test_timestamp import create_test_file
+from website import settings
+from addons.osfstorage.tests.factories import OsfStorageAccountFactory
+from osf.utils import permissions
+from osf_tests.factories import AuthUserFactory, ProjectFactory, InstitutionFactory, PreprintFactory, RegionFactory, NodeFactory
+from website.util import api_url_for, web_url_for
 
 
 class OAuthAddonAuthViewsTestCaseMixin(OAuthAddonTestCaseMixin):
@@ -455,3 +474,240 @@ class OAuthCitationAddonConfigViewsTestCaseMixin(OAuthAddonConfigViewsTestCaseMi
             expect_errors=True
         )
         assert_equal(res.status_code, http_status.HTTP_403_FORBIDDEN)
+
+
+@pytest.mark.django_db
+class TestAddonsBaseView(StorageTestCase):
+    def setUp(self):
+        super(TestAddonsBaseView, self).setUp()
+
+    def test_addon_view_or_download_file_legacy_not_found(self):
+        mock_request = mock.MagicMock()
+        mock_request.return_value = {'region_id': '123', 'action': 'view'}
+        self.user_addon = self.user.get_or_add_addon('twofactor')
+        self.user_addon.is_confirmed = True
+        self.user_addon.save()
+        file = create_test_file(self.node, self.user)
+        with mock.patch('addons.twofactor.models.UserSettings.verify_code', return_value=True):
+            with mock.patch('addons.base.views.request', mock_request):
+                with mock.patch('osf.models.mixins.AddonModelMixin.get_addon', side_effect=[self.user_addon, self.node.get_addon('osfstorage')]):
+                    with mock.patch('addons.osfstorage.models.NodeSettings.get_root', side_effect=OsfStorageFileNode.DoesNotExist('mock error')):
+                        url = self.node.web_url_for(
+                            'addon_view_or_download_file_legacy',
+                            path=file._id,
+                            provider=file.provider
+                        )
+                        resp = self.app.get(
+                            url,
+                            auth=self.user.auth,
+                            headers={'X-OSF-OTP': 'fake_otp'},
+                            expect_errors=True
+                        )
+                        assert resp.status_code == 404
+
+    @mock.patch('website.util.timestamp.requests')
+    def test_addon_deleted_file(self, mock_requests):
+        mock_requests.get.return_value.status_code = 400
+
+        file = create_test_file(self.node, self.user)
+        version = factories.FileVersionFactory()
+        file.add_version(version)
+        file.save()
+        preprint = PreprintFactory(creator=self.user)
+        file.delete()
+        with pytest.raises(Exception):
+            url = preprint.web_url_for('addon_view_or_download_file', path=file._id, provider=file.provider)
+            redirect = self.app.get(url, auth=self.user.auth)
+            redirect_two = redirect.follow(auth=self.user.auth)
+            redirect_two.follow(auth=self.user.auth)
+
+    @mock.patch('website.util.timestamp.requests')
+    def test_addon_view_or_download_file(self, mock_requests):
+        mock_requests.get.return_value.status_code = 400
+
+        file = create_test_file(self.node, self.user)
+        version = factories.FileVersionFactory()
+        file.add_version(version)
+        file.save()
+        project = ProjectFactory(creator=self.user)
+
+        url = project.web_url_for('addon_view_or_download_file', path=file._id, provider=file.provider)
+        redirect = self.app.get(url, auth=self.user.auth)
+        redirect_two = redirect.follow(auth=self.user.auth)
+        redirect_two.follow(auth=self.user.auth)
+        assert redirect.status_code == 302
+
+
+class TestAddonLogsDifferentProvider(OsfTestCase):
+
+    def setUp(self):
+        super(TestAddonLogsDifferentProvider, self).setUp()
+        self.user = AuthUserFactory()
+        self.user_non_contrib = AuthUserFactory()
+        self.auth_obj = Auth(user=self.user)
+        self.node = ProjectFactory(creator=self.user)
+        self.file = OsfStorageFileNode.create(
+            target=self.node,
+            path='/testfile',
+            _id='testfile',
+            name='testfile',
+            materialized_path='/testfile'
+        )
+        self.file.save()
+        self.session = Session(data={'auth_user_id': self.user._id})
+        self.session.save()
+        self.cookie = itsdangerous.Signer(settings.SECRET_KEY).sign(self.session._id)
+        self.configure_addon()
+
+    def configure_addon(self):
+        self.user.add_addon('github')
+        self.user_addon = self.user.get_addon('github')
+        self.oauth_settings = GitHubAccountFactory(display_name='john')
+        self.oauth_settings.save()
+        self.user.external_accounts.add(self.oauth_settings)
+        self.user.save()
+        self.node.add_addon('github', self.auth_obj)
+        self.node_addon = self.node.get_addon('github')
+        self.node_addon.user = 'john'
+        self.node_addon.repo = 'youre-my-best-friend'
+        self.node_addon.user_settings = self.user_addon
+        self.node_addon.external_account = self.oauth_settings
+        self.node_addon.save()
+        self.user_addon.oauth_grants[self.node._id] = {self.oauth_settings._id: []}
+        self.user_addon.save()
+
+        self.user.add_addon('osfstorage')
+        self.user_addon2 = self.user.get_addon('osfstorage')
+        self.oauth_settings2 = OsfStorageAccountFactory(display_name='john')
+        self.oauth_settings2.save()
+        self.user.external_accounts.add(self.oauth_settings2)
+        self.user.save()
+        self.node.add_addon('osfstorage', self.auth_obj)
+        self.node_addon2 = self.node.get_addon('osfstorage')
+        self.node_addon2.user = 'john'
+        self.node_addon2.repo = 'youre-my-best-friend'
+        self.node_addon2.user_settings = self.user_addon2
+        self.node_addon2.external_account = self.oauth_settings2
+        self.node_addon2.save()
+        self.user_addon2.save()
+
+    def build_payload(self, metadata, **kwargs):
+        options = dict(
+            auth={'id': self.user._id},
+            action='create',
+            provider=self.node_addon.config.short_name,
+            metadata=metadata,
+            time=time.time() + 1000,
+        )
+        options.update(kwargs)
+        options = {
+            key: value
+            for key, value in options.items()
+            if value is not None
+        }
+        message, signature = signing.default_signer.sign_payload(options)
+        return {
+            'payload': message,
+            'signature': signature,
+        }
+
+    @mock.patch('requests.get')
+    @mock.patch('website.util.waterbutler.download_file')
+    @mock.patch('website.notifications.events.files.FileAdded.perform')
+    def test_action_file_move_different_provider_timestamp(self, mock_perform, mock_downloadfile, mock_get):
+        mock_downloadfile.return_value = '/file_ver1'
+        mock_get.return_value.status_code = 200
+        wb_log_url = self.node.api_url_for('create_waterbutler_log')
+        src_provider = 'github'
+        dest_provider = 'osfstorage'
+        # Create file
+        filename = 'file_ver1'
+        file_node = create_test_file(node=self.node, user=self.user, filename=filename)
+        file_node._path = '/' + filename
+        file_node.save()
+        self.app.put_json(wb_log_url, self.build_payload(metadata={
+            'provider': src_provider,
+            'name': filename,
+            'materialized': '/' + filename,
+            'path': '/' + filename,
+            'kind': 'file',
+            'size': 2345,
+            'created_utc': '',
+            'modified_utc': '',
+            'extra': {
+                'version': '1'
+            }
+        }), headers={'Content-Type': 'application/json'}, expect_errors=True)
+
+        # Move the file
+        movedfilepath = 'cool_folder/' + filename
+        res = self.app.put_json(wb_log_url, self.build_payload(
+            action='move',
+            metadata={
+                'path': '/' + movedfilepath,
+            },
+            source={
+                'provider': src_provider,
+                'name': filename,
+                'materialized': '/' + filename,
+                'path': '/' + filename,
+                'node': {'_id': self.node._id},
+                'kind': 'file',
+                'nid': self.node._id,
+            },
+            destination={
+                'provider': dest_provider,
+                'name': filename,
+                'materialized': '/' + movedfilepath,
+                'path': '/' + movedfilepath,
+                'node': {'_id': self.node._id},
+                'kind': 'file',
+                'nid': self.node._id,
+            },
+        ), headers={'Content-Type': 'application/json'}, expect_errors=True)
+        assert res.status_code == 200
+
+
+@pytest.mark.django_db
+class TestAddonsBaseView(StorageTestCase):
+    def setUp(self):
+        super(TestAddonsBaseView, self).setUp()
+
+    def test_addon_view_or_download_file_legacy_not_found(self):
+        mock_request = mock.MagicMock()
+        mock_request.return_value = {'region_id': '123', 'action': 'view'}
+        self.user_addon = self.user.get_or_add_addon('twofactor')
+        self.user_addon.is_confirmed = True
+        self.user_addon.save()
+        file = create_test_file(self.node, self.user)
+        with mock.patch('addons.twofactor.models.UserSettings.verify_code', return_value=True):
+            with mock.patch('addons.base.views.request', mock_request):
+                with mock.patch('osf.models.mixins.AddonModelMixin.get_addon', side_effect=[self.user_addon, self.node.get_addon('osfstorage')]):
+                    with mock.patch('addons.osfstorage.models.NodeSettings.get_root', side_effect=OsfStorageFileNode.DoesNotExist('mock error')):
+                        url = self.node.web_url_for(
+                            'addon_view_or_download_file_legacy',
+                            path=file._id,
+                            provider=file.provider
+                        )
+                        resp = self.app.get(
+                            url,
+                            auth=self.user.auth,
+                            headers={'X-OSF-OTP': 'fake_otp'},
+                            expect_errors=True
+                        )
+                        assert resp.status_code == 404
+
+    def test_disable_addon_exception(self):
+        mock_request = mock.MagicMock()
+        mock_request.return_value = {'region_id': '123'}
+        with mock.patch('addons.base.views.request', mock_request):
+            verify_url = self.node.api_url_for('disable_addon', addon='osfstorage')
+            resp = self.app.post(
+                verify_url,
+                {
+                    'addon': 'fake_addon',
+                    'node': self.node,
+                },
+                auth=self.user.auth,
+                expect_errors=True)
+            assert resp.status_code == 400

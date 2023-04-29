@@ -26,13 +26,13 @@ class RegionMixin(object):
             node_id, node = list(self.request.parents[Node].items())[0]
             try:
                 # use the annotated value if possible
-                region_id = node.region
+                region_id = node.region.id
             except AttributeError:
                 # use computed property if region annotation does not exist
                 # i.e. after creating a node
-                region_id = node.osfstorage_region._id
+                region_id = node.osfstorage_region.id
         try:
-            reg = Region.objects.get(_id=region_id)
+            reg = Region.objects.get(id=region_id)
         except Region.DoesNotExist:
             raise NotFound(
                 detail='No region matching that region_id could be found.',

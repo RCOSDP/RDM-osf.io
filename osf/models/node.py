@@ -84,7 +84,7 @@ from .base import BaseModel, GuidMixin, GuidMixinQuerySet
 from api.caching.tasks import update_storage_usage
 from api.caching import settings as cache_settings
 from api.caching.utils import storage_usage_cache
-
+from addons.base.utils import get_root_institutional_storage
 
 logger = logging.getLogger(__name__)
 
@@ -1002,9 +1002,9 @@ class AbstractNode(DirtyFieldsMixin, TypedModel, AddonModelMixin, IdentifierMixi
     def osfstorage_region(self):
         from addons.osfstorage.models import Region
         osfs_settings = self._settings_model('osfstorage')
-        region_subquery = osfs_settings.objects.filter(owner=self.id).values('region_id')
+        region_subquery = osfs_settings.objects.filter(owner=self.id).values('region_id').first()
         try:
-            return Region.objects.get(id=region_subquery)
+            return Region.objects.get(id=region_subquery['region_id'])
         except Exception:
             return Region.objects.first()
 
@@ -2290,8 +2290,8 @@ class AbstractNode(DirtyFieldsMixin, TypedModel, AddonModelMixin, IdentifierMixi
 
         return True
 
-    def add_addon(self, name, auth, log=True):
-        ret = super(AbstractNode, self).add_addon(name, auth)
+    def add_addon(self, name, auth, log=True, region_id=None):
+        ret = super(AbstractNode, self).add_addon(name, auth, region_id=region_id)
         if ret and log:
             self.add_log(
                 action=NodeLog.ADDON_ADDED,
@@ -2299,6 +2299,7 @@ class AbstractNode(DirtyFieldsMixin, TypedModel, AddonModelMixin, IdentifierMixi
                     'project': self.parent_id,
                     'node': self._id,
                     'addon': ret.__class__._meta.app_config.full_name,
+                    'region_id': region_id,
                 },
                 auth=auth,
                 save=False,
@@ -2363,16 +2364,26 @@ class AbstractNode(DirtyFieldsMixin, TypedModel, AddonModelMixin, IdentifierMixi
     def is_registration_of(self, other):
         return self.is_derived_from(other, 'registered_from')
 
-    def serialize_waterbutler_credentials(self, provider_name):
-        return self.get_addon(provider_name).serialize_waterbutler_credentials()
+    def serialize_waterbutler_credentials(self, provider_name, root_id=None):
+        return self.get_addon(provider_name, root_id=root_id).serialize_waterbutler_credentials()
 
-    def serialize_waterbutler_settings(self, provider_name):
-        return self.get_addon(provider_name).serialize_waterbutler_settings()
+    def serialize_waterbutler_settings(self, provider_name, root_id=None):
+        return self.get_addon(provider_name, root_id=root_id).serialize_waterbutler_settings()
 
     def create_waterbutler_log(self, auth, action, payload):
         try:
             metadata = payload['metadata']
-            node_addon = self.get_addon(payload['provider'])
+            file_id = metadata['path']
+            if payload['provider'] == 'osfstorage' and file_id is None:
+                raise HTTPError(http_status.HTTP_400_BAD_REQUEST)
+            root_folder_id = None
+
+            if payload['provider'] == 'osfstorage':
+                root_folder_id = get_root_institutional_storage(file_id.strip('/').split('/')[0])
+                if root_folder_id is not None:
+                    root_folder_id = root_folder_id.id
+
+            node_addon = self.get_addon(payload['provider'], root_id=root_folder_id)
         except KeyError:
             raise HTTPError(http_status.HTTP_400_BAD_REQUEST)
 
@@ -2511,13 +2522,19 @@ def remove_addons(auth, resource_object_list):
 def set_project_storage_type(instance):
     from addons.osfstorage.models import NodeSettings  # this import was essential
     storage_type = ProjectStorageType.CUSTOM_STORAGE
-    nodeSettings = NodeSettings.objects.filter(owner_id=instance.id).first()
-    if nodeSettings is not None:
+    try:
+        nodeSettings = NodeSettings.objects.get(owner_id=instance.id)
+        # If project has only 1 institutional storage and the storage is NII_STORAGE default storage
+        # Then project type is NII_STORAGE
         if nodeSettings.region_id == api_settings.NII_STORAGE_REGION_ID:
             storage_type = ProjectStorageType.NII_STORAGE
-        obj, created = ProjectStorageType.objects.update_or_create(
-            node_id=instance.id, defaults={'node_id': instance.id, 'storage_type': storage_type}
-        )
+    except NodeSettings.DoesNotExist:
+        return
+    except NodeSettings.MultipleObjectsReturned:
+        pass
+    obj, created = ProjectStorageType.objects.update_or_create(
+        node_id=instance.id, defaults={'node_id': instance.id, 'storage_type': storage_type}
+    )
 
 
 @receiver(post_save, sender=Node)
@@ -2550,14 +2567,25 @@ def send_osf_signal(sender, instance, created, **kwargs):
 @receiver(post_save, sender=Node)
 @receiver(post_save, sender='osf.DraftNode')
 def add_default_node_addons(sender, instance, created, **kwargs):
+    from addons.osfstorage.models import Region
     if (created or instance._is_templated_clone) and instance.is_original and not instance._suppress_log:
         # update_default_storage cannot be imported in the head of this file.
         from website.util.quota import update_default_storage
+        # Update the default storage (first storage) for user setting
         update_default_storage(instance.creator)
 
+        institution = instance.creator.affiliated_institutions.first()
         for addon in settings.ADDONS_AVAILABLE:
             if 'node' in addon.added_default:
-                instance.add_addon(addon.short_name, auth=None, log=False)
+                if addon.short_name == 'osfstorage' and institution is not None:
+                    regions = Region.objects.filter(_id=institution._id)
+                    if regions:
+                        for region in regions:
+                            instance.add_addon(addon.short_name, auth=None, log=False, region_id=region.id)
+                    else:
+                        instance.add_addon(addon.short_name, auth=None, log=False, region_id=api_settings.NII_STORAGE_REGION_ID)
+                else:
+                    instance.add_addon(addon.short_name, auth=None, log=False)
         set_project_storage_type(instance)
 
 @receiver(post_save, sender=Node)

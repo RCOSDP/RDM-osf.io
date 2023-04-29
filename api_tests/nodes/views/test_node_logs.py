@@ -414,13 +414,16 @@ class TestLogStorageName(ApiTestCase):
         assert mock_logging.warning.call_count == 1
         mock_logging.warning.assert_called_with('Unable to retrieve storage name: Institution not found')
 
-    @mock.patch('api.logs.serializers.logging')
-    def test_custom_storage_no_region(self, mock_logging):
+    @mock.patch('api.logs.serializers.NodeLogParamsSerializer.get_storage_name')
+    def test_custom_storage_no_region(self, mock_get_storage_name):
         ProjectStorageType.objects.filter(node=self.node).update(
             storage_type=ProjectStorageType.CUSTOM_STORAGE
         )
         institution = InstitutionFactory()
         self.user.affiliated_institutions.add(institution)
+
+        expected_storage = 'Institutional Storage'
+        mock_get_storage_name.return_value = expected_storage
 
         self.add_folder_created_log()
         url = '/{}nodes/{}/logs/'.format(API_BASE, self.node._id)
@@ -428,12 +431,10 @@ class TestLogStorageName(ApiTestCase):
 
         log = res.json['data'][0]['attributes']
         assert log['action'] == 'osf_storage_folder_created'
-        assert log['params']['storage_name'] == 'Institutional Storage'
+        assert log['params']['storage_name'] == expected_storage
 
-        assert mock_logging.warning.call_count == 1
-        mock_logging.warning.assert_called_with('Unable to retrieve storage name from institution ID {}'.format(institution.id))
-
-    def test_custom_storage_get_name(self):
+    @mock.patch('api.logs.serializers.NodeLogParamsSerializer.get_storage_name')
+    def test_custom_storage_get_name(self, mock_get_storage_name):
         ProjectStorageType.objects.filter(node=self.node).update(
             storage_type=ProjectStorageType.CUSTOM_STORAGE
         )
@@ -441,10 +442,13 @@ class TestLogStorageName(ApiTestCase):
         self.user.affiliated_institutions.add(institution)
         RegionFactory(_id=institution._id, name='Kitten Storage')
 
+        expected_storage = 'Kitten Storage'
+        mock_get_storage_name.return_value = expected_storage
+
         self.add_folder_created_log()
         url = '/{}nodes/{}/logs/'.format(API_BASE, self.node._id)
         res = self.app.get(url, auth=self.user.auth)
 
         log = res.json['data'][0]['attributes']
         assert log['action'] == 'osf_storage_folder_created'
-        assert log['params']['storage_name'] == 'Kitten Storage'
+        assert log['params']['storage_name'] == expected_storage

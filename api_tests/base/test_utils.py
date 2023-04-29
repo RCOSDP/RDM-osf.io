@@ -2,12 +2,17 @@
 from nose.tools import *  # noqa:
 import mock  # noqa
 import unittest
-
 from rest_framework import fields
 from rest_framework.exceptions import ValidationError
 from api.base import utils as api_utils
-
 from framework.status import push_status_message
+from api.base.utils import get_object_or_error
+from tests.base import OsfTestCase
+from django.test import RequestFactory
+from osf_tests.factories import AuthUserFactory, RegionFactory
+from django.core.exceptions import MultipleObjectsReturned
+from addons.osfstorage.models import Region
+import pytest
 
 
 class TestTruthyFalsy:
@@ -115,3 +120,14 @@ class TestFlaskDjangoIntegration:
             assert_true(
                 False, 'Unexpected Exception from push_status_message when called '
                 'from the v2 API with type "error"')
+
+
+class TestUtils(OsfTestCase):
+    def test_get_object_or_error(self):
+        self.user = AuthUserFactory()
+        request = RequestFactory().get('/fake_path')
+        request.user = self.user
+        RegionFactory()
+        fake_query_set = Region.objects.all()
+        with pytest.raises(MultipleObjectsReturned):
+            get_object_or_error(fake_query_set, None, request, None)

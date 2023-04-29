@@ -97,6 +97,9 @@ def get_object_or_error(model_or_qs, query_or_pk=None, request=None, display_nam
             obj = model_or_qs.select_for_update().get() if select_for_update else model_or_qs.get()
         except model_cls.DoesNotExist:
             raise NotFound
+        except model_cls.MultipleObjectsReturned:
+            # Remove duplicated project
+            obj = model_or_qs.distinct('id').get()
 
     elif isinstance(query_or_pk, basestring):
         # they passed a 5-char guid as a string

@@ -5,8 +5,10 @@ import six
 from mock import patch, Mock, MagicMock
 import pytest
 from nose.tools import *  # noqa (PEP8 asserts)
-
+from tests.base import OsfTestCase
 from admin.rdm_addons.utils import get_rdm_addon_option
+from framework.auth import Auth
+from addons.s3compatinstitutions.apps import s3compatinstitutions_root
 
 from osf_tests.factories import (
     fake_email,
@@ -14,7 +16,8 @@ from osf_tests.factories import (
     InstitutionFactory,
     ExternalAccountFactory,
     UserFactory,
-    ProjectFactory
+    ProjectFactory,
+    RegionFactory
 )
 from addons.s3compatinstitutions.models import NodeSettings
 from admin_tests.rdm_addons import factories as rdm_addon_factories
@@ -130,3 +133,29 @@ class TestS3Compatinstitutions(unittest.TestCase):
         assert_true(isinstance(result, NodeSettings))
         # not changed
         assert_equal(result.folder_name, self._expected_folder_name)
+
+class TestAppS3Compatinstitutions(OsfTestCase):
+    def setUp(self):
+        super(TestAppS3Compatinstitutions, self).setUp()
+        self.user = AuthUserFactory()
+        self.user.save()
+        self.consolidated_auth = Auth(user=self.user)
+        self.project = ProjectFactory(creator=self.user)
+        self.auth = Auth(user=self.project.creator)
+        self.project.add_addon('s3compatinstitutions', auth=self.consolidated_auth)
+        self.node_settings = self.project.get_addon('s3compatinstitutions')
+        self.ADDON_SHORT_NAME = 's3compatinstitutions'
+        self.node_settings.save()
+
+    @patch('admin.institutions.views.Region.objects')
+    def test_nextcloudinstitutions_root(self, mock_region_objects_filter):
+        institution = InstitutionFactory(_id=123456)
+        region = RegionFactory()
+        region._id = institution._id
+        region.waterbutler_settings__storage__provider = self.ADDON_SHORT_NAME
+        self.node_settings.addon_option = get_rdm_addon_option(institution.id, self.ADDON_SHORT_NAME)
+        region.save()
+        mock_region_objects_filter.return_value = region
+        mock_region_objects_filter.return_value.exists.return_value = True
+        result = s3compatinstitutions_root(addon_config='', node_settings=self.node_settings, auth=self.auth)
+        assert isinstance(result, list)

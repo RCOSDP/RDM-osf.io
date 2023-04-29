@@ -116,11 +116,21 @@ def build_addon_root(node_settings, name, permissions=None,
         'nodeUrl': node_settings.owner.url,
         'nodeApiUrl': node_settings.owner.api_url,
     }
+
+    if node_settings.config.short_name == 'osfstorage':
+        # Add path for root institutional storage folder
+        ret.update({'path': '{}/'.format(node_settings.root_node._id)})
+
     ret.update(kwargs)
 
     if hasattr(node_settings, 'region'):
         ret.update({'nodeRegion': node_settings.region.name})
         ret.update({'waterbutlerURL': node_settings.region.waterbutler_url})
+        if node_settings.region.is_readonly is True:
+            ret.update({'permissions': {
+                'view': True,
+                'edit': False
+            }})
 
     return ret
 
@@ -251,22 +261,28 @@ class NodeFileCollector(object):
         rv = []
         region_disabled = False
         region_provider = None
-        osfstorage = node.get_addon('osfstorage')
-        if osfstorage:
-            region = osfstorage.region
+        osf_addons = node.get_osfstorage_addons()
+        data = {}
+        for osf_addon in osf_addons:
+            region = osf_addon.region
             if region and region.waterbutler_settings:
                 region_disabled = region.waterbutler_settings.get(
                     'disabled', False)
                 storage = region.waterbutler_settings.get('storage', None)
                 if storage:
                     region_provider = storage.get('provider', None)
-
+            data[osf_addon.id] = {
+                'region_disabled': region_disabled,
+                'region_provider': region_provider,
+                'is_allowed': region.is_allowed,
+            }
         for addon in node.get_addons():
             if addon.config.has_hgrid_files:
-                if addon == osfstorage and region_disabled:
+                # skip storage
+                if addon.short_name == 'osfstorage' and (data[addon.id]['region_disabled'] or not data[addon.id]['is_allowed']):
                     continue  # skip (hide osfstorage)
                 if addon.config.for_institutions:
-                    if region_provider != addon.config.short_name:
+                    if data[addon.id]['region_provider'] != addon.config.short_name:
                         continue  # skip (hide this *institutions)
 
                 # WARNING: get_hgrid_data can return None if the addon is added but has no credentials.

@@ -37,6 +37,7 @@ class NodeLogFileParamsSerializer(RestrictedDictSerializer):
     addon = ser.CharField(read_only=True)
     node_url = ser.URLField(read_only=True, source='node.url')
     node_title = ser.SerializerMethodField()
+    storage_name = ser.SerializerMethodField()
 
     def get_node_title(self, obj):
         user = self.context['request'].user
@@ -48,6 +49,17 @@ class NodeLogFileParamsSerializer(RestrictedDictSerializer):
         elif node.has_permission(user, osf_permissions.READ):
             return node_title
         return 'Private Component'
+
+    def get_storage_name(self, obj):
+        try:
+            # This region was added region when creating waterbutler log
+            region_id = obj['region']
+            if region_id is not None:
+                return Region.objects.get(id=region_id).name
+            else:
+                return None
+        except KeyError:
+            return None
 
 class NodeLogParamsSerializer(RestrictedDictSerializer):
 
@@ -215,7 +227,10 @@ class NodeLogParamsSerializer(RestrictedDictSerializer):
 
             try:
                 institution = node.creator.affiliated_institutions.get()
-                return Region.objects.get(_id=institution._id).name
+                # This region was added region when creating waterbutler log
+                region_id = obj.get('region')
+                if region_id is not None:
+                    return Region.objects.get(id=region_id).name
             except Institution.DoesNotExist:
                 logging.warning('Unable to retrieve storage name: Institution not found')
                 return 'Institutional Storage'

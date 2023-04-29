@@ -28,6 +28,9 @@ from website.util import quota
 from addons.osfstorage.models import Region
 from api.base import settings as api_settings
 import csv
+from framework.exceptions import HTTPError
+from rest_framework import status as http_status
+from admin.base.utils import reverse_qs
 
 logger = logging.getLogger(__name__)
 
@@ -316,6 +319,9 @@ class QuotaUserList(ListView):
             return 'desc'
         return direction
 
+    def get_region(self):
+        return None
+
     def get_context_data(self, **kwargs):
         institution = self.get_institution()
         kwargs['institution_id'] = institution.id
@@ -334,6 +340,9 @@ class QuotaUserList(ListView):
         kwargs['page'] = self.page
         kwargs['order_by'] = self.get_order_by()
         kwargs['direction'] = self.get_direction()
+        region = self.get_region()
+        if region is not None and institution._id == region._id:
+            kwargs['region_id'] = region.id
         return super(QuotaUserList, self).get_context_data(**kwargs)
 
 
@@ -407,6 +416,9 @@ class UserListByInstitutionID(PermissionRequiredMixin, QuotaUserList):
     def get_institution(self):
         return Institution.objects.get(id=self.kwargs['institution_id'])
 
+    def get_region(self):
+        return None
+
 
 class UpdateQuotaUserListByInstitutionID(PermissionRequiredMixin, View):
     permission_required = 'osf.change_osfuser'
@@ -423,27 +435,6 @@ class UpdateQuotaUserListByInstitutionID(PermissionRequiredMixin, View):
                 defaults={'max_quota': max_quota})
         return redirect('institutions:institution_user_list',
                         institution_id=institution_id)
-
-class StatisticalStatusDefaultStorage(QuotaUserList, RdmPermissionMixin, UserPassesTestMixin):
-    template_name = 'institutions/statistical_status_default_storage.html'
-    permission_required = 'osf.view_institution'
-    raise_exception = True
-    paginate_by = 10
-
-    def test_func(self):
-        return not self.is_super_admin and self.is_admin \
-            and self.request.user.affiliated_institutions.exists()
-
-    def get_userlist(self):
-        user_list = []
-        institution = self.request.user.affiliated_institutions.first()
-        if institution is not None and Region.objects.filter(_id=institution._id).exists():
-            for user in OSFUser.objects.filter(affiliated_institutions=institution.id):
-                user_list.append(self.get_user_quota_info(user, UserQuota.CUSTOM_STORAGE))
-        return user_list
-
-    def get_institution(self):
-        return self.request.user.affiliated_institutions.first()
 
 
 class RecalculateQuota(RdmPermissionMixin, RedirectView):
@@ -470,3 +461,140 @@ class RecalculateQuotaOfUsersInInstitution(RdmPermissionMixin, RedirectView):
                     quota.update_user_used_quota(user, UserQuota.CUSTOM_STORAGE)
 
         return redirect('institutions:statistical_status_default_storage')
+
+
+class InstitutionalStorage(RdmPermissionMixin, ListView):
+    paginate_by = 25
+    template_name = 'institutions/institutional_storages.html'
+    ordering = 'name'
+    raise_exception = True
+    model = Institution
+
+    def get_order_by(self):
+        order_by = self.request.GET.get('order_by', 'provider')
+        if order_by not in ['provider', 'name']:
+            return 'provider'
+        return order_by
+
+    def get_direction(self):
+        direction = self.request.GET.get('status', 'desc')
+        if direction not in ['asc', 'desc']:
+            return 'desc'
+        return direction
+
+    def get(self, request, *args, **kwargs):
+        query_set = self.get_queryset()
+        self.object_list = query_set
+        ctx = self.get_context_data()
+
+        if len(query_set) == 1:
+            return redirect(
+                reverse_qs(
+                    'institutions:statistical_status_default_storage',
+                    query_kwargs={'region_id': query_set[0]['region_id']}
+                )
+            )
+
+        return self.render_to_response(ctx)
+
+    def get_queryset(self):
+        new_list = []
+        number_id = 0
+        institution = self.request.user.affiliated_institutions.first()
+        list_region = Region.objects.filter(_id=institution._id)
+
+        if list_region is not None:
+            for region in list_region:
+                new_list.append({
+                    'order_id': number_id,
+                    'region_id': region.id,
+                    'institution_id': institution.id,
+                    'name': region.name,
+                    'provider': region.provider_full_name,
+                    'icon_url': '/custom_storage_location/icon/{}/comicon.png'.format(region.provider_short_name)
+                })
+
+        order_by = self.get_order_by()
+        direction = self.get_direction() != 'asc'
+        new_list.sort(key=itemgetter(order_by), reverse=direction)
+        for region in new_list:
+            number_id = number_id + 1
+            region['order_id'] = number_id
+        return new_list
+
+    def get_context_data(self, **kwargs):
+        query_set = self.get_queryset()
+        page_size = self.get_paginate_by(query_set)
+        paginator, page, query_set, is_paginated = self.paginate_queryset(query_set, page_size)
+        kwargs.setdefault('page', page)
+
+        inst_obj = self.request.user.affiliated_institutions.first()
+        kwargs['institution'] = inst_obj
+        kwargs['list_storage'] = query_set
+
+        return super(InstitutionalStorage, self).get_context_data(**kwargs)
+
+
+class QuotaUserStorageList(QuotaUserList):
+
+    def get_institution(self):
+        raise NotImplementedError("QuotaUserStorageList subclasses must implement a \
+            'get_institution' method.")
+
+    def get_region(self):
+        raise NotImplementedError("QuotaUserStorageList subclasses must implement a \
+            'get_region' method.")
+
+    def get_user_storage_quota_info(self, user):
+        max_quota, used_quota = quota.get_storage_quota_info(
+            self.get_institution(),
+            user, self.get_region()
+        )
+        max_quota_bytes = max_quota * api_settings.SIZE_UNIT_GB
+        remaining_quota = max_quota_bytes - used_quota
+        used_quota_abbr = self.custom_size_abbreviation(*quota.abbreviate_size(used_quota))
+        remaining_abbr = self.custom_size_abbreviation(*quota.abbreviate_size(remaining_quota))
+        return {
+            'id': user.guids.first()._id,
+            'fullname': user.fullname,
+            'eppn': user.eppn or '',
+            'username': user.username,
+            'ratio': float(used_quota) / max_quota_bytes * 100,
+            'usage': used_quota,
+            'usage_value': used_quota_abbr[0],
+            'usage_abbr': used_quota_abbr[1],
+            'remaining': remaining_quota,
+            'remaining_value': remaining_abbr[0],
+            'remaining_abbr': remaining_abbr[1],
+            'quota': max_quota
+        }
+
+    def get_context_data(self, **kwargs):
+        return super(QuotaUserStorageList, self).get_context_data(**kwargs)
+
+
+class StatisticalStatusDefaultInstitutionalStorage(QuotaUserStorageList, RdmPermissionMixin, UserPassesTestMixin):
+    template_name = 'institutions/statistical_status_default_storage.html'
+    permission_required = 'osf.view_institution'
+    raise_exception = True
+    paginate_by = 10
+
+    def test_func(self):
+        return not self.is_super_admin and self.is_admin and self.request.user.affiliated_institutions.exists()
+
+    def get_userlist(self):
+        user_list = []
+        institution = self.request.user.affiliated_institutions.first()
+        if institution is not None and Region.objects.filter(_id=institution._id).exists():
+            for user in OSFUser.objects.filter(affiliated_institutions=institution.id):
+                user_list.append(self.get_user_storage_quota_info(user))
+        return user_list
+
+    def get_institution(self):
+        return self.request.user.affiliated_institutions.first()
+
+    def get_region(self):
+        region_id = self.request.GET.get('region_id', None)
+        if not region_id:
+            raise HTTPError(http_status.HTTP_400_BAD_REQUEST)
+        return Region.objects.get(id=region_id)

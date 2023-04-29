@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block top_includes %}
+<link rel="stylesheet" type="text/css" href="/static/css/carets.css"/>
+{% endblock %}
+
+{% block title %}
+<title>{{ institution_name }} {% trans 'List Provider of Intitution' %}</title>
+{% endblock title %}
+
+{% block content %}
+{% if institution.id %}
+<h2>{% trans "Institutional Storages" %}<small>({{ institution.name }})</small></h2>
+{% else %}
+<h2>{% trans "Institutional Storages" %}</h2>
+{% endif %}
+{% include "util/pagination.html" with items=page status=direction order=order_by %}
+<table class="table table-striped table-hover table-responsive">
+    <thead>
+    <tr>
+        <th>
+            {% trans "ID" %}
+            <a style="display: none" href="?order_by=order_id&amp;status=desc&amp;page={{ page.number }}"
+               class="caret caret-sort tb-sort-inactive"></a>
+            <span hidden class="dropup"><a href="?order_by=order_id&amp;status=asc&amp;page={{ page.number }}"
+                                           class="caret caret-sort tb-sort-inactive"></a></span>
+        </th>
+        <th>
+            {% trans "Provider" %}
+            <a href="?order_by=provider&amp;status=desc&amp;page={{ page.number }}"
+               class="caret caret-sort tb-sort-inactive"></a>
+            <span class="dropup"><a href="?order_by=provider&amp;status=asc&amp;page={{ page.number }}"
+                                    class="caret caret-sort tb-sort-inactive"></a></span>
+        </th>
+        <th>
+            {% trans "Storage name" %}
+            <a href="?order_by=name&amp;status=desc&amp;page={{ page.number }}"
+               class="caret caret-sort tb-sort-inactive"></a>
+            <span class="dropup"><a href="?order_by=name&amp;status=asc&amp;page={{ page.number }}"
+                                    class="caret caret-sort tb-sort-inactive"></a></span>
+        </th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for storage in list_storage %}
+    <tr>
+        <td style="vertical-align:middle">
+            <a class="btn btn-primary"
+               href="{% url 'institutional_storage_quota_control:institution_user_list' institution_id=storage.institution_id %}?region={{storage.region_id}}">
+                {{ storage.order_id }}
+            </a>
+        </td>
+        <td style="vertical-align:middle">
+            <img src="{{ storage.icon_url_admin }}"/>
+            <a style="color: #000000;"
+               href="{% url 'institutional_storage_quota_control:institution_user_list' institution_id=storage.institution_id %}?region={{storage.region_id}}">
+                {{ storage.provider }}
+            </a>
+        </td>
+        <td style="vertical-align:middle">{{ storage.name }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+{% endblock content %}

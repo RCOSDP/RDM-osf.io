@@ -53,9 +53,18 @@ def grid_data(auth, node, **kwargs):
     if NodeSettings.objects.filter(owner_id=node.id).exists() and ret[0]['children']:
         for _, child in enumerate(ret[0]['children']):
             if child.get('provider') == 'osfstorage' and 'nodeRegion' in child:
-                if child['nodeRegion'] in ['NII Storage', 'United States']:
-                    child['nodeRegion'] = 'NII Storage'
-                else:
-                    child['iconUrl'] = '/static/addons/osfstorage/comicon_custom_storage.png'
-                    child['addonFullname'] = child['nodeRegion']
+                update_custom_storage_icon_url(child)
+            # update icon url for components
+            elif 'nodeType' in child and child.get('nodeType') == 'component':
+                for component in child.get('children'):
+                    if component.get('provider') == 'osfstorage' and 'nodeRegion' in component:
+                        update_custom_storage_icon_url(component)
     return {'data': ret}
+
+def update_custom_storage_icon_url(storage):
+    if storage.get('provider') == 'osfstorage' and 'nodeRegion' in storage:
+        if storage['nodeRegion'] in ['NII Storage', 'United States']:
+            storage['nodeRegion'] = 'NII Storage'
+        else:
+            storage['iconUrl'] = '/static/addons/osfstorage/comicon_custom_storage.png'
+            storage['addonFullname'] = storage['nodeRegion']

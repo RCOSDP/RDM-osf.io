@@ -13,6 +13,7 @@ from django.urls import reverse
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth.models import Permission
 from django.contrib.messages.storage.fallback import FallbackStorage
+from framework.exceptions import HTTPError
 
 from api.base import settings as api_settings
 from tests.base import AdminTestCase
@@ -21,12 +22,14 @@ from framework.auth import Auth
 from osf.models.user import OSFUser
 from osf.models.spam import SpamStatus
 from osf.models import UserQuota
+from osf.models.user_storage_quota import UserStorageQuota
 from osf_tests.factories import (
     UserFactory,
     AuthUserFactory,
     ProjectFactory,
     UnconfirmedUserFactory,
-    InstitutionFactory
+    InstitutionFactory,
+    RegionFactory,
 )
 from admin_tests.utilities import setup_view, setup_log_view, setup_form_view
 
@@ -986,6 +989,24 @@ class TestGetUserInstitutionQuota(AdminTestCase):
         context = response.get_object()
         nt.assert_equal(context['quota'], 200)
 
+    def test_get_quota_region(self):
+        region = RegionFactory(_id=self.institution._id)
+        region_id = region.id
+        UserStorageQuota.objects.create(
+            user=self.user,
+            max_quota=150,
+            region=region
+        )
+        request = RequestFactory().get(reverse('users:user_details', kwargs={'guid': self.user._id}), {'region_id': region_id})
+        request.user = self.user
+        response = setup_view(
+            self.view,
+            request,
+            guid=self.user._id
+        )
+        context = response.get_object()
+        nt.assert_equal(context['quota'], 150)
+
 
 class TestSetUserInstitutionQuota(AdminTestCase):
     def setUp(self):
@@ -1065,3 +1086,16 @@ class TestSetUserInstitutionQuota(AdminTestCase):
         ).first()
         nt.assert_is_not_none(user_quota)
         nt.assert_equal(user_quota.max_quota, 1)
+
+    @mock.patch('admin.users.views.Region.objects.get')
+    def test_update_quota_not_match_region(self, region):
+        region.return_value = None
+        UserQuota.objects.create(user=self.user, max_quota=100)
+        with nt.assert_raises(HTTPError) as exc_info:
+            request = RequestFactory().post(
+                reverse('users:quota', kwargs={'guid': self.user._id}),
+                {'maxQuota': 150, 'region_id': 1}, )
+            self.view = setup_view(self.view, request, guid=self.user._id)
+            self.view.post(request)
+
+        nt.assert_equal(exc_info.exception.code, 400)

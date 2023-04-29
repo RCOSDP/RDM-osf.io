@@ -24,6 +24,10 @@ msgid ""
 "the {addon} add-on in the new fork on the settings page."
 msgstr ""
 
+#: admin/templates/rdm_custom_storage_location/institutional_storage.html:53
+msgid "This field is required."
+msgstr ""
+
 #: addons/base/models.py:474
 #, python-brace-format
 msgid ""
@@ -39,6 +43,15 @@ msgid ""
 "authorize and configure the {addon} add-on in the new fork on the settings "
 "page."
 msgstr ""
+
+#: admin/templates/rdm_custom_storage_location/institutional_storage.html:82
+msgid "Allow"
+msgstr ""
+
+#: admin/templates/rdm_custom_storage_location/institutional_storage.html:83
+msgid "Read only"
+msgstr ""
+
 
 #: admin/banners/forms.py:18 admin/banners/forms.py:19
 #: admin/templates/messages.html:31
