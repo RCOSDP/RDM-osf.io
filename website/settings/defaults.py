@@ -2069,3 +2069,15 @@ BABEL_LANGUAGES = {
     'ja_jp': '日本語'
 }
 BABEL_DEFAULT_LOCALE = 'ja'
+
+# WOPI settings.
+# Session timer (seconds). Default is 24 hour.
+WOPI_TOKEN_TTL = 24 * 60 * 60
+
+# WOPI_CLIENT_ONLYOFFICE is ONLYOFFICE online editor's host and port FROM web server.
+# WOPI_CLIENT_COLLABORA  is Collabora online editor's host and port.
+WOPI_CLIENT_ONLYOFFICE  = 'http://grdm-server.grdm.test:8002'
+WOPI_CLIENT_COLLABORA   = 'http://grdm-server.grdm.test:9980'
+
+# WOPI_SRC_HOST is web server's host and port which can access FROM WOPI CLIENT.
+WOPI_SRC_HOST = 'http://grdm-server.grdm.test:5000'

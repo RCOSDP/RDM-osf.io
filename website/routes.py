@@ -69,6 +69,8 @@ from website.settings import EXTERNAL_EMBER_APPS, EXTERNAL_EMBER_SERVER_TIMEOUT
 from website.rdm_addons import views as rdm_addon_views
 from website.rdm_announcement import views as rdm_announcement_views
 from website.mapcore.views import mapcore_oauth_start, mapcore_oauth_complete
+from website.edit_online import views as edit_online_views
+from website.wopi import views as wopi_views
 
 from api.waffle.utils import flag_is_active
 
@@ -1991,6 +1993,49 @@ def make_url_map(app):
         ),
 
     ], prefix='/api/v1')
+
+    # Edit Online  iframe page
+    #process_rules(app, [
+    #    Rule(
+    #        [
+    #            '/<guid>/editonline/<file_id_ver>'
+    #        ],
+    #        ['get'],
+    #        edit_online_views.edit_online,
+    #        OsfWebRenderer('edit_online.mako', trust=True),
+    #    ),
+    #])
+
+    # Edit by ONLYOFFICE
+    process_rules(app, [
+        Rule(
+            [
+                '/<guid>/editonlyoffice/<file_id_ver>'
+            ],
+            ['get'],
+            edit_online_views.edit_by_onlyoffice,
+            OsfWebRenderer('edit_online.mako', trust=True),
+        ),
+    ])
+
+    # Edit by Collabola
+    process_rules(app, [
+        Rule(
+            [
+                '/<guid>/editcollabora/<file_id_ver>'
+            ],
+            ['get'],
+            edit_online_views.edit_by_collabora,
+            OsfWebRenderer('edit_online.mako', trust=True),
+        ),
+    ])
+
+    # WOPI
+    process_rules(app, [
+        Rule(['/files/<file_id_ver>'], ['get'], wopi_views.check_file_info, json_renderer,),
+        Rule(['/files/<file_id_ver>'], ['post'], wopi_views.lock_file, json_renderer,),
+        Rule(['/files/<file_id_ver>/contents'], ['get', 'post'], wopi_views.file_content_view, json_renderer,),
+    ], prefix='/wopi')
 
     # Set up static routing for addons and providers
     # NOTE: We use nginx to serve static addon assets in production

@@ -129,6 +129,10 @@ def init_app(settings_module='website.settings', set_backends=True, routes=True,
     apply_middlewares(app, settings)
 
     app.config['IS_INITIALIZED'] = True
+
+    # Fix "AttributeError: 'Request' object has no attribute 'is_xhr'"
+    app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
+
     return app
 
 
