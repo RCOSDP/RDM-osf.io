@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load render_bundle from webpack_loader %}
+{% load spam_extras %}
+{% load static %}
+
+{% block top_includes %}
+    <link rel="stylesheet" type="text/css" href="/static/css/institutions.css"/>
+    <style type="text/css">
+        .flex-container {
+            display: flex;
+        }
+
+        .flex-container .flex-item {
+            flex: 1;
+        }
+
+        .max-w-600 {
+            max-width: 600px;
+        }
+
+        .w-label {
+            min-width: 160px;
+            max-width: 200px;
+        }
+
+        @media (min-width: 768px) {
+            .xs-flex-container {
+                display: flex;
+            }
+
+            .xs-flex-container .xs-flex-item {
+                flex: 1;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block title %}
+    <title>{% trans "Level of Assurance" %}</title>
+{% endblock title %}
+
+{% block content %}
+    <h2>{% trans "Level of Assurance" %}</h2>
+
+    <div class="row">
+	      {% if messages %}
+	      {% for message in messages %}
+	      <div class="col-md-12 alert alert-dismissible{% if message.tags %} {{ message.tags }}{% endif %}">
+	        {{ message }}
+	      </div>
+	      {% endfor %}
+	      {% endif %}
+        <div id="error_message" class="col-md-12">
+            {% if request.session.message %}
+                <div class="alert alert-danger">
+                    {{ request.session.message }}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    <form action="{% url "loa:bulk_add" %}" method="post" class="form-horizontal"
+          id="entitlements_form">
+        {% csrf_token %}
+        <div class="form-group xs-flex-container">
+            <label for="institution_id" class="col-sm-2 control-label xs-flex-item w-label">{% trans 'Institutions' %}</label>
+            <div class="col-sm-9 max-w-600">
+                <select id="institution_id" name="institution_id" class="form-control">
+                    {% for institution in institutions %}
+                        <option value="{{ institution.id }}" {% if selected_id == institution.id %}selected="selected"{% endif %}>{{ institution.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="form-group xs-flex-container">
+            <label for="institution_id" class="col-sm-2 control-label xs-flex-item w-label">{% trans 'Level of Assurance' %}</label>
+            <div class="col-sm-9 max-w-600">
+				{{ formset_loa }}
+            </div>
+        </div>
+        <div class="form-group xs-flex-container">
+            <div class="col-sm-2 control-label xs-flex-item w-label"></div>
+            <div class="col-sm-9 max-w-600">
+                <button type="submit" class="btn btn-primary" style="width: 90px;">{% trans 'Save' %}</button>
+            </div>
+        </div>
+    </form>
+
+{% endblock content %}
+
+{% block bottom_js %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script>window.jQuery || document.write('<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js">\x3C/script>')</script>
+    <script type="application/javascript">
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        document.getElementById("institution_id").addEventListener("change", function change_institution() {
+            window.location = window.location.origin + "{% url 'loa:list' %}" + '?institution_id=' + document.getElementById("institution_id").value;
+        });
+
+    </script>
+{% endblock %}
