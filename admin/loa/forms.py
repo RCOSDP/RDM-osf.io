@@ -6,8 +6,8 @@ import logging
 
 class LoAForm(forms.ModelForm):
 
-    CHOICES_AAL = [(1, _('AAL1')),(2, _('AAL2'))]
-    CHOICES_IAL = [(1, _('IAL1')),(2, _('IAL2'))]
+    CHOICES_AAL = [('', _('NULL')),(1, _('AAL1')),(2, _('AAL2'))]
+    CHOICES_IAL = [('', _('NULL')),(1, _('IAL1')),(2, _('IAL2'))]
     aal = forms.ChoiceField(choices=CHOICES_AAL)
     ial = forms.ChoiceField(choices=CHOICES_IAL)
     
