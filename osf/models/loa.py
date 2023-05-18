@@ -21,6 +21,7 @@ class LoA(base.BaseModel):
     institution = models.ForeignKey('Institution', on_delete=models.CASCADE)
     aal = models.IntegerField(
         choices = (
+            (0, 'NULL'),
             (1, 'AAL1'),
             (2, 'AAL2'),
         ),
@@ -29,6 +30,7 @@ class LoA(base.BaseModel):
     )
     ial = models.IntegerField(
         choices = (
+            (0, 'NULL'),
             (1, 'IAL1'),
             (2, 'IAL2'),
         ),
