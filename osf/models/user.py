@@ -448,6 +448,7 @@ class OSFUser(DirtyFieldsMixin, GuidMixin, BaseModel, AbstractBaseUser, Permissi
 
     is_active = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
+    is_data_steward = models.BooleanField(default=False)
 
     # ePPN, eduPersonTargetedID and isMemberOf from Shibboleth
     # for Cloud Gateway

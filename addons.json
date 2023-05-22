@@ -31,7 +31,8 @@
         "dropboxbusiness",
         "binderhub",
         "onedrivebusiness",
-        "metadata"
+        "metadata",
+        "datasteward"
     ],
     "addons_default": [
         "osfstorage",

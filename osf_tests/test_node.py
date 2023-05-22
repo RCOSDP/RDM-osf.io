@@ -1292,6 +1292,22 @@ class TestContributorMethods:
                 auth=auth
             )
 
+    def test_update_contributor_not_check_admin(self, node, auth):
+        non_admin_contrib = AuthUserFactory()
+        node.add_contributor(
+            non_admin_contrib,
+            permissions=DEFAULT_CONTRIBUTOR_PERMISSIONS,
+            auth=auth
+        )
+        node.update_contributor(
+            non_admin_contrib,
+            ADMIN,
+            True,
+            auth=auth
+        )
+        assert set(node.get_permissions(non_admin_contrib)) == set([permissions.READ, permissions.WRITE, permissions.ADMIN])
+        assert node.get_visible(non_admin_contrib) is True
+
     def test_cancel_invite(self, node, auth):
         # A user is added as a contributor
         user = UserFactory()

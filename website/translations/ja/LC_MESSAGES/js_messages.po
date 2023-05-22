@@ -508,6 +508,18 @@ msgstr "これにより、アカウントを使用するすべてのプロジェ
 msgid "Type the following to continue: <strong>%1$s</strong><br><br>"
 msgstr "次を入力して続行します。<strong>%1$s</ strong><br><br>"
 
+#: admin/static/js/rdm_addons/rdm-addons-page.js:69
+msgid ""
+"This will not revoke access to %1$s for all projects using the "
+"accounts.<br>"
+msgstr "これにより、アカウントを使用するすべてのプロジェクトの%1$sへのアクセスが取り消されるわけではありません。<br>"
+
+#: admin/static/js/rdm_addons/rdm-addons-page.js:70
+msgid ""
+"But the accounts will not be able to see and change their %1$s settings "
+"until you reallow it.<br><br>"
+msgstr "ただし、許可するまで、アカウントは%1$s設定を表示および変更できません。<br><br>"
+
 #: admin/static/js/rdm_addons/rdm-addons-page.js:74
 msgid "Disallow"
 msgstr "禁止"
@@ -515,6 +527,21 @@ msgstr "禁止"
 #: admin/static/js/rdm_addons/rdm-addons-page.js:85
 msgid "Strings did not match"
 msgstr "文字列が一致しませんでした"
+
+#: addons/datasteward/static/datastewardUserConfig.js:88
+#: addons/datasteward/static/datastewardUserConfig.js:89
+msgid "You do not have permission to perform this action."
+msgstr "このアクションを実行する権限がありません。"
+
+#: addons/datasteward/static/datastewardUserConfig.js:120
+#: addons/datasteward/static/datastewardUserConfig.js:121
+msgid "Cannot disable DataSteward add-on"
+msgstr "データ管理責任者アドオンを無効にできません"
+
+#: addons/datasteward/static/datastewardUserConfig.js:157
+#: addons/datasteward/static/datastewardUserConfig.js:158
+msgid "Cannot get DataSteward add-on settings"
+msgstr "データ管理責任者アドオン設定を取得できません"
 
 #: admin/static/js/rdm_addons/dataverse/dataverseRdmConfig.js:26
 #: admin/static/js/rdm_addons/owncloud/owncloudRdmConfig.js:19

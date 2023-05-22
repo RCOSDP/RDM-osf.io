@@ -404,6 +404,174 @@ msgid ""
 "%(authOsfName)s to verify."
 msgstr ""
 
+#: addons/datasteward/templates/datasteward_modal.mako:7
+msgid "Enable DataSteward add-on"
+msgstr ""
+
+#: addons/datasteward/templates/datasteward_modal.mako:14
+msgid "Before enabling DataSteward add-on, the following are the implementation details and points to note:"
+msgstr ""
+
+#: addons/datasteward/templates/datasteward_modal.mako:16
+msgid "・You will be automatically added as a project administrator for all projects of your institution."
+msgstr ""
+
+#: addons/datasteward/templates/datasteward_modal.mako:17
+msgid "・If you have already been added in the project before enabling this add-on, you will be promoted to a project administrator."
+msgstr ""
+
+#: addons/datasteward/templates/datasteward_modal.mako:18
+msgid "・Project administrators added by this add-on have the same authority as project administrators added in the normal procedure."
+msgstr ""
+
+#: addons/datasteward/templates/datasteward_modal.mako:20
+msgid "・After enabling this add-on, newly created projects will not be automatically added as project administrators."
+msgstr ""
+
+#: addons/datasteward/templates/datasteward_modal.mako:21
+msgid "・If you log in again with GakuNinRDMDataSteward assigned to the IdP's eduPersonEntitlement attribute and with this add-on enabled, you will be automatically be added as a project administrator for unregistered projects."
+msgstr ""
+
+#: addons/datasteward/templates/datasteward_modal.mako:23
+msgid "・To enable this add-on, the value of GakuNinRDMDataSteward must be assigned to the IdP's eduPersonEntitlement attribute."
+msgstr ""
+
+#: addons/datasteward/templates/datasteward_modal.mako:24
+msgid "・This add-on will not be disabled simply by removing GakuNinRDMDataSteward from the eduPersonEntitlement attribute."
+msgstr ""
+
+#: addons/datasteward/templates/datasteward_modal.mako:25
+msgid "・In order to disable this add-on (remove project as a project administrator), it is necessary to disable this add-on separately."
+msgstr ""
+
+#: addons/datasteward/templates/datasteward_modal.mako:27
+msgid "・Each data steward must enable this add-on by themselves."
+msgstr ""
+
+#: addons/datasteward/templates/datasteward_modal.mako:28
+msgid "・The number of project administrators participating in the project will increase by the number of different data stewards."
+msgstr ""
+
+#: addons/datasteward/templates/datasteward_modal.mako:30
+msgid "・If the number of target projects is large, it will take time to process (up to a few minutes), so please do not move to another screen or close the screen, and wait until the process is completed."
+msgstr ""
+
+#: addons/datasteward/templates/datasteward_modal.mako:31
+msgid "・Also, even after this add-on is activated, settings for project notifications will continue asynchronously, so notifications may not be received for several minutes."
+msgstr ""
+
+#: addons/datasteward/templates/datasteward_modal.mako:32
+msgid "Do you want to enable DataSteward add-on?"
+msgstr ""
+
+#: addons/datasteward/templates/datasteward_modal.mako:46
+msgid "User add-on enable"
+msgstr "Enable"
+
+#: addons/datasteward/templates/datasteward_modal.mako:56
+msgid "Enabling DataSteward add-on, please do not close this window or go back on your browser."
+msgstr ""
+
+#: addons/datasteward/templates/datasteward_modal.mako:66
+msgid "Disable DataSteward add-on"
+msgstr ""
+
+#: addons/datasteward/templates/datasteward_modal.mako:73
+msgid "Before disabling DataSteward add-on, the following are implementation details and points to note:"
+msgstr ""
+
+#: addons/datasteward/templates/datasteward_modal.mako:75
+msgid "・Disabling this add-on will remove you from the project that was automatically added as a project administrator when this add-on was enabled."
+msgstr ""
+
+#: addons/datasteward/templates/datasteward_modal.mako:76
+msgid "・If your permission is elevated to a project administrator when this add-on is enabled, the permission before this add-on is activated will be restored."
+msgstr ""
+
+#: addons/datasteward/templates/datasteward_modal.mako:78
+msgid "・When disabling this add-on, if there is only one administrator for the project, the revert process will be skipped."
+msgstr ""
+
+#: addons/datasteward/templates/datasteward_modal.mako:79
+msgid "・For skipped projects, the result can be downloaded in the disable add-on result dialog."
+msgstr ""
+
+#: addons/datasteward/templates/datasteward_modal.mako:80
+msgid "・Please manually update the project contributors based on the skipped results."
+msgstr ""
+
+#: addons/datasteward/templates/datasteward_modal.mako:82
+msgid "・After disabling this add-on, in order to enable it again, the value of GakuNinRDMDataSteward must be assigned to the eduPersonEntitlement attribute of the IdP."
+msgstr ""
+
+#: addons/datasteward/templates/datasteward_modal.mako:84
+msgid "・If you want to revert project registration for all data stewards, each data steward must disable this add-on."
+msgstr ""
+
+#: addons/datasteward/templates/datasteward_modal.mako:86
+msgid "・If the number of affected projects is large, it will take time to process (up to a few minutes), so please do not move to another screen or close the screen, and wait until the process is completed."
+msgstr ""
+
+#: addons/datasteward/templates/datasteward_modal.mako:87
+msgid "・Also, even after disabling this add-on is completed, cancellation of project notifications will continue asynchronously, so notifications may continue for several minutes."
+msgstr ""
+
+#: addons/datasteward/templates/datasteward_modal.mako:88
+msgid "Do you want to disable DataSteward add-on?"
+msgstr ""
+
+#: addons/datasteward/templates/datasteward_modal.mako:102
+msgid "User add-on disable"
+msgstr "Disable"
+
+#: addons/datasteward/templates/datasteward_modal.mako:112
+msgid "Disabling DataSteward add-on, please do not close this window or go back on your browser."
+msgstr ""
+
+#: addons/datasteward/templates/datasteward_result_modal.mako:7
+msgid "DataSteward add-on enabled"
+msgstr ""
+
+#: addons/datasteward/templates/datasteward_result_modal.mako:8
+msgid "DataSteward add-on not enabled"
+msgstr ""
+
+#: addons/datasteward/templates/datasteward_result_modal.mako:10
+msgid "DataSteward add-on disabled"
+msgstr ""
+
+#: addons/datasteward/templates/datasteward_result_modal.mako:18
+msgid "DataSteward add-on enable process is completed."
+msgstr ""
+
+#: addons/datasteward/templates/datasteward_result_modal.mako:21
+msgid "DataSteward add-on enable process has failed."
+msgstr ""
+
+#: addons/datasteward/templates/datasteward_result_modal.mako:25
+msgid "DataSteward add-on disable process is completed."
+msgstr ""
+
+#: addons/datasteward/templates/datasteward_result_modal.mako:27
+msgid "No projects failed to unregister when disabling add-on."
+msgstr ""
+
+#: addons/datasteward/templates/datasteward_result_modal.mako:30
+msgid "There were %(count)s projects that could not be unregistered when disabling add-on."
+msgstr ""
+
+#: addons/datasteward/templates/datasteward_result_modal.mako:32
+msgid "For more details, download the CSV from the link below and refer to it."
+msgstr ""
+
+#: addons/datasteward/templates/datasteward_result_modal.mako:33
+msgid "Please note that you will not be able to refer to this download once the dialog is closed."
+msgstr ""
+
+#: addons/datasteward/templates/datasteward_result_modal.mako:35
+msgid "Disable result CSV download"
+msgstr ""
+
 #: addons/dataverse/templates/dataverse_credentials_modal.mako:6
 msgid "Connect a Dataverse Account"
 msgstr ""

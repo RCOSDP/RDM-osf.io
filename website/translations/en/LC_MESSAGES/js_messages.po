@@ -504,12 +504,39 @@ msgstr ""
 msgid "Type the following to continue: <strong>%1$s</strong><br><br>"
 msgstr ""
 
+#: admin/static/js/rdm_addons/rdm-addons-page.js:69
+msgid ""
+"This will not revoke access to %1$s for all projects using the "
+"accounts.<br>"
+msgstr ""
+
+#: admin/static/js/rdm_addons/rdm-addons-page.js:70
+msgid ""
+"But the accounts will not be able to see and change their %1$s settings "
+"until you reallow it.<br><br>"
+msgstr ""
+
 #: admin/static/js/rdm_addons/rdm-addons-page.js:74
 msgid "Disallow"
 msgstr ""
 
 #: admin/static/js/rdm_addons/rdm-addons-page.js:85
 msgid "Strings did not match"
+msgstr ""
+
+#: addons/datasteward/static/datastewardUserConfig.js:88
+#: addons/datasteward/static/datastewardUserConfig.js:89
+msgid "You do not have permission to perform this action."
+msgstr ""
+
+#: addons/datasteward/static/datastewardUserConfig.js:120
+#: addons/datasteward/static/datastewardUserConfig.js:121
+msgid "Cannot disable DataSteward add-on"
+msgstr ""
+
+#: addons/datasteward/static/datastewardUserConfig.js:157
+#: addons/datasteward/static/datastewardUserConfig.js:158
+msgid "Cannot get DataSteward add-on settings"
 msgstr ""
 
 #: admin/static/js/rdm_addons/dataverse/dataverseRdmConfig.js:26

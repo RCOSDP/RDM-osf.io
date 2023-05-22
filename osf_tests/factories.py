@@ -4,7 +4,7 @@ import time
 import datetime
 import mock
 from factory import SubFactory
-from factory.fuzzy import FuzzyDateTime, FuzzyAttribute, FuzzyChoice
+from factory.fuzzy import FuzzyDateTime, FuzzyAttribute, FuzzyChoice, FuzzyText
 from mock import patch, Mock
 
 import factory
@@ -249,6 +249,12 @@ class NodeFactory(BaseNodeFactory):
     category = 'hypothesis'
     parent = factory.SubFactory(ProjectFactory)
 
+class ContributorFactory(DjangoModelFactory):
+    user = factory.SubFactory(AuthUserFactory)
+    node = factory.SubFactory(ProjectFactory)
+
+    class Meta:
+        model = models.Contributor
 
 class InstitutionFactory(DjangoModelFactory):
     name = factory.Faker('company')
@@ -1101,7 +1107,7 @@ class BrandFactory(DjangoModelFactory):
     class Meta:
         model = models.Brand
 
-    name = factory.Faker('company')
+    name = FuzzyText(length=12)  # max length of Brand.name = 30
     hero_logo_image = factory.Faker('url')
     topnav_logo_image = factory.Faker('url')
     hero_background_image = factory.Faker('url')
