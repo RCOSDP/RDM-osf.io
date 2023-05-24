@@ -714,3 +714,58 @@ class TestSubclasses(FilesTestCase):
             mock.call('bar', version='foo'),
             mock.call(None, version='zyzz', bar='baz'),
         ])
+
+import pytest
+from addons.osfstorage.tests import factories
+from osf_tests.factories import ProjectFactory, RegionFactory, NodeFactory
+from website.notifications.events.files import ComplexFileEvent
+
+class TestComplexFileEvent(FilesTestCase):
+    def setUp(self):
+        super(TestComplexFileEvent, self).setUp()
+        self.config = {
+            'storage': {
+                'provider': 'osfstorage',
+                'container': 'osf_storage',
+                'use_public': True,
+            }
+        }
+        self.user = factories.AuthUserFactory()
+        self.project = ProjectFactory(creator=self.user)
+        self.region = RegionFactory(waterbutler_settings=self.config)
+        self.new_component = NodeFactory(parent=self.project)
+        self.component_node_settings = self.new_component.get_addon('osfstorage')
+        self.component_node_settings.region = self.region
+        self.component_node_settings.full_name = self.config['storage']['provider']
+        self.component_node_settings.save()
+
+    def test_init(self):
+        payload = {
+            'source':{
+                'node': {
+                    '_id': 123
+                }
+            },
+            'destination':{
+                'provider': 'osfstorage'
+            }
+        }
+        with mock.patch('osf.models.node.AbstractNode.load', return_value=None):
+            with mock.patch('osf.models.preprint.Preprint.load', return_value=None):
+                ComplexFileEvent(self.user, self.new_component, 'added', payload)
+
+    def test_init_exception(self):
+        payload = {
+            'source':{
+                'node': {
+                    '_id': 123
+                }
+            },
+            'destination':{
+                'provider': 'osfstorage'
+            }
+        }
+        with mock.patch('osf.models.node.AbstractNode.load', return_value=None):
+            with mock.patch('osf.models.preprint.Preprint.load', return_value=None):
+                with mock.patch('osf.models.mixins.AddonModelMixin.get_addon', side_effect=Exception('mocked error')):
+                    ComplexFileEvent(self.user, self.new_component, 'added', payload)

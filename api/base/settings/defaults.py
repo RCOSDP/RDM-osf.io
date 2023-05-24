@@ -493,7 +493,7 @@ TIME_STAMP_STORAGE_NOT_ACCESSIBLE = 9
 TIME_STAMP_STORAGE_NOT_ACCESSIBLE_MSG = 'Error: storage service connection error occurred.'
 
 # Quota settings
-DEFAULT_MAX_QUOTA = 100
+DEFAULT_MAX_QUOTA = 100  # Initial value of quota for user per institutional storage. The unit must be gigabytes.
 WARNING_THRESHOLD = 0.9
 BASE_FOR_METRIC_PREFIX = 1000
 SIZE_UNIT_GB = BASE_FOR_METRIC_PREFIX ** 3

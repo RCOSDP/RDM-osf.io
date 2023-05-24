@@ -164,7 +164,7 @@ def perform_wb_copy(reg, node_settings):
     if res.status_code not in (http_status.HTTP_200_OK, http_status.HTTP_201_CREATED, http_status.HTTP_202_ACCEPTED):
         raise HTTPError(res.status_code)
 
-def manually_archive(tree, reg, node_settings, parent=None):
+def manually_archive(tree, reg, node_settings, parent=None, region_id=None):
     if not isinstance(tree, list):
         tree = [tree]
     for filenode in tree:
@@ -183,7 +183,11 @@ def manually_archive(tree, reg, node_settings, parent=None):
             else:
                 cloned.recast(OsfStorageFolder._typedmodels_type)
         if not parent:
-            parent = reg.get_addon('osfstorage').get_root()
+            try:
+                # Get addon by region_id, if region_id is not found then raise 400 error
+                parent = reg.get_addon('osfstorage', region_id=region_id).get_root()
+            except Exception:
+                raise HTTPError(http_status.HTTP_400_BAD_REQUEST)
             cloned.name = node_settings.archive_folder_name
         else:
             cloned.name = filenode['name']
@@ -332,7 +336,7 @@ def build_file_tree(reg, node_settings):
     current_tree = _recurse(node_settings.get_root(), n)
     return revert_log_actions(current_tree, reg, obj_cache)
 
-def archive(registration):
+def archive(registration, region_id=None):
     for reg in registration.node_and_primary_descendants():
         reg.registered_from.creator.get_or_create_cookie()  # Allow WB requests
         if reg.archive_job.status == ARCHIVER_SUCCESS:
@@ -356,7 +360,7 @@ def archive(registration):
                 continue
             if short_name == 'osfstorage':
                 file_tree = build_file_tree(reg, node_settings)
-                manually_archive(file_tree, reg, node_settings)
+                manually_archive(file_tree, reg, node_settings, region_id=region_id)
                 complete_archive_target(reg, short_name)
             else:
                 assert reg.archiving, '{}: Must be `archiving` for WB to copy'.format(reg._id)

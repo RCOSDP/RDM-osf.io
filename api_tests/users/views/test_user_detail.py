@@ -485,7 +485,7 @@ class TestUserUpdate:
                     'default_region': {
                         'data': {
                             'type': 'regions',
-                            'id': region._id
+                            'id': region.id
                         }
                     }
                 }
@@ -653,11 +653,12 @@ class TestUserUpdate:
         assert res.status_code == 200
         assert user_one.osfstorage_region == region
         assert user_one.osfstorage_region != original_user_region
-        assert res.json['data']['relationships']['default_region']['data']['id'] == region._id
+        assert res.json['data']['relationships']['default_region']['data']['id'] == str(region.id)
         assert res.json['data']['relationships']['default_region']['data']['type'] == 'regions'
 
         # Updating with invalid region
-        region_payload['data']['relationships']['default_region']['data']['id'] = 'bad_region'
+        bad_region_id = '123456'
+        region_payload['data']['relationships']['default_region']['data']['id'] = bad_region_id
         res = app.patch_json_api(
             url_user_one,
             region_payload,
@@ -665,7 +666,7 @@ class TestUserUpdate:
             expect_errors=True
         )
         assert res.status_code == 400
-        assert res.json['errors'][0]['detail'] == 'Region bad_region is invalid.'
+        assert res.json['errors'][0]['detail'] == 'Region {} is invalid.'.format(bad_region_id)
 
     def test_update_patch_errors(
             self, app, user_one, user_two, data_new_user_one,

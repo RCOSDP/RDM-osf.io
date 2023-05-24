@@ -1568,7 +1568,7 @@ class TestUserProfile(OsfTestCase):
         url = '/api/v1/profile/region/'
         auth = self.user.auth
         region = RegionFactory(name='Frankfort', _id='eu-central-1')
-        payload = {'region_id': 'eu-central-1'}
+        payload = {'region_id': region.id}
 
         res = self.app.put_json(url, payload, auth=auth)
         user_settings.reload()

@@ -129,6 +129,7 @@
                        oninvalid="this.setCustomValidity({% trans 'Value must be an integer number greater than or equal 1' %})"
                        oninput="setCustomValidity('')"
                 />
+                <input type="hidden" name="region_id" id="region" class="form-control" value="{{region_id}}"/>
                 <button type="submit"
                         style="margin-left: 2px; flex-grow: 0;"
                         class="btn btn-primary next-btn flex-item">{% trans 'Apply' %}</button>
@@ -145,39 +146,39 @@
             {% if requested_user.is_staff and not requested_user.is_superuser %}
                 <th class="nowrap">
                     {% trans "eduPersonPrincipleName" %}
-                    <a href="?order_by=eppn&amp;status=desc&amp;page={{ page.number }}" class="caret caret-sort tb-sort-inactive"></a>
-                    <span class="dropup"><a href="?order_by=eppn&amp;status=asc&amp;page={{ page.number }}" class="caret caret-sort tb-sort-inactive"></a></span>
+                    <a href="?region_id={{ region_id }};order_by=eppn&amp;status=desc&amp;page={{ page.number }}" class="caret caret-sort tb-sort-inactive"></a>
+                    <span class="dropup"><a href="?region_id={{ region_id }};order_by=eppn&amp;status=asc&amp;page={{ page.number }}" class="caret caret-sort tb-sort-inactive"></a></span>
                 </th>
             {% endif %}
             <th class="nowrap">
                 {% trans "Username" %}
-                <a href="?order_by=username&amp;status=desc&amp;page={{ page.number }}" class="caret caret-sort tb-sort-inactive"></a>
-                <span class="dropup"><a href="?order_by=username&amp;status=asc&amp;page={{ page.number }}" class="caret caret-sort tb-sort-inactive"></a></span>
+                <a href="?region_id={{ region_id }};order_by=username&amp;status=desc&amp;page={{ page.number }}" class="caret caret-sort tb-sort-inactive"></a>
+                <span class="dropup"><a href="?region_id={{ region_id }};order_by=username&amp;status=asc&amp;page={{ page.number }}" class="caret caret-sort tb-sort-inactive"></a></span>
             </th>
             <th class="nowrap">
                 {% trans "Fullname" %}
-                <a href="?order_by=fullname&amp;status=desc&amp;page={{ page.number }}" class="caret caret-sort tb-sort-inactive"></a>
-                <span class="dropup"><a href="?order_by=fullname&amp;status=asc&amp;page={{ page.number }}" class="caret caret-sort tb-sort-inactive"></a></span>
+                <a href="?region_id={{ region_id }};order_by=fullname&amp;status=desc&amp;page={{ page.number }}" class="caret caret-sort tb-sort-inactive"></a>
+                <span class="dropup"><a href="?region_id={{ region_id }};order_by=fullname&amp;status=asc&amp;page={{ page.number }}" class="caret caret-sort tb-sort-inactive"></a></span>
             </th>
             <th class="nowrap">
                 {% trans "Ratio" %}
-                <a href="?order_by=ratio&amp;status=desc&amp;page={{ page.number }}" class="caret caret-sort tb-sort-inactive"></a>
-                <span class="dropup"><a href="?order_by=ratio&amp;status=asc&amp;page={{ page.number }}" class="caret caret-sort tb-sort-inactive"></a></span>
+                <a href="?region_id={{ region_id }};order_by=ratio&amp;status=desc&amp;page={{ page.number }}" class="caret caret-sort tb-sort-inactive"></a>
+                <span class="dropup"><a href="?region_id={{ region_id }};order_by=ratio&amp;status=asc&amp;page={{ page.number }}" class="caret caret-sort tb-sort-inactive"></a></span>
             </th>
             <th class="nowrap">
                 {% trans "Usage" %}
-                <a href="?order_by=usage&amp;status=desc&amp;page={{ page.number }}" class="caret caret-sort tb-sort-inactive"></a>
-                <span class="dropup"><a href="?order_by=usage&amp;status=asc&amp;page={{ page.number }}" class="caret caret-sort tb-sort-inactive"></a></span>
+                <a href="?region_id={{ region_id }};order_by=usage&amp;status=desc&amp;page={{ page.number }}" class="caret caret-sort tb-sort-inactive"></a>
+                <span class="dropup"><a href="?region_id={{ region_id }};order_by=usage&amp;status=asc&amp;page={{ page.number }}" class="caret caret-sort tb-sort-inactive"></a></span>
             </th>
             <th class="nowrap">
                 {% trans "Remaining" %}
-                <a href="?order_by=remaining&amp;status=desc&amp;page={{ page.number }}" class="caret caret-sort tb-sort-inactive"></a>
-                <span class="dropup"><a href="?order_by=remaining&amp;status=asc&amp;page={{ page.number }}" class="caret caret-sort tb-sort-inactive"></a></span>
+                <a href="?region_id={{ region_id }};order_by=remaining&amp;status=desc&amp;page={{ page.number }}" class="caret caret-sort tb-sort-inactive"></a>
+                <span class="dropup"><a href="?region_id={{ region_id }};order_by=remaining&amp;status=asc&amp;page={{ page.number }}" class="caret caret-sort tb-sort-inactive"></a></span>
             </th>
             <th class="nowrap">
                 {% trans "Quota" %}
-                <a href="?order_by=quota&amp;status=desc&amp;page={{ page.number }}" class="caret caret-sort tb-sort-inactive"></a>
-                <span class="dropup"><a href="?order_by=quota&amp;status=asc&amp;page={{ page.number }}" class="caret caret-sort tb-sort-inactive"></a></span>
+                <a href="?region_id={{ region_id }};order_by=quota&amp;status=desc&amp;page={{ page.number }}" class="caret caret-sort tb-sort-inactive"></a>
+                <span class="dropup"><a href="?region_id={{ region_id }};order_by=quota&amp;status=asc&amp;page={{ page.number }}" class="caret caret-sort tb-sort-inactive"></a></span>
             </th>
         </tr>
         </thead>

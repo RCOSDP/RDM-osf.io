@@ -217,14 +217,14 @@ class UserSerializer(JSONAPISerializer):
         return group_qs.exists() or obj.abstractprovideruserobjectpermission_set.filter(permission__codename='view_submissions') or []
 
     def get_default_region_id(self, obj):
-        region_id = Region.objects.first()._id
+        region_id = Region.objects.first().id
         try:
             # use the annotated value if possible
-            region_id = obj.default_region
+            region_id = obj.default_region.id
         except AttributeError:
             # use computed property if region annotation does not exist
             try:
-                region_id = obj.osfstorage_region._id
+                region_id = obj.osfstorage_region.id
             except Exception:
                 pass
         return region_id

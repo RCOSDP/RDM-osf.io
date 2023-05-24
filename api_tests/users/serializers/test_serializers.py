@@ -11,6 +11,7 @@ from osf_tests.factories import (
     ProjectFactory,
     InstitutionFactory,
     OSFGroupFactory,
+    RegionFactory
 )
 from tests.utils import make_drf_request_with_version
 from django.utils import timezone
@@ -184,6 +185,17 @@ class TestUserSerializer:
 
         return view.get_queryset().count()
 
+    def set_up(self):
+        req = make_drf_request_with_version(version='2.0')
+        req.query_params['related_counts'] = True
+        institution = InstitutionFactory()
+        region = RegionFactory(_id=institution._id, name='Storage')
+        user = UserFactory()
+        user_settings = user.get_addon('osfstorage')
+        user_settings.default_region = region
+        user_settings.save()
+        return req, user_settings
+
     def test_user_serializer(self, user):
 
         data = self.get_data(user)
@@ -241,3 +253,16 @@ class TestUserSerializer:
         related_count = self.get_related_count(user, field_name, auth=None)
 
         assert related_count == view_count == expected_count['no_auth']
+
+    def test_get_default_region_id(self):
+        req, user_settings = self.set_up()
+        user_serializer = UserSerializer(user, context={'request': req})
+        res = user_serializer.get_default_region_id(user_settings)
+        assert res == user_settings.default_region.id
+
+    def test_get_default_region_id_exception(self):
+        req, user_settings = self.set_up()
+        user_serializer = UserSerializer(user, context={'request': req})
+        with pytest.raises(Exception):
+            res = user_serializer.get_default_region_id(None)
+            assert res is None

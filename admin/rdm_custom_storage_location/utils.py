@@ -123,7 +123,7 @@ def change_allowed_for_institutions(institution, provider_name):
 def set_default_storage(institution_id):
     default_region = Region.objects.first()
     try:
-        region = Region.objects.get(_id=institution_id)
+        region = Region.objects.get(_id=institution_id, name=default_region.name)
         # copy
         region.name = default_region.name
         region.waterbutler_credentials = default_region.waterbutler_credentials
@@ -142,11 +142,11 @@ def set_default_storage(institution_id):
         )
     return region
 
-def update_storage(institution_id, storage_name, wb_credentials, wb_settings):
+def update_storage(institution_id, storage_name, wb_credentials, wb_settings, new_storage_name=None):
+    default_region = Region.objects.first()
     try:
-        region = Region.objects.get(_id=institution_id)
+        region = Region.objects.get(_id=institution_id, name=storage_name)
     except Region.DoesNotExist:
-        default_region = Region.objects.first()
         region = Region.objects.create(
             _id=institution_id,
             name=storage_name,
@@ -156,10 +156,20 @@ def update_storage(institution_id, storage_name, wb_credentials, wb_settings):
             waterbutler_settings=wb_settings,
         )
     else:
-        region.name = storage_name
-        region.waterbutler_credentials = wb_credentials
-        region.waterbutler_settings = wb_settings
-        region.save()
+        if not new_storage_name:
+            region = Region.objects.create(
+                _id=institution_id,
+                name=storage_name,
+                waterbutler_credentials=wb_credentials,
+                waterbutler_url=default_region.waterbutler_url,
+                mfr_url=default_region.mfr_url,
+                waterbutler_settings=wb_settings,
+            )
+        else:
+            region.name = storage_name if not new_storage_name else new_storage_name
+            region.waterbutler_credentials = wb_credentials
+            region.waterbutler_settings = wb_settings
+            region.save()
     return region
 
 def transfer_to_external_account(user, institution_id, provider_short_name):
@@ -583,7 +593,7 @@ def validate_onedrivebusiness_connection(institution_id, folder_id_or_path):
         'message': 'Credentials are valid'
     }, http_status.HTTP_200_OK), folder_id
 
-def save_s3_credentials(institution_id, storage_name, access_key, secret_key, bucket):
+def save_s3_credentials(institution_id, storage_name, access_key, secret_key, bucket, new_storage_name=None):
     test_connection_result = test_s3_connection(access_key, secret_key, bucket)
     if test_connection_result[1] != http_status.HTTP_200_OK:
         return test_connection_result
@@ -604,7 +614,7 @@ def save_s3_credentials(institution_id, storage_name, access_key, secret_key, bu
         },
     }
 
-    region = update_storage(institution_id, storage_name, wb_credentials, wb_settings)
+    region = update_storage(institution_id, storage_name, wb_credentials, wb_settings, new_storage_name)
     external_util.remove_region_external_account(region)
 
     return ({
@@ -612,7 +622,7 @@ def save_s3_credentials(institution_id, storage_name, access_key, secret_key, bu
     }, http_status.HTTP_200_OK)
 
 def save_s3compat_credentials(institution_id, storage_name, host_url, access_key, secret_key,
-                              bucket, server_side_encryption=False):
+                              bucket, server_side_encryption=False, new_storage_name=None):
 
     test_connection_result = test_s3compat_connection(host_url, access_key, secret_key, bucket)
     if test_connection_result[1] != http_status.HTTP_200_OK:
@@ -636,7 +646,7 @@ def save_s3compat_credentials(institution_id, storage_name, host_url, access_key
         }
     }
 
-    region = update_storage(institution_id, storage_name, wb_credentials, wb_settings)
+    region = update_storage(institution_id, storage_name, wb_credentials, wb_settings, new_storage_name)
     external_util.remove_region_external_account(region)
 
     return ({
@@ -644,7 +654,7 @@ def save_s3compat_credentials(institution_id, storage_name, host_url, access_key
     }, http_status.HTTP_200_OK)
 
 def save_s3compatb3_credentials(institution_id, storage_name, host_url, access_key, secret_key,
-                              bucket):
+                                bucket, new_storage_name=None):
 
     test_connection_result = test_s3compatb3_connection(host_url, access_key, secret_key, bucket)
     if test_connection_result[1] != http_status.HTTP_200_OK:
@@ -669,14 +679,14 @@ def save_s3compatb3_credentials(institution_id, storage_name, host_url, access_k
         }
     }
 
-    region = update_storage(institution_id, storage_name, wb_credentials, wb_settings)
+    region = update_storage(institution_id, storage_name, wb_credentials, wb_settings, new_storage_name)
     external_util.remove_region_external_account(region)
 
     return ({
         'message': 'Saved credentials successfully!!'
     }, http_status.HTTP_200_OK)
 
-def save_box_credentials(user, storage_name, folder_id):
+def save_box_credentials(user, storage_name, folder_id, new_storage_name=None):
     institution_id = user.affiliated_institutions.first()._id
 
     test_connection_result = test_box_connection(institution_id, folder_id)
@@ -696,14 +706,14 @@ def save_box_credentials(user, storage_name, folder_id):
             'provider': 'box',
         }
     }
-    region = update_storage(institution_id, storage_name, wb_credentials, wb_settings)
+    region = update_storage(institution_id, storage_name, wb_credentials, wb_settings, new_storage_name)
     external_util.set_region_external_account(region, account)
 
     return ({
         'message': 'OAuth was set successfully'
     }, http_status.HTTP_200_OK)
 
-def save_googledrive_credentials(user, storage_name, folder_id):
+def save_googledrive_credentials(user, storage_name, folder_id, new_storage_name=None):
     institution_id = user.affiliated_institutions.first()._id
 
     test_connection_result = test_googledrive_connection(institution_id, folder_id)
@@ -725,7 +735,7 @@ def save_googledrive_credentials(user, storage_name, folder_id):
             'provider': 'googledrive',
         }
     }
-    region = update_storage(institution_id, storage_name, wb_credentials, wb_settings)
+    region = update_storage(institution_id, storage_name, wb_credentials, wb_settings, new_storage_name)
     external_util.set_region_external_account(region, account)
 
     return ({
@@ -733,7 +743,7 @@ def save_googledrive_credentials(user, storage_name, folder_id):
     }, http_status.HTTP_200_OK)
 
 def save_nextcloud_credentials(institution_id, storage_name, host_url, username, password,
-                              folder, provider):
+                               folder, provider, new_storage_name=None):
     test_connection_result = test_owncloud_connection(host_url, username, password, folder,
                                                       provider)
     if test_connection_result[1] != http_status.HTTP_200_OK:
@@ -760,7 +770,7 @@ def save_nextcloud_credentials(institution_id, storage_name, host_url, username,
         },
     }
 
-    region = update_storage(institution_id, storage_name, wb_credentials, wb_settings)
+    region = update_storage(institution_id, storage_name, wb_credentials, wb_settings, new_storage_name)
     external_util.remove_region_external_account(region)
 
     return ({
@@ -776,7 +786,7 @@ def save_osfstorage_credentials(institution_id):
 
 def save_swift_credentials(institution_id, storage_name, auth_version, access_key, secret_key,
                            tenant_name, user_domain_name, project_domain_name, auth_url,
-                           container):
+                           container, new_storage_name=None):
 
     test_connection_result = test_swift_connection(auth_version, auth_url, access_key, secret_key,
         tenant_name, user_domain_name, project_domain_name, container)
@@ -804,7 +814,7 @@ def save_swift_credentials(institution_id, storage_name, auth_version, access_ke
 
     }
 
-    region = update_storage(institution_id, storage_name, wb_credentials, wb_settings)
+    region = update_storage(institution_id, storage_name, wb_credentials, wb_settings, new_storage_name)
     external_util.remove_region_external_account(region)
 
     return ({
@@ -812,7 +822,7 @@ def save_swift_credentials(institution_id, storage_name, auth_version, access_ke
     }, http_status.HTTP_200_OK)
 
 def save_owncloud_credentials(institution_id, storage_name, host_url, username, password,
-                              folder, provider):
+                              folder, provider, new_storage_name=None):
     test_connection_result = test_owncloud_connection(host_url, username, password, folder,
                                                       provider)
     if test_connection_result[1] != http_status.HTTP_200_OK:
@@ -839,14 +849,14 @@ def save_owncloud_credentials(institution_id, storage_name, host_url, username, 
         },
     }
 
-    region = update_storage(institution_id, storage_name, wb_credentials, wb_settings)
+    region = update_storage(institution_id, storage_name, wb_credentials, wb_settings, new_storage_name)
     external_util.remove_region_external_account(region)
 
     return ({
         'message': 'Saved credentials successfully!!'
     }, http_status.HTTP_200_OK)
 
-def save_onedrivebusiness_credentials(user, storage_name, provider_name, folder_id_or_path):
+def save_onedrivebusiness_credentials(user, storage_name, provider_name, folder_id_or_path, new_storage_name=None):
     institution_id = user.affiliated_institutions.first()._id
 
     test_connection_result, folder_id = validate_onedrivebusiness_connection(institution_id, folder_id_or_path)
@@ -856,7 +866,7 @@ def save_onedrivebusiness_credentials(user, storage_name, provider_name, folder_
     account = transfer_to_external_account(user, institution_id, 'onedrivebusiness')
     wb_credentials, wb_settings = wd_info_for_institutions(provider_name)
     wb_settings['root_folder_id'] = folder_id
-    region = update_storage(institution_id, storage_name, wb_credentials, wb_settings)
+    region = update_storage(institution_id, storage_name, wb_credentials, wb_settings, new_storage_name)
     external_util.set_region_external_account(region, account)
 
     return ({
@@ -883,7 +893,7 @@ def use_https(url):
     host.scheme = 'https'
     return host
 
-def save_dropboxbusiness_credentials(institution, storage_name, provider_name):
+def save_dropboxbusiness_credentials(institution, storage_name, provider_name, new_storage_name=None):
     test_connection_result = test_dropboxbusiness_connection(institution)
     if test_connection_result[1] != http_status.HTTP_200_OK:
         return test_connection_result
@@ -891,7 +901,7 @@ def save_dropboxbusiness_credentials(institution, storage_name, provider_name):
     wb_credentials, wb_settings = wd_info_for_institutions(provider_name)
     region = update_storage(institution._id,  # not institution.id
                             storage_name,
-                            wb_credentials, wb_settings)
+                            wb_credentials, wb_settings, new_storage_name)
     external_util.remove_region_external_account(region)
     ### sync_all() is not supported by Dropbox Business Addon
     # sync_all(institution._id, target_addons=[provider_name])
@@ -901,7 +911,7 @@ def save_dropboxbusiness_credentials(institution, storage_name, provider_name):
     }, http_status.HTTP_200_OK)
 
 def save_basic_storage_institutions_credentials_common(
-        institution, storage_name, folder, provider_name, provider, separator=':', extended_data=None):
+        institution, storage_name, folder, provider_name, provider, separator=':', extended_data=None, new_storage_name=None):
     try:
         provider.account.save()
     except ValidationError:
@@ -931,7 +941,7 @@ def save_basic_storage_institutions_credentials_common(
     wb_credentials, wb_settings = wd_info_for_institutions(provider_name)
     region = update_storage(institution._id,  # not institution.id
                             storage_name,
-                            wb_credentials, wb_settings)
+                            wb_credentials, wb_settings, new_storage_name)
     external_util.remove_region_external_account(region)
 
     save_usermap_from_tmp(provider_name, institution)
@@ -942,7 +952,7 @@ def save_basic_storage_institutions_credentials_common(
     }, http_status.HTTP_200_OK)
 
 def save_nextcloudinstitutions_credentials(
-        institution, storage_name, host_url, username, password, folder, notification_secret, provider_name):
+        institution, storage_name, host_url, username, password, folder, notification_secret, provider_name, new_storage_name=None):
     test_connection_result = test_owncloud_connection(
         host_url, username, password, folder, provider_name)
     if test_connection_result[1] != http_status.HTTP_200_OK:
@@ -955,9 +965,9 @@ def save_nextcloudinstitutions_credentials(
     extended_data = {}
     extended_data[KEYNAME_NOTIFICATION_SECRET] = notification_secret
     return save_basic_storage_institutions_credentials_common(
-        institution, storage_name, folder, provider_name, provider, extended_data=extended_data)
+        institution, storage_name, folder, provider_name, provider, extended_data=extended_data, new_storage_name=new_storage_name)
 
-def save_s3compatinstitutions_credentials(institution, storage_name, host_url, access_key, secret_key, bucket, provider_name):
+def save_s3compatinstitutions_credentials(institution, storage_name, host_url, access_key, secret_key, bucket, provider_name, new_storage_name=None):
     host = host_url.rstrip('/').replace('https://', '').replace('http://', '')
     test_connection_result = test_s3compat_connection(
         host, access_key, secret_key, bucket)
@@ -970,9 +980,9 @@ def save_s3compatinstitutions_credentials(institution, storage_name, host_url, a
         username=access_key, password=secret_key, separator=separator)
 
     return save_basic_storage_institutions_credentials_common(
-        institution, storage_name, bucket, provider_name, provider, separator)
+        institution, storage_name, bucket, provider_name, provider, separator, new_storage_name)
 
-def save_ociinstitutions_credentials(institution, storage_name, host_url, access_key, secret_key, bucket, provider_name):
+def save_ociinstitutions_credentials(institution, storage_name, host_url, access_key, secret_key, bucket, provider_name, new_storage_name=None):
     host = host_url.rstrip('/').replace('https://', '').replace('http://', '')
     test_connection_result = test_s3compatb3_connection(
         host, access_key, secret_key, bucket)
@@ -985,7 +995,7 @@ def save_ociinstitutions_credentials(institution, storage_name, host_url, access
         username=access_key, password=secret_key, separator=separator)
 
     return save_basic_storage_institutions_credentials_common(
-        institution, storage_name, bucket, provider_name, provider, separator)
+        institution, storage_name, bucket, provider_name, provider, separator, new_storage_name)
 
 def get_credentials_common(institution, provider_name):
     clear_usermap_tmp(provider_name, institution)

@@ -261,12 +261,14 @@ class TestAUser(OsfTestCase):
         td2 = td1.find_next_sibling('td')
         assert_equal(td2.text, user2.display_absolute_url)
 
-    def test_update_default_storage(self):
-        institution = InstitutionFactory()
+    @mock.patch('addons.osfstorage.models.Region.objects.get')
+    def test_update_default_storage(self, mock_region):
+        institution = InstitutionFactory(_id=123456)
         self.user.affiliated_institutions.add(institution)
         region = RegionFactory()
         region._id = institution._id
         region.save()
+        mock_region.return_value = region
         res = self.app.get('/login/', auth=self.user.auth)
         assert_equal(region, self.user.get_addon('osfstorage').default_region)
 
