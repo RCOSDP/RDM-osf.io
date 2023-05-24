@@ -231,6 +231,9 @@ def _mock_get_or_add(name, *args, **kwargs):
     active_addons.add(name)
     return _mock_get_addon(name)
 
+def _mock_has_addon(name, *args, **kwargs):
+    return name in active_addons
+
 def use_fake_addons(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
@@ -238,7 +241,8 @@ def use_fake_addons(func):
             mock.patch('osf.models.mixins.AddonModelMixin.add_addon', mock.Mock(side_effect=_mock_get_or_add)),
             mock.patch('osf.models.mixins.AddonModelMixin.get_addon', mock.Mock(side_effect=_mock_get_addon)),
             mock.patch('osf.models.mixins.AddonModelMixin.delete_addon', mock.Mock(side_effect=_mock_delete_addon)),
-            mock.patch('osf.models.mixins.AddonModelMixin.get_or_add_addon', mock.Mock(side_effect=_mock_get_or_add))
+            mock.patch('osf.models.mixins.AddonModelMixin.get_or_add_addon', mock.Mock(side_effect=_mock_get_or_add)),
+            mock.patch('osf.models.mixins.AddonModelMixin.has_addon', mock.Mock(side_effect=_mock_has_addon))
         ):
             ret = func(*args, **kwargs)
             return ret
@@ -488,6 +492,14 @@ class TestArchiverTasks(ArchiverTestCase):
         assert_equal(res.target_name, 'osfstorage')
         assert_equal(res.disk_usage, 128 + 256)
 
+    def test_stat_addon_exception(self):
+        with mock.patch.object(BaseStorageAddon, '_get_file_tree') as mock_file_tree:
+            with mock.patch('osf.models.mixins.AddonModelMixin.get_addon', side_effect=Exception('mocked error')):
+                mock_file_tree.return_value = FILE_TREE
+                res = stat_addon('osfstorage', self.archive_job._id)
+        assert_equal(res.target_name, 'osfstorage')
+        assert_equal(res.disk_usage, 128 + 256)
+
     @mock.patch('website.archiver.tasks.archive_addon.delay')
     def test_archive_node_pass(self, mock_archive_addon):
         settings.MAX_ARCHIVE_SIZE = 1024 ** 3
@@ -570,6 +582,32 @@ class TestArchiverTasks(ArchiverTestCase):
                 rename='Archive of OSF Storage',
             )
         ))
+
+    @mock.patch('website.archiver.tasks.make_copy_request.delay')
+    def test_archive_addon_exception(self, mock_make_copy_request):
+        with mock.patch('osf.models.mixins.AddonModelMixin.get_addon', side_effect=Exception('mocked error')):
+            archive_addon('osfstorage', self.archive_job._id)
+            assert_equal(self.archive_job.get_target('osfstorage').status, ARCHIVER_INITIATED)
+            cookie = self.user.get_or_create_cookie()
+            assert(mock_make_copy_request.called_with(
+                self.archive_job._id,
+                settings.WATERBUTLER_URL + '/ops/copy',
+                data=dict(
+                    source=dict(
+                        cookie=cookie,
+                        nid=self.src._id,
+                        provider='osfstorage',
+                        path='/',
+                    ),
+                    destination=dict(
+                        cookie=cookie,
+                        nid=self.dst._id,
+                        provider=settings.ARCHIVE_PROVIDER,
+                        path='/',
+                    ),
+                    rename='Archive of OSF Storage',
+                )
+            ))
 
     def test_archive_success(self):
         node = factories.NodeFactory(creator=self.user)
@@ -978,6 +1016,23 @@ class TestArchiverUtils(ArchiverTestCase):
             archiver_utils.get_file_map(node)
             assert_equal(mock_get_file_tree.call_count, call_count)
 
+    def test_get_file_map_memoization_exception(self):
+        node = factories.NodeFactory()
+        comp1 = factories.NodeFactory(parent=node)
+        factories.NodeFactory(parent=comp1)
+        factories.NodeFactory(parent=node)
+
+        with mock.patch('osf.models.mixins.AddonModelMixin.get_addon', side_effect=Exception('mocked error')):
+            with mock.patch.object(BaseStorageAddon, '_get_file_tree') as mock_get_file_tree:
+                mock_get_file_tree.return_value = file_tree_factory(3, 3, 3)
+
+                # first call
+                archiver_utils.get_file_map(node)
+                call_count = mock_get_file_tree.call_count
+                # second call
+                archiver_utils.get_file_map(node)
+                assert_equal(mock_get_file_tree.call_count, call_count)
+
 
 class TestArchiverListeners(ArchiverTestCase):
 
@@ -1332,6 +1387,16 @@ class TestArchiveJobModel(OsfTestCase):
         job.set_targets()
 
         assert_equal(list(job.target_addons.values_list('name', flat=True)), ['osfstorage'])
+
+    def test_set_targets_exception(self):
+        import mock
+        proj = factories.ProjectFactory()
+        reg = factories.RegistrationFactory(project=proj)
+        job = ArchiveJob(src_node=proj, dst_node=reg, initiator=proj.creator)
+        job.save()
+        with mock.patch('osf.models.node.AbstractNode.get_addon', side_effect=Exception('mocked error')):
+            job.set_targets()
+            assert_equal(list(job.target_addons.values_list('name', flat=True)), ['osfstorage'])
 
     def test_archive_tree_finished_with_nodes(self):
         proj = factories.NodeFactory()

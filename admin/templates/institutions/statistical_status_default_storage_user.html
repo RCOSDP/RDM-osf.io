@@ -5,7 +5,7 @@
 <form action={% url 'institutions:recalculate_quota_of_users_in_institution' %} method="post">
     <div class="row">
         <div class="col-md-6">
-            {% include "util/pagination.html" with items=page status=direction order=order_by %}
+            {% include "util/pagination.html" with items=page status=direction order=order_by region_id=region_id %}
         </div>
         <div class="col-md-6">
             {% csrf_token %}
@@ -20,38 +20,38 @@
             <th>GUID</th>
             <th>
                 {% trans "eduPersonPrincipleName" %}
-                <a href="?order_by=eppn&amp;status=desc&amp;page={{page.number}}" class="caret caret-sort tb-sort-inactive"></a>
-                <span class="dropup"><a href="?order_by=eppn&amp;status=asc&amp;page={{page.number}}" class="caret caret-sort tb-sort-inactive"></a></span>
+                <a href="?region_id={{region_id}}&amp;order_by=eppn&amp;status=desc&amp;page={{page.number}}" class="caret caret-sort tb-sort-inactive"></a>
+                <span class="dropup"><a href="?region_id={{region_id}}&amp;order_by=eppn&amp;status=asc&amp;page={{page.number}}" class="caret caret-sort tb-sort-inactive"></a></span>
             </th>
             <th>
                 {% trans "Username" %}
-                <a href="?order_by=username&amp;status=desc&amp;page={{page.number}}" class="caret caret-sort tb-sort-inactive"></a>
-                <span class="dropup"><a href="?order_by=username&amp;status=asc&amp;page={{page.number}}" class="caret caret-sort tb-sort-inactive"></a></span>
+                <a href="?region_id={{region_id}}&amp;order_by=username&amp;status=desc&amp;page={{page.number}}" class="caret caret-sort tb-sort-inactive"></a>
+                <span class="dropup"><a href="?region_id={{region_id}}&amp;order_by=username&amp;status=asc&amp;page={{page.number}}" class="caret caret-sort tb-sort-inactive"></a></span>
             </th>
             <th>
                 {% trans "Fullname" %}
-                <a href="?order_by=fullname&amp;status=desc&amp;page={{page.number}}" class="caret caret-sort tb-sort-inactive"></a>
-                <span class="dropup"><a href="?order_by=fullname&amp;status=asc&amp;page={{page.number}}" class="caret caret-sort tb-sort-inactive"></a></span>
+                <a href="?region_id={{region_id}}&amp;order_by=fullname&amp;status=desc&amp;page={{page.number}}" class="caret caret-sort tb-sort-inactive"></a>
+                <span class="dropup"><a href="?region_id={{region_id}}&amp;order_by=fullname&amp;status=asc&amp;page={{page.number}}" class="caret caret-sort tb-sort-inactive"></a></span>
             </th>
             <th>
                 {% trans "Ratio" %}
-                <a href="?order_by=ratio&amp;status=desc&amp;page={{page.number}}" class="caret caret-sort tb-sort-inactive"></a>
-                <span class="dropup"><a href="?order_by=ratio&amp;status=asc&amp;page={{page.number}}" class="caret caret-sort tb-sort-inactive"></a></span>
+                <a href="?region_id={{region_id}}&amp;order_by=ratio&amp;status=desc&amp;page={{page.number}}" class="caret caret-sort tb-sort-inactive"></a>
+                <span class="dropup"><a href="?region_id={{region_id}}&amp;order_by=ratio&amp;status=asc&amp;page={{page.number}}" class="caret caret-sort tb-sort-inactive"></a></span>
             </th>
             <th>
                 {% trans "Usage" %}
-                <a href="?order_by=usage&amp;status=desc&amp;page={{page.number}}" class="caret caret-sort tb-sort-inactive"></a>
-                <span class="dropup"><a href="?order_by=usage&amp;status=asc&amp;page={{page.number}}" class="caret caret-sort tb-sort-inactive"></a></span>
+                <a href="?region_id={{region_id}}&amp;order_by=usage&amp;status=desc&amp;page={{page.number}}" class="caret caret-sort tb-sort-inactive"></a>
+                <span class="dropup"><a href="?region_id={{region_id}}&amp;order_by=usage&amp;status=asc&amp;page={{page.number}}" class="caret caret-sort tb-sort-inactive"></a></span>
             </th>
             <th>
                 {% trans "Remaining" %}
-                <a href="?order_by=remaining&amp;status=desc&amp;page={{page.number}}" class="caret caret-sort tb-sort-inactive"></a>
-                <span class="dropup"><a href="?order_by=remaining&amp;status=asc&amp;page={{page.number}}" class="caret caret-sort tb-sort-inactive"></a></span>
+                <a href="?region_id={{region_id}}&amp;order_by=remaining&amp;status=desc&amp;page={{page.number}}" class="caret caret-sort tb-sort-inactive"></a>
+                <span class="dropup"><a href="?region_id={{region_id}}&amp;order_by=remaining&amp;status=asc&amp;page={{page.number}}" class="caret caret-sort tb-sort-inactive"></a></span>
             </th>
             <th>
                  {% trans "Quota" %}
-                <a href="?order_by=quota&amp;status=desc&amp;page={{page.number}}" class="caret caret-sort tb-sort-inactive"></a>
-                <span class="dropup"><a href="?order_by=quota&amp;status=asc&amp;page={{page.number}}" class="caret caret-sort tb-sort-inactive"></a></span>
+                <a href="?region_id={{region_id}}&amp;order_by=quota&amp;status=desc&amp;page={{page.number}}" class="caret caret-sort tb-sort-inactive"></a>
+                <span class="dropup"><a href="?region_id={{region_id}}&amp;order_by=quota&amp;status=asc&amp;page={{page.number}}" class="caret caret-sort tb-sort-inactive"></a></span>
             </th>
         </tr>
     </thead>
@@ -59,7 +59,7 @@
         {% for user in users %}
         <tr>
             <td>
-                <a href="{%  url 'users:user' user.id %}details/"
+                <a href="{%  url 'users:user' user.id %}details/?region_id={{region_id}}"
                    class="btn btn-primary">
                     {{ user.id }}
                 </a>

@@ -14,7 +14,7 @@ import time
 import unittest
 from future.moves.urllib.parse import quote
 import uuid
-
+from website.project.views.file import update_custom_storage_icon_url
 from flask import request
 import mock
 import pytest
@@ -109,6 +109,8 @@ from osf_tests.factories import (
 )
 from osf.models.node import set_project_storage_type
 from addons.osfstorage.models import NodeSettings
+from osf.models.project_storage_type import ProjectStorageType
+
 
 @mock_app.route('/errorexc')
 def error_exc():
@@ -1568,7 +1570,7 @@ class TestUserProfile(OsfTestCase):
         url = '/api/v1/profile/region/'
         auth = self.user.auth
         region = RegionFactory(name='Frankfort', _id='eu-central-1')
-        payload = {'region_id': 'eu-central-1'}
+        payload = {'region_id': region.id}
 
         res = self.app.put_json(url, payload, auth=auth)
         user_settings.reload()
@@ -4934,13 +4936,46 @@ class TestFileViews(OsfTestCase):
         data = res.json['data']
         assert_equal(len(data), len(expected))
 
+    def test_grid_data_have_component(self):
+        url = self.project.api_url_for('grid_data')
+        NodeFactory(parent=self.project)
+        res = self.app.get(url, auth=self.user.auth).maybe_follow()
+        assert_equal(res.status_code, http_status.HTTP_200_OK)
+        expected = rubeus.to_hgrid(self.project, auth=Auth(self.user))
+        data = res.json['data']
+        assert_equal(len(data), len(expected))
+
+    def test_update_custom_storage_icon_url_noderegion_is_united_tates(self):
+        fake_child = {'provider': 'osfstorage', 'addonFullname': 'NII Storage', 'name': 'NII Storage', 'iconUrl': '/static/addons/osfstorage/comicon.png',
+         'kind': 'folder', 'extra': None, 'buttons': None, 'isAddonRoot': True, 'permissions': {'view': True, 'edit': True},
+         'accept': {'maxSize': 5120, 'acceptedFiles': True},
+         'urls': {'fetch': '/api/v1/project/tkqvs/osfstorage/hgrid/', 'upload': '/api/v1/project/tkqvs/osfstorage/'}, 'isPointer': False,
+         'nodeId': 'tkqvs', 'nodeUrl': '/tkqvs/', 'nodeApiUrl': '/api/v1/project/tkqvs/', 'path': '642400ffe3ff270298cfa6df/',
+         'nodeRegion': 'United States', 'waterbutlerURL': 'http://localhost:7777'}
+
+        res = update_custom_storage_icon_url(fake_child)
+        assert_is_none(res)
+
+    def testupdate_custom_storage_icon_url(self):
+        fake_child = {'provider': 'osfstorage', 'addonFullname': 'NII Storage', 'name': 'NII Storage', 'iconUrl': '/static/addons/osfstorage/comicon.png',
+         'kind': 'folder', 'extra': None, 'buttons': None, 'isAddonRoot': True, 'permissions': {'view': True, 'edit': True},
+         'accept': {'maxSize': 5120, 'acceptedFiles': True},
+         'urls': {'fetch': '/api/v1/project/tkqvs/osfstorage/hgrid/', 'upload': '/api/v1/project/tkqvs/osfstorage/'}, 'isPointer': False,
+         'nodeId': 'tkqvs', 'nodeUrl': '/tkqvs/', 'nodeApiUrl': '/api/v1/project/tkqvs/', 'path': '642400ffe3ff270298cfa6df/',
+         'nodeRegion': 'not United States', 'waterbutlerURL': 'http://localhost:7777'}
+
+        res = update_custom_storage_icon_url(fake_child)
+        assert_is_none(res)
+
     def test_grid_data_for_icon(self):
         new_region = RegionFactory()
         new_region.save()
         nodeSettings = NodeSettings.objects.get(owner_id=self.project.id)
         nodeSettings.region = new_region
         nodeSettings.save()
-        set_project_storage_type(self.project)
+        ProjectStorageType.objects.update_or_create(
+            node_id=self.project.id, defaults={'node_id': self.project.id, 'storage_type': ProjectStorageType.NII_STORAGE}
+        )
         url = self.project.api_url_for('grid_data')
         res = self.app.get(url, auth=self.user.auth).maybe_follow()
         assert_equal(res.status_code, http_status.HTTP_200_OK)

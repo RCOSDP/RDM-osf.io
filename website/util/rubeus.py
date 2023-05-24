@@ -3,7 +3,7 @@
 formatted hgrid list/folders.
 """
 import logging
-
+import re
 from django.utils import timezone
 
 from framework import sentry
@@ -17,6 +17,7 @@ from website.util import paths
 from website.settings import DISK_SAVING_MODE
 from osf.utils import sanitize
 from osf.utils.permissions import WRITE_NODE
+from api.base import settings as api_settings
 
 
 logger = logging.getLogger(__name__)
@@ -116,11 +117,24 @@ def build_addon_root(node_settings, name, permissions=None,
         'nodeUrl': node_settings.owner.url,
         'nodeApiUrl': node_settings.owner.api_url,
     }
+
+    if node_settings.config.short_name == 'osfstorage':
+        # Add path for root institutional storage folder
+        ret.update({'path': '{}/'.format(node_settings.root_node._id)})
+
     ret.update(kwargs)
 
     if hasattr(node_settings, 'region'):
         ret.update({'nodeRegion': node_settings.region.name})
         ret.update({'waterbutlerURL': node_settings.region.waterbutler_url})
+        is_readonly = check_authentication_attribute(user,
+                                                     node_settings.region.readonly_expression,
+                                                     node_settings.region.is_readonly)
+        if is_readonly:
+            ret.update({'permissions': {
+                'view': True,
+                'edit': False
+            }})
 
     return ret
 
@@ -251,22 +265,31 @@ class NodeFileCollector(object):
         rv = []
         region_disabled = False
         region_provider = None
-        osfstorage = node.get_addon('osfstorage')
-        if osfstorage:
-            region = osfstorage.region
+        osf_addons = node.get_osfstorage_addons()
+        data = {}
+        for osf_addon in osf_addons:
+            region = osf_addon.region
             if region and region.waterbutler_settings:
                 region_disabled = region.waterbutler_settings.get(
                     'disabled', False)
                 storage = region.waterbutler_settings.get('storage', None)
                 if storage:
                     region_provider = storage.get('provider', None)
-
+            region.is_allowed = check_authentication_attribute(self.auth.user,
+                                                               region.allow_expression,
+                                                               region.is_allowed)
+            data[osf_addon.id] = {
+                'region_disabled': region_disabled,
+                'region_provider': region_provider,
+                'is_allowed': region.is_allowed,
+            }
         for addon in node.get_addons():
             if addon.config.has_hgrid_files:
-                if addon == osfstorage and region_disabled:
+                # skip storage
+                if addon.short_name == 'osfstorage' and (data[addon.id]['region_disabled'] or not data[addon.id]['is_allowed']):
                     continue  # skip (hide osfstorage)
                 if addon.config.for_institutions:
-                    if region_provider != addon.config.short_name:
+                    if data[addon.id]['region_provider'] != addon.config.short_name:
                         continue  # skip (hide this *institutions)
 
                 # WARNING: get_hgrid_data can return None if the addon is added but has no credentials.
@@ -343,3 +366,71 @@ def delta_date(d):
     diff = d - timezone.now()
     s = diff.total_seconds()
     return s
+
+
+def check_authentication_attribute(user, expression, is_enabled):
+    """Check authentication attribute for user
+
+    :param Object user: user use institutional storage
+    :param str expression: logical expression
+    :param bool is_enabled: turn on or off
+    :return bool: user satisfy condition or note
+
+    """
+
+    from osf.models import AuthenticationAttribute, InstitutionEntitlement, UserExtendedData
+    institution = user.affiliated_institutions.first()
+    if institution:
+        if institution.is_authentication_attribute:
+            if is_enabled and expression:
+                indexes = re.findall(r'\d+', expression)
+                indexes = [int(i) for i in indexes]
+                sorted(indexes, reverse=True)
+                extended_data = UserExtendedData.objects.filter(user=user).first()
+                for index in indexes:
+                    attribute = AuthenticationAttribute.objects.get(
+                        institution=institution, index_number=index, is_deleted=False
+                    )
+                    result = 'False'
+                    if attribute:
+                        try:
+                            attribute_name = api_settings.ATTRIBUTE_LIST[attribute.attribute_name]
+                            value = attribute.attribute_value
+                            if attribute.attribute_name == 'eduPersonAffiliation':
+                                jobs = getattr(user, attribute_name)
+                                for job in jobs:
+                                    if value in job['title']:
+                                        result = 'True'
+                                        break
+                            elif attribute.attribute_name == 'eduPersonOrcid':
+                                social = getattr(user, attribute_name)
+                                if value in social['orcid']:
+                                    result = 'True'
+                            elif attribute.attribute_name == 'eduPersonScopedAffiliation':
+                                entitlement_list = InstitutionEntitlement.objects.filter(institution=institution)
+                                for item in entitlement_list:
+                                    if value in item.entitlement:
+                                        result = 'True'
+                                        break
+                            elif hasattr(user, attribute_name):
+                                if value in str(getattr(user, attribute_name)):
+                                    result = 'True'
+                            else:
+                                if extended_data is not None:
+                                    data = extended_data.data['idp_attr'][attribute_name]
+                                    if value in data:
+                                        result = 'True'
+                        except KeyError:
+                            result = 'False'
+                        except AttributeError:
+                            result = 'False'
+                    expression = expression.replace(str(index), result)
+                try:
+                    if eval(expression
+                            .replace('&&', ' and ')
+                            .replace('||', ' or ')
+                            .replace('!', ' not ')) is False:
+                        return False
+                except SyntaxError:
+                    return False
+    return is_enabled

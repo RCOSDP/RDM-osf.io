@@ -125,7 +125,11 @@ def stat_addon(addon_short_name, job_pk):
     create_app_context()
     job = ArchiveJob.load(job_pk)
     src, dst, user = job.info()
-    src_addon = src.get_addon(addon_name)
+    try:
+        src_addon = src.get_addon(addon_name)
+    except Exception:
+        # Get the first addon if multiple values are returned
+        src_addon = src.get_first_addon(addon_name)
     if hasattr(src_addon, 'configured') and not src_addon.configured:
         # Addon enabled but not configured - no file trees, nothing to archive.
         return AggregateStatResult(src_addon._id, addon_short_name)
@@ -202,7 +206,11 @@ def archive_addon(addon_short_name, job_pk):
         params['revision'] = 'latest' if addon_short_name.split('-')[-1] == 'draft' else 'latest-published'
         rename_suffix = ' (draft)' if addon_short_name.split('-')[-1] == 'draft' else ' (published)'
         addon_short_name = 'dataverse'
-    src_provider = src.get_addon(addon_short_name)
+    try:
+        src_provider = src.get_addon(addon_short_name)
+    except Exception:
+        # Get the first addon if multiple values are returned
+        src_provider = src.get_first_addon(addon_short_name)
     folder_name = src_provider.archive_folder_name
     rename = '{}{}'.format(folder_name, rename_suffix)
     url = waterbutler_api_url_for(src._id, addon_short_name, _internal=True, base_url=src.osfstorage_region.waterbutler_url, **params)

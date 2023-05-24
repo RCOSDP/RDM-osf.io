@@ -2,9 +2,11 @@ import pytest
 
 from framework.auth import Auth
 from osf.models import NodeLog
-from api.logs.serializers import NodeLogSerializer
-from osf_tests.factories import ProjectFactory, UserFactory
+from api.logs.serializers import NodeLogSerializer, NodeLogParamsSerializer, NodeLogFileParamsSerializer
+from osf_tests.factories import ProjectFactory, UserFactory, AuthUserFactory, InstitutionFactory, RegionFactory, UserQuotaFactory
 from tests.utils import make_drf_request_with_version
+from unittest import mock
+from osf.models import ProjectStorageType
 
 pytestmark = pytest.mark.django_db
 
@@ -41,3 +43,121 @@ class TestNodeLogSerializer:
 
         assert unreg_contributor_data['id'] is None
         assert unreg_contributor_data['full_name'] == nr_data['nr_name']
+
+
+@pytest.mark.django_db
+class TestNodeLogParamsSerializer:
+
+    def test_get_storage_name(self):
+        user = AuthUserFactory()
+        user_quota = UserQuotaFactory(user_id=user.id, storage_type=2)
+        node = ProjectFactory(creator=user)
+        institution = InstitutionFactory()
+        region = RegionFactory(_id=institution._id, name='Storage')
+        user.affiliated_institutions.add(institution)
+        obj_value = {
+            'path': 'fake_path',
+            'node': node,
+            'region': region.id
+        }
+        mock_abstractnode = mock.MagicMock()
+        mock_abstractnode.return_value = node
+        with mock.patch('osf.models.project_storage_type.ProjectStorageType.objects.get', return_value=user_quota):
+            with mock.patch('osf.models.node.AbstractNode.load', mock_abstractnode):
+                res = NodeLogParamsSerializer.get_storage_name(None, obj_value)
+                assert res == region.name
+
+    def test_get_storage_name_with_nii_type(self):
+        user = AuthUserFactory()
+        user_quota = UserQuotaFactory(user_id=user.id, storage_type=1)
+        node = ProjectFactory(creator=user)
+        institution = InstitutionFactory()
+        region = RegionFactory(_id=institution._id, name='Storage')
+        user.affiliated_institutions.add(institution)
+        obj_value = {
+            'path': 'fake_path',
+            'node': node,
+            'region': region.id
+        }
+        mock_abstractnode = mock.MagicMock()
+        mock_abstractnode.return_value = node
+        with mock.patch('osf.models.project_storage_type.ProjectStorageType.objects.get', return_value=user_quota):
+            with mock.patch('osf.models.node.AbstractNode.load', mock_abstractnode):
+                res = NodeLogParamsSerializer.get_storage_name(None, obj_value)
+                assert res == 'NII Storage'
+
+    def test_get_storage_name_exception(self):
+        user = AuthUserFactory()
+        node = ProjectFactory(creator=user)
+        institution = InstitutionFactory()
+        region = RegionFactory(_id=institution._id, name='Storage')
+        user.affiliated_institutions.add(institution)
+        obj_value = {
+            'path': 'fake_path',
+            'node': node,
+            'region': region.id
+        }
+        mock_abstractnode = mock.MagicMock()
+        mock_abstractnode.return_value = node
+        with mock.patch('osf.models.project_storage_type.ProjectStorageType.objects.get', side_effect=ProjectStorageType.DoesNotExist('mock error')):
+            with mock.patch('osf.models.node.AbstractNode.load', mock_abstractnode):
+                res = NodeLogParamsSerializer.get_storage_name(None, obj_value)
+                assert res == 'NII Storage'
+
+
+@pytest.mark.django_db
+class TestNodeLogFileParamsSerializer:
+
+    def test_get_storage_name(self):
+        user = AuthUserFactory()
+        user_quota = UserQuotaFactory(user_id=user.id, storage_type=2)
+        node = ProjectFactory(creator=user)
+        institution = InstitutionFactory()
+        region = RegionFactory(_id=institution._id, name='Storage')
+        user.affiliated_institutions.add(institution)
+        obj_value = {
+            'path': 'fake_path',
+            'node': node,
+            'region': region.id
+        }
+        mock_abstractnode = mock.MagicMock()
+        mock_abstractnode.return_value = node
+        with mock.patch('osf.models.project_storage_type.ProjectStorageType.objects.get', return_value=user_quota):
+            with mock.patch('osf.models.node.AbstractNode.load', mock_abstractnode):
+                res = NodeLogFileParamsSerializer.get_storage_name(None, obj_value)
+                assert res == region.name
+
+    def test_get_storage_name_with_region_none(self):
+        user = AuthUserFactory()
+        user_quota = UserQuotaFactory(user_id=user.id, storage_type=1)
+        node = ProjectFactory(creator=user)
+        institution = InstitutionFactory()
+        user.affiliated_institutions.add(institution)
+        obj_value = {
+            'path': 'fake_path',
+            'node': node,
+            'region': None
+        }
+        mock_abstractnode = mock.MagicMock()
+        mock_abstractnode.return_value = node
+        with mock.patch('osf.models.project_storage_type.ProjectStorageType.objects.get', return_value=user_quota):
+            with mock.patch('osf.models.node.AbstractNode.load', mock_abstractnode):
+                res = NodeLogFileParamsSerializer.get_storage_name(None, obj_value)
+                assert res is None
+
+    def test_get_storage_name_exception(self):
+        user = AuthUserFactory()
+        user_quota = UserQuotaFactory(user_id=user.id, storage_type=1)
+        node = ProjectFactory(creator=user)
+        institution = InstitutionFactory()
+        user.affiliated_institutions.add(institution)
+        obj_value = {
+            'path': 'fake_path',
+            'node': node,
+        }
+        mock_abstractnode = mock.MagicMock()
+        mock_abstractnode.return_value = node
+        with mock.patch('osf.models.project_storage_type.ProjectStorageType.objects.get', return_value=user_quota):
+            with mock.patch('osf.models.node.AbstractNode.load', mock_abstractnode):
+                res = NodeLogFileParamsSerializer.get_storage_name(None, obj_value)
+                assert res is None

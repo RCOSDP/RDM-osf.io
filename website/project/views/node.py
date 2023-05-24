@@ -66,6 +66,7 @@ from admin.rdm_addons.utils import validate_rdm_addons_allowed
 from api.base import settings as api_settings
 from website.util import quota
 from osf.models.project_storage_type import ProjectStorageType
+from website.util.quota import recalculate_used_quota_by_user
 
 
 from nii.mapcore_api import MAPCoreException
@@ -408,7 +409,11 @@ def serialize_addons(node, auth):
         config['default'] = addon.short_name in settings.ADDONS_DEFAULT
 
         if node.has_addon(addon.short_name):
-            node_json = node.get_addon(addon.short_name).to_json(auth.user)
+            node_json = {}
+            if addon.short_name == 'osfstorage':
+                node_json = node.get_first_addon(addon.short_name).to_json(auth.user)
+            else:
+                node_json = node.get_addon(addon.short_name).to_json(auth.user)
             config.update(node_json)
 
         if addon.short_name in addons_allowed:
@@ -698,6 +703,8 @@ def component_remove(auth, node, **kwargs):
         user_list = OSFUser.objects.filter(id__in=contributor_ids)
         for user in user_list:
             quota.update_user_used_quota(user, storage_type=storage_type)
+            # Update used quota for user-per-storage after removing the project
+            recalculate_used_quota_by_user(user._id)
 
     id = '{}_deleted'.format(node.project_or_component)
     status.push_status_message(message, kind='success', trust=False, id=id)

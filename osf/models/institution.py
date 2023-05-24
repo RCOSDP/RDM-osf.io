@@ -14,6 +14,7 @@ from osf.models import base
 from osf.models.contributor import InstitutionalContributor
 from osf.models.mixins import Loggable, GuardianMixin
 from website import settings as website_settings
+from django.utils import timezone
 
 from django.utils.translation import ugettext_lazy as _
 
@@ -66,6 +67,7 @@ class Institution(DirtyFieldsMixin, Loggable, base.ObjectIDMixin, base.BaseModel
 
     is_deleted = models.BooleanField(default=False, db_index=True)
     deleted = NonNaiveDateTimeField(null=True, blank=True)
+    is_authentication_attribute = models.BooleanField(default=False)
 
     class Meta:
         # custom permissions for use in the GakuNin RDM Admin App
@@ -153,6 +155,42 @@ class Institution(DirtyFieldsMixin, Loggable, base.ObjectIDMixin, base.BaseModel
         rv = super(Institution, self).save(*args, **kwargs)
         self.update_search()
         return rv
+
+    def get_institutional_storage(self):
+        from addons.osfstorage.models import Region
+        return Region.objects.filter(_id=self._id).order_by('pk')
+
+    # Get the default region of this institution
+    def get_default_region(self):
+        from addons.osfstorage.models import Region
+        return Region.objects.filter(_id=self._id).order_by('id').first()
+
+
+class AuthenticationAttribute(base.BaseModel):
+    class Meta:
+        unique_together = ('institution', 'index_number')
+
+    institution = models.ForeignKey(Institution, on_delete=models.CASCADE)
+    index_number = models.IntegerField()
+    attribute_name = models.CharField(max_length=255, blank=True, null=True)
+    attribute_value = models.CharField(max_length=255, blank=True, null=True)
+    is_deleted = models.BooleanField(default=False)
+    deleted = NonNaiveDateTimeField(null=True, blank=True)
+    created = NonNaiveDateTimeField(auto_now_add=True)
+    modified = NonNaiveDateTimeField(null=True, blank=True, auto_now=True)
+
+    def delete(self):
+        self.is_deleted = True
+        self.attribute_name = None
+        self.attribute_value = None
+        self.deleted = timezone.now()
+        self.save()
+
+    def restore(self):
+        self.is_deleted = False
+        self.deleted = None
+        self.save()
+
 
 @receiver(post_save, sender=Institution)
 def create_institution_auth_groups(sender, instance, created, **kwargs):

@@ -26,6 +26,57 @@ msgid ""
 "configure the {addon} add-on in the new fork on the settings page."
 msgstr ""
 
+#: admin/templates/rdm_custom_storage_location/institutional_storage.html:53
+msgid "This field is required."
+msgstr "この項目は必須です。"
+
+#: admin/templates/rdm_custom_storage_location/institutional_storage.html:82
+msgid "Allow"
+msgstr "許可"
+
+#: admin/templates/rdm_custom_storage_location/institutional_storage.html:83
+msgid "Read only"
+msgstr "読み取り専用"
+
+#: admin/templates/rdm_custom_storage_location/institutional_storage.html:96
+msgid "Access control by authentication attributes"
+msgstr "認証属性によるアクセス制御"
+
+#: admin/templates/rdm_custom_storage_location/institutional_storage.html:178
+#: admin/templates/rdm_custom_storage_location/institutional_storage.html:195
+msgid "All"
+msgstr "すべて"
+
+#: admin/templates/rdm_custom_storage_location/institutional_storage.html:109
+msgid "New attribute"
+msgstr "新しい属性"
+
+#: admin/templates/rdm_custom_storage_location/institutional_storage.html:115
+msgid "New attribute value"
+msgstr "新しい属性値"
+
+#: admin/rdm_custom_storage_location/views.py:703
+msgid "The maximum number of registrations has been reached."
+msgstr "登録できる数の上限を超えています。"
+
+#: admin/rdm_custom_storage_location/views.py:741
+msgid "Cannot be deleted because it is in use."
+msgstr "使用しているので削除できません。"
+
+#: admin/rdm_custom_storage_location/views.py:764
+msgid "Please specify a valid attribute name."
+msgstr "有効な属性名を指定してください。"
+
+#: admin/rdm_custom_storage_location/views.py:798
+#: admin/rdm_custom_storage_location/views.py:809
+msgid "Invalid condition."
+msgstr "条件が無効である。"
+
+#: admin/rdm_custom_storage_location/views.py:356
+#: admin/rdm_custom_storage_location/views.py:820
+msgid "The name of institutional storage already exists."
+msgstr "同じ機関ストレージ名が存在しています。"
+
 #: addons/base/models.py:474
 #, python-brace-format
 msgid ""

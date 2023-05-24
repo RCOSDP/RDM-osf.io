@@ -493,8 +493,36 @@ TIME_STAMP_STORAGE_NOT_ACCESSIBLE = 9
 TIME_STAMP_STORAGE_NOT_ACCESSIBLE_MSG = 'Error: storage service connection error occurred.'
 
 # Quota settings
-DEFAULT_MAX_QUOTA = 100
+DEFAULT_MAX_QUOTA = 100  # Initial value of quota for user per institutional storage. The unit must be gigabytes.
 WARNING_THRESHOLD = 0.9
 BASE_FOR_METRIC_PREFIX = 1000
 SIZE_UNIT_GB = BASE_FOR_METRIC_PREFIX ** 3
 NII_STORAGE_REGION_ID = 1
+
+MAX_INDEX_NUMBER = 100  # Maximum number of attributes registered
+DEFAULT_INDEX_NUMBER = 1
+# List of attributes
+# https://meatwiki.nii.ac.jp/confluence/pages/viewpage.action?pageId=12158166
+ATTRIBUTE_LIST = {
+    'mail': 'username',
+    'sn': 'family_name',
+    'o': 'organization_name',
+    'ou': 'organizational_unit',
+    'givenName': 'given_name',
+    'displayName': 'fullname',
+    'eduPersonAffiliation': 'jobs',
+    'eduPersonPrincipalName': 'eppn',
+    'eduPersonEntitlement': 'entitlement',
+    'eduPersonScopedAffiliation': '',
+    'eduPersonTargetedID': 'eptid',
+    'eduPersonAssurance': '',
+    'eduPersonUniqueId': '',
+    'eduPersonOrcid': 'social',
+    'isMemberOf': 'groups',
+    'jasn': 'family_name_ja',
+    'jaGivenName': 'given_name_ja',
+    'jaDisplayName': 'fullname_ja',
+    'jao': 'organization_name_ja',
+    'jaou': 'organizational_unit_ja',
+    'gakuninScopedPersonalUniqueCode': '',
+}

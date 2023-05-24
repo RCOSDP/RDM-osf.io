@@ -3,7 +3,7 @@ import datetime
 import mock
 import pytest
 import pytz
-from addons.osfstorage.models import NodeSettings
+from addons.osfstorage.models import NodeSettings, Region
 from addons.wiki.models import WikiPage, WikiVersion
 from addons.wiki.tests.factories import WikiVersionFactory, WikiFactory
 from api_tests.utils import disconnected_from_listeners
@@ -67,9 +67,11 @@ from website.project.signals import contributor_added, contributor_removed, afte
 from website.project.views.node import serialize_collections
 from website.util import api_url_for, web_url_for
 from website.views import find_bookmark_collection
-
+from addons.osfstorage.tests import factories
 from .factories import get_default_metaschema
-
+from tests.base import OsfTestCase
+from framework.exceptions import HTTPError
+from tests.test_websitefiles import TestFolder, TestFile
 pytestmark = pytest.mark.django_db
 
 
@@ -128,6 +130,18 @@ class TestParentNode:
     @pytest.fixture()
     def project_with_affiliations(self, user):
         institution = InstitutionFactory()
+        another_institution = InstitutionFactory()
+        user.affiliated_institutions.add(institution)
+        user.save()
+        original = ProjectFactory(creator=user)
+        original.affiliated_institutions.add(*[institution, another_institution])
+        original.save()
+        return original
+
+    @pytest.fixture()
+    def project_with_affiliations_with_region(self, user):
+        institution = InstitutionFactory()
+        RegionFactory(_id=institution._id, name='Storage')
         another_institution = InstitutionFactory()
         user.affiliated_institutions.add(institution)
         user.save()
@@ -388,6 +402,14 @@ class TestParentNode:
         fork = project_with_affiliations.fork_node(auth=auth)
         user_affiliations = user.affiliated_institutions.values_list('id', flat=True)
         project_affiliations = project_with_affiliations.affiliated_institutions.values_list('id', flat=True)
+        fork_affiliations = fork.affiliated_institutions.values_list('id', flat=True)
+        assert set(project_affiliations) != set(user_affiliations)
+        assert set(fork_affiliations) == set(user_affiliations)
+
+    def test_fork_hasadd_default_node_addons_have_region(self, user, auth, project_with_affiliations_with_region):
+        fork = project_with_affiliations_with_region.fork_node(auth=auth)
+        user_affiliations = user.affiliated_institutions.values_list('id', flat=True)
+        project_affiliations = project_with_affiliations_with_region.affiliated_institutions.values_list('id', flat=True)
         fork_affiliations = fork.affiliated_institutions.values_list('id', flat=True)
         assert set(project_affiliations) != set(user_affiliations)
         assert set(fork_affiliations) == set(user_affiliations)
@@ -769,6 +791,14 @@ class TestProject:
         set_project_storage_type(project)
         fetch_newly_created_project = ProjectStorageType.objects.get(node=project)
         assert fetch_newly_created_project.storage_type == region_id
+
+    def test_project_storage_type_except_not_exist(self, project, auth):
+        with mock.patch('addons.osfstorage.models.NodeSettings.objects.get', side_effect=NodeSettings.DoesNotExist):
+            set_project_storage_type(project)
+
+    def test_project_storage_type_except_multiple_returned(self, project, auth):
+        with mock.patch('addons.osfstorage.models.NodeSettings.objects.get', side_effect=NodeSettings.MultipleObjectsReturned):
+            set_project_storage_type(project)
 
     def test_project_storage_type_with_custom_region(self, project, auth):
         new_region = RegionFactory()
@@ -4463,6 +4493,11 @@ class TestAddonCallbacks:
             # no longer guaranteed to return the same set of objects-in-memory
             return self.patched_addons.get(addon_name, None)
 
+        def mock_get_osfstorage_addons():
+            # Overrides AddonModelMixin.get_osfstorage_addons -- without backrefs,
+            # no longer guaranteed to return the same set of objects-in-memory
+            return [self.patched_addons.get('osfstorage', None)]
+
         self.patches = []
         self.patched_addons = {}
         self.original_get_addon = Node.get_addon
@@ -4487,6 +4522,12 @@ class TestAddonCallbacks:
             mock_get_addon
         )
         n_patch.start()
+        m_patch = mock.patch.object(
+            node,
+            'get_osfstorage_addons',
+            mock_get_osfstorage_addons
+        )
+        m_patch.start()
         self.patches.append(n_patch)
 
     def teardown_method(self, method):
@@ -4797,3 +4838,97 @@ class TestCollectionProperties:
         assert len(collection_summary) == 3
         urls_actual = {summary['url'] for summary in collection_summary}
         assert self._collection_url(bookmark_collection_public) not in urls_actual
+
+
+class TestAbstractNode(OsfTestCase):
+    def setUp(self):
+        super(TestAbstractNode, self).setUp()
+        self.user = factories.AuthUserFactory()
+        self.project = ProjectFactory(creator=self.user)
+        fake_waterbutler_credentials = {
+            'storage': {
+                'region': 'sample_region',
+                'username': 'fake_name',
+                'token': 'sample_token'
+            }
+        }
+        self.region = RegionFactory(waterbutler_credentials=fake_waterbutler_credentials)
+        self.new_component = NodeFactory(parent=self.project)
+        self.component_node_settings = self.new_component.get_addon('osfstorage')
+        self.component_node_settings.region = self.region
+        self.component_node_settings.save()
+
+    def test_osfstorage_region(self):
+        res = self.new_component.osfstorage_region
+        assert res == self.region
+
+    def test_osfstorage_region_exception(self):
+        with mock.patch('addons.osfstorage.models.Region.objects.get', side_effect=Region.DoesNotExist):
+            res = self.new_component.osfstorage_region
+            assert isinstance(res, Region)
+
+    def test_serialize_waterbutler_credentials(self):
+        res = self.new_component.serialize_waterbutler_credentials('osfstorage')
+        assert res == self.region.waterbutler_credentials
+
+    def test_serialize_waterbutler_settings(self):
+        res = self.new_component.serialize_waterbutler_settings('osfstorage')
+        assert res['storage'] == self.region.waterbutler_settings['storage']
+
+    def test_create_waterbutler_log_raise_error(self):
+        with pytest.raises(HTTPError) as e:
+            self.new_component.create_waterbutler_log(
+                auth=Auth(user=self.user),
+                action='file_added',
+                payload={'metadata': {'path': None},
+                         'provider': 'osfstorage'}
+            )
+        assert e.value.code == 400
+
+    @mock.patch('addons.base.utils.get_root_institutional_storage')
+    @mock.patch('osf.models.mixins.AddonModelMixin.get_addon')
+    def test_create_waterbutler_log(self, mock_get_addon, mock_root_id):
+        mock_get_addon.return_value = None
+        mock_root_id.return_value = None
+        with pytest.raises(HTTPError) as e:
+            self.new_component.create_waterbutler_log(
+                auth=Auth(user=self.user),
+                action='file_added',
+                payload={'metadata': {'path': '123/'},
+                         'provider': 'osfstorage'}
+            )
+
+        assert e.value.code == 400
+
+    @mock.patch('osf.models.node.get_root_institutional_storage')
+    @mock.patch('osf.models.mixins.AddonModelMixin.get_addon')
+    def test_create_waterbutler_log_have_root_folder_id(self, mock_get_addon, mock_root_id):
+        mock_get_addon.return_value = None
+
+        parent = TestFolder(
+            _path='aparent',
+            name='parent',
+            target=self.project,
+            provider='osf_storage',
+            materialized_path='/long/path/to/name',
+            is_root=True,
+        )
+        parent.save()
+        file_child = TestFile(
+            _path='afile',
+            name='child',
+            target=self.project,
+            parent_id=parent.id,
+            provider='osf_storage',
+            materialized_path='/long/path/to/name',
+        )
+        file_child.save()
+        mock_root_id.return_value = file_child
+        with pytest.raises(HTTPError) as e:
+            self.new_component.create_waterbutler_log(
+                auth=Auth(user=self.user),
+                action='file_added',
+                payload={'metadata': {'path': '123/'},
+                         'provider': 'osfstorage'}
+            )
+        assert e.value.code == 400

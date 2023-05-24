@@ -7,14 +7,17 @@ import pytest
 from nose.tools import *  # noqa (PEP8 asserts)
 
 from admin.rdm_addons.utils import get_rdm_addon_option
-
+from framework.auth.core import Auth
+from tests.base import OsfTestCase
+from addons.ociinstitutions.apps import ociinstitutions_root
 from osf_tests.factories import (
     fake_email,
     AuthUserFactory,
     InstitutionFactory,
     ExternalAccountFactory,
     UserFactory,
-    ProjectFactory
+    ProjectFactory,
+    RegionFactory
 )
 from addons.ociinstitutions.models import NodeSettings
 from admin_tests.rdm_addons import factories as rdm_addon_factories
@@ -130,3 +133,29 @@ class TestOCIinstitutions(unittest.TestCase):
         assert_true(isinstance(result, NodeSettings))
         # not changed
         assert_equal(result.folder_name, self._expected_folder_name)
+
+class TestAppOCIinstitutions(OsfTestCase):
+    def setUp(self):
+        super(TestAppOCIinstitutions, self).setUp()
+        self.user = AuthUserFactory()
+        self.user.save()
+        self.consolidated_auth = Auth(user=self.user)
+        self.project = ProjectFactory(creator=self.user)
+        self.auth = Auth(user=self.project.creator)
+        self.project.add_addon('ociinstitutions', auth=self.consolidated_auth)
+        self.node_settings = self.project.get_addon('ociinstitutions')
+        self.ADDON_SHORT_NAME = 'ociinstitutions'
+        self.node_settings.save()
+
+    @patch('admin.institutions.views.Region.objects')
+    def test_nextcloudinstitutions_root(self, mock_region_objects_filter):
+        institution = InstitutionFactory(_id=123456)
+        region = RegionFactory()
+        region._id = institution._id
+        region.waterbutler_settings__storage__provider = self.ADDON_SHORT_NAME
+        self.node_settings.addon_option = get_rdm_addon_option(institution.id, self.ADDON_SHORT_NAME)
+        region.save()
+        mock_region_objects_filter.return_value = region
+        mock_region_objects_filter.return_value.exists.return_value = True
+        result = ociinstitutions_root(addon_config='', node_settings=self.node_settings, auth=self.auth)
+        assert isinstance(result, list)

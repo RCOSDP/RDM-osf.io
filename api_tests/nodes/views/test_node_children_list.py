@@ -277,6 +277,12 @@ class TestNodeChildrenList:
         res = app.get(view_only_link_url, expect_errors=True)
         assert res.status_code == 401
 
+    def test_node_children_with_bad_region_query_param(
+            self, app, user, public_project_url):
+        bad_region_id = 'bad-region-1'
+        with pytest.raises(Exception):
+            app.get(public_project_url + '?region={}'.format(bad_region_id), auth=user.auth)
+
 
 @pytest.mark.django_db
 class TestNodeChildrenListFiltering:

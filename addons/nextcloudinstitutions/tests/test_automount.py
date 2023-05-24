@@ -5,16 +5,18 @@ import six
 from mock import patch, Mock, MagicMock
 import pytest
 from nose.tools import *  # noqa (PEP8 asserts)
-
+from framework.auth.core import Auth
 from admin.rdm_addons.utils import get_rdm_addon_option
-
+from tests.base import OsfTestCase
+from addons.nextcloudinstitutions.apps import nextcloudinstitutions_root
 from osf_tests.factories import (
     fake_email,
     AuthUserFactory,
     InstitutionFactory,
     ExternalAccountFactory,
     UserFactory,
-    ProjectFactory
+    ProjectFactory,
+    RegionFactory
 )
 from addons.nextcloudinstitutions.models import NodeSettings
 from admin_tests.rdm_addons import factories as rdm_addon_factories
@@ -136,3 +138,29 @@ class TestNextcloudinstitutions(unittest.TestCase):
         result = self.project.get_addon(NAME)
         assert_true(isinstance(result, NodeSettings))
         assert_equal(result.root_folder_fullpath, self._expected_root_folder)
+
+class TestAppNextcloudinstitutions(OsfTestCase):
+    def setUp(self):
+        super(TestAppNextcloudinstitutions, self).setUp()
+        self.user = AuthUserFactory()
+        self.user.save()
+        self.consolidated_auth = Auth(user=self.user)
+        self.project = ProjectFactory(creator=self.user)
+        self.auth = Auth(user=self.project.creator)
+        self.project.add_addon('nextcloudinstitutions', auth=self.consolidated_auth)
+        self.node_settings = self.project.get_addon('nextcloudinstitutions')
+        self.ADDON_SHORT_NAME = 'nextcloudinstitutions'
+        self.node_settings.save()
+
+    @patch('admin.institutions.views.Region.objects')
+    def test_nextcloudinstitutions_root(self, mock_region_objects_filter):
+        institution = InstitutionFactory(_id=123456)
+        region = RegionFactory()
+        region._id = institution._id
+        region.waterbutler_settings__storage__provider = self.ADDON_SHORT_NAME
+        self.node_settings.addon_option = get_rdm_addon_option(institution.id, self.ADDON_SHORT_NAME)
+        region.save()
+        mock_region_objects_filter.return_value = region
+        mock_region_objects_filter.return_value.exists.return_value = True
+        result = nextcloudinstitutions_root(addon_config='', node_settings=self.node_settings, auth=self.auth)
+        assert isinstance(result, list)

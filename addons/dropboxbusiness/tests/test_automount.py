@@ -3,7 +3,9 @@ import unittest
 from mock import patch, Mock
 import pytest
 from nose.tools import *  # noqa (PEP8 asserts)
-
+from framework.auth.core import Auth
+from addons.dropboxbusiness.apps import dropboxbusiness_root
+from tests.base import OsfTestCase
 from admin.rdm_addons.utils import get_rdm_addon_option
 
 from osf_tests.factories import (
@@ -12,7 +14,8 @@ from osf_tests.factories import (
     InstitutionFactory,
     ExternalAccountFactory,
     UserFactory,
-    ProjectFactory
+    ProjectFactory,
+    RegionFactory
 )
 from addons.dropboxbusiness.models import NodeSettings
 from admin_tests.rdm_addons import factories as rdm_addon_factories
@@ -101,5 +104,31 @@ class TestDropboxBusiness(unittest.TestCase):
         assert_equal(result.admin_dbmid, 'dbmid:dummy')
         assert_equal(result.team_folder_id, 'dbtid:dummy')
         assert_equal(result.group_id, 'g:dummy')
+
+class TestAppDropboxbussiness(OsfTestCase):
+    def setUp(self):
+        super(TestAppDropboxbussiness, self).setUp()
+        self.user = AuthUserFactory()
+        self.user.save()
+        self.consolidated_auth = Auth(user=self.user)
+        self.project = ProjectFactory(creator=self.user)
+        self.auth = Auth(user=self.project.creator)
+        self.project.add_addon('dropboxbusiness', auth=self.consolidated_auth)
+        self.node_settings = self.project.get_addon('dropboxbusiness')
+        self.ADDON_SHORT_NAME = 'dropboxbusiness'
+        self.node_settings.save()
+
+    @patch('admin.institutions.views.Region.objects')
+    def test_dropboxbusiness_root(self, mock_region_objects_filter):
+        institution = InstitutionFactory(_id=123456)
+        region = RegionFactory()
+        region._id = institution._id
+        region.waterbutler_settings__storage__provider = self.ADDON_SHORT_NAME
+        self.node_settings.fileaccess_option = get_rdm_addon_option(institution.id, FILEACCESS_NAME)
+        region.save()
+        mock_region_objects_filter.return_value = region
+        mock_region_objects_filter.return_value.exists.return_value = True
+        result = dropboxbusiness_root(addon_config='', node_settings=self.node_settings, auth=self.auth)
+        assert isinstance(result, list)
 
 

@@ -19,6 +19,7 @@ from website.notifications.events.base import (
 from website.notifications.events import utils as event_utils
 from osf.models import AbstractNode, NodeLog, Preprint
 from addons.base.signals import file_updated as signal
+from addons.base.utils import get_root_institutional_storage
 
 
 @signal.connect
@@ -133,8 +134,16 @@ class ComplexFileEvent(FileEvent):
         super(ComplexFileEvent, self).__init__(user, node, event, payload=payload)
 
         source_nid = self.payload['source']['node']['_id']
+        root_id = None
+        try:
+            if payload['destination']['provider'] == 'osfstorage':
+                root_id = get_root_institutional_storage(payload['destination']['path'].strip('/').split('/')[0])
+                if root_id is not None:
+                    root_id = root_id.id
+        except KeyError:
+            pass
         self.source_node = AbstractNode.load(source_nid) or Preprint.load(source_nid)
-        self.addon = self.node.get_addon(self.payload['destination']['provider'])
+        self.addon = self.node.get_addon(self.payload['destination']['provider'], root_id=root_id)
 
     def _build_message(self, lang, html=False):
         addon, f_type, action = tuple(self.action.split('_'))

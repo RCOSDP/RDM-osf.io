@@ -495,6 +495,14 @@ msgstr ""
 msgid "Disallow"
 msgstr ""
 
+#: admin/templates/rdm_custom_storage_location/institutional_storage.html:82
+msgid "Allow"
+msgstr ""
+
+#: admin/templates/rdm_custom_storage_location/institutional_storage.html:83
+msgid "Read only"
+msgstr ""
+
 #: admin/static/js/rdm_addons/rdm-addons-page.js:85
 msgid "Strings did not match"
 msgstr ""
@@ -697,6 +705,10 @@ msgstr ""
 
 #: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:84
 msgid "Are you sure you want to change institutional storage?"
+msgstr ""
+
+#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:130
+msgid "Are you sure you want to add institutional storage?"
 msgstr ""
 
 #: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:85
@@ -3722,6 +3734,66 @@ msgstr ""
 #: website/static/js/folderPickerNodeConfig.js:349
 #: website/static/js/folderPickerNodeConfig.js:382
 msgid "Failed to update %1$s settings."
+msgstr ""
+
+#: admin/rdm_custom_storage_location/view.py:631
+#: admin/rdm_custom_storage_location/view.py:639
+msgid "Failed to change Read-only settings."
+msgstr ""
+
+#: admin/rdm_custom_storage_location/view.py:608
+msgid "Failed to change Allow settings."
+msgstr ""
+
+#: admin/templates/rdm_custom_storage_location/institutional_storage.html:53
+msgid "This field is required."
+msgstr ""
+
+#: admin/templates/rdm_custom_storage_location/institutional_storage.html:82
+msgid "Allow"
+msgstr ""
+
+#: admin/templates/rdm_custom_storage_location/institutional_storage.html:83
+msgid "Read only"
+msgstr ""
+
+#: admin/templates/rdm_custom_storage_location/institutional_storage.html:96
+msgid "Access control by authentication attributes"
+msgstr ""
+
+#: admin/templates/rdm_custom_storage_location/institutional_storage.html:178
+#: admin/templates/rdm_custom_storage_location/institutional_storage.html:195
+msgid "All"
+msgstr ""
+
+#: admin/templates/rdm_custom_storage_location/institutional_storage.html:109
+msgid "New attribute"
+msgstr ""
+
+#: admin/templates/rdm_custom_storage_location/institutional_storage.html:115
+msgid "New attribute value"
+msgstr ""
+
+#: admin/rdm_custom_storage_location/views.py:703
+msgid "The maximum number of registrations has been reached."
+msgstr ""
+
+#: admin/rdm_custom_storage_location/views.py:741
+msgid "Cannot be deleted because it is in use."
+msgstr ""
+
+#: admin/rdm_custom_storage_location/views.py:764
+msgid "Please specify a valid attribute name."
+msgstr ""
+
+#: admin/rdm_custom_storage_location/views.py:798
+#: admin/rdm_custom_storage_location/views.py:809
+msgid "Invalid condition."
+msgstr ""
+
+#: admin/rdm_custom_storage_location/views.py:356
+#: admin/rdm_custom_storage_location/views.py:820
+msgid "The name of institutional storage already exists."
 msgstr ""
 
 #: website/static/js/folderPickerNodeConfig.js:431

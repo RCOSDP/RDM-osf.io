@@ -2177,7 +2177,8 @@ function setCurrentFileID(tree, nodeID, file) {
     } else if (tb.fangornFolderIndex !== undefined && tb.fangornFolderArray !== undefined && tb.fangornFolderIndex < tb.fangornFolderArray.length) {
         for (var j = 0; j < tree.children.length; j++) {
             child = tree.children[j];
-            if (nodeID === child.data.nodeId && child.data.provider === file.provider && child.data.name === tb.fangornFolderArray[tb.fangornFolderIndex]) {
+            var isSelectedItem = child.data.id.includes(file.id);
+            if (nodeID === child.data.nodeId && child.data.provider === file.provider && isSelectedItem) {
                 tb.fangornFolderIndex++;
                 if (child.data.kind === 'folder') {
                     tb.updateFolder(null, child);
@@ -3421,6 +3422,9 @@ tbOptions = {
             '<p class="m-t-sm fg-load-message">Loading files...</p>' +
             '</div></div>'
         );
+        // Hide loading
+        tb.select('#tb-tbody > .tb-modal-shade').hide();
+        tb.select('#tb-tbody').css('overflow', '');
     },
     movecheck : function (to, from) { //This method gives the users an option to do checks and define their return
         return true;
