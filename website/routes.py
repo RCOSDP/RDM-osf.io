@@ -93,7 +93,6 @@ def get_globals():
     """Context variables that are available for every template rendered by
     OSFWebRenderer.
     """
-    mfa_url = settings.CAS_SERVER_URL + '/Shibboleth.sso/MFA?service=' + settings.OSF_SERVICE_URL + '/profile/'# R-2022-48
     user = _get_current_user()
     set_status_message(user)
     user_institutions = [{'id': inst._id, 'name': inst.name, 'logo_path': inst.logo_path_rounded_corners} for inst in user.affiliated_institutions.all()] if user else []
@@ -179,7 +178,7 @@ def get_globals():
         'login_url': cas.get_login_url(request_login_url),
         'sign_up_url': util.web_url_for('auth_register', _absolute=True, next=request_login_url),
         'reauth_url': util.web_url_for('auth_logout', redirect_url=request.url, reauth=True),
-        'mfa_url': util.web_url_for('auth_logout', next_url=mfa_url, reauth=True),# R-2022-48
+        'mfa_url': settings.MFA_URL,# R-2022-48
         'profile_url': cas.get_profile_url(),
         'enable_institutions': settings.ENABLE_INSTITUTIONS,
         'keen': {
