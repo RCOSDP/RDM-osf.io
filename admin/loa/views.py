@@ -2,8 +2,8 @@ from __future__ import unicode_literals
 from urllib.parse import urlencode
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import redirect
-from django import forms
-from django.views.generic import TemplateView
+from django.urls import reverse
+from django.views.generic import View, TemplateView
 from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
 from admin.rdm.utils import RdmPermissionMixin
