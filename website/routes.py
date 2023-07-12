@@ -178,7 +178,7 @@ def get_globals():
         'login_url': cas.get_login_url(request_login_url),
         'sign_up_url': util.web_url_for('auth_register', _absolute=True, next=request_login_url),
         'reauth_url': util.web_url_for('auth_logout', redirect_url=request.url, reauth=True),
-        'mfa_url': settings.CAS_SERVER_URL + '/logout?service=' + settings.OSF_MFA_URL,# R-2022-48
+        'mfa_url': settings.CAS_SERVER_URL + '/logout?service=' + settings.OSF_MFA_URL,  # R-2022-48
         'profile_url': cas.get_profile_url(),
         'enable_institutions': settings.ENABLE_INSTITUTIONS,
         'keen': {

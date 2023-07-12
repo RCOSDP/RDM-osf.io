@@ -1,39 +1,15 @@
 from __future__ import unicode_literals
-
-import json
-import logging
-from operator import itemgetter
 from urllib.parse import urlencode
-
-from django.db import connection
-from django.db.models import Q
-from django.http import Http404
-from django.core import serializers
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import redirect
 from django import forms
-from django.forms.models import model_to_dict
-from django.urls import reverse_lazy, reverse
-from django.http import HttpResponse, JsonResponse
-from django.views.generic import ListView, DetailView, View, CreateView, UpdateView, DeleteView, TemplateView
-from django.views.generic.base import RedirectView
-from django.views.generic.edit import FormView
+from django.views.generic import TemplateView
 from django.contrib import messages
-from django.contrib.auth.mixins import PermissionRequiredMixin, UserPassesTestMixin
 from django.utils.translation import ugettext_lazy as _
 from admin.rdm.utils import RdmPermissionMixin
-
-from admin.base import settings
-from admin.base.forms import ImportFileForm
-from admin.institutions.forms import InstitutionForm, InstitutionalMetricsAdminRegisterForm
 from admin.loa.forms import LoAForm
-from django.contrib.auth.models import Group
-from osf.models import Institution, Node, OSFUser, UserQuota, Email, LoA
-from website.util import quota
-from addons.osfstorage.models import Region
-from api.base import settings as api_settings
-import csv
-
+from osf.models import Institution, LoA
+import logging
 logger = logging.getLogger(__name__)
 
 
@@ -58,7 +34,7 @@ class ListLoA(RdmPermissionMixin, TemplateView):
         selected_id = institutions.first().id
 
         institution_id = int(self.kwargs.get('institution_id', self.request.GET.get('institution_id', selected_id)))
-        
+
         formset_loa = LoAForm(instance=LoA.objects.get_or_none(institution_id=institution_id))
         logger.info(formset_loa)
         kwargs.setdefault('institutions', institutions)
