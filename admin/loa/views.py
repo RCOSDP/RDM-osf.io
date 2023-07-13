@@ -29,7 +29,7 @@ class ListLoA(RdmPermissionMixin, TemplateView):
         elif self.is_admin and user.affiliated_institutions.first():
             institutions = Institution.objects.filter(pk__in=user.affiliated_institutions.all()).order_by('name')
         else:
-            raise PermissionDenied('Not authorized to view the entitlements.')
+            raise PermissionDenied('Not authorized to view the LoA.')
 
         selected_id = institutions.first().id
 

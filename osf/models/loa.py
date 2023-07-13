@@ -35,8 +35,8 @@ class LoA(base.BaseModel):
 
     class Meta:
         permissions = (
-            ('view_institution_entitlement', 'Can view institution entitlement'),
-            ('admin_institution_entitlement', 'Can manage institution entitlement'),
+            ('view_loa', 'Can view loa'),
+            ('admin_loa', 'Can manage loa'),
         )
 
     def __init__(self, *args, **kwargs):
