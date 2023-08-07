@@ -174,6 +174,15 @@ function createStringField(erad, fileMetadataSuggestion, question, value, option
       options,
       onChange
     );
+  } else if (question.format == 'file-title') {
+    return new SingleElementField(
+      createFileTitleFieldElement(options, question.format, fileMetadataSuggestion),
+      (options && options.multiple) ? createClearFormElement(question) : null,
+      question,
+      value,
+      options,
+      onChange
+    );
   }
   return new SingleElementField(
     createFormElement(function() {
@@ -1041,6 +1050,69 @@ function createFileInstitutionFieldElement(options, format) {
   };
 }
 
+function createFileTitleFieldElement(options, format, fileMetadataSuggestion) {
+  return {
+    create: function(addToContainer, onChange) {
+      const input = $('<input></input>').addClass(format);
+      if (options && options.readonly) {
+        input.attr('readonly', true);
+      }
+      const container = $('<div></div>')
+        .addClass('erad-file-title')
+        .append(input.addClass('form-control'));
+      addToContainer(container);
+      input.typeahead(
+        {
+          hint: false,
+          highlight: true,
+          minLength: 0
+        },
+        {
+          display: function(data) {
+            return data;
+          },
+          templates: {
+            suggestion: function(data) {
+              return '<div style="background-color: white;"><span>' + $osf.htmlEscape(data) + '</span></div>';
+            }
+          },
+          source: $osf.throttle(function (q, cb) {
+            suggestionTitle(fileMetadataSuggestion, options.fileitem, q)
+              .then(function(result) {
+                cb(result);
+              })
+              .catch(function(error) {
+                console.error(error);
+                cb([]);
+              });
+          }, 500, {leading: false}),
+        }
+      );
+      input.bind('typeahead:selected', function(event, data) {
+        // $('.file-title').typeahead('val', data).change();
+      });
+      container.find('.twitter-typeahead').css('width', '100%');
+      if (onChange) {
+        input.change(function(event) {
+          onChange(event, options);
+        });
+      }
+      return container;
+    },
+    getValue: function(container) {
+      return container.find('input').val();
+    },
+    setValue: function(container, value) {
+      container.find('input').val(value);
+    },
+    reset: function(container) {
+      container.find('input').val(null);
+    },
+    disable: function(container, disabled) {
+      container.find('input').attr('disabled', disabled);
+    },
+  };
+}
 
 function substringMatcher(candidates) {
   return function findMatches(q, cb) {
@@ -1058,10 +1130,22 @@ function substringMatcher(candidates) {
 function generateDataNo(fileMetadataSuggestion, fileitem) {
   const itemUrl = fangorn.getPersistentLinkFor(fileitem);
   const filepath = itemUrl.substr(itemUrl.indexOf('files/'));
-  const format = 'data_format_number';
+  const format = 'file-data-number';
   return fileMetadataSuggestion.suggest(filepath, format)
     .then(function (suggestions) {
       return (suggestions.find(function (s) { return s.format === format}) || {}).value;
+    });
+}
+
+function suggestionTitle(fileMetadataSuggestion, fileitem, keyword) {
+  const itemUrl = fangorn.getPersistentLinkFor(fileitem);
+  const filepath = itemUrl.substr(itemUrl.indexOf('files/'));
+  const format = 'file-title';
+  return fileMetadataSuggestion.suggest(filepath, format, {keyword: keyword})
+    .then(function (suggestions) {
+      return suggestions
+        .filter(function (s) { return s.format === format})
+        .map(function (s) { return s.value; });
     });
 }
 

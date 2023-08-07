@@ -239,7 +239,7 @@
           "nav": "データの名称 (日本語)",
           "title": "データの名称 (日本語)|Title (Japanese)",
           "type": "string",
-          "format": "text",
+          "format": "file-title",
           "required": true,
           "space_normalization": true
         },

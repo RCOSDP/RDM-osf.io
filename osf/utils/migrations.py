@@ -56,6 +56,7 @@ FORMAT_TYPE_TO_TYPE_MAP = {
     ('file-capacity', 'string'): 'file-capacity-input',
     ('file-creators', 'string'): 'file-creators-input',
     ('file-data-number', 'string'): 'file-data-number-input',
+    ('file-title', 'string'): 'file-title-input',
     ('file-url', 'string'): 'file-url-input',
     ('file-institution-ja', 'string'): 'file-institution-ja-input',
     ('file-institution-en', 'string'): 'file-institution-en-input',
