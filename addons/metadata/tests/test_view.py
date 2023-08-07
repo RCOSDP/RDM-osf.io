@@ -90,7 +90,7 @@ class TestSuggestionsViews(BaseAddonTestCase, OsfTestCase):
                     'filepath': 'dir/osfstorage/dir1/',
                     'suggestions': [
                         {
-                            'format': 'data_format_number',
+                            'format': 'file-data-number',
                             'value': 'files/dir/osfstorage/dir1/',
                         }
                     ]
@@ -118,7 +118,7 @@ class TestSuggestionsViews(BaseAddonTestCase, OsfTestCase):
                         'filepath': filepath,
                         'suggestions': [
                             {
-                                'format': 'data_format_number',
+                                'format': 'file-data-number',
                                 'value': filepath_guid,
                             }
                         ]
@@ -126,9 +126,9 @@ class TestSuggestionsViews(BaseAddonTestCase, OsfTestCase):
                 }
             })
 
-    def test_data_format_number(self):
+    def test_file_data_number(self):
         filepath = 'dir/osfstorage/dir1/'
-        format = 'data_format_number'
+        format = 'file-data-number'
         url = self.project.api_url_for('{}_file_metadata_suggestions'.format(SHORT_NAME),
                                        filepath=filepath)
         res = self.app.get(url, params={'format': format}, auth=self.user.auth)

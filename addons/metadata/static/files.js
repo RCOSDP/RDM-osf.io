@@ -67,8 +67,12 @@ function ERad() {
 function FileMetadataSuggestion(baseUrl) {
   var self = this;
 
-  self.suggest = function(filepath, format) {
+  self.suggest = function(filepath, format, query) {
     var url = baseUrl + 'file_metadata/suggestions/' + encodeURI(filepath);
+    if (query) {
+      var urlQuery = new URLSearchParams(query);
+      url += '?' + urlQuery.toString();
+    }
     return $.ajax({
       url: url,
       type: 'GET',
