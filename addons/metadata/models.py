@@ -630,10 +630,7 @@ class WaterButlerObject(object):
 
     @property
     def materialized(self):
-        res = self.raw['attributes']['materialized']
-        if res.startswith('/'):
-            return res[1:]
-        return res
+        return self.raw['attributes']['materialized'].lstrip('/')
 
     def __getattr__(self, name):
         attr = self.raw['attributes']
@@ -649,7 +646,11 @@ def safe_download_metadata_asset_pool(wb_object):
         logger.warning(f'{wb_object.materialized} is too large to download: '
                        f'{size} > {METADATA_ASSET_POOL_MAX_FILESIZE}')
         return None
-    content = wb_object.download()
+    try:
+        content = wb_object.download()
+    except requests.exceptions.HTTPError as e:
+        logger.error(f'{wb_object.materialized} is not downloadable: {e}')
+        return None
     try:
         json.loads(content)
     except ValueError:
@@ -690,10 +691,10 @@ def update_metadata_asset_pool_when_file_changed(sender, instance, created, **kw
             dest_path = dest.get('materialized', None)
     else:
         return
-    if dest_path is not None and dest_path.startswith('/'):
-        dest_path = dest_path[1:]
-    if src_path is not None and src_path.startswith('/'):
-        src_path = src_path[1:]
+    if dest_path is not None:
+        dest_path = dest_path.lstrip('/')
+    if src_path is not None:
+        src_path = src_path.lstrip('/')
 
     if dest_path is not None and dest_path.startswith(f'{METADATA_ASSET_POOL_BASE_PATH}/') and \
             (dest_path.endswith('.json') or dest_path.endswith('/')):
