@@ -326,9 +326,11 @@ def metadata_export_registrations_csv(auth, rid=None, **kwargs):
 @must_be_valid_project
 @must_be_logged_in
 @must_have_permission('write')
+@must_have_addon(SHORT_NAME, 'node')
 def metadata_file_metadata_suggestions(auth, filepath=None, **kwargs):
     format_list = request.args.get('format', None)
     node = kwargs['node'] or kwargs['project']
+    addon = node.get_addon(SHORT_NAME)
     parts = filepath.split('/')
     is_dir = parts[0] == 'dir'
     if is_dir:
@@ -345,23 +347,33 @@ def metadata_file_metadata_suggestions(auth, filepath=None, **kwargs):
 
     suggestions = []
     if format_list is None:
-        format_list = ['data_format_number']
+        format_list = ['file-data-number', 'file-title']
     elif type(format_list) is str:
         format_list = [format_list]
     for format in format_list:
-        if format == 'data_format_number':
+        if format == 'file-data-number':
             if file_node is None:
                 value = 'files/{}'.format(filepath)
             else:
                 guid = file_node.get_guid(create=True)
                 guid.referent.save()
                 value = guid._id
+            suggestions.append({
+                'format': format,
+                'value': value,
+            })
+        elif format == 'file-title':
+            keyword = request.args.get('keyword', '').lower()
+            assets = addon.get_metadata_assets()
+            for asset in assets:
+                title = asset.get('grdm-file:title', '')
+                if len(title) > 0 and keyword in title.lower():
+                    suggestions.append({
+                        'format': format,
+                        'value': title,
+                    })
         else:
             raise HTTPError(http_status.HTTP_400_BAD_REQUEST)
-        suggestions.append({
-            'format': format,
-            'value': value,
-        })
     return {
         'data': {
             'id': node._id,
