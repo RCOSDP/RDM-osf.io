@@ -679,67 +679,67 @@ def safe_download_metadata_asset_pool(wb_object):
     return content
 
 
-@receiver(post_save, sender=NodeLog)
-def update_metadata_asset_pool_when_file_changed(sender, instance, created, **kwargs):
-    node = instance.node
-    addon = node.get_addon(SHORT_NAME)
-    if addon is None:
-        return
-    action = instance.action
-    params = instance.params
-    logger.debug(f'create_waterbutler_log: {action}, created={created}, params={json.dumps(params)}')
+# @receiver(post_save, sender=NodeLog)
+# def update_metadata_asset_pool_when_file_changed(sender, instance, created, **kwargs):
+#     node = instance.node
+#     addon = node.get_addon(SHORT_NAME)
+#     if addon is None:
+#         return
+#     action = instance.action
+#     params = instance.params
+#     logger.debug(f'create_waterbutler_log: {action}, created={created}, params={json.dumps(params)}')
+#
+#     src_path = None
+#     dest_path = None
+#     if action in ['osf_storage_file_added', 'osf_storage_file_updated']:
+#         dest_path = params.get('path', '')
+#     elif action == 'osf_storage_file_removed':
+#         src_path = params.get('path', '')
+#     elif action in ['addon_file_renamed', 'addon_file_moved', 'addon_file_copied']:
+#         if action in ['addon_file_renamed', 'addon_file_moved']:
+#             src = params.get('source', None)
+#             if src is not None and \
+#                     src.get('provider', None) == 'osfstorage' and \
+#                     src.get('node', {}).get('_id', None) == node._id:
+#                 src_path = src.get('materialized', None)
+#         dest = params.get('destination', None)
+#         if dest is not None and \
+#                 dest.get('provider', None) == 'osfstorage' and \
+#                 dest.get('node', {}).get('_id', None) == node._id:
+#             dest_path = dest.get('materialized', None)
+#     else:
+#         return
+#     if dest_path is not None:
+#         dest_path = dest_path.lstrip('/')
+#     if src_path is not None:
+#         src_path = src_path.lstrip('/')
+#
+#     if dest_path is not None and dest_path.startswith(f'{METADATA_ASSET_POOL_BASE_PATH}/') and \
+#             (dest_path.endswith('.json') or dest_path.endswith('/')):
+#         set_metadata_asset_pool.delay(
+#             instance.user._id,
+#             node._id,
+#             dest_path,
+#         )
+#     if src_path is not None and src_path.startswith(f'{METADATA_ASSET_POOL_BASE_PATH}/') and \
+#             (src_path.endswith('.json') or src_path.endswith('/')):
+#         delete_metadata_asset_pool.delay(
+#             instance.user._id,
+#             node._id,
+#             src_path,
+#         )
 
-    src_path = None
-    dest_path = None
-    if action in ['osf_storage_file_added', 'osf_storage_file_updated']:
-        dest_path = params.get('path', '')
-    elif action == 'osf_storage_file_removed':
-        src_path = params.get('path', '')
-    elif action in ['addon_file_renamed', 'addon_file_moved', 'addon_file_copied']:
-        if action in ['addon_file_renamed', 'addon_file_moved']:
-            src = params.get('source', None)
-            if src is not None and \
-                    src.get('provider', None) == 'osfstorage' and \
-                    src.get('node', {}).get('_id', None) == node._id:
-                src_path = src.get('materialized', None)
-        dest = params.get('destination', None)
-        if dest is not None and \
-                dest.get('provider', None) == 'osfstorage' and \
-                dest.get('node', {}).get('_id', None) == node._id:
-            dest_path = dest.get('materialized', None)
-    else:
-        return
-    if dest_path is not None:
-        dest_path = dest_path.lstrip('/')
-    if src_path is not None:
-        src_path = src_path.lstrip('/')
 
-    if dest_path is not None and dest_path.startswith(f'{METADATA_ASSET_POOL_BASE_PATH}/') and \
-            (dest_path.endswith('.json') or dest_path.endswith('/')):
-        set_metadata_asset_pool.delay(
-            instance.user._id,
-            node._id,
-            dest_path,
-        )
-    if src_path is not None and src_path.startswith(f'{METADATA_ASSET_POOL_BASE_PATH}/') and \
-            (src_path.endswith('.json') or src_path.endswith('/')):
-        delete_metadata_asset_pool.delay(
-            instance.user._id,
-            node._id,
-            src_path,
-        )
-
-
-@receiver(post_save, sender=NodeSettings)
-def sync_all_metadata_set_pool_when_enabled(sender, instance, created, **kwargs):
-    node = instance.owner
-    addon = node.get_addon(SHORT_NAME)
-    if addon is None:
-        return
-    sync_metadata_asset_pool.apply_async((
-        node.creator._id,
-        node._id,
-    ), countdown=1)  # wait for metadata addon to be ready
+# @receiver(post_save, sender=NodeSettings)
+# def sync_all_metadata_set_pool_when_enabled(sender, instance, created, **kwargs):
+#     node = instance.owner
+#     addon = node.get_addon(SHORT_NAME)
+#     if addon is None:
+#         return
+#     sync_metadata_asset_pool.apply_async((
+#         node.creator._id,
+#         node._id,
+#     ), countdown=1)  # wait for metadata addon to be ready
 
 
 def fetch_metadata_asset_files(user, node, base_path):
