@@ -64,7 +64,7 @@ enabled_providers_list = [
 ]
 enabled_providers_list.extend(enabled_providers_forinstitutions_list)
 
-no_storage_name_providers = ['osfstorage', 'onedrivebusiness']
+no_storage_name_providers = ['osfstorage']
 
 def have_storage_name(provider_name):
     return provider_name not in no_storage_name_providers
