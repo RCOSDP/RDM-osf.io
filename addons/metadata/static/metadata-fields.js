@@ -5,6 +5,7 @@ const $osf = require('js/osfHelpers');
 const fangorn = require('js/fangorn');
 const rdmGettext = require('js/rdmGettext');
 const _ = rdmGettext._;
+const sprintf = require('agh.sprintf').sprintf;
 const datepicker = require('js/rdmDatepicker');
 require('typeahead.js');
 
@@ -36,28 +37,37 @@ function createField(erad, fileMetadataSuggestion, question, valueEntry, options
 
 function validateField(erad, question, value, fieldSetAndValues, options) {
   const multiple = (options || {}).multiple;
-  if (!multiple && question.qid == 'grdm-file:available-date') {
-    return validateAvailableDateField(erad, question, value, fieldSetAndValues);
+  if (!multiple && question.qid === 'grdm-file:available-date') {
+    validateAvailableDateField(erad, question, value, fieldSetAndValues);
   }
-  if (!multiple && question.qid == 'grdm-file:data-man-email') {
-    return validateContactManagerField(erad, question, value, fieldSetAndValues);
+  if (!multiple && question.qid === 'grdm-file:data-man-email') {
+    validateContactManagerField(erad, question, value, fieldSetAndValues);
   }
-  if (!value) {
-    if (question.required && !multiple) {
+  if (!multiple && !value) {
+    if (question.conditional_required) {
+      const otherField = fieldSetAndValues.find(function(fieldSetAndValue) {
+        return fieldSetAndValue.fieldSet.question.qid === question.conditional_required;
+      });
+      if (!otherField) {
+        throw new Error('Program error: invalid conditional_required: ' + question.conditional_required);
+      }
+      if (!otherField.value) {
+        throw new Error(sprintf(_('One of this field or "%s" field must be filled.'),
+          getLocalizedText(otherField.fieldSet.field.title)));
+      }
+    } else if (question.required) {
       throw new Error(_("This field can't be blank."))
     }
-    return;
   }
-  if (question.qid == 'grdm-file:creators') {
-    return validateCreators(erad, question, value);
+  if (value && question.qid === 'grdm-file:creators') {
+    validateCreators(erad, question, value);
   }
-  if (question.type == 'string') {
-    return validateStringField(erad, question, value);
+  if (value && question.type === 'string') {
+    validateStringField(erad, question, value);
   }
-  if (question.type == 'choose') {
-    return validateChooseField(erad, question, value);
+  if (value && question.type === 'choose') {
+    validateChooseField(erad, question, value);
   }
-  throw new Error('Unsupported type: ' + question.type);
 }
 
 function createStringField(erad, fileMetadataSuggestion, question, value, options, onChange) {
@@ -252,9 +262,9 @@ function validateContactManagerField(erad, question, value, fieldSetAndValues) {
 
   const email = value;
   const tel = getFieldValue('grdm-file:data-man-tel');
-  const address = getFieldValue('grdm-file:data-man-address-ja') &&
+  const address = getFieldValue('grdm-file:data-man-address-ja') ||
     getFieldValue('grdm-file:data-man-address-en');
-  const org = getFieldValue('grdm-file:data-man-org-ja') &&
+  const org = getFieldValue('grdm-file:data-man-org-ja') ||
     getFieldValue('grdm-file:data-man-org-en');
 
   if (!email && !(tel && address && org)) {
@@ -271,6 +281,11 @@ function validateCreators(erad, question, value) {
     return ! /^[0-9a-zA-Z]*$/.test(creator.number || '');
   })) {
     throw new Error(_("Please enter the correct value. ") + getLocalizedText(question.help));
+  }
+  if (creators.some(function(creator) {
+    return !(creator.name_ja || '').trim() && !(creator.name_en || '').trim();
+  })) {
+    throw new Error(_('One of "Name (Japanese)" field or "Name (English)" field must be filled.'));
   }
 }
 
