@@ -11,11 +11,12 @@ TEMPLATE_PATH = os.path.join(
 
 SHORT_NAME = 'weko'
 FULL_NAME = 'WEKO'
+NAME = 'addons.weko'
 
 
 class WEKOAddonAppConfig(BaseAddonAppConfig):
 
-    name = 'addons.weko'
+    name = NAME
     label = 'addons_weko'
     full_name = FULL_NAME
     short_name = SHORT_NAME

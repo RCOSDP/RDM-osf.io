@@ -95,15 +95,7 @@ class TestWEKOSchema(OsfTestCase):
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_1617186331708[0].subitem_1551255647225', '', '', '', 'ENGLISH TITLE'],
-        )
-        assert_equal(
-            props.pop(),
-            ['.metadata.item_1617186331708[0].subitem_1551255648112', '', '', '', 'en'],
-        )
-        assert_equal(
-            props.pop(),
-            ['.metadata.item_1617186626617[0].subitem_description_type', '', '', '', 'Other'],
+            ['.metadata.pubdate', '', '', '', '2023-10-13'],
         )
         assert_equal(
             props.pop(),
@@ -115,11 +107,19 @@ class TestWEKOSchema(OsfTestCase):
         )
         assert_equal(
             props.pop(),
+            ['.metadata.item_1617186626617[0].subitem_description_type', '', '', '', 'Other'],
+        )
+        assert_equal(
+            props.pop(),
             ['.metadata.item_1617258105262.resourcetype', '', '', '', 'dataset'],
         )
         assert_equal(
             props.pop(),
-            ['.metadata.pubdate', '', '', '', '2023-10-13'],
+            ['.metadata.item_1617186331708[0].subitem_1551255647225', '', '', '', 'ENGLISH TITLE'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_1617186331708[0].subitem_1551255648112', '', '', '', 'en'],
         )
         assert_equal(
             props.pop(),
@@ -253,120 +253,11 @@ class TestWEKOSchema(OsfTestCase):
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_1617353299429[0].subitem_1522306207484', '', '', '', 'isIdenticalTo'],
-        )
-        assert_equal(
-            props.pop(),
-            ['.metadata.item_1617353299429[0].subitem_1522306287251.subitem_1522306382014', '', '', '', 'Local'],
-        )
-        assert_equal(
-            props.pop(),
-            ['.metadata.item_1617353299429[0].subitem_1522306287251.subitem_1522306436033', '', '', '', '00001'],
-        )
-        assert_equal(
-            props.pop(),
-            ['.metadata.item_1617186331708[0].subitem_1551255647225', '', '', '', 'テストデータ'],
-        )
-        assert_equal(
-            props.pop(),
-            ['.metadata.item_1617186331708[0].subitem_1551255648112', '', '', '', 'ja'],
-        )
-        assert_equal(
-            props.pop(),
-            ['.metadata.item_1617186331708[1].subitem_1551255647225', '', '', '', 'TEST DATA'],
-        )
-        assert_equal(
-            props.pop(),
-            ['.metadata.item_1617186331708[1].subitem_1551255648112', '', '', '', 'en'],
-        )
-
-        assert_equal(
-            props.pop(),
-            ['.metadata.item_1617186626617[0].subitem_description_type', '', '', '', 'Other'],
-        )
-        assert_equal(
-            props.pop(),
-            ['.metadata.item_1617186626617[0].subitem_description', '', '', '', 'テスト説明'],
-        )
-        assert_equal(
-            props.pop(),
-            ['.metadata.item_1617186626617[0].subitem_description_language', '', '', '', 'ja'],
-        )
-        assert_equal(
-            props.pop(),
-            ['.metadata.item_1617186626617[1].subitem_description_type', '', '', '', 'Other'],
-        )
-        assert_equal(
-            props.pop(),
-            ['.metadata.item_1617186626617[1].subitem_description', '', '', '', 'TEST DESCRIPTION'],
-        )
-        assert_equal(
-            props.pop(),
-            ['.metadata.item_1617186626617[1].subitem_description_language', '', '', '', 'en'],
-        )
-        assert_equal(
-            props.pop(),
-            ['.metadata.item_1617186609386[0].subitem_1522300014469', '', '', '', 'Other'],
-        )
-        assert_equal(
-            props.pop(),
-            ['.metadata.item_1617186609386[0].subitem_1523261968819', '', '', '', 'ライフサイエンス'],
-        )
-        assert_equal(
-            props.pop(),
-            ['.metadata.item_1617186609386[0].subitem_1522299896455', '', '', '', 'ja'],
-        )
-        assert_equal(
-            props.pop(),
-            ['.metadata.item_1617186609386[1].subitem_1522300014469', '', '', '', 'Other'],
-        )
-        assert_equal(
-            props.pop(),
-            ['.metadata.item_1617186609386[1].subitem_1523261968819', '', '', '', 'Life Science'],
-        )
-        assert_equal(
-            props.pop(),
-            ['.metadata.item_1617186609386[1].subitem_1522299896455', '', '', '', 'en'],
-        )
-        assert_equal(
-            props.pop(),
-            ['.metadata.item_1617258105262.resourcetype', '', '', '', 'experimental data'],
-        )
-        assert_equal(
-            props.pop(),
-            ['.metadata.item_1617186499011[0].subitem_1522651041219', '', '', '', 'CC0 1.0 Universal (ライセンスのテスト) (無償)'],
-        )
-        assert_equal(
-            props.pop(),
-            ['.metadata.item_1617186499011[0].subitem_1522650717957', '', '', '', 'ja'],
-        )
-        assert_equal(
-            props.pop(),
-            ['.metadata.item_1617186499011[1].subitem_1522651041219', '', '', '', 'CC0 1.0 Universal (Test for license) (free)'],
-        )
-        assert_equal(
-            props.pop(),
-            ['.metadata.item_1617186499011[1].subitem_1522650717957', '', '', '', 'en'],
+            ['.metadata.pubdate', '', '', '', '2023-10-13'],
         )
         assert_equal(
             props.pop(),
             ['.metadata.item_1617186476635.subitem_1522299639480', '', '', '', 'restricted access'],
-        )
-        assert_equal(
-            props.pop(),
-            ['.metadata.item_1617186783814[0].subitem_identifier_uri', '', '', '', 'http://localhost:5000/q3gnm/files/osfstorage/650e68f8c00e45055fc9e0ac'],
-        )
-        assert_equal(
-            props.pop(),
-            ['.metadata.item_1617186783814[0].subitem_identifier_type', '', '', '', 'URI'],
-        )
-        assert_equal(
-            props.pop(),
-            ['.metadata.item_1617186419668[0].nameIdentifiers[0].nameIdentifierURI', '', '', '', '22222'],
-        )
-        assert_equal(
-            props.pop(),
-            ['.metadata.item_1617186419668[0].nameIdentifiers[0].nameIdentifierScheme', '', '', '', 'e-Rad_Researcher'],
         )
         assert_equal(
             props.pop(),
@@ -386,31 +277,63 @@ class TestWEKOSchema(OsfTestCase):
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_1617349709064[0].contributorType', '', '', '', 'HostingInstitution'],
+            ['.metadata.item_1617186419668[0].nameIdentifiers[0].nameIdentifierScheme', '', '', '', 'e-Rad_Researcher'],
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_1617349709064[0].contributorNames[0].contributorName', '', '', '', '国立情報学研究所'],
+            ['.metadata.item_1617186419668[0].nameIdentifiers[0].nameIdentifierURI', '', '', '', '22222'],
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_1617349709064[0].contributorNames[0].lang', '', '', '', 'ja'],
+            ['.metadata.item_1617186626617[0].subitem_description', '', '', '', 'TEST DESCRIPTION'],
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_1617349709064[0].contributorNames[1].contributorName', '', '', '', 'National Institute of Informatics'],
+            ['.metadata.item_1617186626617[0].subitem_description_language', '', '', '', 'en'],
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_1617349709064[0].contributorNames[1].lang', '', '', '', 'en'],
+            ['.metadata.item_1617186626617[0].subitem_description_type', '', '', '', 'Other'],
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_1617349709064[0].nameIdentifiers[0].nameIdentifierURI', '', '', '', 'https://ror.org/04ksd4g47'],
+            ['.metadata.item_1617186626617[1].subitem_description', '', '', '', 'テスト説明'],
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_1617349709064[0].nameIdentifiers[0].nameIdentifierScheme', '', '', '', 'ROR'],
+            ['.metadata.item_1617186626617[1].subitem_description_language', '', '', '', 'ja'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_1617186626617[1].subitem_description_type', '', '', '', 'Other'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_1617349709064[0].contributorNames[0].contributorName', '', '', '', 'National Institute of Informatics Hitotsubashi'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_1617349709064[0].contributorNames[0].lang', '', '', '', 'en'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_1617349709064[0].contributorType', '', '', '', 'ContactPerson'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_1617349709064[0].contributorNames[1].contributorName', '', '', '', '国立情報学研究所 一ツ橋 XX-XXXX-XXXX dummy@test.rcos.nii.ac.jp'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_1617349709064[0].contributorNames[1].lang', '', '', '', 'ja'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_1617349709064[1].contributorNames[0].contributorName', '', '', '', 'Hanako Joho'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_1617349709064[1].contributorNames[0].lang', '', '', '', 'en'],
         )
         assert_equal(
             props.pop(),
@@ -418,7 +341,11 @@ class TestWEKOSchema(OsfTestCase):
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_1617349709064[1].nameIdentifiers[0].nameIdentifierURI', '', '', '', '11111'],
+            ['.metadata.item_1617349709064[1].contributorNames[1].contributorName', '', '', '', '情報花子'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_1617349709064[1].contributorNames[1].lang', '', '', '', 'ja'],
         )
         assert_equal(
             props.pop(),
@@ -426,43 +353,115 @@ class TestWEKOSchema(OsfTestCase):
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_1617349709064[1].contributorNames[0].contributorName', '', '', '', '情報花子'],
+            ['.metadata.item_1617349709064[1].nameIdentifiers[0].nameIdentifierURI', '', '', '', '11111'],
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_1617349709064[1].contributorNames[0].lang', '', '', '', 'ja'],
+            ['.metadata.item_1617353299429[0].subitem_1522306207484', '', '', '', 'isIdenticalTo'],
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_1617349709064[1].contributorNames[1].contributorName', '', '', '', 'Hanako Joho'],
+            ['.metadata.item_1617353299429[0].subitem_1522306287251.subitem_1522306382014', '', '', '', 'Local'],
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_1617349709064[1].contributorNames[1].lang', '', '', '', 'en'],
+            ['.metadata.item_1617353299429[0].subitem_1522306287251.subitem_1522306436033', '', '', '', '00001'],
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_1617349709064[2].contributorType', '', '', '', 'ContactPerson'],
+            ['.metadata.item_1617186499011[0].subitem_1522650717957', '', '', '', 'ja'],
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_1617349709064[2].contributorNames[0].contributorName', '', '', '', '国立情報学研究所 一ツ橋 XX-XXXX-XXXX dummy@test.rcos.nii.ac.jp'],
+            ['.metadata.item_1617186499011[0].subitem_1522651041219', '', '', '', 'CC0 1.0 Universal (ライセンスのテスト) (無償)'],
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_1617349709064[2].contributorNames[0].lang', '', '', '', 'ja'],
+            ['.metadata.item_1617186499011[1].subitem_1522650717957', '', '', '', 'en'],
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_1617349709064[2].contributorNames[1].contributorName', '', '', '', 'National Institute of Informatics Hitotsubashi'],
+            ['.metadata.item_1617186499011[1].subitem_1522651041219', '', '', '', 'CC0 1.0 Universal (Test for license) (free)'],
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_1617349709064[2].contributorNames[1].lang', '', '', '', 'en'],
+            ['.metadata.item_1617186609386[0].subitem_1522299896455', '', '', '', 'en'],
         )
         assert_equal(
             props.pop(),
-            ['.metadata.pubdate', '', '', '', '2023-10-13'],
+            ['.metadata.item_1617186609386[0].subitem_1522300014469', '', '', '', 'Other'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_1617186609386[0].subitem_1523261968819', '', '', '', 'Life Science'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_1617186609386[1].subitem_1522299896455', '', '', '', 'ja'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_1617186609386[1].subitem_1522300014469', '', '', '', 'Other'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_1617186609386[1].subitem_1523261968819', '', '', '', 'ライフサイエンス'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_1617258105262.resourcetype', '', '', '', 'experimental data'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_1617349709064[2].contributorNames[0].contributorName', '', '', '', 'National Institute of Informatics'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_1617349709064[2].contributorNames[0].lang', '', '', '', 'en'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_1617349709064[2].contributorType', '', '', '', 'HostingInstitution'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_1617349709064[2].nameIdentifiers[0].nameIdentifierScheme', '', '', '', 'ROR'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_1617349709064[2].nameIdentifiers[0].nameIdentifierURI', '', '', '', 'https://ror.org/04ksd4g47'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_1617349709064[2].contributorNames[1].contributorName', '', '', '', '国立情報学研究所'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_1617349709064[2].contributorNames[1].lang', '', '', '', 'ja'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_1617186783814[0].subitem_identifier_type', '', '', '', 'URI'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_1617186783814[0].subitem_identifier_uri', '', '', '', 'http://localhost:5000/q3gnm/files/osfstorage/650e68f8c00e45055fc9e0ac'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_1617186331708[0].subitem_1551255647225', '', '', '', 'TEST DATA'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_1617186331708[0].subitem_1551255648112', '', '', '', 'en'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_1617186331708[1].subitem_1551255647225', '', '', '', 'テストデータ'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_1617186331708[1].subitem_1551255648112', '', '', '', 'ja'],
         )
         assert_equal(
             props.pop(),

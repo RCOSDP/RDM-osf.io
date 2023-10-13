@@ -1,0 +1,284 @@
+{
+    "funder": {
+        "@type": "string",
+        "@createIf": "{{value}}",
+        "item_1617186901218[FUNDING]": {
+            "subitem_1522399143519": {
+                "subitem_1522399281603": "Other",
+                "subitem_1522399333375": "{{value}}"
+            }
+        }
+    },
+    "funding-stream-code": {
+        "@type": "string",
+        "@createIf": "{{value}}"
+    },
+    "program-name-ja": {
+        "@type": "string",
+        "@createIf": "{{value}}"
+    },
+    "program-name-en": {
+        "@type": "string",
+        "@createIf": "{{value}}"
+    },
+    "japan-grant-number": {
+        "@type": "string",
+        "@createIf": "{{value}}",
+        "item_1617186901218[FUNDING]": {
+            "subitem_1522399571623": {
+                "subitem_1522399628911": "{{value}}"
+            }
+        }
+    },
+    "project-name-ja": {
+        "@type": "string",
+        "@createIf": "{{value}}",
+        "item_1617186901218[FUNDING]": {
+            "subitem_1522399651758[]": {
+                "subitem_1522721910626": "ja",
+                "subitem_1522721929892": "{{value}}"
+            }
+        }
+    },
+    "project-name-en": {
+        "@type": "string",
+        "@createIf": "{{value}}",
+        "item_1617186901218[FUNDING]": {
+            "subitem_1522399651758[]": {
+                "subitem_1522721910626": "en",
+                "subitem_1522721929892": "{{value}}"
+            }
+        }
+    },
+    "project-research-field": null,
+    "grdm-files": null,
+    "grdm-file:data-number": {
+        "@type": "string",
+        "@createIf": "{{value}}",
+        "item_1617353299429[]": {
+            "subitem_1522306207484": "isIdenticalTo",
+            "subitem_1522306287251": {
+                "subitem_1522306382014": "Local",
+                "subitem_1522306436033": "{{value}}"
+            }
+        }
+    },
+    "grdm-file:title-ja": {
+        "@type": "string",
+        "@createIf": "{{value}}",
+        "item_1617186331708[]": {
+            "subitem_1551255647225": "{{value}}",
+            "subitem_1551255648112": "ja"
+        }
+    },
+    "grdm-file:title-en": {
+        "@type": "string",
+        "@createIf": "{{value}}",
+        "item_1617186331708[]": {
+            "subitem_1551255647225": "{{value}}",
+            "subitem_1551255648112": "en"
+        }
+    },
+    "grdm-file:date-issued-updated": null,
+    "grdm-file:data-description-ja": {
+        "@type": "string",
+        "@createIf": "{{value}}",
+        "item_1617186626617[]": {
+            "subitem_description_type": "Other",
+            "subitem_description": "{{value}}",
+            "subitem_description_language": "ja"
+        }
+    },
+    "grdm-file:data-description-en": {
+        "@type": "string",
+        "@createIf": "{{value}}",
+        "item_1617186626617[]": {
+            "subitem_description_type": "Other",
+            "subitem_description": "{{value}}",
+            "subitem_description_language": "en"
+        }
+    },
+    "grdm-file:data-research-field": {
+        "@type": "string",
+        "@createIf": "{{grdm_file_data_research_field_value}}{{project_research_field_value}}",
+        "item_1617186609386[RESEARCH_FIELD_JA]": {
+            "subitem_1522300014469": "Other",
+            "subitem_1523261968819": "{% if grdm_file_data_research_field_value != \"project\" %}{{grdm_file_data_research_field_tooltip_0}}{% else %}{{project_research_field_tooltip_0}}{% endif %}",
+            "subitem_1522299896455": "ja"
+        },
+        "item_1617186609386[RESEARCH_FIELD_EN]": {
+            "subitem_1522300014469": "Other",
+            "subitem_1523261968819": "{% if grdm_file_data_research_field_value != \"project\" %}{{grdm_file_data_research_field_tooltip_1}}{% else %}{{project_research_field_tooltip_1}}{% endif %}",
+            "subitem_1522299896455": "en"
+        }
+    },
+    "grdm-file:data-type": {
+        "@type": "string",
+        "@createIf": "{% if context == \"file\" %}{{value}}{% endif %}",
+        "item_1617258105262": {
+            "resourcetype": "{{value}}"
+        }
+    },
+    "grdm-file:file-size": {
+        "@type": "string",
+        "@createIf": "{{value}}"
+    },
+    "grdm-file:data-policy-free": null,
+    "grdm-file:data-policy-license": {
+        "@type": "string",
+        "@createIf": "{{value}}",
+        "item_1617186499011[]": [
+            {
+                "subitem_1522651041219": "{{tooltip_0}} ({{grdm_file_data_policy_cite_ja_value}}) ({{grdm_file_data_policy_free_tooltip_0}})",
+                "subitem_1522650717957": "ja"
+            },
+            {
+                "subitem_1522651041219": "{{tooltip_1}} ({{grdm_file_data_policy_cite_en_value}}) ({{grdm_file_data_policy_free_tooltip_1}})",
+                "subitem_1522650717957": "en"
+            }
+        ]
+    },
+    "grdm-file:data-policy-cite-ja": null,
+    "grdm-file:data-policy-cite-en": null,
+    "grdm-file:access-rights": {
+        "@type": "string",
+        "@createIf": "{{value}}",
+        "item_1617186476635": {
+            "subitem_1522299639480": "{{value}}"
+        }
+    },
+    "grdm-file:available-date": {
+        "@type": "string",
+        "@createIf": "{{value}}",
+        "item_1617186660861[]": {
+            "subitem_1522300695726": "Available",
+            "subitem_1522300722591": "{{value}}"
+        }
+    },
+    "grdm-file:repo-information-ja": null,
+    "grdm-file:repo-information-en": null,
+    "grdm-file:repo-url-doi-link": {
+        "@type": "string",
+        "@createIf": "{{value}}",
+        "item_1617186783814[]": {
+            "subitem_identifier_uri": "{{value}}",
+            "subitem_identifier_type": "URI"
+        }
+    },
+    "grdm-file:creators": {
+        "@type": "jsonarray",
+        "item_1617186419668[]": {
+            "nameIdentifiers[]": {
+                "@createIf": "{{object_number}}",
+                "nameIdentifierURI": "{{object_number}}",
+                "nameIdentifierScheme": "e-Rad_Researcher"
+            },
+            "creatorNames[]": [
+                {
+                    "@createIf": "{{object_name_ja}}",
+                    "creatorName": "{{object_name_ja}}",
+                    "creatorNameLang": "ja"
+                },
+                {
+                    "@createIf": "{{object_name_en}}",
+                    "creatorName": "{{object_name_en}}",
+                    "creatorNameLang": "en"
+                }
+            ]
+        }
+    },
+    "grdm-file:hosting-inst-ja": {
+        "@type": "string",
+        "@createIf": "{{value}}",
+        "item_1617349709064[HOSTING_INSTITUTION]": {
+            "contributorType": "HostingInstitution",
+            "contributorNames[]": {
+                "contributorName": "{{value}}",
+                "lang": "ja"
+            }
+        }
+    },
+    "grdm-file:hosting-inst-en": {
+        "@type": "string",
+        "@createIf": "{{value}}",
+        "item_1617349709064[HOSTING_INSTITUTION]": {
+            "contributorType": "HostingInstitution",
+            "contributorNames[]": {
+                "contributorName": "{{value}}",
+                "lang": "en"
+            }
+        }
+    },
+    "grdm-file:hosting-inst-id": {
+        "@type": "string",
+        "@createIf": "{{value}}",
+        "item_1617349709064[HOSTING_INSTITUTION]": {
+            "contributorType": "HostingInstitution",
+            "nameIdentifiers[]": {
+                "nameIdentifierURI": "{{value}}",
+                "nameIdentifierScheme": "ROR"
+            }
+        }
+    },
+    "grdm-file:data-man-number": {
+        "@type": "string",
+        "@createIf": "{{value}}",
+        "item_1617349709064[DATA_MANAGER]": {
+            "contributorType": "DataManager",
+            "nameIdentifiers[]": {
+                "nameIdentifierURI": "{{value}}",
+                "nameIdentifierScheme": "e-Rad_Researcher"
+            }
+        }
+    },
+    "grdm-file:data-man-name-ja": {
+        "@type": "string",
+        "@createIf": "{{value}}",
+        "item_1617349709064[DATA_MANAGER]": {
+            "contributorType": "DataManager",
+            "contributorNames[]": {
+                "contributorName": "{{value}}",
+                "lang": "ja"
+            }
+        }
+    },
+    "grdm-file:data-man-name-en": {
+        "@type": "string",
+        "@createIf": "{{value}}",
+        "item_1617349709064[DATA_MANAGER]": {
+            "contributorType": "DataManager",
+            "contributorNames[]": {
+                "contributorName": "{{value}}",
+                "lang": "en"
+            }
+        }
+    },
+    "grdm-file:data-man-org-ja grdm-file:data-man-address-ja grdm-file:data-man-tel grdm-file:data-man-email": {
+        "@type": "string",
+        "@createIf": "{{value}}",
+        "item_1617349709064[CONTACT_PERSON]": {
+            "contributorType": "ContactPerson",
+            "contributorNames[CONTACT_PERSON_JA]": {
+                "contributorName": "{{grdm_file_data_man_org_ja_value}} {{grdm_file_data_man_address_ja_value}} {{grdm_file_data_man_tel_value}} {{grdm_file_data_man_email_value}}",
+                "lang": "ja"
+            }
+        }
+    },
+    "grdm-file:data-man-org-en grdm-file:data-man-address-en": {
+        "@type": "string",
+        "@createIf": "{{value}}",
+        "item_1617349709064[CONTACT_PERSON]": {
+            "contributorType": "ContactPerson",
+            "contributorNames[CONTACT_PERSON_EN]": {
+                "contributorName": "{{grdm_file_data_man_org_en_value}} {{grdm_file_data_man_address_en_value}}",
+                "lang": "en"
+            }
+        }
+    },
+    "grdm-file:remarks-ja": null,
+    "grdm-file:remarks-en": null,
+    "grdm-file:metadata-access-rights": null,
+    "_": {
+        "pubdate": "{{nowdate}}"
+    }
+}

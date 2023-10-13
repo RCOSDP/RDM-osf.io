@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 from datetime import timedelta
 import logging
-from datetime import datetime
-import os
 import re
 
 from addons.base import exceptions
@@ -20,14 +18,10 @@ from osf.models.files import File, Folder, BaseFileNode
 from osf.models.metaschema import RegistrationSchema
 from osf.models.nodelog import NodeLog
 from osf.utils.fields import NonNaiveDateTimeField
+from osf.utils.datetime_aware_jsonfield import DateTimeAwareJSONField
 from website import settings as website_settings
 
 from addons.metadata import SHORT_NAME as METADATA_SHORT_NAME
-from addons.metadata.packages import (
-    to_metadata_value,
-    fill_license_params,
-    to_creators_json,
-)
 
 from .serializer import WEKOSerializer
 from .provider import WEKOProvider
@@ -38,13 +32,6 @@ from . import settings
 
 
 logger = logging.getLogger(__name__)
-
-
-def _metadata_entry_is_empty(entry):
-    if 'value' not in entry:
-        return True
-    value = entry['value']
-    return value == ''
 
 
 class WEKOFileNode(BaseFileNode):
@@ -353,6 +340,12 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
             return None
         # NOOP
         return None
+
+
+class RegistrationMetadataMapping(BaseModel):
+    registration_schema_id = models.CharField(max_length=64, blank=True, null=True)
+
+    rules = DateTimeAwareJSONField(default=dict, blank=True)
 
 
 class PublishTask(BaseModel):

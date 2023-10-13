@@ -27,6 +27,8 @@ class Client(object):
         self.token = token
         self.username = username
         self.password = password
+        if not self.host.endswith('/'):
+            self.host += '/'
 
     def get_login_user(self, default_user=None):
         resp = requests.get(self._base_host + 'api/get_profile_info/', **self._requests_args())
@@ -153,6 +155,13 @@ class Item(object):
     @property
     def identifier(self):
         return self.raw['id']
+
+    @property
+    def primary_title(self):
+        v = self._metadata['title']
+        if isinstance(v, str):
+            return v
+        return v[0]
 
     @property
     def title(self):
