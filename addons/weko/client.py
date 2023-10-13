@@ -83,6 +83,7 @@ class Client(object):
             files=files,
             **self._requests_args(headers=headers)
         )
+        logger.info(f'_post: url={self._base_host + path}, status={resp.status_code}, response={resp.content}')
         resp.raise_for_status()
         return resp.json()
 

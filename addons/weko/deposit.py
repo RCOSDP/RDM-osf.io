@@ -10,13 +10,12 @@ from zipfile import ZipFile
 
 from framework.auth import Auth
 from framework.celery_tasks import app as celery_app
-from osf.models import AbstractNode, OSFUser
+from osf.models import AbstractNode, OSFUser, DraftRegistration, Registration
 from osf.models.metaschema import RegistrationSchema
 
 from addons.metadata.packages import WaterButlerClient, BaseROCrateFactory
 from .apps import SHORT_NAME
 from . import schema
-from . import settings as weko_settings
 
 
 logger = logging.getLogger('addons.weko.views')
@@ -56,9 +55,33 @@ def _download(node, file, tmp_dir):
     rocrate.download_to(download_file_path)
     return download_file_path, ROCRATE_DATASET_MIME_TYPE
 
+def _get_latest_project_metadata(metadata_node, schema_id):
+    schema = RegistrationSchema.objects.get(_id=schema_id)
+    drafts = DraftRegistration.objects.filter(
+        branched_from=metadata_node,
+        registration_schema=schema,
+    ).order_by('-modified')
+    registrations = Registration.objects.filter(
+        registered_from=metadata_node,
+        registered_schema=schema,
+    ).order_by('-modified')
+    if (not drafts.exists()) and (not registrations.exists()):
+        return None
+    if drafts.exists() and registrations.exists():
+        draft = drafts.first()
+        reg = registrations.first()
+        if draft.modified <= reg.modified:
+            return reg.registered_meta
+        return draft.registration_metadata
+    if registrations.exists():
+        return registrations.first().registered_meta
+    return drafts.first().registration_metadata
 
 @celery_app.task(bind=True, max_retries=5, default_retry_delay=60)
-def deposit_metadata(self, user_id, index_id, node_id, metadata_node_id, file_metadata, metadata_path, content_path, after_delete_path):
+def deposit_metadata(
+    self, user_id, index_id, node_id, metadata_node_id,
+    file_metadata, project_metadata, metadata_path, content_path, after_delete_path,
+):
     user = OSFUser.load(user_id)
     logger.info(f'Deposit: {metadata_path}, {content_path} {self.request.id}')
     path = metadata_path
@@ -98,14 +121,24 @@ def deposit_metadata(self, user_id, index_id, node_id, metadata_node_id, file_me
         _, download_file_name = os.path.split(download_file_path)
 
         zip_path = os.path.join(tmp_dir, 'payload.zip')
-        schema_id = RegistrationSchema.objects.get(name=weko_settings.REGISTRATION_SCHEMA_NAME)._id
+        schema_id = schema.get_available_schema_id(file_metadata)
+        if project_metadata is None:
+            metadata_node = AbstractNode.load(metadata_node_id)
+            project_metadata = _get_latest_project_metadata(metadata_node, schema_id)
         with ZipFile(zip_path, 'w') as zf:
             with zf.open(os.path.join('data/', download_file_name), 'w') as df:
                 with open(download_file_path, 'rb') as sf:
                     shutil.copyfileobj(sf, df)
             with zf.open('data/index.csv', 'w') as f:
                 with io.TextIOWrapper(f, encoding='utf8') as tf:
-                    schema.write_csv(tf, target_index, [(download_file_name, download_file_type)], schema_id, file_metadata)
+                    schema.write_csv(
+                        tf,
+                        target_index,
+                        [(download_file_name, download_file_type)],
+                        schema_id,
+                        file_metadata,
+                        project_metadata,
+                    )
         headers = {
             'Packaging': 'http://purl.org/net/sword/3.0/package/SimpleZip',
             'Content-Disposition': 'attachment; filename=payload.zip',

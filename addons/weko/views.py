@@ -222,7 +222,7 @@ def weko_publish_file(auth, did=None, index_id=None, mnode=None, filepath=None, 
     after_delete_path = request.json.get('after_delete_path', None) if request.json is not None else None
     addon.set_publish_task_id(filepath, None)
     enqueue_task(deposit_metadata.s(
-        auth.user._id, index_id, node._id, mnode_obj._id, file_metadata_, filepath, content_path, after_delete_path
+        auth.user._id, index_id, node._id, mnode_obj._id, file_metadata_, None, filepath, content_path, after_delete_path
     ))
     return _response_file_metadata(addon, filepath)
 

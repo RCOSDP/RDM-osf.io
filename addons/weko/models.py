@@ -206,14 +206,12 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
             raise exceptions.AddonError('WEKO is not configured')
         provider = WEKOProvider(self.external_account)
         default_provider = self.get_default_provider()
-        schema_id = RegistrationSchema.objects.get(name=settings.REGISTRATION_SCHEMA_NAME)._id
         return {
             'nid': self.owner._id,
             'url': provider.sword_url,
             'index_id': self.index_id,
             'index_title': self.index_title,
             'default_storage': default_provider.serialize_waterbutler_settings(),
-            'metadata_schema_id': schema_id,
         }
 
     def create_waterbutler_log(self, auth, action, metadata):
@@ -270,7 +268,7 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
         except ValueError:
             logger.warn(f'WEKO3 Index is not found. Ignored: {self.index_id}')
             return []
-        schema_id = RegistrationSchema.objects.get(name=settings.REGISTRATION_SCHEMA_NAME)._id
+        schema_id = RegistrationSchema.objects.get(name=settings.DEFAULT_REGISTRATION_SCHEMA_NAME)._id
         return {
             'metadata': {
                 'provider': SHORT_NAME,
@@ -353,63 +351,8 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
         if metadata_addon is None:
             logger.warn('Metadata addon is not configured')
             return None
-        provider = metadata['provider']
-        materialized = metadata['materialized']
-        if not materialized.startswith('/'):
-            materialized = f'/{materialized}'
-        filepath = f'{provider}{materialized}'
-        file_metadata = metadata_addon.get_file_metadata_for_path(filepath)
-        _, filename = os.path.split(filepath.rstrip('/'))
-        schema_id = RegistrationSchema.objects.get(name=settings.REGISTRATION_SCHEMA_NAME)._id
-        node = self.owner
-        default_data = {
-            'grdm-file:pubdate': to_metadata_value(datetime.now().date().isoformat()),
-            'grdm-file:Title.ja': to_metadata_value(f'{filename} - {node.title}'),
-            'grdm-file:Description Abstract.ja': to_metadata_value(node.description),
-            'grdm-file:Creator': to_metadata_value(to_creators_json([auth.user] if auth is not None else [])),
-            'grdm-file:resourcetype': to_metadata_value('dataset'),
-        }
-        if node.license:
-            default_data.update({
-                'grdm-file:Rights Resource': to_metadata_value(node.license.url),
-                'grdm-file:Rights Description': to_metadata_value(
-                    fill_license_params(node.license.text, node.node_license)
-                ),
-            })
-        if file_metadata is None:
-            file_metadata = {
-                'path': filepath,
-                'folder': False,
-                'hash': '',
-                'items': [
-                    {
-                        'active': True,
-                        'schema': schema_id,
-                        'data': default_data,
-                    },
-                ],
-            }
-        else:
-            if 'items' not in file_metadata:
-                file_metadata['items'] = []
-            items = [i for i in file_metadata['items'] if i.get('schema', None) == schema_id]
-            if len(items) == 0:
-                file_metadata['items'].append({
-                    'active': True,
-                    'schema': schema_id,
-                    'data': default_data,
-                })
-            else:
-                item = items[0]
-                if 'data' not in item:
-                    item['data'] = {}
-                for k, v in default_data.items():
-                    if k in item['data'] and not _metadata_entry_is_empty(item['data'][k]):
-                        continue
-                    item['data'][k] = v
-        metadata_addon.set_file_metadata(filepath, file_metadata)
-        logger.info(f'Draft metadata {filepath}, {file_metadata}')
-        return file_metadata
+        # NOOP
+        return None
 
 
 class PublishTask(BaseModel):
