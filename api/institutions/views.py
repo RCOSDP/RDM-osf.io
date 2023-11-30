@@ -216,7 +216,10 @@ class InstitutionRegistrationList(InstitutionNodeList):
     def get_default_queryset(self):
         institution = self.get_institution()
         return institution.nodes.filter(
-            is_deleted=False, is_public=True, type='osf.registration', retraction__isnull=True
+            is_deleted=False,
+            is_public=True,
+            type='osf.registration',
+            retraction__isnull=True,
         )
 
     def get_queryset(self):
@@ -224,7 +227,10 @@ class InstitutionRegistrationList(InstitutionNodeList):
 
 
 class InstitutionRegistrationsRelationship(
-    JSONAPIBaseView, generics.RetrieveDestroyAPIView, generics.CreateAPIView, InstitutionMixin
+    JSONAPIBaseView,
+    generics.RetrieveDestroyAPIView,
+    generics.CreateAPIView,
+    InstitutionMixin,
 ):
     """Relationship Endpoint for Institution -> Registrations Relationship
 
@@ -284,7 +290,8 @@ class InstitutionRegistrationsRelationship(
         inst = self.get_institution()
         auth = get_user_auth(self.request)
         registrations = inst.nodes.filter(is_deleted=False, type='osf.registration').can_view(
-            user=auth.user, private_link=auth.private_link
+            user=auth.user,
+            private_link=auth.private_link,
         )
         ret = {
             'data': registrations,
@@ -317,7 +324,10 @@ class InstitutionRegistrationsRelationship(
 
 
 class InstitutionNodesRelationship(
-    JSONAPIBaseView, generics.RetrieveDestroyAPIView, generics.CreateAPIView, InstitutionMixin
+    JSONAPIBaseView,
+    generics.RetrieveDestroyAPIView,
+    generics.CreateAPIView,
+    InstitutionMixin,
 ):
     """Relationship Endpoint for Institution -> Nodes Relationship
 
@@ -377,7 +387,8 @@ class InstitutionNodesRelationship(
         inst = self.get_institution()
         auth = get_user_auth(self.request)
         nodes = inst.nodes.filter(is_deleted=False, type='osf.node').can_view(
-            user=auth.user, private_link=auth.private_link
+            user=auth.user,
+            private_link=auth.private_link,
         )
         ret = {
             'data': nodes,
@@ -551,5 +562,7 @@ class InstitutionUserMetricsList(InstitutionImpactList):
         institution = self.get_institution()
         search = UserInstitutionProjectCounts.get_current_user_metrics(institution)
         return self._make_elasticsearch_results_filterable(
-            search, id=institution._id, department=DEFAULT_ES_NULL_VALUE
+            search,
+            id=institution._id,
+            department=DEFAULT_ES_NULL_VALUE,
         )
