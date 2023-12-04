@@ -74,7 +74,7 @@
                 <td>${_("AuthnContext-Class") | n}</td><!--@R2022-48-->
                 <td><span class="badge rounded-pill bg-success ${profile['_aal']}" style="margin-right:5px;">${profile['_aal']}</span>${profile['aal']}</td>
             </tr>
-            % if profile.get('_aal') != "AAL2":
+            % if profile.get('_aal') != "AAL2" and profile.get('mfa_url'):
             <tr>
                 <td>&nbsp;</td>
                 <td><a href="${profile['mfa_url']}" class="btn btn-info">${_("Configure multi-factor authentication (MFA)")}</a></td><!--@R2022-48-->
