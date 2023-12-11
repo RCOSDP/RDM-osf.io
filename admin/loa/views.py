@@ -10,6 +10,7 @@ from admin.rdm.utils import RdmPermissionMixin
 from admin.loa.forms import LoAForm
 from osf.models import Institution, LoA
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -52,15 +53,14 @@ class BulkAddLoA(RdmPermissionMixin, View):
         institution_id = request.POST.get('institution_id')
         aal = request.POST.get('aal')
         ial = request.POST.get('ial')
+        is_mfa = request.POST.get('is_mfa')
         existing_set = LoA.objects.get_or_none(institution_id=institution_id)
         if not existing_set:
-            LoA.objects.create(institution_id=institution_id,
-                                                  aal=aal,
-                                                  ial=ial,
-                                                  modifier=request.user)
+            LoA.objects.create(institution_id=institution_id, aal=aal, ial=ial, is_mfa=is_mfa, modifier=request.user)
         else:
             existing_set.aal = aal
             existing_set.ial = ial
+            existing_set.is_mfa = is_mfa
             existing_set.modifier = request.user
             existing_set.save()
 
