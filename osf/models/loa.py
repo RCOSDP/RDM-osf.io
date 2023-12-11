@@ -1,7 +1,10 @@
 from django.db import models
 from osf.models import base
+from django.utils.translation import ugettext_lazy as _
 import logging
+
 logger = logging.getLogger(__name__)
+
 
 class BaseManager(models.Manager):
     def get_or_none(self, **kwargs):
@@ -9,6 +12,7 @@ class BaseManager(models.Manager):
             return self.get_queryset().get(**kwargs)
         except self.model.DoesNotExist:
             return None
+
 
 class LoA(base.BaseModel):
     objects = BaseManager()
@@ -31,6 +35,14 @@ class LoA(base.BaseModel):
         blank=True,
         null=True,
     )
+    is_mfa = models.BooleanField(
+        _("Display MFA link button"),
+        choices=(
+            (False, 'Disabled'),
+            (True, 'Enabled'),
+        ),
+        default=False,
+    )
     modifier = models.ForeignKey('OSFUser', on_delete=models.CASCADE)
 
     class Meta:
@@ -44,4 +56,4 @@ class LoA(base.BaseModel):
         super(LoA, self).__init__(*args, **kwargs)
 
     def __unicode__(self):
-        return u'institution_{}:{}:{}'.format(self.institution._id, self.aal, self.ial)
+        return u'institution_{}:{}:{}:{}'.format(self.institution._id, self.aal, self.ial, self.is_mfa)

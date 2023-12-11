@@ -425,6 +425,7 @@ class InstitutionAuthentication(BaseAuthentication):
         # update every login.
         ext.set_idp_attr(
             {
+                'id': institution.id,  # @R-2023-55
                 'idp': p_idp,
                 'eppn': eppn,
                 'username': username,
