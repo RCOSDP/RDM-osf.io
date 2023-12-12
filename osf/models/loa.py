@@ -36,7 +36,7 @@ class LoA(base.BaseModel):
         null=True,
     )
     is_mfa = models.BooleanField(
-        _("Display MFA link button"),
+        _('Display MFA link button'),
         choices=(
             (False, 'Disabled'),
             (True, 'Enabled'),

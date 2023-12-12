@@ -19,7 +19,7 @@ class LoAForm(forms.ModelForm):
         required=False,
     )
     is_mfa = forms.ChoiceField(
-        label=_("Display MFA link button"),
+        label=_('Display MFA link button'),
         choices=CHOICES_MFA,
         initial=False,
         required=False,
