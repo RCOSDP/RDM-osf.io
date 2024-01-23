@@ -492,6 +492,8 @@ var FileViewPage = {
                 '%26mode=render' : 'Data not available';
         var height = $('iframe').attr('height') ? $('iframe').attr('height') : '0px';
 
+        var editExtensions = '.(docx|xlsx|pptx)$';
+
         m.render(document.getElementById('toggleBar'), m('.btn-toolbar.m-t-md', [
             ctrl.context.currentUser.canEdit && (!ctrl.canEdit()) && (ctrl.context.currentUser.isAdmin) && (ctrl.file.provider !== 'bitbucket') && (ctrl.file.provider !== 'gitlab') && (ctrl.file.provider !== 'onedrive') ? m('.btn-group.m-l-xs.m-t-xs', [
                 ctrl.isLatestVersion ? m('.btn.btn-sm.btn-default', {onclick: $(document).trigger.bind($(document), 'fileviewpage:force_checkin')}, 'Force check in') : null
@@ -563,7 +565,17 @@ var FileViewPage = {
                         History.pushState(state, 'GakuNin RDM | ' + window.contextVars.file.name, formatUrl(ctrl.urlParams, 'view'));
                     }
                 }}, _('Revisions'))
-            ])
+            ]),
+            (
+                ctrl.file.name.match(editExtensions)
+            ) ? m('.btn-group.m-t-xs', [
+                    m('a.btn.btn-sm.btn-default.file-edit', {href: 'editonlyoffice/' + ctrl.file.id, target: '_blank'}, _('Edit(Onlyoffice)'))
+            ]) : '',
+            (
+                ctrl.file.name.match(editExtensions)
+            ) ? m('.btn-group.m-t-xs', [
+                    m('a.btn.btn-sm.btn-default.file-edit', {href: 'editcollabora/' + ctrl.file.id, target: '_blank'}, _('Edit(Collabora)'))
+            ]) : ''
         ]));
 
         if (ctrl.revisions.selected){

@@ -15,7 +15,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.5.1\n"
+"Generated-By: Babel 2.9.1\n"
 
 #: addons/jupyterhub/static/files.js:96
 msgid "Launch"
@@ -225,8 +225,13 @@ msgid ""
 "browser menu."
 msgstr ""
 
-#: addons/metadata/static/metadata-fields.js:47
-#: addons/metadata/static/metadata-fields.js:220
+#: addons/metadata/static/metadata-fields.js:55
+#, python-format
+msgid "One of this field or \"%s\" field must be filled."
+msgstr ""
+
+#: addons/metadata/static/metadata-fields.js:59
+#: addons/metadata/static/metadata-fields.js:250
 msgid "This field can't be blank."
 msgstr ""
 
@@ -428,7 +433,7 @@ msgid "the page now, those changes may be lost."
 msgstr ""
 
 #: addons/wiki/static/wikiPage.js:94
-#: website/static/js/pages/project-dashboard-page.js:749
+#: website/static/js/pages/project-dashboard-page.js:748
 msgid ""
 "*Add important information, links, or images here to describe your "
 "project.*"
@@ -547,12 +552,39 @@ msgstr ""
 msgid "Type the following to continue: <strong>%1$s</strong><br><br>"
 msgstr ""
 
+#: admin/static/js/rdm_addons/rdm-addons-page.js:69
+msgid ""
+"This will not revoke access to %1$s for all projects using the "
+"accounts.<br>"
+msgstr ""
+
+#: admin/static/js/rdm_addons/rdm-addons-page.js:70
+msgid ""
+"But the accounts will not be able to see and change their %1$s settings "
+"until you reallow it.<br><br>"
+msgstr ""
+
 #: admin/static/js/rdm_addons/rdm-addons-page.js:74
 msgid "Disallow"
 msgstr ""
 
 #: admin/static/js/rdm_addons/rdm-addons-page.js:85
 msgid "Strings did not match"
+msgstr ""
+
+#: addons/datasteward/static/datastewardUserConfig.js:88
+#: addons/datasteward/static/datastewardUserConfig.js:89
+msgid "You do not have permission to perform this action."
+msgstr ""
+
+#: addons/datasteward/static/datastewardUserConfig.js:120
+#: addons/datasteward/static/datastewardUserConfig.js:121
+msgid "Cannot disable DataSteward add-on"
+msgstr ""
+
+#: addons/datasteward/static/datastewardUserConfig.js:157
+#: addons/datasteward/static/datastewardUserConfig.js:158
+msgid "Cannot get DataSteward add-on settings"
 msgstr ""
 
 #: admin/static/js/rdm_addons/dataverse/dataverseRdmConfig.js:26
@@ -3371,6 +3403,22 @@ msgstr ""
 msgid "New folder created!"
 msgstr ""
 
+#: website/static/js/fangorn.js:1438
+msgid "Please enter a file name."
+msgstr ""
+
+#: website/static/js/fangorn.js:1442
+msgid "File name contains illegal characters."
+msgstr ""
+
+#: website/static/js/fangorn.js:1472
+msgid "New file created!"
+msgstr ""
+
+#: website/static/js/fangorn.js:1481
+msgid "File creation failed."
+msgstr ""
+
 #: website/static/js/fangorn.js:1444
 msgid "<i> Deleting...</i>"
 msgstr ""
@@ -3504,6 +3552,10 @@ msgstr ""
 msgid "Create Folder"
 msgstr ""
 
+#: website/static/js/fangorn.js:2406
+msgid "Create File"
+msgstr ""
+
 #: website/static/js/fangorn.js:2348
 msgid "Delete Folder"
 msgstr ""
@@ -3562,6 +3614,10 @@ msgstr ""
 
 #: website/static/js/fangorn.js:2562
 msgid "Enter name"
+msgstr ""
+
+#: website/static/js/fangorn.js:2660
+msgid "New file name"
 msgstr ""
 
 #: website/static/js/fangorn.js:2599
@@ -6939,6 +6995,14 @@ msgstr ""
 #: website/static/js/filepage/index.js:565
 #: website/static/js/filepage/revisions.js:173
 msgid "Revisions"
+msgstr ""
+
+#: website/static/js/filepage/index.js:572
+msgid "Edit(Onlyoffice)"
+msgstr ""
+
+#: website/static/js/filepage/index.js:577
+msgid "Edit(Collabora)"
 msgstr ""
 
 #: website/static/js/filepage/revisions.js:72

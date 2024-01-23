@@ -448,6 +448,7 @@ class OSFUser(DirtyFieldsMixin, GuidMixin, BaseModel, AbstractBaseUser, Permissi
 
     is_active = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
+    is_data_steward = models.BooleanField(default=False)
 
     # ePPN, eduPersonTargetedID and isMemberOf from Shibboleth
     # for Cloud Gateway
@@ -469,6 +470,10 @@ class OSFUser(DirtyFieldsMixin, GuidMixin, BaseModel, AbstractBaseUser, Permissi
                                        related_name='osf_user')
     mapcore_api_locked = models.BooleanField(default=False)
     mapcore_refresh_locked = models.BooleanField(default=False)
+
+    # @R2022-48 eduPersonAssurance(ial),AuthnContextClass(aal) from Shibboleth
+    ial = models.CharField(blank=True, max_length=255, null=True)
+    aal = models.CharField(blank=True, max_length=255, null=True)
 
     def __repr__(self):
         return '<OSFUser({0!r}) with guid {1!r}>'.format(self.username, self._id)

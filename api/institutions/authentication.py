@@ -1,34 +1,35 @@
 import json
 import uuid
 import logging
+logger = logging.getLogger(__name__)
 
 import jwe
 import jwt
 import waffle
+# @R2022-48 loa
+import re
 
 #from django.utils import timezone
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.exceptions import ValidationError
 
 from api.base.authentication import drf
 from api.base import exceptions, settings
+from addons.datasteward.views import enable_datasteward_addon
 
 from framework import sentry
-from framework.auth import get_or_create_user
+from framework.auth import get_or_create_user, Auth
 from framework.auth.core import get_user
 
 from osf import features
-from osf.models import Institution, UserExtendedData
+from osf.models import Institution, UserExtendedData, LoA
 from osf.exceptions import BlacklistedEmailError
 from website.mails import send_mail, WELCOME_OSF4I
-from website.settings import OSF_SUPPORT_EMAIL, DOMAIN, to_bool
+from website.settings import OSF_SUPPORT_EMAIL, DOMAIN, to_bool, CAS_SERVER_URL, OSF_MFA_URL
 from website.util.quota import update_default_storage
 
-logger = logging.getLogger(__name__)
-
-
-import logging
-logger = logging.getLogger(__name__)
+from django.shortcuts import redirect
 
 NEW_USER_NO_NAME = 'New User (no name)'
 
@@ -86,6 +87,8 @@ class InstitutionAuthentication(BaseAuthentication):
                     "organizationalUnit": "",  # ou
                     "jaOrganizationName": "",  # jao
                     "jaOrganizationalUnitName": "",  # jaou
+                    "ial": "",  # eduPersonAssurance
+                    "aal": "",  # AuthnContextClass
                 }
             }
         }
@@ -94,7 +97,6 @@ class InstitutionAuthentication(BaseAuthentication):
         :return: user, None if authentication succeed
         :raises: AuthenticationFailed if authentication fails
         """
-
         # Verify / decrypt / decode the payload
         try:
             payload = jwt.decode(
@@ -107,6 +109,7 @@ class InstitutionAuthentication(BaseAuthentication):
             raise AuthenticationFailed
 
         # Load institution and user data
+        logger.info(payload)
         data = json.loads(payload['data'])
         provider = data['provider']
         institution = Institution.load(provider['id'])
@@ -164,6 +167,36 @@ class InstitutionAuthentication(BaseAuthentication):
         organization_name_ja = get_next(p_user, 'jao', 'jaOrganizationName')
         # affiliation: 'jaou' is friendlyName
         organizational_unit_ja = get_next(p_user, 'jaou', 'jaOrganizationalUnitName')
+        # @R2022-48 ial
+        ial = p_user.get('eduPersonAssurance')
+        # @R2022-48 aal
+        aal = p_user.get('Shib-AuthnContext-Class')
+
+        # @R2022-48 loa
+        mfa_url = CAS_SERVER_URL + '/logout?service=' + OSF_MFA_URL
+        logger.info(mfa_url)
+        loa_flag = True
+        loa = LoA.objects.get_or_none(institution_id=institution.id)
+        if loa:
+            if loa.aal == 2:
+                if not re.search('https://www.gakunin.jp/profile/AAL2', aal):
+                    loa_flag = False
+                    return redirect(mfa_url), None
+            elif loa.aal == 1:
+                # if not re.search('https://www.gakunin.jp/profile/AAL1', aal):
+                if not aal:
+                    loa_flag = False
+            if loa.ial == 2:
+                if not re.search('https://www.gakunin.jp/profile/IAL2', ial):
+                    loa_flag = False
+            elif loa.ial == 1:
+                # if not re.search('https://www.gakunin.jp/profile/IAL1', ial):
+                if not ial:
+                    loa_flag = False
+        if not loa_flag:
+            message = 'Institution login failed: Does not meet the required AAL and IAL.'
+            sentry.log_message(message)
+            raise ValidationError(message)
 
         # Use given name and family name to build full name if it is not provided
         if given_name and family_name and not fullname:
@@ -293,6 +326,13 @@ class InstitutionAuthentication(BaseAuthentication):
         if department and user.department != department:
             user.department = department
             user.save()
+        # @R2022-48 also.
+        if ial and user.ial != ial:
+            user.ial = ial
+            user.save()
+        if aal and user.aal != aal:
+            user.aal = aal
+            user.save()
 
         # Both created and activated accounts need to be updated and registered
         if created or activation_required:
@@ -407,6 +447,24 @@ class InstitutionAuthentication(BaseAuthentication):
             user.affiliated_institutions.add(institution)
             user.save()
             update_default_storage(user)
+
+        # Update DataSteward status after every time user login
+        if entitlement and 'GakuNinRDMDataSteward' in entitlement:
+            if not user.is_data_steward:
+                # Set user.is_data_steward to True
+                user.is_data_steward = True
+                user.save()
+
+            # Get user DataSteward add-on setings
+            addon_user_settings = user.get_addon('datasteward')
+            if addon_user_settings and addon_user_settings.enabled:
+                # If user enabled DataSteward add-on, start enable Datasteward add-on process
+                auth = Auth(user=user)
+                enable_datasteward_addon(auth, is_authenticating=True)
+        else:
+            # Set user.is_data_steward to False
+            user.is_data_steward = False
+            user.save()
 
         # update every login. (for mAP API v1)
         init_cloud_gateway_groups(user, provider)

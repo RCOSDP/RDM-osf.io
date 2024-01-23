@@ -5,6 +5,14 @@ from osf.utils.fields import NonNaiveDateTimeField
 from osf.utils import permissions
 
 
+CONTRIBUTOR_PERMISSION_CHOICES = (
+    ('NULL', None),
+    ('READ', 'read'),
+    ('WRITE', 'write'),
+    ('ADMIN', 'admin'),
+)
+
+
 class AbstractBaseContributor(models.Model):
     objects = IncludeManager()
 
@@ -33,6 +41,8 @@ class AbstractBaseContributor(models.Model):
 
 class Contributor(AbstractBaseContributor):
     node = models.ForeignKey('AbstractNode', on_delete=models.CASCADE)
+    is_data_steward = models.BooleanField(default=False, db_index=True)
+    data_steward_old_permission = models.CharField(null=True, max_length=255, choices=CONTRIBUTOR_PERMISSION_CHOICES)
 
     @property
     def _id(self):

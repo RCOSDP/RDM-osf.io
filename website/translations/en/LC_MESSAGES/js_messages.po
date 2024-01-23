@@ -16,7 +16,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.5.1\n"
+"Generated-By: Babel 2.9.1\n"
 
 #: addons/jupyterhub/static/files.js:96
 msgid "Launch"
@@ -187,10 +187,10 @@ msgstr ""
 msgid "Edit Multiple File Metadata"
 msgstr ""
 
-#: addons/metadata/static/files.js:2171 website/static/js/fangorn.js:1492
-#: website/static/js/fangorn.js:1515 website/static/js/fangorn.js:2377
-#: website/static/js/fangorn.js:2413 website/static/js/filepage/index.js:204
-#: website/static/js/filepage/index.js:517 website/static/js/myProjects.js:1637
+#: addons/metadata/static/files.js:1905 website/static/js/fangorn.js:1549
+#: website/static/js/fangorn.js:1572 website/static/js/fangorn.js:2442
+#: website/static/js/fangorn.js:2478 website/static/js/filepage/index.js:204
+#: website/static/js/filepage/index.js:519 website/static/js/myProjects.js:1637
 msgid "Delete"
 msgstr ""
 
@@ -226,8 +226,13 @@ msgid ""
 "browser menu."
 msgstr ""
 
-#: addons/metadata/static/metadata-fields.js:47
-#: addons/metadata/static/metadata-fields.js:220
+#: addons/metadata/static/metadata-fields.js:55
+#, python-format
+msgid "One of this field or \"%s\" field must be filled."
+msgstr ""
+
+#: addons/metadata/static/metadata-fields.js:59
+#: addons/metadata/static/metadata-fields.js:250
 msgid "This field can't be blank."
 msgstr ""
 
@@ -548,12 +553,39 @@ msgstr ""
 msgid "Type the following to continue: <strong>%1$s</strong><br><br>"
 msgstr ""
 
+#: admin/static/js/rdm_addons/rdm-addons-page.js:69
+msgid ""
+"This will not revoke access to %1$s for all projects using the "
+"accounts.<br>"
+msgstr ""
+
+#: admin/static/js/rdm_addons/rdm-addons-page.js:70
+msgid ""
+"But the accounts will not be able to see and change their %1$s settings "
+"until you reallow it.<br><br>"
+msgstr ""
+
 #: admin/static/js/rdm_addons/rdm-addons-page.js:74
 msgid "Disallow"
 msgstr ""
 
 #: admin/static/js/rdm_addons/rdm-addons-page.js:85
 msgid "Strings did not match"
+msgstr ""
+
+#: addons/datasteward/static/datastewardUserConfig.js:88
+#: addons/datasteward/static/datastewardUserConfig.js:89
+msgid "You do not have permission to perform this action."
+msgstr ""
+
+#: addons/datasteward/static/datastewardUserConfig.js:120
+#: addons/datasteward/static/datastewardUserConfig.js:121
+msgid "Cannot disable DataSteward add-on"
+msgstr ""
+
+#: addons/datasteward/static/datastewardUserConfig.js:157
+#: addons/datasteward/static/datastewardUserConfig.js:158
+msgid "Cannot get DataSteward add-on settings"
 msgstr ""
 
 #: admin/static/js/rdm_addons/dataverse/dataverseRdmConfig.js:26
@@ -3419,6 +3451,22 @@ msgstr ""
 msgid "New folder created!"
 msgstr ""
 
+#: website/static/js/fangorn.js:1438
+msgid "Please enter a file name."
+msgstr ""
+
+#: website/static/js/fangorn.js:1442
+msgid "File name contains illegal characters."
+msgstr ""
+
+#: website/static/js/fangorn.js:1472
+msgid "New file created!"
+msgstr ""
+
+#: website/static/js/fangorn.js:1481
+msgid "File creation failed."
+msgstr ""
+
 #: website/static/js/fangorn.js:1444
 msgid "<i> Deleting...</i>"
 msgstr ""
@@ -3552,6 +3600,10 @@ msgstr ""
 msgid "Create Folder"
 msgstr ""
 
+#: website/static/js/fangorn.js:2406
+msgid "Create File"
+msgstr ""
+
 #: website/static/js/fangorn.js:2348
 msgid "Delete Folder"
 msgstr ""
@@ -3559,6 +3611,10 @@ msgstr ""
 #: website/static/js/fangorn.js:2357 website/static/js/filepage/index.js:520
 #: website/static/js/filepage/revisions.js:111
 msgid "Download"
+msgstr ""
+
+#: website/static/js/fangorn.js:2432 website/static/js/filepage/index.js:544
+msgid "View"
 msgstr ""
 
 #: website/static/js/fangorn.js:2383 website/static/js/filepage/index.js:216
@@ -3606,6 +3662,10 @@ msgstr ""
 
 #: website/static/js/fangorn.js:2562
 msgid "Enter name"
+msgstr ""
+
+#: website/static/js/fangorn.js:2660
+msgid "New file name"
 msgstr ""
 
 #: website/static/js/fangorn.js:2599
@@ -6985,6 +7045,14 @@ msgstr ""
 msgid "Revisions"
 msgstr ""
 
+#: website/static/js/filepage/index.js:572
+msgid "Edit(Onlyoffice)"
+msgstr ""
+
+#: website/static/js/filepage/index.js:577
+msgid "Edit(Collabora)"
+msgstr ""
+
 #: website/static/js/filepage/revisions.js:72
 #: website/static/js/filepage/revisions.js:73
 msgid "Unable to fetch versions"
@@ -7366,64 +7434,85 @@ msgstr ""
 msgid "Could not GET wiki menu pages"
 msgstr ""
 
-#: website/static/vendor/bower_components/MathJax/config/AM_HTMLorMML-full.js:55
-#: website/static/vendor/bower_components/MathJax/config/Accessible-full.js:77
-#: website/static/vendor/bower_components/MathJax/config/MML_HTMLorMML-full.js:55
-#: website/static/vendor/bower_components/MathJax/config/TeX-AMS-MML_HTMLorMML-full.js:69
-#: website/static/vendor/bower_components/MathJax/config/TeX-MML-AM_HTMLorMML-full.js:75
-#: website/static/vendor/bower_components/MathJax/jax/output/CommonHTML/autoload/mglyph.js:19
-#: website/static/vendor/bower_components/MathJax/jax/output/HTML-CSS/autoload/mglyph.js:19
-#: website/static/vendor/bower_components/MathJax/jax/output/NativeMML/jax.js:19
-#: website/static/vendor/bower_components/MathJax/jax/output/SVG/autoload/mglyph.js:19
-#: website/static/vendor/bower_components/MathJax/unpacked/jax/output/CommonHTML/autoload/mglyph.js:55
-#: website/static/vendor/bower_components/MathJax/unpacked/jax/output/HTML-CSS/autoload/mglyph.js:47
-#: website/static/vendor/bower_components/MathJax/unpacked/jax/output/HTML-CSS/autoload/mglyph.js:66
-#: website/static/vendor/bower_components/MathJax/unpacked/jax/output/NativeMML/jax.js:201
-#: website/static/vendor/bower_components/MathJax/unpacked/jax/output/SVG/autoload/mglyph.js:79
-msgid "MathML"
-msgstr ""
-
-#: website/static/vendor/bower_components/MathJax/extensions/HelpDialog.js:19
-#: website/static/vendor/bower_components/MathJax/unpacked/extensions/HelpDialog.js:165
-msgid "HelpDialog"
-msgstr ""
-
-#: website/static/vendor/bower_components/MathJax/unpacked/extensions/MathMenu.js:1084
-msgid "CloseAboutDialog"
-msgstr ""
-
-#: website/static/vendor/bower_components/MathJax/unpacked/extensions/MathMenu.js:1182
-msgid "NoOriginalForm"
-msgstr ""
-
-#: website/static/vendor/bower_components/MathJax/unpacked/jax/input/MathML/jax.js:82
-msgid "UnknownNodeType"
-msgstr ""
-
-#: website/static/vendor/bower_components/MathJax/unpacked/jax/input/MathML/jax.js:345
-msgid "CantCreateXMLParser"
-msgstr ""
-
 #~ msgid "${user}updated file ${path} in Dropbox in ${node}"
 #~ msgstr ""
 
 #~ msgid "${user}updated file ${path} in Dropbox Business in ${node}"
 #~ msgstr ""
 
-msgid "Do you want to active account?"
-msgstr ""
-
-msgid "Active"
-msgstr ""
-
-msgid "Sent"
-msgstr ""
-
-msgid "Error"
-msgstr ""
-
-msgid "Invitation failed"
-msgstr ""
-
 #~ msgid "Not selected"
 #~ msgstr ""
+
+#~ msgid "'"
+#~ msgstr ""
+
+#~ msgid "%1$s \"%2$s\" to \"%3$s\" is taking a bit longer than expected."
+#~ msgstr ""
+
+#~ msgid "We'll send you an email when it has finished."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "In the mean time you can leave "
+#~ "this page; your %1$s will still be"
+#~ " completed."
+#~ msgstr ""
+
+#~ msgid "Operation Information"
+#~ msgstr ""
+
+#~ msgid "A user added a metadata in a project"
+#~ msgstr ""
+
+#~ msgid "A user added a metadata to a ${path} in a project"
+#~ msgstr ""
+
+#~ msgid "A user updated a metadata for a ${path} in a project"
+#~ msgstr ""
+
+#~ msgid "A user deleted a metadata for a ${path} in a project"
+#~ msgstr ""
+
+#~ msgid "${user} added metadata in ${node}"
+#~ msgstr ""
+
+#~ msgid "${user} added metadata ${path} in ${node}"
+#~ msgstr ""
+
+#~ msgid "${user} updated metadata ${path} in ${node}"
+#~ msgstr ""
+
+#~ msgid "${user} deleted metadata ${path} in ${node}"
+#~ msgstr ""
+
+#~ msgid "Institution/Employer required"
+#~ msgstr ""
+
+#~ msgid "Institution/Employer (English) required"
+#~ msgstr ""
+
+#~ msgid ""
+#~ " This file has been checked out"
+#~ " by a COS Preregistration Challenge "
+#~ "Reviewer and will become available when"
+#~ " review is complete."
+#~ msgstr ""
+
+#~ msgid "MathML"
+#~ msgstr ""
+
+#~ msgid "HelpDialog"
+#~ msgstr ""
+
+#~ msgid "CloseAboutDialog"
+#~ msgstr ""
+
+#~ msgid "NoOriginalForm"
+#~ msgstr ""
+
+#~ msgid "UnknownNodeType"
+#~ msgstr ""
+
+#~ msgid "CantCreateXMLParser"
+#~ msgstr ""
+

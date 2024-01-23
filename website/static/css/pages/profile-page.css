@@ -140,3 +140,18 @@ table.social-links {
 table.social-links a {
   word-wrap: break-word;
 }
+
+/*
+@R2022-48
+*/
+.badge.AAL1,
+.badge.IAL1
+{
+    background-color:#3498db!important;
+}
+
+.badge.AAL2,
+.badge.IAL2
+{
+    background-color:#18bc9c!important;
+}

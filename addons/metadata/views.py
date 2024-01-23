@@ -7,14 +7,14 @@ from flask import make_response
 import logging
 
 from . import SHORT_NAME
-from .models import ERadRecord, RegistrationReportFormat, get_draft_files, FIELD_GRDM_FILES, schema_has_field
+from .models import RegistrationReportFormat, get_draft_files, FIELD_GRDM_FILES, schema_has_field
 from .utils import make_report_as_csv
 from .packages import start_importing, import_project, export_project, get_task_result
+from .suggestion import suggestion_metadata, _erad_candidates
 from framework.exceptions import HTTPError
 from framework.auth.decorators import must_be_logged_in
 from framework.flask import redirect
-from osf.models import AbstractNode, DraftRegistration, Registration, BaseFileNode
-from osf.models.files import UnableToResolveFileClass
+from osf.models import AbstractNode, DraftRegistration, Registration
 from osf.models.metaschema import RegistrationSchema
 from osf.utils.permissions import WRITE
 from website.project.decorators import (
@@ -28,13 +28,6 @@ from website.util import web_url_for, api_url_for
 
 
 logger = logging.getLogger(__name__)
-
-ERAD_COLUMNS = [
-    'KENKYUSHA_NO', 'KENKYUSHA_SHIMEI', 'KENKYUKIKAN_CD', 'KENKYUKIKAN_MEI',
-    'HAIBUNKIKAN_CD', 'HAIBUNKIKAN_MEI', 'NENDO', 'SEIDO_CD', 'SEIDO_MEI',
-    'JIGYO_CD', 'JIGYO_MEI', 'KADAI_ID', 'KADAI_MEI', 'BUNYA_CD', 'BUNYA_MEI',
-    'JAPAN_GRANT_NUMBER', 'PROGRAM_NAME_JA', 'PROGRAM_NAME_EN', 'FUNDING_STREAM_CODE',
-]
 
 
 def _response_project_metadata(user, addon):
@@ -68,13 +61,6 @@ def _response_schemas(addon, schemas):
         }
     }
 
-def _erad_candidates(researcher_number):
-    r = []
-    for record in ERadRecord.objects.filter(kenkyusha_no=researcher_number):
-        r.append(dict([(k.lower(), getattr(record, k.lower()))
-                       for k in ERAD_COLUMNS]))
-    return r
-
 def _get_file_metadata_for_schema(schema_id, file_metadata):
     assert not file_metadata['generated']
     items = [item for item in file_metadata['items'] if item['schema'] == schema_id]
@@ -107,7 +93,7 @@ def metadata_get_erad_candidates(auth, **kwargs):
         rn = user.erad
         if rn is None:
             continue
-        candidates += _erad_candidates(rn)
+        candidates += _erad_candidates(kenkyusha_no=rn)
     return {
         'data': {
             'id': node._id,
@@ -402,42 +388,19 @@ def metadata_node_task_progress(auth, taskid=None, **kwargs):
 @must_be_valid_project
 @must_be_logged_in
 @must_have_permission('write')
+@must_have_addon(SHORT_NAME, 'node')
 def metadata_file_metadata_suggestions(auth, filepath=None, **kwargs):
-    format_list = request.args.get('format', None)
+    key_list = request.args.getlist('key[]', None) or request.args.get('key', None)
+    if key_list is None:
+        raise HTTPError(http_status.HTTP_400_BAD_REQUEST)
+    if type(key_list) is str:
+        key_list = [key_list]
+    keyword = request.args.get('keyword', '').lower()
     node = kwargs['node'] or kwargs['project']
-    parts = filepath.split('/')
-    is_dir = parts[0] == 'dir'
-    if is_dir:
-        provider = parts[1]
-        path = '/'.join(parts[2:])
-        file_node = None
-    else:
-        provider = parts[0]
-        path = '/'.join(parts[1:])
-        try:
-            file_node = BaseFileNode.resolve_class(provider, BaseFileNode.FILE).get_or_create(node, path)
-        except UnableToResolveFileClass:
-            raise HTTPError(http_status.HTTP_404_NOT_FOUND)
-
-    suggestions = []
-    if format_list is None:
-        format_list = ['data_format_number']
-    elif type(format_list) is str:
-        format_list = [format_list]
-    for format in format_list:
-        if format == 'data_format_number':
-            if file_node is None:
-                value = 'files/{}'.format(filepath)
-            else:
-                guid = file_node.get_guid(create=True)
-                guid.referent.save()
-                value = guid._id
-        else:
-            raise HTTPError(http_status.HTTP_400_BAD_REQUEST)
-        suggestions.append({
-            'format': format,
-            'value': value,
-        })
+    suggestions = sum([  # flatten
+        suggestion_metadata(key, keyword, filepath, node)
+        for key in key_list
+    ], [])
     return {
         'data': {
             'id': node._id,

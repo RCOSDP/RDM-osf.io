@@ -110,6 +110,11 @@
                         <i class='fa fa-link'></i><span> {% trans "Login Availability Control" %}</span>
                     </a>
                 </li>
+                <li>
+                    <a href="{% url 'loa:list' %}">
+                        <i class='fa fa-link'></i><span> {% trans "Level of Assurance" %}</span>
+                    </a>
+                </li>
             {% endif %}
             {% if perms.osf.view_node %}
                 <li><a role="button" data-toggle="collapse" href="#collapseNodes">

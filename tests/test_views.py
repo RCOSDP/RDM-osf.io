@@ -6160,5 +6160,31 @@ def test_get_storage_region_list_with_own_institution():
     assert_equal(website_view.get_storage_region_list(user)[0]['name'], new_region.name)
 
 
+class TestUserAddon(OsfTestCase):
+
+    def setUp(self):
+        super(TestUserAddon, self).setUp()
+        self.user = AuthUserFactory()
+        self.user.set_password('password')
+        self.user.auth = (self.user.username, 'password')
+        self.user.save()
+
+    @mock.patch('osf.features.EMBER_USER_SETTINGS_ADDONS', False)
+    def test_user_addons(self):
+        url = web_url_for('user_addons')
+
+        res = self.app.get(url, auth=(self.user.auth))
+        assert_equal(res.status_code, http_status.HTTP_200_OK)
+
+    @mock.patch('osf.features.EMBER_USER_SETTINGS_ADDONS', False)
+    def test_user_addons_add_addon_datasteward(self):
+        self.user.is_data_steward = True
+        self.user.save()
+        url = web_url_for('user_addons')
+
+        res = self.app.get(url, auth=(self.user.auth))
+        assert_equal(res.status_code, http_status.HTTP_200_OK)
+
+
 if __name__ == '__main__':
     unittest.main()

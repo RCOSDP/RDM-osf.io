@@ -91,7 +91,7 @@ RUN set -ex \
         freetype-dev \
         jpeg-dev \
     && pip3 install Cython \
-    && pip3 install numpy==1.14.5 \
+    && pip3 install numpy==1.19.5 \
     && for reqs_file in \
         /code/requirements.txt \
         /code/requirements/release.txt \
@@ -145,6 +145,7 @@ COPY ./admin/static/ ./admin/static/
 COPY ./addons/bitbucket/static/ ./addons/bitbucket/static/
 COPY ./addons/box/static/ ./addons/box/static/
 COPY ./addons/citations/static/ ./addons/citations/static/
+COPY ./addons/datasteward/static/ ./addons/datasteward/static/
 COPY ./addons/dataverse/static/ ./addons/dataverse/static/
 COPY ./addons/dropbox/static/ ./addons/dropbox/static/
 COPY ./addons/dropboxbusiness/static/ ./addons/dropboxbusiness/static/

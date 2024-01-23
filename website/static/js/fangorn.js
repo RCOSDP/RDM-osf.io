@@ -1427,6 +1427,65 @@ function _createFolder(event, dismissCallback, helpText) {
         }
     });
 }
+
+function _createFile(event, dismissCallback, helpText) {
+    var tb = this;
+    helpText('');
+    var val = $.trim(tb.select('#createFileInput').val());
+    var parent = tb.multiselected()[0];
+    if (!parent.open) {
+         tb.updateFolder(null, parent);
+    }
+    if (val.length < 1) {
+        helpText(gettext('Please enter a file name.'));
+        return;
+    }
+    if (val.indexOf('/') !== -1) {
+        helpText(gettext('File name contains illegal characters.'));
+        return;
+    }
+    //if (!val.match('.(docx|xlsx|pptx)$')) {
+    //    helpText(gettext('File extension should be docx, xlsx, or pptx.'));
+    //    return;
+    //}
+
+    // var extra = {};
+    // var path = parent.data.path || '/';
+    // var options = {name: val, kind: 'file', waterbutlerURL: parent.data.waterbutlerURL};
+    var options = {name: val};
+
+    if ((parent.data.provider === 'github') || (parent.data.provider === 'gitlab')) {
+        // extra.branch = parent.data.branch;
+        options.branch = parent.data.branch;
+    }
+
+    m.request({
+        method: 'PUT',
+        background: true,
+        config: $osf.setXHRAuthorization,
+        headers: { 'Content-Length': 0 },
+        // url: waterbutler.buildUploadUrl(path, parent.data.provider, parent.data.nodeId, options, extra)
+        url: waterbutler.buildTreeBeardUpload(parent, options)
+    }).then(function(item) {
+        item = tb.options.lazyLoadPreprocess.call(this, item).data;
+        inheritFromParent({data: item}, parent, ['branch']);
+        item = tb.createItem(item, parent.id);
+        orderFolder.call(tb, parent);
+        item.notify.update(gettext('New file created!'), 'success', undefined, 1000);
+        if(dismissCallback) {
+            dismissCallback();
+        }
+    }, function(data) {
+        if (data && data.code === 409) {
+            helpText(data.message);
+            m.redraw();
+        } else {
+            helpText(gettext('File creation failed.'));
+        }
+    });
+}
+
+
 /**
  * Deletes the item, only appears for items
  * @param event DOM event object for click
@@ -2230,7 +2289,8 @@ var toolbarModes = {
     'FILTER' : 'filter',
     'ADDFOLDER' : 'addFolder',
     'RENAME' : 'rename',
-    'ADDPROJECT' : 'addProject'
+    'ADDPROJECT' : 'addProject',
+    'ADDFILE' : 'addFile'
 };
 
 
@@ -2338,7 +2398,14 @@ var FGItemButtons = {
                         },
                         icon: 'fa fa-plus',
                         className: 'text-success'
-                    }, gettext('Create Folder')));
+                    }, gettext('Create Folder')),
+                    m.component(FGButton, {
+                        onclick: function () {
+                            mode(toolbarModes.ADDFILE);
+                        },
+                        icon: 'fa fa-plus',
+                        className: 'text-success'
+                    }, gettext('Create File')));
                 if (item.data.path) {
                     rowButtons.push(
                         m.component(FGButton, {
@@ -2486,6 +2553,9 @@ var FGToolbar = {
         self.nameData = m.prop('');
         self.renameId = m.prop('');
         self.renameData = m.prop('');
+        self.createFile = function(event){
+            _createFile.call(self.tb, event, self.dismissToolbar, self.helpText);
+        };
     },
     view : function(ctrl) {
         var templates = {};
@@ -2571,6 +2641,34 @@ var FGToolbar = {
                                 },
                                 icon: 'fa fa-pencil',
                                 className: 'text-info'
+                            }),
+                            dismissIcon
+                        ]
+                    )
+                )
+            ];
+            templates[toolbarModes.ADDFILE] = [
+                m('.col-xs-9', [
+                    m.component(FGInput, {
+                        oninput: m.withAttr('value', ctrl.nameData),
+                        onkeypress: function (event) {
+                            if (ctrl.tb.pressedKey === ENTER_KEY) {
+                                ctrl.createFile.call(ctrl.tb, event, ctrl.dismissToolbar);
+                            }
+                        },
+                        id: 'createFileInput',
+                        value: ctrl.nameData(),
+                        helpTextId: 'createFolderHelp',      // <- change this.
+                        placeholder: gettext('New file name'),
+                    }, ctrl.helpText())
+                ]),
+                m('.col-xs-3.tb-buttons-col',
+                    m('.fangorn-toolbar.pull-right',
+                        [
+                            m.component(FGButton, {
+                                onclick: ctrl.createFile,
+                                icon: 'fa fa-plus',
+                                className: 'text-success'
                             }),
                             dismissIcon
                         ]
@@ -3590,6 +3688,7 @@ Fangorn.ButtonEvents = {
     _removeEvent : _removeEvent,
     createFolder : _createFolder,
     _gotoFileEvent : gotoFileEvent,
+    createFile : _createFile,
 };
 
 Fangorn.DefaultColumns = {

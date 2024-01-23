@@ -1,4 +1,5 @@
 <%inherit file="base.mako"/>
+
 <%namespace name="render_nodes" file="util/render_nodes.mako" />
 <%def name="title()">${profile["fullname"]}</%def>
 <%def name="resource()"><%
@@ -64,7 +65,24 @@
                     <td style="vertical-align: middle;"><a href="${profile['url']}">${profile['display_absolute_url']}</a><button type="button" style="margin-left: 5px;" class="btn btn-default btn-sm" data-clipboard-text="https://${profile['display_absolute_url']}/"><div class="fa fa-copy"></div></button></td>
                 </tr>
             % endif
+        % if user['is_profile']:
+            <tr>
+                <td>${_("IAL") | n}</td><!--@R2022-48-->
+                <td><span class="badge rounded-pill bg-success ${profile['_ial']}" style="margin-right:5px;">${profile['_ial']}</span>${profile['ial']}</td>
+            </tr>
+            <tr>
+                <td>${_("AuthnContext-Class") | n}</td><!--@R2022-48-->
+                <td><span class="badge rounded-pill bg-success ${profile['_aal']}" style="margin-right:5px;">${profile['_aal']}</span>${profile['aal']}</td>
+            </tr>
+            % if profile.get('_aal') != "AAL2":
+            <tr>
+                <td>&nbsp;</td>
+                <td><a href="${mfa_url}" class="btn btn-info">${_("Configure multi-factor authentication (MFA)")}</a></td><!--@R2022-48-->
+            </tr>
+            % endif
+        % endif
         </table>
+        % if user['is_profile']:
         <h2>
            ${profile['activity_points'] or _("No")} ${ngettext('activity point', 'activity points', profile['activity_points'])}<br />
            ${profile["number_projects"]} ${_("project")}${ngettext(' ', 's', profile["number_projects"])}<!-- , ${profile["number_public_projects"]} public -->
@@ -73,6 +91,7 @@
             <!-- Usage of ${ 'NII' if profile['quota']['is_nii_storage'] else 'Institutional' } storage<br /> -->${_("Usage of storage")}<br />
             <img width="35" height="40" src="${profile['quota']['icon_url']}" style="margin: 5px 10px;">${profile['quota']['rate']}%, ${profile['quota']['used']} / ${profile['quota']['max']}[GB]
         </h2>
+        % endif
     </div>
 
     <div class="col-sm-6">
