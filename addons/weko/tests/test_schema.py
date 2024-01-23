@@ -6,6 +6,7 @@ import logging
 import mock
 from mock import call
 from nose.tools import *  # noqa
+import re
 
 from osf.models.metaschema import RegistrationSchema
 from tests.base import OsfTestCase
@@ -93,9 +94,13 @@ class TestWEKOSchema(OsfTestCase):
             props.pop(),
             ['.metadata.item_1617605131499[0].format', 'File[0].フォーマット', '', 'Allow Multiple', 'image/jpeg'],
         )
+        pub_date = props.pop()
         assert_equal(
-            props.pop(),
-            ['.metadata.pubdate', '', '', '', '2023-10-13'],
+            pub_date[:-1],
+            ['.metadata.pubdate', '', '', ''],
+        )
+        assert_true(
+            re.match(r'[0-9]+\-[0-9]+\-[0-9]+', pub_date[-1])
         )
         assert_equal(
             props.pop(),
@@ -107,7 +112,7 @@ class TestWEKOSchema(OsfTestCase):
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_1617186626617[0].subitem_description_type', '', '', '', 'Other'],
+            ['.metadata.item_1617186626617[0].subitem_description_type', '', '', '', 'Abstract'],
         )
         assert_equal(
             props.pop(),
@@ -251,9 +256,13 @@ class TestWEKOSchema(OsfTestCase):
             props.pop(),
             ['.metadata.item_1617605131499[0].format', 'File[0].フォーマット', '', 'Allow Multiple', 'image/jpeg'],
         )
+        pub_date = props.pop()
         assert_equal(
-            props.pop(),
-            ['.metadata.pubdate', '', '', '', '2023-10-13'],
+            pub_date[:-1],
+            ['.metadata.pubdate', '', '', ''],
+        )
+        assert_true(
+            re.match(r'[0-9]+\-[0-9]+\-[0-9]+', pub_date[-1])
         )
         assert_equal(
             props.pop(),
@@ -293,7 +302,7 @@ class TestWEKOSchema(OsfTestCase):
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_1617186626617[0].subitem_description_type', '', '', '', 'Other'],
+            ['.metadata.item_1617186626617[0].subitem_description_type', '', '', '', 'Abstract'],
         )
         assert_equal(
             props.pop(),
@@ -305,7 +314,7 @@ class TestWEKOSchema(OsfTestCase):
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_1617186626617[1].subitem_description_type', '', '', '', 'Other'],
+            ['.metadata.item_1617186626617[1].subitem_description_type', '', '', '', 'Abstract'],
         )
         assert_equal(
             props.pop(),

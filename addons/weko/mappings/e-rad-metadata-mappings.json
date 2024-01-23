@@ -1,4 +1,10 @@
 {
+    "@metadata": {
+        "itemtype": {
+            "name": "デフォルトアイテムタイプ（フル）(15)",
+            "schema": "https://localhost:8443/items/jsonschema/15"
+        }
+    },
     "funder": {
         "@type": "string",
         "@createIf": "{{value}}",
@@ -84,7 +90,7 @@
         "@type": "string",
         "@createIf": "{{value}}",
         "item_1617186626617[]": {
-            "subitem_description_type": "Other",
+            "subitem_description_type": "Abstract",
             "subitem_description": "{{value}}",
             "subitem_description_language": "ja"
         }
@@ -93,7 +99,7 @@
         "@type": "string",
         "@createIf": "{{value}}",
         "item_1617186626617[]": {
-            "subitem_description_type": "Other",
+            "subitem_description_type": "Abstract",
             "subitem_description": "{{value}}",
             "subitem_description_language": "en"
         }

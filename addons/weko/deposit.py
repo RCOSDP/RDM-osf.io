@@ -95,7 +95,7 @@ def deposit_metadata(
     node = AbstractNode.load(node_id)
     weko_addon = node.get_addon(SHORT_NAME)
     weko_addon.set_publish_task_id(metadata_path, self.request.id)
-    wb = WaterButlerClient(user, node)
+    wb = WaterButlerClient(user).get_client_for_node(node)
     file = wb.get_file_by_materialized_path(path)
     logger.debug(f'File: {file}')
     if file is None:

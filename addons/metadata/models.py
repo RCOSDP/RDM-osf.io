@@ -161,6 +161,8 @@ class NodeSettings(BaseNodeSettings):
             'folder': m.folder,
             'hash': m.hash,
             'urlpath': m.resolve_urlpath(),
+            'created': m.created.isoformat(),
+            'modified': m.modified.isoformat(),
         }
         r.update(self._get_file_metadata(m))
         return r

@@ -6,6 +6,7 @@ import os
 import re
 import shutil
 import tempfile
+from future.moves.urllib.parse import urljoin
 from zipfile import ZipFile
 
 import furl
@@ -23,14 +24,15 @@ from api.base.utils import waterbutler_api_url_for
 from framework.auth import Auth
 from framework.celery_tasks import app as celery_app
 from framework.exceptions import HTTPError
-from osf.models import Guid, OSFUser, AbstractNode, Comment, BaseFileNode
+from osf.models import Guid, OSFUser, AbstractNode, Comment, BaseFileNode, DraftRegistration, Registration
 from website.util import waterbutler
 from website import settings as website_settings
 from osf.models.metaschema import RegistrationSchema
 from . import SHORT_NAME, settings
 from .jsonld import (
-    convert_metadata_to_json_ld_entities,
-    convert_json_ld_entity_to_metadata_item,
+    convert_file_metadata_to_json_ld_entities,
+    convert_project_metadata_to_json_ld_entities,
+    convert_json_ld_entity_to_file_metadata_item,
 )
 from addons.wiki.models import WikiPage
 from addons.weko import settings as weko_settings
@@ -63,6 +65,13 @@ class RequestWrapper(object):
         return {}
 
 class WaterButlerClient(object):
+    def __init__(self, user):
+        self.user = user
+
+    def get_client_for_node(self, node):
+        return WaterButlerClientForNode(self.user, node)
+
+class WaterButlerClientForNode(object):
     def __init__(self, user, node):
         self.cookie = user.get_or_create_cookie().decode()
         self.node = node
@@ -87,15 +96,6 @@ class WaterButlerClient(object):
         )
         data = resp.json()
         return WaterButlerObject(data, self)
-
-    def resolve_file_path(self, dest_path):
-        f = self._get_file(dest_path)
-        if f is None:
-            raise IOError(f'File not found: {dest_path}')
-        logger.debug(f'Resolved: {dest_path} = {f}')
-        if 'attributes' not in f:
-            raise ValueError('No attributes')
-        return dest_path.split('/')[0] + f['attributes']['path']
 
     def upload_root_file(self, file, file_name, provider):
         resp = waterbutler.upload_file(self.cookie, self.node._id, file, file_name, provider)
@@ -288,14 +288,14 @@ def _as_web_file(node, wb_file):
             _id=file_id,
             provider=wb_file.provider,
             target_object_id=node.id,
-            deleted=None,
+            deleted__isnull=True,
             target_content_type_id=ContentType.objects.get_for_model(AbstractNode),
         ).first()
     return BaseFileNode.objects.filter(
         _path=wb_file.path,
         provider=wb_file.provider,
         target_object_id=node.id,
-        deleted=None,
+        deleted__isnull=True,
         target_content_type_id=ContentType.objects.get_for_model(AbstractNode),
     ).order_by('-id').first()
 
@@ -308,9 +308,10 @@ class BaseROCrateFactory(object):
 
     def _ro_crate_path_list(self):
         crate = ROCrate()
-        crate.metadata.extra_terms.update({
-            'isReplacedBy': 'http://purl.org/dc/terms/isReplacedBy',
-        })
+        extra_contexts = [
+            'https://w3id.org/ro/terms/workflow-run',
+            'https://purl.org/gakunin-rdm/project/0.1',
+        ]
 
         crate, files = self._build_ro_crate(crate)
         metadata_file = os.path.join(self.work_dir, 'ro-crate-metadata.json')
@@ -318,9 +319,12 @@ class BaseROCrateFactory(object):
         crate.write_zip(zip_path)
         with ZipFile(zip_path, 'r') as zf:
             with zf.open('ro-crate-metadata.json') as f:
-                metadata = f.read()
-                with open(metadata_file, 'wb') as df:
-                    df.write(metadata)
+                metadata = json.load(f)
+                metadata['@context'] = [
+                    metadata['@context'],
+                ] + extra_contexts
+                with open(metadata_file, 'w') as df:
+                    df.write(json.dumps(metadata))
         yield {
             'fs': metadata_file,
             'n': 'ro-crate-metadata.json',
@@ -347,13 +351,6 @@ class BaseROCrateFactory(object):
         params = f'exported={total_size}, limit={settings.MAX_EXPORTABLE_FILES_BYTES}'
         raise IOError(f'Exported file size exceeded limit: {params}')
 
-    def _get_jpcoar_context(self):
-        return {
-            'dc': 'http://purl.org/dc/terms/',
-            'datacite': 'https://schema.datacite.org/meta/kernel-4/',
-            'jpcoar': 'https://github.com/JPCOAR/schema/blob/master/1.0/',
-        }
-
     def _build_ro_crate(self, crate):
         raise NotImplementedError()
 
@@ -366,22 +363,24 @@ class BaseROCrateFactory(object):
     def _is_file_archivable(self, wb_file):
         return True
 
-    def _create_file_entities(self, crate, base_path, wb_file, user_ids):
+    def _create_file_entities(self, crate, node, base_path, wb_file, user_ids, schema_ids, comment_ids):
         path = os.path.join(base_path, wb_file.name)
         if not self._is_file_archivable(wb_file):
             logger.info(f'File is not target: {path}')
-            return []
+            return None, []
         r = []
+        entity = None
         if wb_file.attributes['kind'] == 'folder':
             path += '/'
             wb_files = wb_file.get_files()
             for child in wb_files:
-                r += self._create_file_entities(crate, path, child, user_ids)
-            crate.add(DataEntity(crate, path, properties={
-                '@type': 'StorageProvider' if wb_file.path == '/' else 'Folder',
+                _, children = self._create_file_entities(crate, node, path, child, user_ids, schema_ids, comment_ids)
+                r += children
+            entity = crate.add(DataEntity(crate, path, properties={
+                '@type': 'RDMFolder',
                 'name': wb_file.name,
                 'hasPart': [
-                    {'@id': f'{path}{child.name}' if child.attributes['kind'] == 'folder' else f'{path[2:]}{child.name}'}
+                    {'@id': f'{path}{child.name}/' if child.attributes['kind'] == 'folder' else f'{path[2:]}{child.name}'}
                     for child in wb_files
                 ]
             }))
@@ -390,14 +389,25 @@ class BaseROCrateFactory(object):
             comments = []
             tags = []
             creator = None
+            custom_props = {}
             if web_file is not None:
                 latest = web_file.versions.order_by('-created').first()
+                custom_props['rdmURL'] = urljoin(
+                    website_settings.DOMAIN,
+                    web_file.get_guid(create=True)._id,
+                )
                 if latest is not None:
                     creator = latest.creator
+                    custom_props['version'] = latest.identifier
+                    logger.debug(f'FileVersion Metadata: {latest.metadata}')
+                    for hash in ['md5', 'sha1', 'sha256', 'sha512']:
+                        if hash not in latest.metadata:
+                            continue
+                        custom_props[hash] = latest.metadata[hash]
                 if self.include_users and creator._id not in user_ids:
-                    self._create_contributor_entities(crate, creator, user_ids)
+                    crate.add(*self._create_contributor_entities(crate, creator, user_ids))
                 comments = sum([
-                    self._create_comment_entities(crate, path, c, user_ids)
+                    self._create_comment_entities(crate, path, None, c, user_ids, comment_ids)
                     for c in Comment.objects.filter(root_target=web_file.get_guid(), deleted__isnull=True)
                 ], [])
                 tags += [t.name for t in web_file.tags.all()]
@@ -410,19 +420,81 @@ class BaseROCrateFactory(object):
                 'dateCreated': wb_file.created_utc,
                 'keywords': tags,
             }
+            props.update(custom_props)
             if creator is not None and creator._id in user_ids:
-                props['creator'] = user_ids[creator._id]
-            crate.add_file(path, dest_path=path, properties=props)
-        self._create_file_metadata_entities(crate, path, self._get_materialized_path(wb_file))
-        return r
+                props['creator'] = {
+                    '@id': user_ids[creator._id],
+                }
+            entity = crate.add_file(path, dest_path=path, properties=props)
+        self._create_file_metadata_entities(crate, node, path, self._get_materialized_path(wb_file), schema_ids)
+        return entity, r
 
     def _get_materialized_path(self, wb_file):
         if 'materialized' not in wb_file.attributes:
             raise ValueError('Materialized path not defined')
         return wb_file.attributes['provider'] + wb_file.attributes['materialized']
 
-    def _create_file_metadata_entities(self, crate, path, file_path):
-        metadata = self.node.get_addon(SHORT_NAME)
+    def _create_project_entities(self, crate, entity_id, node, user_ids, extra_props=None):
+        props = {
+            '@type': 'RDMProject',
+            'name': node.title,
+            'description': node.description,
+            'category': node.category,
+            'dateCreated': _to_datetime(node.created),
+            'dateModified': _to_datetime(node.modified),
+            'creator': {
+                '@id': user_ids[node.creator._id],
+            },
+            'contributor': [
+                {
+                    '@id': user_ids[user._id],
+                }
+                for user in node.contributors.all()
+            ],
+            'keywords': [t.name for t in node.tags.all()],
+        }
+        if extra_props:
+            props.update(extra_props)
+        if not node.license:
+            return [
+                ContextEntity(crate, entity_id, properties=props),
+            ]
+        license_entity_id = node.license.license_id
+        license = ContextEntity(crate, license_entity_id, properties={
+            '@type': 'RDMLicense',
+            'name': node.license.name,
+            'description': node.license.text,
+            'url': node.license.url,
+            'rdmLicenseYear': node.license.year,
+            'rdmLicenseCopyrightHolders': node.license.copyright_holders,
+            'rdmLicenseProperties': list(node.license.node_license.properties),
+        })
+        props['license'] = {
+            '@id': license_entity_id,
+        }
+        return [
+            ContextEntity(crate, entity_id, properties=props),
+            license,
+        ]
+
+    def _create_project_metadata_entities(self, crate, node, draft_or_registration, node_ids, schema_ids, project_metadata_ids):
+        metadata_props, new_schema_ids = convert_project_metadata_to_json_ld_entities(draft_or_registration)
+        project_metadata_id = f'#project-metadata#{len(project_metadata_ids)}'
+        project_metadata_ids[draft_or_registration._id] = project_metadata_id
+        metadata_props.update({
+            'about': {
+                '@id': node_ids[node._id],
+            },
+        })
+        crate.add(ContextEntity(crate, project_metadata_id, properties=metadata_props))
+        for schema_id, schema_props in new_schema_ids.items():
+            if schema_id in schema_ids:
+                continue
+            schema_ids[schema_id] = schema_props
+            crate.add(ContextEntity(crate, schema_id, properties=schema_props))
+
+    def _create_file_metadata_entities(self, crate, node, path, file_path, schema_ids):
+        metadata = node.get_addon(SHORT_NAME)
         if metadata is None:
             return
         file_metadata = metadata.get_file_metadata_for_path(file_path, resolve_parent=False)
@@ -431,88 +503,208 @@ class BaseROCrateFactory(object):
         file_entity_id = path
         if not file_metadata['folder'] and file_entity_id.startswith('./'):
             file_entity_id = file_entity_id[2:]
-        for i, entity in enumerate(convert_metadata_to_json_ld_entities(file_metadata)):
+        file_metadata_props, new_schema_ids = convert_file_metadata_to_json_ld_entities(file_metadata)
+        for i, entity in enumerate(file_metadata_props):
             props = {
-                '@context': 'https://purl.org/rdm/file-metadata/0.1',
+                'dateCreated': file_metadata['created'],
+                'dateModified': file_metadata['modified'],
             }
             props.update(entity)
             props['about'] = {
                 '@id': file_entity_id,
             }
             crate.add(ContextEntity(crate, f'{file_entity_id}#{i}', properties=props))
+        for schema_id, schema_props in new_schema_ids.items():
+            if schema_id in schema_ids:
+                continue
+            schema_ids[schema_id] = schema_props
+            crate.add(ContextEntity(crate, schema_id, properties=schema_props))
 
-    def _create_comment_entities(self, crate, parent_id, comment, user_ids):
+    def _create_comment_entities(self, crate, about_id, reply_for_id, comment, user_ids, comment_ids):
         if self.include_users and comment.user._id not in user_ids:
-            self._create_contributor_entities(crate, comment.user, user_ids)
-        comment_id = f'#comment#{comment._id}'
-        r = [ContextEntity(crate, comment_id, properties={
+            crate.add(*self._create_contributor_entities(crate, comment.user, user_ids))
+        if comment._id in comment_ids:
+            # already added
+            return []
+        comment_id = f'#comment#{len(comment_ids)}'
+        comment_ids[comment._id] = comment_id
+        props = {
             '@type': 'Comment',
             'dateCreated': _to_datetime(comment.created),
             'dateModified': _to_datetime(comment.modified),
-            'parentItem': {
-                '@id': parent_id,
-            },
             'text': comment.content,
             'author': {
                 '@id': user_ids[comment.user._id]
             } if comment.user._id in user_ids else None
-        })]
+        }
+        if reply_for_id is not None:
+            props['parentItem'] = {
+                '@id': reply_for_id,
+            }
+        if about_id is not None:
+            props['about'] = {
+                '@id': about_id,
+            }
+        r = [ContextEntity(crate, comment_id, properties=props)]
         for reply in Comment.objects.filter(target___id=comment._id, deleted__isnull=True):
-            r += self._create_comment_entities(crate, comment_id, reply, user_ids)
+            r += self._create_comment_entities(crate, None, comment_id, reply, user_ids, comment_ids)
         return r
 
     def _create_creator_entities(self, crate, user, user_ids):
-        if user._id not in user_ids:
-            entity_id = f'#creator#{len(user_ids)}'
-            user_ids[user._id] = entity_id
-        else:
-            entity_id = user_ids[user._id]
-        return [
-            Person(crate, entity_id, properties={
-                'name': user.fullname,
-                'affiliation': [e.name for e in user.affiliated_institutions.all()],
-                'isReplacedBy': {
-                    '@id': f'{entity_id}.jpcoar',
-                }
-            }),
-            ContextEntity(crate, f'{entity_id}.jpcoar', properties={
-                '@context': self._get_jpcoar_context(),
-                '@type': 'Creator',
-                'jpcoar:creatorName': _to_localized(user, 'fullname'),
-                'jpcoar:givenName': _to_localized(user, 'given_name'),
-                'jpcoar:familyName': _to_localized(user, 'family_name'),
-                'jpcoar:affiliation': [{
-                    '@type': 'Affiliation',
-                    'jpcoar:affiliationName': _to_localized(e, 'name'),
-                } for e in user.affiliated_institutions.all()],
-            })
-        ]
+        if user._id in user_ids:
+            return []
+        entity_id = f'#creator{len(user_ids)}'
+        user_ids[user._id] = entity_id
+        return self._create_person_entities(crate, user, entity_id, user_ids)
 
     def _create_contributor_entities(self, crate, user, user_ids):
         if user._id in user_ids:
             return []
-        entity_id = f'#contributor#{len(user_ids)}'
+        entity_id = f'#contributor{len(user_ids)}'
         user_ids[user._id] = entity_id
-        return [
-            Person(crate, entity_id, properties={
-                'name': user.fullname,
-                'affiliation': [e.name for e in user.affiliated_institutions.all()],
-                'isReplacedBy': {
-                    '@id': f'{entity_id}.jpcoar',
-                }
-            }),
-            ContextEntity(crate, f'{entity_id}.jpcoar', properties={
-                '@context': self._get_jpcoar_context(),
-                '@type': 'Contributor',
-                'jpcoar:contributorName': _to_localized(user, 'fullname'),
-                'jpcoar:givenName': _to_localized(user, 'given_name'),
-                'jpcoar:familyName': _to_localized(user, 'family_name'),
-                'jpcoar:affiliation': [{
-                    '@type': 'Affiliation',
-                    'jpcoar:affiliationName': _to_localized(e, 'name'),
-                } for e in user.affiliated_institutions.all()],
+        return self._create_person_entities(crate, user, entity_id, user_ids)
+
+    def _create_person_entities(self, crate, user, entity_id, user_ids):
+        person_props = {
+            'name': user.fullname,
+            'givenName': _to_localized(user, 'given_name'),
+            'familyName': _to_localized(user, 'family_name'),
+            'identifier': _to_identifier(user),
+        }
+        current_jobs = [j for j in user.jobs if j['ongoing']]
+        current_schools = [s for s in user.schools if s['ongoing']]
+        affiliation = None
+        if len(current_jobs) > 0:
+            person_props['jobTitle'] = current_jobs[0]['title']
+            affiliation = current_jobs[0]
+        elif len(current_schools) > 0:
+            person_props['jobTitle'] = current_schools[0]['degree']
+            affiliation = current_schools[0]
+        if affiliation is None:
+            return [
+                Person(crate, entity_id, properties=person_props),
+            ]
+        institution_id = f'#{affiliation["institution"] or affiliation["institution_ja"]}'
+        if affiliation['department'] or affiliation['department_ja']:
+            organization_id = f'{institution_id}#{affiliation["department"] or affiliation["department_ja"]}'
+        else:
+            organization_id = institution_id
+        if organization_id in user_ids:
+            return [
+                Person(crate, entity_id, properties=person_props),
+            ]
+        user_ids[institution_id] = affiliation
+        user_ids[organization_id] = affiliation
+        person_props['affiliation'] = {
+            '@id': organization_id,
+        }
+        institution_name = []
+        if affiliation['institution']:
+            institution_name.append({
+                '@language': 'en',
+                '@value': affiliation['institution'],
             })
+        if affiliation['institution_ja']:
+            institution_name.append({
+                '@language': 'ja',
+                '@value': affiliation['institution_ja'],
+            })
+        institution_props = {
+            '@type': 'Organization',
+            'name': institution_name,
+        }
+        if not (affiliation['department'] or affiliation['department_ja']):
+            return [
+                Person(crate, entity_id, properties=person_props),
+                ContextEntity(crate, institution_id, properties=institution_props),
+            ]
+        department_name = []
+        if affiliation['department']:
+            department_name.append({
+                '@language': 'en',
+                '@value': affiliation['department'],
+            })
+        if affiliation['department_ja']:
+            department_name.append({
+                '@language': 'ja',
+                '@value': affiliation['department_ja'],
+            })
+        department = ContextEntity(crate, organization_id, properties={
+            '@type': 'Organization',
+            'name': department_name,
+        })
+        institution_props['department'] = {
+            '@id': organization_id,
+        }
+        return [
+            Person(crate, entity_id, properties=person_props),
+            department,
+            ContextEntity(crate, institution_id, properties=institution_props),
         ]
+
+    def _create_log_entity(self, crate, log, user_ids, action_ids):
+        if log._id in action_ids:
+            # already added
+            return None
+        action_id = f'#action#{len(action_ids)}'
+        action_ids[log._id] = action_id
+        return ContextEntity(crate, action_id, properties={
+            '@type': 'Action',
+            'name': log.action,
+            'startTime': _to_datetime(log.date),
+            'agent': {
+                '@id': user_ids[log.user._id]
+            } if log.user is not None and log.user._id in user_ids else None,
+        })
+
+    def _create_addon_entity(self, crate, node_id, addon, extra_props=None):
+        props = {
+            '@type': 'RDMAddon',
+            'name': addon.config.short_name,
+            'description': addon.config.full_name,
+            'about': {
+                '@id': node_id,
+            },
+        }
+        if hasattr(addon, 'folder_id'):
+            props['rdmFolderId'] = addon.folder_id
+        if extra_props is not None:
+            props.update(extra_props)
+        return ContextEntity(crate, f'{node_id}-{addon.config.short_name}', properties=props)
+
+    def _create_wiki_entities(self, crate, base_path, wiki, user_ids, comment_ids):
+        r = []
+        path = os.path.join(base_path, wiki.page_name)
+        comments = []
+        creator = None
+        latest = wiki.get_version()
+        if latest is not None:
+            creator = latest.user
+        if self.include_users and creator._id not in user_ids:
+            crate.add(*self._create_contributor_entities(crate, creator, user_ids))
+        comments = sum([
+            self._create_comment_entities(crate, path, None, c, user_ids, comment_ids)
+            for c in Comment.objects.filter(root_target=Guid.load(wiki._id), deleted__isnull=True)
+        ], [])
+        first = wiki.versions.order_by('created').first()
+        created = first.created if first is not None else None
+        modified = latest.created if latest is not None else None
+        r.append((path, WikiFile(wiki), comments))
+        props = {
+            'name': wiki.page_name,
+            'encodingFormat': 'text/markdown',
+            'contentSize': str(len(latest.content)) if latest is not None else None,
+            'dateModified': modified.isoformat() if modified else None,
+            'dateCreated': created.isoformat() if created else None,
+        }
+        if latest is not None:
+            props['version'] = latest.identifier
+        if creator is not None and creator._id in user_ids:
+            props['creator'] = {
+                '@id': user_ids[creator._id],
+            }
+        crate.add_file(path, dest_path=path, properties=props)
+        return r
 
 class WikiFile(object):
     def __init__(self, wiki):
@@ -532,105 +724,11 @@ class ROCrateFactory(BaseROCrateFactory):
         self.wb = wb
         self.config = config
 
-    def _create_log_entity(self, crate, log, user_ids):
-        return ContextEntity(crate, log._id, properties={
-            '@type': 'Action',
-            'name': log.action,
-            'startTime': _to_datetime(log.date),
-            'agent': {
-                '@id': user_ids[log.user._id]
-            } if log.user is not None and log.user._id in user_ids else None,
-            'object': {
-                '@value': json.dumps(log.params),
-            },
-        })
-
-    def _create_comment_entities(self, crate, parent_id, comment, user_ids):
+    def _create_comment_entities(self, crate, parent_id, reply_for_id, comment, user_ids, comment_ids):
         comment_config = self.config.get('comment', {})
         if not comment_config.get('enable', True):
             return []
-        return super()._create_comment_entities(crate, parent_id, comment, user_ids)
-
-    def _create_project_entities(self, crate, entity_id, node, extra_props=None):
-        props = {
-            '@type': 'CreativeWork',
-            'name': node.title,
-            'description': node.description,
-            'dateCreated': _to_datetime(node.created),
-            'dateModified': _to_datetime(node.modified),
-            'isReplacedBy': {
-                '@id': f'{entity_id}.jpcoar',
-            },
-            'keywords': [t.name for t in node.tags.all()],
-        }
-        if extra_props:
-            props.update(extra_props)
-        custom_props = {
-            '@context': self._get_jpcoar_context(),
-            '@type': 'Project',
-            'dc:title': [
-                {
-                    '@value': node.title,
-                },
-            ],
-            'datacite:description': {
-                '@type': 'Description',
-                'type': 'Other',
-                'notation': [
-                    {
-                        '@value': node.description,
-                    },
-                ]
-            },
-            'createdAt': _to_date(node.created),
-            'modifiedAt': _to_date(node.modified),
-            'jpcoar:affiliation': [{
-                '@type': 'Affiliation',
-                'jpcoar:affiliationName': _to_localized(e, 'name', default_lang=None),
-            } for e in node.affiliated_institutions.all()],
-        }
-        if node.license:
-            custom_props.update({
-                'dc:rights': ([{
-                    '@id': node.license.url,
-                }] if node.license.url else []) + ([{
-                    '@value': fill_license_params(node.license.text, node.node_license),
-                }] if node.license.text else []),
-            })
-        return [
-            ContextEntity(crate, entity_id, properties=props),
-            ContextEntity(crate, f'{entity_id}.jpcoar', properties=custom_props)
-        ]
-
-    def _create_wiki_entities(self, crate, base_path, wiki, user_ids):
-        r = []
-        path = os.path.join(base_path, wiki.page_name)
-        comments = []
-        creator = None
-        latest = wiki.get_version()
-        if latest is not None:
-            creator = latest.user
-        if self.include_users and creator._id not in user_ids:
-            self._create_contributor_entities(crate, creator, user_ids)
-        comments = sum([
-            self._create_comment_entities(crate, path, c, user_ids)
-            for c in Comment.objects.filter(root_target=Guid.load(wiki._id), deleted__isnull=True)
-        ], [])
-        first = wiki.versions.order_by('created').first()
-        created = first.created if first is not None else None
-        modified = latest.created if latest is not None else None
-        r.append((path, WikiFile(wiki), comments))
-        props = {
-            'name': wiki.page_name,
-            'encodingFormat': 'text/markdown',
-            'contentSize': str(len(latest.content)) if latest is not None else None,
-            'dateModified': modified.isoformat() if modified else None,
-            'dateCreated': created.isoformat() if created else None,
-        }
-        if creator is not None and creator._id in user_ids:
-            props['creator'] = user_ids[creator._id]
-        crate.add_file(path, dest_path=path, properties=props)
-        return r
+        return super()._create_comment_entities(crate, parent_id, reply_for_id, comment, user_ids, comment_ids)
 
     def _is_file_archivable(self, wb_file):
         provider = wb_file.attributes['provider']
@@ -651,54 +749,173 @@ class ROCrateFactory(BaseROCrateFactory):
             return True
         return files[0].get('enable', False)
 
-    def _build_ro_crate(self, crate):
-        for project in self._create_project_entities(crate, '#root', self.node, extra_props={
-            'hasPart': {
-                '@id': './',
-            },
-        }):
-            crate.add(project)
-
-        user_ids = {}
-        crate.add(*self._create_creator_entities(crate, self.node.creator, user_ids))
-        crate.add(*sum([self._create_contributor_entities(crate, user, user_ids) for user in self.node.contributors.all()], []))
-
-        crate.add(*sum([
-            self._create_comment_entities(crate, '#root', comment, user_ids)
-            for comment in Comment.objects.filter(root_target=Guid.load(self.node._id), deleted__isnull=True)
-        ], []))
-
+    def _create_project_related_entities(
+        self, crate, base_file_prefix, node,
+        user_ids, node_ids, schema_ids, comment_ids, action_ids, project_metadata_ids,
+        extra_props=None,
+    ):
+        entity_id = node_ids[node._id]
+        file_prefix = f'{base_file_prefix}{entity_id[1:]}/'
+        # child nodes
+        child_entities = []
+        child_files = []
+        for child in node.nodes:
+            if child._id in node_ids:
+                continue
+            node_ids[child._id] = f'#node{len(node_ids)}'
+            child_entities_, child_files_ = self._create_project_related_entities(
+                crate, base_file_prefix, child,
+                user_ids, node_ids, schema_ids, comment_ids, action_ids, project_metadata_ids,
+            )
+            child_entities += child_entities_
+            child_files += child_files_
+        # project for this node
+        node_extra_props = {
+            'hasPart': [
+                {
+                    '@id': node_ids[child._id],
+                }
+                for child in node.nodes
+            ],
+        }
+        if extra_props:
+            node_extra_props.update(extra_props)
+        entities = []
+        entities += self._create_project_entities(
+            crate,
+            entity_id,
+            node,
+            user_ids,
+            extra_props=node_extra_props,
+        )
+        entities += sum([
+            self._create_comment_entities(crate, entity_id, None, comment, user_ids, comment_ids)
+            for comment in Comment.objects.filter(root_target=Guid.load(node._id), deleted__isnull=True)
+        ], [])
         files = []
+        # addons
+        wb = self.wb.get_client_for_node(node)
         addons_config = self.config.get('addons', {})
         for addon_app in website_settings.ADDONS_AVAILABLE:
             addon_name = addon_app.short_name
-            if addon_name in addons_config and not addons_config[addon_name].get('enable', True):
-                logger.info(f'Skipped {addon_name}')
+            if addon_name == 'wiki':
+                # wiki is handled separately
                 continue
-            addon = self.node.get_addon(addon_name)
+            addon = node.get_addon(addon_name)
             if addon is None:
                 continue
-            if not hasattr(addon, 'serialize_waterbutler_credentials'):
+            if addon_name in addons_config and not addons_config[addon_name].get('enable', True):
+                logger.info(f'Skipped {addon_name}')
+                crate.add(self._create_addon_entity(
+                    crate,
+                    entity_id,
+                    addon,
+                ))
                 continue
-            # TBD: addons
-            if not addon.complete:
+            if not (hasattr(addon, 'serialize_waterbutler_credentials') and addon.complete):
+                crate.add(self._create_addon_entity(
+                    crate,
+                    entity_id,
+                    addon,
+                ))
                 continue
-            logger.debug(f'ADDON(STORAGE): {addon_name}')
-            for file in self.wb.get_root_files(addon_name):
-                files += self._create_file_entities(crate, f'./{addon_name}', file, user_ids)
-
-        # TBD: child nodes
-
-        for wiki in self.node.wikis.filter(deleted__isnull=True):
-            files += self._create_wiki_entities(crate, './wiki/', wiki, user_ids)
-
+            provider_files = []
+            for file in wb.get_root_files(addon_name):
+                entity, children = self._create_file_entities(crate, node, f'{file_prefix}{addon_name}', file, user_ids, schema_ids, comment_ids)
+                if entity is None:
+                    # skip unarchivable file
+                    continue
+                files += children
+                provider_files.append(entity)
+            crate.add(self._create_addon_entity(
+                crate,
+                entity_id,
+                addon,
+                extra_props={
+                    'hasPart': [
+                        {
+                            '@id': entity.id,
+                        }
+                        for entity in provider_files
+                    ],
+                },
+            ))
+        # project metadata
+        drafts = DraftRegistration.objects.filter(branched_from=node)
+        for draft in drafts.all():
+            self._create_project_metadata_entities(crate, node, draft, node_ids, schema_ids, project_metadata_ids)
+        registrations = Registration.objects.filter(registered_from=node)
+        for registration in registrations.all():
+            self._create_project_metadata_entities(crate, node, registration, node_ids, schema_ids, project_metadata_ids)
+        # related entities
+        wiki_config = self.config.get('wiki', {})
+        if wiki_config.get('enable', True):
+            wikis = []
+            for wiki in node.wikis.filter(deleted__isnull=True):
+                wikis += self._create_wiki_entities(crate, f'{file_prefix}wiki/', wiki, user_ids, comment_ids)
+            crate.add(self._create_addon_entity(
+                crate,
+                entity_id,
+                node.get_addon('wiki'),
+                extra_props={
+                    'hasPart': [
+                        {
+                            '@id': path[2:] if path.startswith('./') else path,
+                        }
+                        for path, _, _ in wikis
+                    ],
+                },
+            ))
+            files += wikis
         log_config = self.config.get('log', {})
         if log_config.get('enable', True):
-            for log in self.node.logs.all():
-                crate.add(self._create_log_entity(crate, log, user_ids))
-
+            for log in node.logs.all():
+                entity = self._create_log_entity(crate, log, user_ids, action_ids)
+                if entity is None:
+                    continue
+                entities.append(entity)
         for _, _, comments in files:
-            crate.add(*comments)
+            entities += comments
+        return entities + child_entities, files + child_files
+
+    def _build_ro_crate(self, crate):
+        user_ids = {}
+        files = []
+        creators = []
+        contributors = []
+        for node in [self.node] + list(self.node.get_descendants_recursive()):
+            creators += self._create_creator_entities(crate, node.creator, user_ids)
+            contributors += sum(
+                [self._create_contributor_entities(crate, user, user_ids) for user in node.contributors.all()],
+                [],
+            )
+        node_ids = {
+            self.node._id: '#root',
+        }
+        schema_ids = {}
+        comment_ids = {}
+        action_ids = {}
+        project_metadata_ids = {}
+        project_entities, project_files = self._create_project_related_entities(
+            crate,
+            './',
+            self.node,
+            user_ids,
+            node_ids,
+            schema_ids,
+            comment_ids,
+            action_ids,
+            project_metadata_ids,
+            extra_props={
+                'about': {
+                    '@id': './',
+                },
+            },
+        )
+        crate.add(*project_entities)
+        files += project_files
+        crate.add(*creators)
+        crate.add(*contributors)
         return crate, files
 
 class ROCrateExtractor(object):
@@ -709,42 +926,112 @@ class ROCrateExtractor(object):
         self.work_dir = work_dir
         self.zip_path = None
         self._crate = None
+        self.related_nodes = {}
 
-    def ensure_node(self, node):
-        node.description = self._extract_description()
+    def ensure_node(self, node, node_id='#root'):
+        self.related_nodes[node_id] = node
+        entity = self.crate.get(node_id)
+        node.description = self._extract_description(node_id)
+        if 'category' in entity.properties():
+            node.category = entity.properties()['category']
+
         # tags
-        for keyword in self.crate.get('#root').properties().get('keywords', []):
+        for keyword in self.crate.get(node_id).properties().get('keywords', []):
             self._ensure_tag(node, keyword)
 
-        # TBD: restore addons
-        # TBD: child nodes
+        # restore addons
+        for addon in self._find_related_entities(node_id, lambda e: e.type == 'RDMAddon'):
+            self._ensure_addon(node, addon)
+
+        # child nodes
+        children = entity.properties().get('hasPart', [])
+        for child_ref in children:
+            child_id = child_ref['@id']
+            child_node = self._create_child_node(node, self.crate.get(child_id))
+            self.ensure_node(child_node, node_id=child_id)
 
         node.save()
 
-    def ensure_folders(self, node, wb, path):
-        assert path.startswith('./'), path
-        folders = [
-            e
-            for e in self.crate.data_entities
-            if e.type == 'Folder' and e.id.startswith(path) and re.match(r'^[^/]+\/$', e.id[len(path):])
-        ]
-        for e in folders:
-            props = e.properties()
-            name = _extract_value(props['name'])
-            wb.get_file_by_materialized_path(f'{path[2:]}{name}/', create=True)
-            self._ensure_file_metadata(node, e, f'{path[2:]}{name}/')
-            self.ensure_folders(node, wb, f'{path}{name}/')
+    def _create_child_node(self, node, child):
+        title = self._extract_title(child.id)
+        auth = Auth(user=node.creator)
+        serializer = NodeSerializer(context={
+            'request': RequestWrapper(auth),
+        })
+        return serializer.create({
+            'title': title,
+            'category': 'project',
+            'creator': auth.user,
+            'parent': node,
+        })
 
-    def _extract_description(self):
+    def _ensure_addon(self, node, addon):
+        addon_name = addon.properties()['name']
+        addon_object = node.get_addon(addon_name)
+        if addon_object is None:
+            addon_object = node.add_addon(addon_name, auth=Auth(user=self.user), log=False)
+        # TBD: restore addon settings
+
+    def ensure_folders(self, wb):
+        addons = [
+            e
+            for e in self.crate.get_entities()
+            if e.type == 'RDMAddon'
+        ]
+        for addon_entity in addons:
+            node = self.related_nodes[addon_entity.properties()['about']['@id']]
+            addon_name = addon_entity.properties()['name']
+            for part in addon_entity.properties().get('hasPart', []):
+                file = self._crate.get(part['@id'])
+                if file.type != 'RDMFolder':
+                    continue
+                self._ensure_folders(
+                    wb,
+                    node,
+                    f'{addon_name}/',
+                    file,
+                )
+
+    def _ensure_folders(self, wb, node, base_path, folder):
+        path = os.path.join(base_path, folder.properties()['name']) + '/'
+        logger.info(f'Ensuring folders: {path}')
+        wb.get_client_for_node(node).get_file_by_materialized_path(path, create=True)
+        self._ensure_file_metadata(node, folder, path)
+        for part in folder.properties().get('hasPart', []):
+            file = self._crate.get(part['@id'])
+            if file.type != 'RDMFolder':
+                continue
+            self._ensure_folders(
+                wb,
+                node,
+                path,
+                file,
+            )
+
+    def _find_related_entities(self, about_id, filter):
+        return [
+            e
+            for e in self.crate.get_entities()
+            if e.properties().get('about', {}).get('@id', None) == about_id and
+            filter(e)
+        ]
+
+    def _extract_description(self, node_id):
         crate = self.crate
-        value = _extract_default_or_jpcoar_value(
+        value = _extract_ro_crate_value(
             crate,
-            crate.get('#root'),
+            crate.get(node_id),
             'description',
-            'datacite:description',
         )
-        if isinstance(value, dict) and value.get('@type') == 'Description':
-            return _extract_datacite_description(value)
+        return _extract_value(value)
+
+    def _extract_title(self, node_id):
+        crate = self.crate
+        value = _extract_ro_crate_value(
+            crate,
+            crate.get(node_id),
+            'name',
+        )
         return _extract_value(value)
 
     @property
@@ -758,20 +1045,23 @@ class ROCrateExtractor(object):
     def file_extractors(self):
         with ZipFile(self.zip_path, 'r') as zf:
             for i, file_name in enumerate(zf.namelist()):
-                provider = file_name.split('/')[0]
-                if provider not in ['osfstorage', 'wiki']:
-                    # Skip data
+                file = self.crate.get(file_name)
+                if file.type == 'CreativeWork':
+                    # ro-crate-metadata.json does not need to be restored
                     continue
                 logger.info(f'Restoring... {file_name}')
-                if provider == 'wiki':
+                archive_path = os.path.join(*[e.properties()['name'] for e in self._get_path_for_file(file_name)])
+                addon = self._find_addon_for_file(file_name)
+                if addon.config.short_name == 'wiki':
                     data_buf = io.BytesIO()
                     with zf.open(file_name, 'r') as sf:
                         shutil.copyfileobj(sf, data_buf)
                     data_buf.seek(0)
                     yield WikiExtractor(
                         self,
-                        self.crate.get(file_name),
-                        file_name,
+                        file,
+                        addon,
+                        archive_path,
                         data_buf,
                     )
                     continue
@@ -781,10 +1071,52 @@ class ROCrateExtractor(object):
                         shutil.copyfileobj(sf, df)
                 yield FileExtractor(
                     self,
-                    self.crate.get(file_name),
-                    file_name,
+                    file,
+                    addon,
+                    archive_path,
                     data_path,
                 )
+
+    def _find_parent_entities_for_file(self, file_path):
+        return [
+            e
+            for e in self.crate.get_entities()
+            if file_path in [part.get('@id', None) for part in e.properties().get('hasPart', [])]
+        ]
+
+    def _find_addon_for_file(self, file_path):
+        parents = self._find_parent_entities_for_file(file_path)
+        if len(parents) == 0:
+            raise ValueError(f'No parent entities for {file_path}')
+        parents = [e for e in parents if e.type.startswith('RDM')]
+        if len(parents) == 0:
+            raise ValueError(f'No parent RDM entities for {file_path}')
+        parent = parents[0]
+        if parent.type == 'RDMFolder':
+            return self._find_addon_for_file(parent.id)
+        if parent.type != 'RDMAddon':
+            raise ValueError(f'Unexpected parent type: {parent.type}')
+        node_id = parent.properties()['about']['@id']
+        node = self.related_nodes[node_id]
+        return node.get_addon(parent.properties()['name'])
+
+    def _get_path_for_file(self, file_path):
+        file = self.crate.get(file_path)
+        return self._get_parent_path_for_file(file_path) + [file]
+
+    def _get_parent_path_for_file(self, file_path):
+        parents = self._find_parent_entities_for_file(file_path)
+        if len(parents) == 0:
+            raise ValueError(f'No parent entities for {file_path}')
+        parents = [e for e in parents if e.type.startswith('RDM')]
+        if len(parents) == 0:
+            raise ValueError(f'No parent RDM entities for {file_path}')
+        parent = parents[0]
+        if parent.type == 'RDMAddon':
+            return [parent]
+        if parent.type != 'RDMFolder':
+            raise ValueError(f'Unexpected parent type: {parent.type}')
+        return self._get_parent_path_for_file(parent.id) + [parent]
 
     def _load_ro_crate(self):
         self.zip_path = os.path.join(self.work_dir, 'package.zip')
@@ -813,21 +1145,20 @@ class ROCrateExtractor(object):
         node.add_tags([keyword], auth=Auth(user=self.user), log=False)
 
     def _ensure_file_metadata(self, node, entity, file_path):
-        entity_id = entity.properties()['@id']
         metadata_entities = [
             e
             for e in self.crate.get_entities()
-            if e.properties().get('about', {}).get('@id', None) == entity_id and
-            e.properties()['@type'] == 'FileMetadata'
+            if e.properties().get('about', {}).get('@id', None) == entity.id and
+            e.type == 'RDMFileMetadata'
         ]
         if len(metadata_entities) == 0:
             return
-        logger.info(f'Metadata for {entity_id} = {metadata_entities}')
+        logger.debug(f'Metadata for {entity.id}({file_path}) = {metadata_entities}')
         metadata_addon = node.get_addon(SHORT_NAME)
         if metadata_addon is None:
             return
         items = [
-            convert_json_ld_entity_to_metadata_item(e.properties())
+            convert_json_ld_entity_to_file_metadata_item(e.properties(), self._crate)
             for e in metadata_entities
         ]
         metadata_addon.set_file_metadata(file_path, {
@@ -837,44 +1168,59 @@ class ROCrateExtractor(object):
             'items': [i for i in items if i is not None],
         })
 
-class FileExtractor(object):
-    def __init__(self, owner, entity, file_path, data_path):
+class BaseExtractor(object):
+    def __init__(self, owner, entity, addon):
         self.owner = owner
         self.entity = entity
+        self.addon = addon
+
+    @property
+    def node(self):
+        return self.addon.owner
+
+    def extract(self, wb):
+        raise NotImplementedError()
+
+
+class FileExtractor(BaseExtractor):
+    def __init__(self, owner, entity, addon, file_path, data_path):
+        super(FileExtractor, self).__init__(owner, entity, addon)
         self.file_path = file_path
         self.data_path = data_path
 
-    def extract(self, node, wb):
+    def extract(self, wb_client):
+        wb = wb_client.get_client_for_node(self.node)
         folder_name, file_name_ = os.path.split(self.file_path)
         file = wb.get_file_by_materialized_path(folder_name + '/')
         if file is None:
             raise IOError(f'No such directory: {folder_name}/')
         new_file = file.upload_file(self.data_path, file_name_)
         os.remove(self.data_path)
-        file_node = _as_web_file(node, new_file)
+        file_node = _as_web_file(self.node, new_file)
         self._ensure_metadata(file_node)
-        self.owner._ensure_file_metadata(node, self.entity, self.file_path)
+        self.owner._ensure_file_metadata(self.node, self.entity, self.file_path)
 
     def _ensure_metadata(self, file_node):
         for keyword in self.entity.properties().get('keywords', []):
             self.owner._ensure_tag(file_node, keyword)
         file_node.save()
 
-class WikiExtractor(object):
-    def __init__(self, owner, entity, file_path, data_buf):
-        self.owner = owner
-        self.entity = entity
+
+class WikiExtractor(BaseExtractor):
+    def __init__(self, owner, entity, addon, file_path, data_buf):
+        super(WikiExtractor, self).__init__(owner, entity, addon)
         self.file_path = file_path
         self.data_buf = data_buf
 
-    def extract(self, node, wb):
+    def extract(self, wb):
         wiki_name = self.entity.properties()['name']
         WikiPage.objects.create_for_node(
-            node,
+            self.node,
             wiki_name,
             self.data_buf.getvalue().decode('utf8'),
             Auth(user=self.owner.user),
         )
+
 
 def start_importing(auth, title):
     serializer = NodeSerializer(context={
@@ -970,35 +1316,43 @@ def _extract_value(value):
     assert isinstance(value, list), value
     return _extract_value(value[0])
 
-def _extract_default_or_jpcoar_value(crate, entity, default_param, jpcoar_param):
-    ref = entity.properties().get('isReplacedBy', None)
-    if ref is not None and '@id' in ref:
-        logger.debug(f'Alternative entity: {ref}')
-        ref_entity = crate.get(ref['@id'])
-        if jpcoar_param in ref_entity.properties():
-            return ref_entity.properties()[jpcoar_param]
-    return entity.properties()[default_param]
+def _extract_ro_crate_value(crate, entity, param):
+    return entity.properties()[param]
 
-def _extract_title(crate):
-    value = _extract_default_or_jpcoar_value(
-        crate,
-        crate.get('#root'),
-        'name',
-        'dc:title',
-    )
-    return _extract_value(value)
-
-def _extract_datacite_description(value):
-    notation = value['notation']
-    return _extract_value(notation)
+def _to_identifier(user):
+    values = []
+    if user.erad:
+        values.append({
+            '@type': 'PropertyValue',
+            'propertyID': 'e-Rad_Researcher',
+            'value': user.erad,
+        })
+    social = user.social
+    for k, v in user.SOCIAL_FIELDS.items():
+        if k not in social:
+            continue
+        value = social[k]
+        if not value:
+            continue
+        if v:
+            if isinstance(value, list):
+                value = [v.format(v_) for v_ in value]
+            else:
+                value = v.format(value)
+        values.append({
+            '@type': 'PropertyValue',
+            'propertyID': k,
+            'value': value,
+        })
+    return values
 
 @celery_app.task(bind=True, max_retries=3)
 def export_project(self, user_id, node_id, config):
     user = OSFUser.load(user_id)
     node = AbstractNode.load(node_id)
-    wb = WaterButlerClient(user, node)
+    wb = WaterButlerClient(user)
     metadata_addon = node.get_addon(SHORT_NAME)
-    schema_id = RegistrationSchema.objects.get(name=weko_settings.REGISTRATION_SCHEMA_NAME)._id
+    schema_id = RegistrationSchema.objects.get(name=weko_settings.DEFAULT_REGISTRATION_SCHEMA_NAME)._id
     logger.info(f'Exporting: {node_id}')
     self.update_state(state='exporting node', meta={
         'progress': 0,
@@ -1012,24 +1366,16 @@ def export_project(self, user_id, node_id, config):
         rocrate.download_to(zip_path)
         now = datetime.now().strftime('%Y%m%d-%H%M%S')
         file_name_ = f'.rdm-project-{now}.zip'
-        folder_name = 'weko'
-        uploaded = wb.upload_root_file(zip_path, file_name_, folder_name)
+        provider_name = config['destination']['provider']
+        uploaded = wb.get_client_for_node(node).upload_root_file(zip_path, file_name_, provider_name)
         default_data = {
-            'grdm-file:pubdate': to_metadata_value(datetime.now().date().isoformat()),
-            'grdm-file:Title.ja': to_metadata_value(node.title),
-            'grdm-file:Description Abstract.ja': to_metadata_value(node.description),
-            'grdm-file:Creator': to_metadata_value(to_creators_json([user] if user is not None else [])),
-            'grdm-file:resourcetype': to_metadata_value('dataset'),
+            'grdm-file:title-ja': to_metadata_value(node.title),
+            'grdm-file:description-ja': to_metadata_value(node.description),
+            'grdm-file:creators': to_metadata_value(to_creators_json([user] if user is not None else [])),
+            'grdm-file:grdm-file:data-type': to_metadata_value('dataset'),
         }
-        if node.license:
-            default_data.update({
-                'grdm-file:Rights Resource': to_metadata_value(node.license.url),
-                'grdm-file:Rights Description': to_metadata_value(
-                    fill_license_params(node.license.text, node.node_license)
-                ),
-            })
         metadata = {
-            'path': f'weko/{file_name_}',
+            'path': f'{provider_name}/{file_name_}',
             'folder': False,
             'hash': '',
             'items': [
@@ -1063,7 +1409,7 @@ def export_project(self, user_id, node_id, config):
 def import_project(self, url, user_id, node_id):
     user = OSFUser.load(user_id)
     node = AbstractNode.load(node_id)
-    wb = WaterButlerClient(user, node)
+    wb = WaterButlerClient(user)
     work_dir = tempfile.mkdtemp()
     logger.info(f'Importing: {url} -> {node_id}, {work_dir}')
     self.update_state(state='provisioning node', meta={
@@ -1081,14 +1427,14 @@ def import_project(self, url, user_id, node_id):
             'user': user_id,
             'node': node_id,
         })
-        extractor.ensure_folders(node, wb, './osfstorage/')
+        extractor.ensure_folders(wb)
         self.update_state(state='provisioning files', meta={
             'progress': 50,
             'user': user_id,
             'node': node_id,
         })
         for file_extractor in extractor.file_extractors:
-            file_extractor.extract(node, wb)
+            file_extractor.extract(wb)
         self.update_state(state='finished', meta={
             'progress': 100,
             'user': user_id,
@@ -1120,10 +1466,10 @@ def get_task_result(auth, task_id):
             info['node_url'] = node.web_url_for('view_project')
             if 'file' in result.info:
                 file = result.info['file']['data']
-                materialized = file['materialized'].lstrip('/')
+                path = file['path'].lstrip('/')
                 provider = file['provider']
                 file_url = node.web_url_for('addon_view_or_download_file',
-                                            path=materialized, provider=provider)
+                                            path=path, provider=provider)
                 info['file_url'] = file_url
     return {
         'state': result.state,

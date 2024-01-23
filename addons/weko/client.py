@@ -161,6 +161,7 @@ class Item(object):
         v = self._metadata['title']
         if isinstance(v, str):
             return v
+        # TBD waterbutler: 順番は登録順に依存する。jaかenを返すように固定したい
         return v[0]
 
     @property

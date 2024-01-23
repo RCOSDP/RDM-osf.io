@@ -17,6 +17,12 @@ class TestWEKOUtils(OsfTestCase):
     def test_validate_success(self):
         d = r'''
 {
+    "@metadata": {
+        "itemtype": {
+            "name": "デフォルトアイテムタイプ（フル）(15)",
+            "schema": "https://localhost:8443/items/jsonschema/15"
+        }
+    },
     "funder": {
         "@type": "string",
         "@createIf": "{{value}}",
@@ -305,6 +311,12 @@ class TestWEKOUtils(OsfTestCase):
     def test_validate_failure(self):
         d = r'''
 {
+    "@metadata": {
+        "itemtype": {
+            "name": "デフォルトアイテムタイプ（フル）(15)",
+            "schema": "https://localhost:8443/items/jsonschema/15"
+        }
+    },
     "funder": {
         "@type": "string",
         "@skipIf": "{{value}}",
@@ -324,6 +336,12 @@ class TestWEKOUtils(OsfTestCase):
 
         d = r'''
 {
+    "@metadata": {
+        "itemtype": {
+            "name": "デフォルトアイテムタイプ（フル）(15)",
+            "schema": "https://localhost:8443/items/jsonschema/15"
+        }
+    },
     "funder": {
         "@type": "string",
         "@createIf": "{{value}}",

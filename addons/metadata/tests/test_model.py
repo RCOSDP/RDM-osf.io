@@ -10,6 +10,7 @@ from osf_tests.factories import ProjectFactory
 from framework.auth import Auth
 from ..models import NodeSettings, FileMetadata
 from .factories import NodeSettingsFactory
+from .utils import remove_fields
 
 
 pytestmark = pytest.mark.django_db
@@ -143,7 +144,10 @@ class TestNodeSettings(unittest.TestCase):
             ],
         }
         assert_equal(
-            self.node_settings.get_file_metadata_for_path('osfstorage/'),
+            remove_fields(
+                self.node_settings.get_file_metadata_for_path('osfstorage/'),
+                fields=['modified', 'created'],
+            ),
             metadata
         )
         assert_equal(self.node_settings.get_file_metadatas(), [metadata])
@@ -186,7 +190,10 @@ class TestNodeSettings(unittest.TestCase):
             ],
         }
         assert_equal(
-            self.node_settings.get_file_metadata_for_path('osfstorage/'),
+            remove_fields(
+                self.node_settings.get_file_metadata_for_path('osfstorage/'),
+                fields=['modified', 'created'],
+            ),
             metadata
         )
         assert_equal(metadatas, [metadata])
@@ -244,9 +251,14 @@ class TestNodeSettings(unittest.TestCase):
             ],
         }
         assert_equal(
-            self.node_settings.get_file_metadata_for_path('osfstorage/'),
-            metadata
+            remove_fields(
+                self.node_settings.get_file_metadata_for_path('osfstorage/'),
+                fields=['modified', 'created'],
+            ),
+            metadata,
         )
+        assert_true('modified' in self.node_settings.get_file_metadata_for_path('osfstorage/'))
+        assert_true('created' in self.node_settings.get_file_metadata_for_path('osfstorage/'))
         assert_equal(metadatas, [metadata])
         last_log = self.node.logs.latest()
         assert_equal(last_log.action, 'metadata_file_updated')

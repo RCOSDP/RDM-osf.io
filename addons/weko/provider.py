@@ -202,6 +202,8 @@ class WEKOProvider(ExternalProvider):
                 code=request.args.get('code'),
             )
         except (MissingTokenError, RequestsHTTPError):
+            # Error messages are not output to the logger according to
+            # the policy of ExternalProvider.auth_callback in osf.models.external
             raise HTTPError(http_status.HTTP_503_SERVICE_UNAVAILABLE)
         # pre-set as many values as possible for the ``ExternalAccount``
         info = self._default_handle_callback(response)

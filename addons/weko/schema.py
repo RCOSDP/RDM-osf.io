@@ -31,6 +31,8 @@ def _generate_file_columns(index, download_file_name, download_file_type):
     columns.append((f'{base_item}.filename', f'{base_file}.表示名', '', 'Allow Multiple', download_file_name))
     if download_file_type is not None:
         columns.append((f'{base_item}.format', f'{base_file}.フォーマット', '', 'Allow Multiple', download_file_type))
+    # TBD サムネイル？
+    # TBD Content-Type調整？デフォルトストレージはContent-Typeを供給しないので application/octet-streamだったら拡張子から推定するとか
     return columns
 
 def _get_metadata_value(file_metadata_data, item, lang, index):
@@ -233,13 +235,22 @@ def _resolve_array_index(weko_key_counts, key):
 def _expand_listed_key(mappings):
     r = {}
     for k, v in mappings.items():
+        if k == '@metadata':
+            continue
         for e in k.split():
             r[e] = v
     return r
 
 def write_csv(f, target_index, download_file_names, schema_id, file_metadata, project_metadata):
     from .models import RegistrationMetadataMapping
-    header = ['#ItemType', 'デフォルトアイテムタイプ（フル）(15)', 'https://localhost:8443/items/jsonschema/15']
+    schema = RegistrationSchema.objects.get(_id=schema_id)
+    mapping_def = RegistrationMetadataMapping.objects.get(
+        registration_schema_id=schema._id,
+    )
+    logger.debug(f'Mappings: {mapping_def.rules}')
+    mapping_metadata = mapping_def.rules['@metadata']
+    itemtype_metadata = mapping_metadata['itemtype']
+    header = ['#ItemType', itemtype_metadata['name'], itemtype_metadata['schema']]
 
     columns = [('.publish_status', '.PUBLISH_STATUS', '', 'Required', 'private')]
     columns.append(('.metadata.path[0]', '.IndexID[0]', '', 'Allow Multiple', target_index.identifier))
@@ -253,11 +264,6 @@ def write_csv(f, target_index, download_file_names, schema_id, file_metadata, pr
     file_metadata_item = file_metadata_items[0]
     file_metadata_data = file_metadata_item['data']
 
-    schema = RegistrationSchema.objects.get(_id=schema_id)
-    mapping_def = RegistrationMetadataMapping.objects.get(
-        registration_schema_id=schema._id,
-    )
-    logger.debug(f'Mappings: {mapping_def.rules}')
     mappings = _expand_listed_key(mapping_def.rules)
 
     weko_key_counts = {}
