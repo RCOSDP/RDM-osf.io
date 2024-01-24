@@ -22,7 +22,7 @@ const oop = require('js/oop');
 const Emitter = require('component-emitter');
 const sift = require('sift').default;
 const util = require('./util');
-const {sizeofFormat} = require("./util");
+const sizeofFormat = require("./util").sizeofFormat;
 const getLocalizedText = util.getLocalizedText;
 const normalizeText = util.normalizeText;
 
@@ -69,7 +69,7 @@ const QuestionPage = oop.defclass({
     return self.fields;
   },
 
-  suggestionAutofill(suggestion, tree) {
+  suggestionAutofill: function(suggestion, tree) {
     const self = this;
     const autofillMap = suggestion.suggestion.autofill;
     Object.keys(autofillMap).forEach(function(path) {
@@ -84,7 +84,7 @@ const QuestionPage = oop.defclass({
     });
   },
 
-  _findFieldFromTree(path, tree) {
+  _findFieldFromTree: function(path, tree) {
     var node = tree.shift();
     while (path && path.startsWith('../')) {
       node = tree.shift();
@@ -96,7 +96,7 @@ const QuestionPage = oop.defclass({
   },
 
   // required_if and enabled_if are not full supported for hierarchical fields.
-  validateAll() {
+  validateAll: function() {
     const self = this;
     self.hasValidationError = false;
     self.fields.forEach(function(field) {
@@ -109,7 +109,7 @@ const QuestionPage = oop.defclass({
     });
   },
 
-  _validateQuestionField(questionField, questionFields, options) {
+  _validateQuestionField: function(questionField, questionFields, options) {
     questionField.lastError = null;
     function walk(field, fields) {
       try {
@@ -140,7 +140,7 @@ const QuestionPage = oop.defclass({
     return questionField.lastError;
   },
 
-  _updateEnabledQuestionField(questionField, questionFields) {
+  _updateEnabledQuestionField: function(questionField, questionFields) {
     const cond = questionField.question.enabled_if;
     questionField.updateEnabled(!cond || evaluateCond(cond, questionFields));
   },
@@ -382,7 +382,7 @@ const TextFormField = oop.extend(FormFieldInterface, {
       }
       const suggestionContainer = createSuggestionButton(
         self.question, buttonSuggestions, self.options,
-        onSuggested, enteredValue,
+        onSuggested, enteredValue
       );
       self.container
         .css('display', 'flex')
