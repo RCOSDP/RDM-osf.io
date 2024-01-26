@@ -723,19 +723,24 @@ const ArrayFormField = oop.extend(FormFieldInterface, {
       subquestionGroup.forEach(function(subquestion) {
         row[subquestion.question.id] = subquestion.getValue();
       });
-      if (Object.values(res).some(function(value) {
+      if (Object.values(row).some(function(value) {
         return value !== null && value !== '';
       })) {
         res.push(row);
       }
     });
-    return res.length ? JSON.stringify(res) : null;
+    return res;
   },
 
   setValue: function(value) {
     const self = this;
     self.reset();
-    const rows = value ? JSON.parse(value) : [];
+    var rows = [];
+    if (value && typeof value === 'string') {
+      rows = JSON.parse(value);
+    } else {
+      rows = value || [];
+    }
     rows.forEach(function(row) {
       self.addRow(row);
     });
