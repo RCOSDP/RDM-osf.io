@@ -80,7 +80,7 @@ class TestWEKOUtils(OsfTestCase):
         "@type": "string",
         "@createIf": "{{value}}",
         "item_1617353299429[]": {
-            "subitem_1522306207484": "isIdenticalTo",
+            "subitem_rights": "isIdenticalTo",
             "subitem_1522306287251": {
                 "subitem_1522306382014": "Local",
                 "subitem_1522306436033": "{{value}}"
@@ -91,16 +91,16 @@ class TestWEKOUtils(OsfTestCase):
         "@type": "string",
         "@createIf": "{{value}}",
         "item_1617186331708[]": {
-            "subitem_1551255647225": "{{value}}",
-            "subitem_1551255648112": "ja"
+            "subitem_title": "{{value}}",
+            "subitem_title_language": "ja"
         }
     },
     "grdm-file:title-en": {
         "@type": "string",
         "@createIf": "{{value}}",
         "item_1617186331708[]": {
-            "subitem_1551255647225": "{{value}}",
-            "subitem_1551255648112": "en"
+            "subitem_title": "{{value}}",
+            "subitem_title_language": "en"
         }
     },
     "grdm-file:date-issued-updated": null,
@@ -126,14 +126,14 @@ class TestWEKOUtils(OsfTestCase):
         "@type": "string",
         "@createIf": "{{grdm_file_data_research_field_value}}{{project_research_field_value}}",
         "item_1617186609386[RESEARCH_FIELD_JA]": {
-            "subitem_1522300014469": "Other",
-            "subitem_1523261968819": "{% if grdm_file_data_research_field_value != \"project\" %}{{grdm_file_data_research_field_tooltip_0}}{% else %}{{project_research_field_tooltip_0}}{% endif %}",
-            "subitem_1522299896455": "ja"
+            "subitem_subject_scheme": "Other",
+            "subitem_subject": "{% if grdm_file_data_research_field_value != \"project\" %}{{grdm_file_data_research_field_tooltip_0}}{% else %}{{project_research_field_tooltip_0}}{% endif %}",
+            "subitem_subject_language": "ja"
         },
         "item_1617186609386[RESEARCH_FIELD_EN]": {
-            "subitem_1522300014469": "Other",
-            "subitem_1523261968819": "{% if grdm_file_data_research_field_value != \"project\" %}{{grdm_file_data_research_field_tooltip_1}}{% else %}{{project_research_field_tooltip_1}}{% endif %}",
-            "subitem_1522299896455": "en"
+            "subitem_subject_scheme": "Other",
+            "subitem_subject": "{% if grdm_file_data_research_field_value != \"project\" %}{{grdm_file_data_research_field_tooltip_1}}{% else %}{{project_research_field_tooltip_1}}{% endif %}",
+            "subitem_subject_language": "en"
         }
     },
     "grdm-file:data-type": {
@@ -153,12 +153,12 @@ class TestWEKOUtils(OsfTestCase):
         "@createIf": "{{value}}",
         "item_1617186499011[]": [
             {
-                "subitem_1522651041219": "{{tooltip_0}} ({{grdm_file_data_policy_cite_ja_value}}) ({{grdm_file_data_policy_free_tooltip_0}})",
-                "subitem_1522650717957": "ja"
+                "subitem_rights": "{{tooltip_0}} ({{grdm_file_data_policy_cite_ja_value}}) ({{grdm_file_data_policy_free_tooltip_0}})",
+                "subitem_rights": "ja"
             },
             {
-                "subitem_1522651041219": "{{tooltip_1}} ({{grdm_file_data_policy_cite_en_value}}) ({{grdm_file_data_policy_free_tooltip_1}})",
-                "subitem_1522650717957": "en"
+                "subitem_rights": "{{tooltip_1}} ({{grdm_file_data_policy_cite_en_value}}) ({{grdm_file_data_policy_free_tooltip_1}})",
+                "subitem_rights": "en"
             }
         ]
     },
@@ -168,7 +168,7 @@ class TestWEKOUtils(OsfTestCase):
         "@type": "string",
         "@createIf": "{{value}}",
         "item_1617186476635": {
-            "subitem_1522299639480": "{{value}}"
+            "subitem_access_right": "{{value}}"
         }
     },
     "grdm-file:available-date": {

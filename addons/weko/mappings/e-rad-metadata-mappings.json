@@ -9,9 +9,16 @@
         "@type": "string",
         "@createIf": "{{value}}",
         "item_1617186901218[FUNDING]": {
-            "subitem_1522399143519": {
-                "subitem_1522399281603": "Other",
-                "subitem_1522399333375": "{{value}}"
+            "subitem_funder_identifier": {
+                "subitem_funder_identifier_type": "e-Rad_Funder"
+            },
+            "subitem_funder_names[FUNDER_NAME_JA]": {
+                "subitem_funder_name": "{{tooltip_0}}",
+                "subitem_funder_name_language": "ja"
+            },
+            "subitem_funder_names[FUNDER_NAME_EN]": {
+                "subitem_funder_name": "{{tooltip_1}}",
+                "subitem_funder_name_language": "en"
             }
         }
     },
@@ -31,8 +38,9 @@
         "@type": "string",
         "@createIf": "{{value}}",
         "item_1617186901218[FUNDING]": {
-            "subitem_1522399571623": {
-                "subitem_1522399628911": "{{value}}"
+            "subitem_award_number": {
+                "subitem_award_number_type": "JGN",
+                "subitem_award_number": "{{value}}"
             }
         }
     },
@@ -40,9 +48,9 @@
         "@type": "string",
         "@createIf": "{{value}}",
         "item_1617186901218[FUNDING]": {
-            "subitem_1522399651758[]": {
-                "subitem_1522721910626": "ja",
-                "subitem_1522721929892": "{{value}}"
+            "subitem_award_titles[]": {
+                "subitem_award_title_language": "ja",
+                "subitem_award_title": "{{value}}"
             }
         }
     },
@@ -50,9 +58,9 @@
         "@type": "string",
         "@createIf": "{{value}}",
         "item_1617186901218[FUNDING]": {
-            "subitem_1522399651758[]": {
-                "subitem_1522721910626": "en",
-                "subitem_1522721929892": "{{value}}"
+            "subitem_award_titles[]": {
+                "subitem_award_title_language": "en",
+                "subitem_award_title": "{{value}}"
             }
         }
     },
@@ -60,29 +68,22 @@
     "grdm-files": null,
     "grdm-file:data-number": {
         "@type": "string",
-        "@createIf": "{{value}}",
-        "item_1617353299429[]": {
-            "subitem_1522306207484": "isIdenticalTo",
-            "subitem_1522306287251": {
-                "subitem_1522306382014": "Local",
-                "subitem_1522306436033": "{{value}}"
-            }
-        }
+        "@createIf": "{{value}}"
     },
     "grdm-file:title-ja": {
         "@type": "string",
         "@createIf": "{{value}}",
         "item_1617186331708[]": {
-            "subitem_1551255647225": "{{value}}",
-            "subitem_1551255648112": "ja"
+            "subitem_title": "{{value}}",
+            "subitem_title_language": "ja"
         }
     },
     "grdm-file:title-en": {
         "@type": "string",
         "@createIf": "{{value}}",
         "item_1617186331708[]": {
-            "subitem_1551255647225": "{{value}}",
-            "subitem_1551255648112": "en"
+            "subitem_title": "{{value}}",
+            "subitem_title_language": "en"
         }
     },
     "grdm-file:date-issued-updated": null,
@@ -108,14 +109,14 @@
         "@type": "string",
         "@createIf": "{{grdm_file_data_research_field_value}}{{project_research_field_value}}",
         "item_1617186609386[RESEARCH_FIELD_JA]": {
-            "subitem_1522300014469": "Other",
-            "subitem_1523261968819": "{% if grdm_file_data_research_field_value != \"project\" %}{{grdm_file_data_research_field_tooltip_0}}{% else %}{{project_research_field_tooltip_0}}{% endif %}",
-            "subitem_1522299896455": "ja"
+            "subitem_subject_scheme": "e-Rad_field",
+            "subitem_subject": "{% if grdm_file_data_research_field_value != \"project\" %}{{grdm_file_data_research_field_tooltip_0}}{% else %}{{project_research_field_tooltip_0}}{% endif %}",
+            "subitem_subject_language": "ja"
         },
         "item_1617186609386[RESEARCH_FIELD_EN]": {
-            "subitem_1522300014469": "Other",
-            "subitem_1523261968819": "{% if grdm_file_data_research_field_value != \"project\" %}{{grdm_file_data_research_field_tooltip_1}}{% else %}{{project_research_field_tooltip_1}}{% endif %}",
-            "subitem_1522299896455": "en"
+            "subitem_subject_scheme": "e-Rad_field",
+            "subitem_subject": "{% if grdm_file_data_research_field_value != \"project\" %}{{grdm_file_data_research_field_tooltip_1}}{% else %}{{project_research_field_tooltip_1}}{% endif %}",
+            "subitem_subject_language": "en"
         }
     },
     "grdm-file:data-type": {
@@ -135,12 +136,12 @@
         "@createIf": "{{value}}",
         "item_1617186499011[]": [
             {
-                "subitem_1522651041219": "{{tooltip_0}} ({{grdm_file_data_policy_cite_ja_value}}) ({{grdm_file_data_policy_free_tooltip_0}})",
-                "subitem_1522650717957": "ja"
+                "subitem_rights": "{{tooltip_0}} ({{grdm_file_data_policy_cite_ja_value}}) ({{grdm_file_data_policy_free_tooltip_0}})",
+                "subitem_rights_language": "ja"
             },
             {
-                "subitem_1522651041219": "{{tooltip_1}} ({{grdm_file_data_policy_cite_en_value}}) ({{grdm_file_data_policy_free_tooltip_1}})",
-                "subitem_1522650717957": "en"
+                "subitem_rights": "{{tooltip_1}} ({{grdm_file_data_policy_cite_en_value}}) ({{grdm_file_data_policy_free_tooltip_1}})",
+                "subitem_rights_language": "en"
             }
         ]
     },
@@ -150,15 +151,15 @@
         "@type": "string",
         "@createIf": "{{value}}",
         "item_1617186476635": {
-            "subitem_1522299639480": "{{value}}"
+            "subitem_access_right": "{{value}}"
         }
     },
     "grdm-file:available-date": {
         "@type": "string",
         "@createIf": "{{value}}",
         "item_1617186660861[]": {
-            "subitem_1522300695726": "Available",
-            "subitem_1522300722591": "{{value}}"
+            "subitem_date_issued_type": "Available",
+            "subitem_date_issued_datetime": "{{value}}"
         }
     },
     "grdm-file:repo-information-ja": null,
@@ -172,7 +173,7 @@
         }
     },
     "grdm-file:creators": {
-        "@type": "jsonarray",
+        "@type": "array",
         "item_1617186419668[]": {
             "nameIdentifiers[]": {
                 "@createIf": "{{object_number}}",
@@ -181,14 +182,38 @@
             },
             "creatorNames[]": [
                 {
-                    "@createIf": "{{object_name_ja}}",
-                    "creatorName": "{{object_name_ja}}",
+                    "@createIf": "{{object_name_ja_last}}{{object_name_ja_middle}}{{object_name_ja_first}}",
+                    "creatorName": "{{object_name_ja_last}}, {{object_name_ja_middle}}{% if object_name_ja_middle %} {% endif %}{{object_name_ja_first}}",
                     "creatorNameLang": "ja"
                 },
                 {
-                    "@createIf": "{{object_name_en}}",
-                    "creatorName": "{{object_name_en}}",
+                    "@createIf": "{{object_name_en_last}}{{object_name_en_middle}}{{object_name_en_first}}",
+                    "creatorName": "{{object_name_en_last}}, {{object_name_en_middle}}{% if object_name_ja_middle %} {% endif %}{{object_name_en_first}}",
                     "creatorNameLang": "en"
+                }
+            ],
+            "familyNames[]": [
+                {
+                    "@createIf": "{{object_name_ja_last}}",
+                    "familyName": "{{object_name_ja_last}}",
+                    "familyNameLang": "ja"
+                },
+                {
+                    "@createIf": "{{object_name_en_last}}",
+                    "familyName": "{{object_name_en_last}}",
+                    "familyNameLang": "en"
+                }
+            ],
+            "givenNames[]": [
+                {
+                    "@createIf": "{{object_name_ja_middle}}{{object_name_ja_first}}",
+                    "givenName": "{{object_name_ja_middle}}{% if object_name_ja_middle %} {% endif %}{{object_name_ja_first}}",
+                    "givenNameLang": "ja"
+                },
+                {
+                    "@createIf": "{{object_name_en_middle}}{{object_name_en_first}}",
+                    "givenName": "{{object_name_en_middle}}{% if object_name_en_middle %} {% endif %}{{object_name_en_first}}",
+                    "givenNameLang": "en"
                 }
             ]
         }
@@ -226,9 +251,10 @@
             }
         }
     },
+    "grdm-file:data-man-type": null,
     "grdm-file:data-man-number": {
         "@type": "string",
-        "@createIf": "{{value}}",
+        "@createIf": "{% if grdm_file_data_man_type_value == \"individual\" %}{{value}}{% endif %}",
         "item_1617349709064[DATA_MANAGER]": {
             "contributorType": "DataManager",
             "nameIdentifiers[]": {
@@ -238,8 +264,50 @@
         }
     },
     "grdm-file:data-man-name-ja": {
+        "@type": "object",
+        "@createIf": "{% if grdm_file_data_man_type_value == \"individual\" %}{{object_last}}{{object_middle}}{{object_first}}{% endif %}",
+        "item_1617349709064[DATA_MANAGER]": {
+            "contributorType": "DataManager",
+            "contributorNames[]": {
+                "contributorName": "{{object_last}}, {{object_middle}}{% if object_middle %} {% endif %}{{object_first}}",
+                "lang": "ja"
+            },
+            "familyNames[]": {
+                "@createIf": "{{object_last}}",
+                "familyName": "{{object_last}}",
+                "lang": "ja"
+            },
+            "givenNames[]": {
+                "@createIf": "{{object_middle}}{{object_first}}",
+                "givenName": "{{object_middle}}{% if object_middle %} {% endif %}{{object_first}}",
+                "lang": "ja"
+            }
+        }
+    },
+    "grdm-file:data-man-name-en": {
+        "@type": "object",
+        "@createIf": "{% if grdm_file_data_man_type_value == \"individual\" %}{{object_last}}{{object_middle}}{{object_first}}{% endif %}",
+        "item_1617349709064[DATA_MANAGER]": {
+            "contributorType": "DataManager",
+            "contributorNames[]": {
+                "contributorName": "{{object_last}}, {{object_middle}}{% if object_middle %} {% endif %}{{object_first}}",
+                "lang": "en"
+            },
+            "familyNames[]": {
+                "@createIf": "{{object_last}}",
+                "familyName": "{{object_last}}",
+                "lang": "en"
+            },
+            "givenNames[]": {
+                "@createIf": "{{object_middle}}{{object_first}}",
+                "givenName": "{{object_middle}}{% if object_middle %} {% endif %}{{object_first}}",
+                "lang": "en"
+            }
+        }
+    },
+    "grdm-file:data-man-org-ja": {
         "@type": "string",
-        "@createIf": "{{value}}",
+        "@createIf": "{% if grdm_file_data_man_type_value == \"organization\" %}{{value}}{% endif %}",
         "item_1617349709064[DATA_MANAGER]": {
             "contributorType": "DataManager",
             "contributorNames[]": {
@@ -248,9 +316,9 @@
             }
         }
     },
-    "grdm-file:data-man-name-en": {
+    "grdm-file:data-man-org-en": {
         "@type": "string",
-        "@createIf": "{{value}}",
+        "@createIf": "{% if grdm_file_data_man_type_value == \"organization\" %}{{value}}{% endif %}",
         "item_1617349709064[DATA_MANAGER]": {
             "contributorType": "DataManager",
             "contributorNames[]": {
@@ -259,24 +327,24 @@
             }
         }
     },
-    "grdm-file:data-man-org-ja grdm-file:data-man-address-ja grdm-file:data-man-tel grdm-file:data-man-email": {
+    "grdm-file:data-man-address-ja grdm-file:data-man-tel grdm-file:data-man-email": {
         "@type": "string",
         "@createIf": "{{value}}",
         "item_1617349709064[CONTACT_PERSON]": {
             "contributorType": "ContactPerson",
             "contributorNames[CONTACT_PERSON_JA]": {
-                "contributorName": "{{grdm_file_data_man_org_ja_value}} {{grdm_file_data_man_address_ja_value}} {{grdm_file_data_man_tel_value}} {{grdm_file_data_man_email_value}}",
+                "contributorName": "{{grdm_file_data_man_org_ja_value}} {{grdm_file_data_man_address_ja_value}} {% if grdm_file_data_man_tel_value %}TEL: {{grdm_file_data_man_tel_value}} {% endif %}{% if grdm_file_data_man_email_value %}E-Mail: {{grdm_file_data_man_email_value}}{% endif %}",
                 "lang": "ja"
             }
         }
     },
-    "grdm-file:data-man-org-en grdm-file:data-man-address-en": {
+    "grdm-file:data-man-address-en grdm-file:data-man-tel grdm-file:data-man-email": {
         "@type": "string",
         "@createIf": "{{value}}",
         "item_1617349709064[CONTACT_PERSON]": {
             "contributorType": "ContactPerson",
             "contributorNames[CONTACT_PERSON_EN]": {
-                "contributorName": "{{grdm_file_data_man_org_en_value}} {{grdm_file_data_man_address_en_value}}",
+                "contributorName": "{{grdm_file_data_man_org_en_value}} {{grdm_file_data_man_address_en_value}} {% if grdm_file_data_man_tel_value %}TEL: {{grdm_file_data_man_tel_value}} {% endif %}{% if grdm_file_data_man_email_value %}E-Mail: {{grdm_file_data_man_email_value}}{% endif %}",
                 "lang": "en"
             }
         }

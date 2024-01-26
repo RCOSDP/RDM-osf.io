@@ -311,6 +311,7 @@ class TestExportAndImport(OsfTestCase):
         self.mock_fetch_metadata_asset_files.stop()
         super(TestExportAndImport, self).tearDown()
 
+    # TC-A-2023-7-001
     def test_files_only(self):
         config = {
             'comment': {
@@ -484,6 +485,7 @@ class TestExportAndImport(OsfTestCase):
             "name": creator.given_name + ' ' + creator.family_name
         })
 
+    # TC-A-2023-7-002
     def test_comments_and_files_only(self):
         config = {
             'comment': {
@@ -709,6 +711,7 @@ class TestExportAndImport(OsfTestCase):
         assert_true('dateCreated' in _find_entity_by_id(json_entities, '#comment#2'))
         assert_true('dateModified' in _find_entity_by_id(json_entities, '#comment#2'))
 
+    # TC-A-2023-7-003
     def test_logs_and_files_only(self):
         config = {
             'comment': {
@@ -933,6 +936,7 @@ class TestExportAndImport(OsfTestCase):
         })
         assert_true('startTime' in _find_entity_by_id(json_entities, '#action#3'))
 
+    # TC-A-2023-7-004
     def test_wiki_only(self):
         config = {
             'comment': {
@@ -1071,6 +1075,7 @@ class TestExportAndImport(OsfTestCase):
             "name": creator.given_name + ' ' + creator.family_name
         })
 
+    # TC-A-2023-7-005
     def test_child_nodes(self):
         config = {
             'comment': {
@@ -1228,6 +1233,7 @@ class TestExportAndImport(OsfTestCase):
             "name": "Freddie Mercury3"
         })
 
+    # TC-A-2023-7-006
     def test_simple_extraction(self):
         config = {
             'addons': {
@@ -1323,6 +1329,7 @@ class TestExportAndImport(OsfTestCase):
                 'Test Wiki Page',
             )
 
+    # TC-A-2023-7-007
     def test_composite_extraction(self):
         config = {
             'addons': {

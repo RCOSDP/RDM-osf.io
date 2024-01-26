@@ -87,8 +87,17 @@ def _get_item_variables(file_metadata, schema=None):
         values['value'] = v
     if 'object' in file_metadata:
         o = file_metadata['object']
-        for k, v in o.items():
-            values[f'object_{k}'] = v
+        values.update(_get_object_variables(o, 'object_'))
+    return values
+
+def _get_object_variables(o, prefix):
+    values = {}
+    for k, v in o.items():
+        key_ = k.replace('-', '_').replace(':', '_').replace('.', '_')
+        if isinstance(v, dict):
+            values.update(_get_object_variables(v, f'{prefix}{key_}_'))
+            continue
+        values[f'{prefix}{key_}'] = v
     return values
 
 def _get_value(file_metadata, text, commonvars=None, schema=None):
@@ -122,7 +131,9 @@ def _is_column_present(file_metadata, item, commonvars=None, schema=None):
     present_expression = item.get('@createIf', None)
     if present_expression is None:
         return True
-    return _get_value(file_metadata, present_expression, commonvars=commonvars, schema=schema)
+    value = _get_value(file_metadata, present_expression, commonvars=commonvars, schema=schema)
+    logger.debug(f'Column check: "{present_expression}" => "{value}"')
+    return value
 
 def _get_columns(file_metadata, weko_key_prefix, weko_props, weko_key_counts=None, commonvars=None, schema=None):
     if isinstance(weko_props, str):
@@ -248,6 +259,8 @@ def write_csv(f, target_index, download_file_names, schema_id, file_metadata, pr
         registration_schema_id=schema._id,
     )
     logger.debug(f'Mappings: {mapping_def.rules}')
+    logger.debug(f'File metadata: {file_metadata}')
+    logger.debug(f'Project metadata: {project_metadata}')
     mapping_metadata = mapping_def.rules['@metadata']
     itemtype_metadata = mapping_metadata['itemtype']
     header = ['#ItemType', itemtype_metadata['name'], itemtype_metadata['schema']]
@@ -293,7 +306,7 @@ def write_csv(f, target_index, download_file_names, schema_id, file_metadata, pr
                     commonvars=commonvars,
                     schema=question_schema,
                 ):
-                    logger.debug(f'Skipped: {key}')
+                    logger.debug(f'Skipped: {key} @ {source_type}')
                     continue
                 columns += _get_columns(
                     source_data,
@@ -304,21 +317,72 @@ def write_csv(f, target_index, download_file_names, schema_id, file_metadata, pr
                     schema=question_schema,
                 )
                 continue
-            if weko_mapping['@type'] != 'jsonarray':
-                raise ValueError(f'Unexpected type: {weko_mapping["@type"]}')
-            value = source_data.get('value', '')
-            jsonarray = json.loads(value) if len(value) > 0 else []
-            for jsonelement in jsonarray:
-                columns += _get_columns(
-                    {
+            if weko_mapping['@type'] in ['array', 'jsonarray']:
+                value = source_data.get('value', '')
+                if weko_mapping['@type'] == 'jsonarray':
+                    if value is None or not isinstance(value, str):
+                        logger.warn(f'Unexpected value: {value}, {key} @ {source_type}')
+                        continue
+                    jsonarray = json.loads(value) if value is not None and len(value) > 0 else []
+                else:
+                    if value is None or not isinstance(value, list):
+                        logger.warn(f'Unexpected value: {value}, {key} @ {source_type}')
+                        continue
+                    jsonarray = value if value is not None else []
+                for i, jsonelement in enumerate(jsonarray):
+                    target_data = {
                         'object': jsonelement,
-                    },
+                    }
+                    if not _is_column_present(
+                        target_data,
+                        weko_mapping,
+                        commonvars=commonvars,
+                        schema=question_schema,
+                    ):
+                        logger.debug(f'Skipped: {key}[{i}] @ {source_type}')
+                        continue
+                    columns += _get_columns(
+                        target_data,
+                        f'.metadata',
+                        weko_mapping,
+                        weko_key_counts=weko_key_counts,
+                        commonvars=commonvars,
+                        schema=question_schema,
+                    )
+                continue
+            if weko_mapping['@type'] in ['object', 'jsonobject']:
+                value = source_data.get('value', '')
+                if weko_mapping['@type'] == 'jsonobject':
+                    if value is None or not isinstance(value, str):
+                        logger.warn(f'Unexpected value: {value}, {key} @ {source_type}')
+                        continue
+                    jsonobject = json.loads(value) if value is not None and len(value) > 0 else {}
+                else:
+                    if value is None or not isinstance(value, dict):
+                        logger.warn(f'Unexpected value: {value}, {key} @ {source_type}')
+                        continue
+                    jsonobject = value if value is not None else {}
+                target_data = {
+                    'object': jsonobject,
+                }
+                if not _is_column_present(
+                    target_data,
+                    weko_mapping,
+                    commonvars=commonvars,
+                    schema=question_schema,
+                ):
+                    logger.debug(f'Skipped: {key} @ {source_type}')
+                    continue
+                columns += _get_columns(
+                    target_data,
                     f'.metadata',
                     weko_mapping,
                     weko_key_counts=weko_key_counts,
                     commonvars=commonvars,
                     schema=question_schema,
                 )
+                continue
+            raise ValueError(f'Unexpected type: {weko_mapping["@type"]}')
 
     columns += columns_default
     logger.debug(f'Columns: {columns}')

@@ -58,13 +58,16 @@ def _download(node, file, tmp_dir):
 def _get_latest_project_metadata(metadata_node, schema_id):
     schema = RegistrationSchema.objects.get(_id=schema_id)
     drafts = DraftRegistration.objects.filter(
+        deleted__isnull=True,
         branched_from=metadata_node,
         registration_schema=schema,
     ).order_by('-modified')
     registrations = Registration.objects.filter(
+        deleted__isnull=True,
         registered_from=metadata_node,
         registered_schema=schema,
     ).order_by('-modified')
+    logger.debug(f'Project Metadata candidates: {drafts.count()}, {registrations.count()}')
     if (not drafts.exists()) and (not registrations.exists()):
         return None
     if drafts.exists() and registrations.exists():
