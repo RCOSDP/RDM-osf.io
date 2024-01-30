@@ -26,7 +26,7 @@ from addons.metadata import SHORT_NAME as METADATA_SHORT_NAME
 from .serializer import WEKOSerializer
 from .provider import WEKOProvider
 from .client import Client
-from .apps import SHORT_NAME
+from .apps import SHORT_NAME, FULL_NAME
 from .deposit import ROCRATE_FILENAME_PATTERN
 from . import settings
 
@@ -302,7 +302,7 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
         r = [
             {
                 'id': 'weko-' + index.identifier,
-                'name': parent + index.title,
+                'name': f'{parent}{index.title} ({FULL_NAME})',
                 'url': url,
                 'schema': schema_id,
             },
