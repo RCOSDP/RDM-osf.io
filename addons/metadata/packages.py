@@ -1,4 +1,5 @@
 from datetime import datetime
+import html
 import io
 import json
 import logging
@@ -1250,17 +1251,25 @@ def fill_license_params(license_text, node_license):
         license_text = re.sub(r'{{\s*' + pk + r'\s*}}', v, license_text)
     return license_text
 
-def to_creators_json(users):
-    return json.dumps([
-        _to_user_json(user)
+def to_creators_metadata(users):
+    return [
+        _to_user_metadata(user)
         for user in users
-    ])
+    ]
 
-def _to_user_json(user):
+def _to_user_metadata(user):
     return {
         'number': user.erad,
-        'name_ja': ''.join([user.family_name_ja, user.middle_names_ja, user.given_name_ja]),
-        'name_en': ' '.join([user.given_name, user.middle_names, user.family_name]),
+        'name-ja': {
+            'last': user.family_name_ja,
+            'middle': user.middle_names_ja,
+            'first': user.given_name_ja,
+        },
+        'name-en': {
+            'last': user.family_name,
+            'middle': user.middle_names,
+            'first': user.given_name,
+        },
     }
 
 def _snake_to_camel(name):
@@ -1282,23 +1291,18 @@ def _to_localized(o, prop, default_lang='en'):
     })
     return items
 
-def _to_localized_dict(o, prop):
-    items = []
-    items.append({
-        '@value': o[prop],
-        '@language': 'en',
-    })
-    prop_ja = f'{prop}_ja'
-    if prop_ja not in o:
-        return items
-    value_ja = o[prop_ja]
-    if not value_ja:
-        return items
-    items.append({
-        '@value': value_ja,
-        '@language': 'ja',
-    })
-    return items
+def _to_i18n_property_key(name, language):
+    if language == 'en':
+        return name
+    return f'{name}_{language}'
+
+def _to_i18n_metadata(prefix, object, names, languages=['ja', 'en'], get_value=getattr):
+    r = {}
+    for language in languages:
+        keys = [_to_i18n_property_key(name, language) for name in names]
+        values = [get_value(object, key, '') for key in keys]
+        r[f'{prefix}{language}'] = to_metadata_value(' '.join(values))
+    return r
 
 def to_metadata_value(value):
     return {
@@ -1371,9 +1375,22 @@ def export_project(self, user_id, node_id, config):
         default_data = {
             'grdm-file:title-ja': to_metadata_value(node.title),
             'grdm-file:description-ja': to_metadata_value(node.description),
-            'grdm-file:creators': to_metadata_value(to_creators_json([user] if user is not None else [])),
-            'grdm-file:grdm-file:data-type': to_metadata_value('dataset'),
+            'grdm-file:creators': to_metadata_value(to_creators_metadata([user] if user is not None else [])),
+            'grdm-file:data-type': to_metadata_value('dataset'),
+            'grdm-file:data-policy-license': to_metadata_value(node.node_license.license_id),
+            'grdm-file:data-man-type': to_metadata_value('organization'),
         }
+        current_jobs = [job for job in user.jobs if job['ongoing']]
+        if len(current_jobs) > 0:
+            default_data.update(_to_i18n_metadata(
+                'grdm-file:data-man-org-',
+                current_jobs[0],
+                ['institution', 'department'],
+                get_value=lambda o, k, default: html.unescape(o[k]) if k in o else default,
+            ))
+        institutions = node.affiliated_institutions.all()
+        if len(institutions) > 0:
+            default_data['grdm-file:hosting-inst-ja'] = to_metadata_value(institutions[0].name)
         metadata = {
             'path': f'{provider_name}/{file_name_}',
             'folder': False,
