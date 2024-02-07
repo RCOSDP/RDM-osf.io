@@ -255,7 +255,10 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
         except ValueError:
             logger.warn(f'WEKO3 Index is not found. Ignored: {self.index_id}')
             return []
-        schema_id = RegistrationSchema.objects.get(name=settings.DEFAULT_REGISTRATION_SCHEMA_NAME)._id
+        schema_id = RegistrationSchema.objects \
+            .filter(name=settings.DEFAULT_REGISTRATION_SCHEMA_NAME) \
+            .order_by('-schema_version') \
+            .first()._id
         return {
             'metadata': {
                 'provider': SHORT_NAME,

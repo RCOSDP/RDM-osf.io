@@ -10,7 +10,7 @@
         "@createIf": "{{value}}",
         "item_1617186901218[FUNDING]": {
             "subitem_funder_identifier": {
-                "subitem_funder_identifier_type": "e-Rad_Funder"
+                "subitem_funder_identifier_type": "e-Rad_funder"
             },
             "subitem_funder_names[FUNDER_NAME_JA]": {
                 "subitem_funder_name": "{{tooltip_0}}",
@@ -24,11 +24,23 @@
     },
     "funding-stream-code": {
         "@type": "string",
-        "@createIf": "{{value}}"
+        "@createIf": "{{value}}",
+        "item_1617186901218[FUNDING]": {
+            "subitem_funding_stream_identifiers": {
+                "subitem_funding_stream_identifier": "{{value}}",
+                "subitem_funding_stream_identifier_type": "JGN_fundingStream"
+            }
+        }
     },
     "program-name-ja": {
         "@type": "string",
-        "@createIf": "{{value}}"
+        "@createIf": "{{value}}",
+        "item_1617186901218[FUNDING]": {
+            "subitem_funding_streams": {
+                "subitem_funding_stream": "{{value}}",
+                "subitem_funding_stream_language": "ja"
+            }
+        }
     },
     "program-name-en": {
         "@type": "string",
@@ -164,14 +176,7 @@
     },
     "grdm-file:repo-information-ja": null,
     "grdm-file:repo-information-en": null,
-    "grdm-file:repo-url-doi-link": {
-        "@type": "string",
-        "@createIf": "{{value}}",
-        "item_1617186783814[]": {
-            "subitem_identifier_uri": "{{value}}",
-            "subitem_identifier_type": "URI"
-        }
-    },
+    "grdm-file:repo-url-doi-link": null,
     "grdm-file:creators": {
         "@type": "array",
         "item_1617186419668[]": {

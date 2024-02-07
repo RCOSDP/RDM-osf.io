@@ -32,7 +32,10 @@ class TestWEKOSchema(OsfTestCase):
         files = [
             ('test.jpg', 'image/jpeg'),
         ]
-        target_schema = RegistrationSchema.objects.get(name='公的資金による研究データのメタデータ登録')
+        target_schema = RegistrationSchema.objects \
+            .filter(name='公的資金による研究データのメタデータ登録') \
+            .order_by('-schema_version') \
+            .first()
         file_metadata = {
             'items': [
                 {
@@ -163,7 +166,10 @@ class TestWEKOSchema(OsfTestCase):
         files = [
             ('test.jpg', 'image/jpeg'),
         ]
-        target_schema = RegistrationSchema.objects.get(name='公的資金による研究データのメタデータ登録')
+        target_schema = RegistrationSchema.objects \
+            .filter(name='公的資金による研究データのメタデータ登録') \
+            .order_by('-schema_version') \
+            .first()
         file_metadata = {
             'items': [
                 {

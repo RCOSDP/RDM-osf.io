@@ -189,7 +189,10 @@ class TestExportAndImport(OsfTestCase):
                 },
             ]
         })
-        schema = RegistrationSchema.objects.get(name='公的資金による研究データのメタデータ登録')
+        schema = RegistrationSchema.objects \
+            .filter(name='公的資金による研究データのメタデータ登録') \
+            .order_by('-schema_version') \
+            .first()
         self.node.get_addon('metadata').set_file_metadata('osfstorage/file_in_root', {
             'path': 'osfstorage/file_in_root',
             'folder': False,
@@ -298,6 +301,9 @@ class TestExportAndImport(OsfTestCase):
             if node == self.sub_node:
                 return sub_node_wb
             raise ValueError(f'Unexpected node: {node}')
+        self.node_wb = node_wb
+        self.composite_node_wb = composite_node_wb
+        self.sub_node_wb = sub_node_wb
 
         self.wb.get_client_for_node = mock.MagicMock(side_effect=get_wb_client_for_node)
 
@@ -1285,7 +1291,10 @@ class TestExportAndImport(OsfTestCase):
                 ],
                 ['Test File'],
             )
-            schema = RegistrationSchema.objects.get(name='公的資金による研究データのメタデータ登録')
+            schema = RegistrationSchema.objects \
+                .filter(name='公的資金による研究データのメタデータ登録') \
+                .order_by('-schema_version') \
+                .first()
             assert_equals(
                 new_node.get_addon('metadata').get_file_metadata_for_path('osfstorage/file_in_root')['items'],
                 [
@@ -1386,7 +1395,10 @@ class TestExportAndImport(OsfTestCase):
             assert_equals([t.name for t in new_node.tags.all()], ['Composite Node'])
             assert_equals([t.name for t in new_child.tags.all()], ['Sub Node'])
 
-            schema = RegistrationSchema.objects.get(name='公的資金による研究データのメタデータ登録')
+            schema = RegistrationSchema.objects \
+                .filter(name='公的資金による研究データのメタデータ登録') \
+                .order_by('-schema_version') \
+                .first()
             assert_equals(
                 new_node.get_addon('metadata').get_file_metadata_for_path('osfstorage/file_in_composite_root')['items'],
                 [
@@ -1409,3 +1421,59 @@ class TestExportAndImport(OsfTestCase):
                 new_child.wikis.get(page_name='test').get_version().content,
                 'Sub Wiki Page',
             )
+
+    # TC-A-2023-7-008
+    def test_simple_export_on_error(self):
+        config = {
+            'addons': {
+                'osfstorage': {},
+            }
+        }
+
+        old_side_effect = self.node_wb.get_root_files.side_effect
+        try:
+            self.node_wb.get_root_files.side_effect = Exception('test')
+            rocrate = ROCrateFactory(self.node, self.work_dir, self.wb, config)
+            zip_path = os.path.join(self.work_dir, 'package.zip')
+            with assert_raises(Exception):
+                rocrate.download_to(zip_path)
+        finally:
+            self.node_wb.get_root_files.side_effect = old_side_effect
+
+    # TC-A-2023-7-009
+    def test_simple_extraction_on_error(self):
+        config = {
+            'addons': {
+                'osfstorage': {},
+            }
+        }
+
+        rocrate = ROCrateFactory(self.node, self.work_dir, self.wb, config)
+        zip_path = os.path.join(self.work_dir, 'package.zip')
+        rocrate.download_to(zip_path)
+
+        json_entities = _get_ro_crate_from(zip_path)
+        logger.info(f'ro-crate: {json.dumps(json_entities, indent=2)}')
+        assert_equals(len([e for e in json_entities['@graph'] if e['@type'] == 'Comment']), 3)
+        assert_equals(
+            [e['name'] for e in json_entities['@graph'] if e['@type'] == 'Action'],
+            ['metadata_file_added', 'metadata_file_added', 'addon_added', 'project_created'],
+        )
+
+        zip_buf = io.BytesIO()
+        with open(zip_path, 'rb') as f:
+            shutil.copyfileobj(f, zip_buf)
+
+        with mock.patch.object(ROCrateExtractor, '_download') as mock_request:
+            mock_request.side_effect = Exception('test')
+
+            new_node = ProjectFactory()
+            new_node.add_addon('metadata', auth=Auth(user=new_node.creator))
+            extractor = ROCrateExtractor(
+                new_node.creator,
+                'http://test.rdm.nii.ac.jp/test-data.zip',
+                self.work_dir,
+            )
+            new_wb, new_node_wb, new_wb_upload_file = _create_waterbutler_client_for_single_node(new_node, {})
+            with assert_raises(Exception):
+                extractor.ensure_node(new_node)

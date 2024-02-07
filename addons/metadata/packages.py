@@ -1356,7 +1356,10 @@ def export_project(self, user_id, node_id, config):
     node = AbstractNode.load(node_id)
     wb = WaterButlerClient(user)
     metadata_addon = node.get_addon(SHORT_NAME)
-    schema_id = RegistrationSchema.objects.get(name=weko_settings.DEFAULT_REGISTRATION_SCHEMA_NAME)._id
+    schema_id = RegistrationSchema.objects \
+        .filter(name=weko_settings.DEFAULT_REGISTRATION_SCHEMA_NAME) \
+        .order_by('-schema_version') \
+        .first()._id
     logger.info(f'Exporting: {node_id}')
     self.update_state(state='exporting node', meta={
         'progress': 0,
@@ -1374,12 +1377,13 @@ def export_project(self, user_id, node_id, config):
         uploaded = wb.get_client_for_node(node).upload_root_file(zip_path, file_name_, provider_name)
         default_data = {
             'grdm-file:title-ja': to_metadata_value(node.title),
-            'grdm-file:description-ja': to_metadata_value(node.description),
+            'grdm-file:data-description-ja': to_metadata_value(node.description),
             'grdm-file:creators': to_metadata_value(to_creators_metadata([user] if user is not None else [])),
             'grdm-file:data-type': to_metadata_value('dataset'),
-            'grdm-file:data-policy-license': to_metadata_value(node.node_license.license_id),
             'grdm-file:data-man-type': to_metadata_value('organization'),
         }
+        if node.node_license is not None:
+            default_data['grdm-file:data-policy-license'] = to_metadata_value(node.node_license.license_id)
         current_jobs = [job for job in user.jobs if job['ongoing']]
         if len(current_jobs) > 0:
             default_data.update(_to_i18n_metadata(
