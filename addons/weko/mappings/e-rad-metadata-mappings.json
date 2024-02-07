@@ -13,11 +13,11 @@
                 "subitem_funder_identifier_type": "e-Rad_funder"
             },
             "subitem_funder_names[FUNDER_NAME_JA]": {
-                "subitem_funder_name": "{{tooltip_0}}",
+                "subitem_funder_name": "{{tooltip_0}}({{value}})",
                 "subitem_funder_name_language": "ja"
             },
             "subitem_funder_names[FUNDER_NAME_EN]": {
-                "subitem_funder_name": "{{tooltip_1}}",
+                "subitem_funder_name": "{{tooltip_1}}({{value}})",
                 "subitem_funder_name_language": "en"
             }
         }
@@ -317,7 +317,8 @@
             "contributorType": "DataManager",
             "contributorNames[]": {
                 "contributorName": "{{value}}",
-                "lang": "ja"
+                "lang": "ja",
+                "nameType": "Organizational"
             }
         }
     },
@@ -328,7 +329,8 @@
             "contributorType": "DataManager",
             "contributorNames[]": {
                 "contributorName": "{{value}}",
-                "lang": "en"
+                "lang": "en",
+                "nameType": "Organizational"
             }
         }
     },
@@ -339,7 +341,8 @@
             "contributorType": "ContactPerson",
             "contributorNames[CONTACT_PERSON_JA]": {
                 "contributorName": "{{grdm_file_data_man_org_ja_value}} {{grdm_file_data_man_address_ja_value}} {% if grdm_file_data_man_tel_value %}TEL: {{grdm_file_data_man_tel_value}} {% endif %}{% if grdm_file_data_man_email_value %}E-Mail: {{grdm_file_data_man_email_value}}{% endif %}",
-                "lang": "ja"
+                "lang": "ja",
+                "nameType": "Organizational"
             }
         }
     },
@@ -350,7 +353,8 @@
             "contributorType": "ContactPerson",
             "contributorNames[CONTACT_PERSON_EN]": {
                 "contributorName": "{{grdm_file_data_man_org_en_value}} {{grdm_file_data_man_address_en_value}} {% if grdm_file_data_man_tel_value %}TEL: {{grdm_file_data_man_tel_value}} {% endif %}{% if grdm_file_data_man_email_value %}E-Mail: {{grdm_file_data_man_email_value}}{% endif %}",
-                "lang": "en"
+                "lang": "en",
+                "nameType": "Organizational"
             }
         }
     },
