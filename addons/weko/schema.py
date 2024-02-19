@@ -169,7 +169,7 @@ def _get_item_metadata_key(key):
 
 def _find_schema_question(schema, qid):
     if 'pages' not in schema:
-        return 
+        return
     for page in schema['pages']:
         if 'questions' not in page:
             continue
