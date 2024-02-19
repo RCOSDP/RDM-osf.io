@@ -53,6 +53,15 @@ FORMAT_TYPE_TO_TYPE_MAP = {
     ('e-rad-bunnya', 'string'): 'e-rad-bunnya-input',
     ('file-metadata', 'string'): 'file-metadata-input',
     ('date', 'string'): 'date-input',
+    # deprecated format types are mapped to the simple text type
+    ('file-capacity', 'string'): 'short-text-input',
+    ('file-creators', 'string'): 'long-text-input',
+    ('file-data-number', 'string'): 'short-text-input',
+    ('file-title', 'string'): 'short-text-input',
+    ('file-url', 'string'): 'short-text-input',
+    ('file-institution-ja', 'string'): 'short-text-input',
+    ('file-institution-en', 'string'): 'short-text-input',
+    ('file-institution-identifier', 'string'): 'short-text-input',
 }
 
 def get_osf_models():
