@@ -10,7 +10,7 @@ from . import SHORT_NAME
 from .models import RegistrationReportFormat, get_draft_files, FIELD_GRDM_FILES, schema_has_field
 from .utils import make_report_as_csv
 from .packages import start_importing, import_project, export_project, get_task_result
-from .suggestion import suggestion_metadata, _erad_candidates
+from .suggestion import suggestion_metadata, _erad_candidates, valid_suggestion_key
 from framework.exceptions import HTTPError
 from framework.auth.decorators import must_be_logged_in
 from framework.flask import redirect
@@ -395,6 +395,8 @@ def metadata_file_metadata_suggestions(auth, filepath=None, **kwargs):
         raise HTTPError(http_status.HTTP_400_BAD_REQUEST)
     if type(key_list) is str:
         key_list = [key_list]
+    if any([not valid_suggestion_key(key) for key in key_list]):
+        raise HTTPError(http_status.HTTP_400_BAD_REQUEST)
     keyword = request.args.get('keyword', '').lower()
     node = kwargs['node'] or kwargs['project']
     suggestions = sum([  # flatten
