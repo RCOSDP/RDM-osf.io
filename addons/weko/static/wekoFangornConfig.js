@@ -238,10 +238,7 @@ function performDeposit(tb, contextItem, options) {
         + '/files/' + contextItem.data.nodeId + '/' + contextItem.data.provider
         + contextItem.data.materialized;
     startDepositing(tb, contextItem);
-    const params = {
-        content_path: extra.source.provider + extra.source.materialized_path,
-        after_delete_path: contextItem.data.path,
-    };
+    const params = {};
     if (options.schema) {
         params.schema_id = options.schema;
     }

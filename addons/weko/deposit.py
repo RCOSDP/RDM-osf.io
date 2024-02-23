@@ -58,10 +58,10 @@ def _download(node, file, tmp_dir):
 @celery_app.task(bind=True, max_retries=5, default_retry_delay=60)
 def deposit_metadata(
     self, user_id, index_id, node_id, metadata_node_id,
-    schema_id, file_metadata, project_metadata, metadata_path, content_path, after_delete_path,
+    schema_id, file_metadata, project_metadata, metadata_path, status_path, delete_after=False,
 ):
     user = OSFUser.load(user_id)
-    logger.info(f'Deposit: {metadata_path}, {content_path} {self.request.id}')
+    logger.info(f'Deposit: {metadata_path}, {status_path} {self.request.id}')
     path = metadata_path
     if '/' not in path:
         raise ValueError(f'Malformed path: {path}')
@@ -72,7 +72,7 @@ def deposit_metadata(
     materialized_path = path[path.index('/'):]
     node = AbstractNode.load(node_id)
     weko_addon = node.get_addon(SHORT_NAME)
-    weko_addon.set_publish_task_id(metadata_path, self.request.id)
+    weko_addon.set_publish_task_id(status_path, self.request.id)
     wb = WaterButlerClient(user).get_client_for_node(node)
     file = wb.get_file_by_materialized_path(path)
     logger.debug(f'File: {file}')
@@ -132,7 +132,7 @@ def deposit_metadata(
             'path': metadata_path,
         })
         links = [l for l in respbody['links'] if 'contentType' in l and '@id' in l and l['contentType'] == 'text/html']
-        if after_delete_path:
+        if delete_after:
             file.delete()
         weko_addon.create_waterbutler_deposit_log(
             Auth(user),

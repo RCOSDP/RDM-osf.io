@@ -118,6 +118,42 @@ api_routes = {
             views.weko_get_publishing_file,
             json_renderer,
         ),
+        Rule(
+            [
+                '/project/<pid>/{}/index/<index_id>/registrations/<registration_id>'.format(SHORT_NAME),
+                '/project/<pid>/node/<nid>/{}/index/<index_id>/registrations/<registration_id>'.format(SHORT_NAME),
+            ],
+            'put',
+            views.weko_publish_registration,
+            json_renderer,
+        ),
+        Rule(
+            [
+                '/project/<pid>/{}/index/<index_id>/registrations/<registration_id>'.format(SHORT_NAME),
+                '/project/<pid>/node/<nid>/{}/index/<index_id>/registrations/<registration_id>'.format(SHORT_NAME),
+            ],
+            'get',
+            views.weko_get_publishing_registration,
+            json_renderer,
+        ),
+        Rule(
+            [
+                '/project/<pid>/{}/index/<index_id>/draft_registrations/<draft_registration_id>'.format(SHORT_NAME),
+                '/project/<pid>/node/<nid>/{}/index/<index_id>/draft_registrations/<draft_registration_id>'.format(SHORT_NAME),
+            ],
+            'put',
+            views.weko_publish_draft_registration,
+            json_renderer,
+        ),
+        Rule(
+            [
+                '/project/<pid>/{}/index/<index_id>/draft_registrations/<draft_registration_id>'.format(SHORT_NAME),
+                '/project/<pid>/node/<nid>/{}/index/<index_id>/draft_registrations/<draft_registration_id>'.format(SHORT_NAME),
+            ],
+            'get',
+            views.weko_get_publishing_draft_registration,
+            json_renderer,
+        ),
     ],
     'prefix': '/api/v1'
 }

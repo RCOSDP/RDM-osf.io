@@ -1,5 +1,6 @@
-"""Views for the node settings page."""
+"""Views for the WEKO addon."""
 # -*- coding: utf-8 -*-
+import json
 from rest_framework import status as http_status
 import logging
 
@@ -63,6 +64,27 @@ def _response_files_metadata(addon, files):
 def _response_file_metadata(addon, path, progress=None, result=None, error=None):
     attr = {
         'path': path,
+    }
+    if progress is not None:
+        attr['progress'] = progress
+    if result is not None:
+        attr['result'] = result
+    else:
+        attr['progress_url'] = request.path
+    if error is not None:
+        attr['error'] = error
+    return {
+        'data': {
+            'id': addon.owner._id,
+            'type': 'weko-sword-result',
+            'attributes': attr,
+        }
+    }
+
+def _response_project_metadata(addon, metadata_type, metadata_id, progress=None, result=None, error=None):
+    attr = {
+        'metadata_type': metadata_type,
+        'metadata_id': metadata_id,
     }
     if progress is not None:
         attr['progress'] = progress
@@ -215,7 +237,6 @@ def weko_get_file_metadata(auth, **kwargs):
     addon = node.get_addon(SHORT_NAME)
     return _response_files_metadata(addon, [])
 
-@must_be_logged_in
 @must_have_permission('write')
 @must_have_addon(SHORT_NAME, 'node')
 @must_have_addon(METADATA_SHORT_NAME, 'node')
@@ -228,8 +249,6 @@ def weko_publish_file(auth, did=None, index_id=None, mnode=None, filepath=None, 
     if not addon.validate_index_id(index_id):
         logger.error(f'The index is not out of range: {index_id}')
         return HTTPError(http_status.HTTP_400_BAD_REQUEST)
-    content_path = request.json.get('content_path', filepath) if request.json is not None else filepath
-    after_delete_path = request.json.get('after_delete_path', None) if request.json is not None else None
     schema_id = request.json.get('schema_id', None) if request.json is not None else None
     if schema_id is None:
         schema_id = get_available_schema_id(file_metadata_)
@@ -249,11 +268,136 @@ def weko_publish_file(auth, did=None, index_id=None, mnode=None, filepath=None, 
         return HTTPError(http_status.HTTP_400_BAD_REQUEST)
     enqueue_task(deposit_metadata.s(
         auth.user._id, index_id, node._id, mnode_obj._id,
-        schema_id, file_metadata_, project_metadata_, filepath, content_path, after_delete_path
+        schema_id, file_metadata_, project_metadata_, filepath, filepath, delete_after=True
     ))
     return _response_file_metadata(addon, filepath)
 
-@must_be_logged_in
+@must_have_permission('read')
+@must_have_addon(SHORT_NAME, 'node')
+@must_have_addon(METADATA_SHORT_NAME, 'node')
+def weko_get_publishing_file(auth, did=None, index_id=None, mnode=None, filepath=None, **kwargs):
+    node = kwargs['node'] or kwargs['project']
+    addon = node.get_addon(SHORT_NAME)
+    task_info = addon.get_publish_task_id(filepath)
+    if task_info is None:
+        return HTTPError(http_status.HTTP_404_NOT_FOUND)
+    task_id = task_info['task_id']
+    if task_id is None:
+        return _response_file_metadata(addon, filepath)
+    aresult = celery_app.AsyncResult(task_id)
+    error = None
+    progress = None
+    result = None
+    if aresult.failed():
+        error = str(aresult.info)
+    elif aresult.info is not None and 'progress' in aresult.info:
+        progress = {
+            'state': aresult.state,
+            'rate': aresult.info['progress'],
+        }
+    elif aresult.info is not None and 'result' in aresult.info:
+        result = aresult.info['result']
+    return _response_file_metadata(addon, filepath, progress=progress, error=error, result=result)
+
+def _publish_project_metadata(auth, node, addon, index_id, metadata_type, metadata_id, schema_id, project_metadata):
+    if not addon.validate_index_id(index_id):
+        logger.error(f'The index is not out of range: {index_id}')
+        return HTTPError(http_status.HTTP_400_BAD_REQUEST)
+    status_path = f'/_/{metadata_type}/{metadata_id}'
+    addon.set_publish_task_id(status_path, None)
+    logger.info(f'Metadata: {project_metadata}')
+    files_text = project_metadata.get('grdm-files', {}).get('value', '')
+    if len(files_text) == 0:
+        logger.error(f'No files: {project_metadata}')
+        return HTTPError(http_status.HTTP_400_BAD_REQUEST)
+    files = json.loads(files_text)
+    if len(files) == 0:
+        logger.error(f'No files: {project_metadata}')
+        return HTTPError(http_status.HTTP_400_BAD_REQUEST)
+    file = files[0]
+    filepath = file['path']
+    file_metadata = {
+        'items': [
+            {
+                'schema': schema_id,
+                'data': file['metadata'],
+            }
+        ]
+    }
+    enqueue_task(deposit_metadata.s(
+        auth.user._id, index_id, node._id, node._id,
+        schema_id, file_metadata, project_metadata, filepath, status_path,
+    ))
+    return _response_project_metadata(addon, metadata_type, metadata_id)
+
+def _get_publishing_project_metadata_progress(addon, metadata_type, metadata_id):
+    status_path = f'/_/{metadata_type}/{metadata_id}'
+    task_info = addon.get_publish_task_id(status_path)
+    if task_info is None:
+        return HTTPError(http_status.HTTP_404_NOT_FOUND)
+    task_id = task_info['task_id']
+    if task_id is None:
+        return _response_project_metadata(addon, metadata_type, metadata_id)
+    aresult = celery_app.AsyncResult(task_id)
+    error = None
+    progress = None
+    result = None
+    if aresult.failed():
+        error = str(aresult.info)
+    elif aresult.info is not None and 'progress' in aresult.info:
+        progress = {
+            'state': aresult.state,
+            'rate': aresult.info['progress'],
+        }
+    elif aresult.info is not None and 'result' in aresult.info:
+        result = aresult.info['result']
+    return _response_project_metadata(addon, metadata_type, metadata_id, progress=progress, error=error, result=result)
+
+
+@must_have_permission('write')
+@must_have_addon(SHORT_NAME, 'node')
+@must_have_addon(METADATA_SHORT_NAME, 'node')
+def weko_publish_registration(auth, did=None, index_id=None, registration_id=None, **kwargs):
+    node = kwargs['node'] or kwargs['project']
+    addon = node.get_addon(SHORT_NAME)
+    project_metadata = Registration.objects.filter(guids___id=registration_id).first()
+    schema = project_metadata.registered_schema.first()
+    project_metadata_ = project_metadata.registered_meta[schema._id]
+    return _publish_project_metadata(
+        auth, node, addon, index_id,
+        'registration', registration_id, schema._id, project_metadata_,
+    )
+
+@must_have_permission('read')
+@must_have_addon(SHORT_NAME, 'node')
+@must_have_addon(METADATA_SHORT_NAME, 'node')
+def weko_get_publishing_registration(auth, did=None, index_id=None, registration_id=None, **kwargs):
+    node = kwargs['node'] or kwargs['project']
+    addon = node.get_addon(SHORT_NAME)
+    return _get_publishing_project_metadata_progress(addon, 'registration', registration_id)
+
+@must_have_permission('write')
+@must_have_addon(SHORT_NAME, 'node')
+@must_have_addon(METADATA_SHORT_NAME, 'node')
+def weko_publish_draft_registration(auth, did=None, index_id=None, draft_registration_id=None, **kwargs):
+    node = kwargs['node'] or kwargs['project']
+    addon = node.get_addon(SHORT_NAME)
+    project_metadata = DraftRegistration.objects.filter(_id=draft_registration_id).first()
+    project_metadata_ = project_metadata.registration_metadata
+    schema = project_metadata.registration_schema
+    return _publish_project_metadata(
+        auth, node, addon, index_id,
+        'draft_registration', draft_registration_id, schema._id, project_metadata_,
+    )
+
+@must_have_permission('read')
+@must_have_addon(SHORT_NAME, 'node')
+@must_have_addon(METADATA_SHORT_NAME, 'node')
+def weko_get_publishing_draft_registration(auth, did=None, index_id=None, draft_registration_id=None, **kwargs):
+    node = kwargs['node'] or kwargs['project']
+    addon = node.get_addon(SHORT_NAME)
+    return _get_publishing_project_metadata_progress(addon, 'draft_registration', draft_registration_id)
+
 @must_have_permission('read')
 @must_have_addon(SHORT_NAME, 'node')
 @must_have_addon(METADATA_SHORT_NAME, 'node')
@@ -276,31 +420,3 @@ def weko_get_available_schemas(auth, **kwargs):
             'attributes': schemas,
         }
     }
-
-@must_be_logged_in
-@must_have_permission('read')
-@must_have_addon(SHORT_NAME, 'node')
-@must_have_addon(METADATA_SHORT_NAME, 'node')
-def weko_get_publishing_file(auth, did=None, index_id=None, mnode=None, filepath=None, **kwargs):
-    node = kwargs['node'] or kwargs['project']
-    addon = node.get_addon(SHORT_NAME)
-    task_info = addon.get_publish_task_id(filepath)
-    if task_info is None:
-        return HTTPError(http_status.HTTP_404_NOT_FOUND)
-    task_id = task_info['task_id']
-    if task_id is None:
-        return HTTPError(http_status.HTTP_404_NOT_FOUND)
-    aresult = celery_app.AsyncResult(task_id)
-    error = None
-    progress = None
-    result = None
-    if aresult.failed():
-        error = str(aresult.info)
-    elif aresult.info is not None and 'progress' in aresult.info:
-        progress = {
-            'state': aresult.state,
-            'rate': aresult.info['progress'],
-        }
-    elif aresult.info is not None and 'result' in aresult.info:
-        result = aresult.info['result']
-    return _response_file_metadata(addon, filepath, progress=progress, error=error, result=result)
