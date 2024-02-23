@@ -93,6 +93,15 @@ api_routes = {
         ),
         Rule(
             [
+                '/project/<pid>/{}/schemas/'.format(SHORT_NAME),
+                '/project/<pid>/node/<nid>/{}/schemas/'.format(SHORT_NAME),
+            ],
+            'get',
+            views.weko_get_available_schemas,
+            json_renderer,
+        ),
+        Rule(
+            [
                 '/project/<pid>/{}/index/<index_id>/files/<mnode>/<path:filepath>'.format(SHORT_NAME),
                 '/project/<pid>/node/<nid>/{}/index/<index_id>/files/<mnode>/<path:filepath>'.format(SHORT_NAME),
             ],

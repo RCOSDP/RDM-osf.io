@@ -15,6 +15,7 @@ const WaterButlerCache = require('./wbcache.js').WaterButlerCache;
 const registrations = require('./registration.js');
 const RegistrationSchemas = registrations.RegistrationSchemas;
 const DraftRegistrations = registrations.DraftRegistrations;
+const Registrations = registrations.Registrations;
 
 
 const osfBlock = {
@@ -252,6 +253,15 @@ function MetadataButtons() {
     return questionPage;
   };
 
+  self.createProjectMetadataQuestionPage = function(schema, item, options) {
+    const questionPage = new QuestionPage(schema, { data: item }, options);
+    questionPage.setQuestionFilter(function(question) {
+      return question.qid && !question.qid.match(/^grdm-file:.+/);
+    });
+    questionPage.create();
+    return questionPage;
+  };
+
   self.prepareFields = function(context, container, schema, filepath, fileitem, options) {
     var lastMetadataItem = {};
     if (!options.multiple) {
@@ -407,7 +417,8 @@ function MetadataButtons() {
           materialized: file.materializedPath,
           path: file.path,
           provider: file.provider,
-          nodeId: contextVars.node.id
+          nodeId: contextVars.node.id,
+          extra: file.extra,
         }
       };
     }
@@ -415,10 +426,39 @@ function MetadataButtons() {
   }
 
   /**
+   * Extra metadata entity for a file item
+   */
+  self._getExtraMetadataEntity = function(item) {
+    return (((item || {}).data || {}).extra || {}).metadata;
+  }
+
+  /**
    * Extra read-only metadata for a file item
    */
   self.getExtraMetadata = function(item) {
-    return (((item || {}).data || {}).extra || {}).metadata;
+    return (self._getExtraMetadataEntity(item) || {}).content;
+  }
+
+  /**
+   * Whether metadata is editable for a file item
+   */
+  self.isMetadataEditable = function(item) {
+    const entity = self._getExtraMetadataEntity(item);
+    if (!entity) {
+      return true;
+    }
+    return entity.can_edit;
+  }
+
+  /**
+   * Whether metadata is registerable for a file item
+   */
+  self.isMetadataRegisterable = function(item) {
+    const entity = self._getExtraMetadataEntity(item);
+    if (!entity) {
+      return true;
+    }
+    return entity.can_register;
   }
 
   /**
@@ -1259,31 +1299,37 @@ function MetadataButtons() {
       return [viewButton];
     }
     const buttons = [];
-    const editButton = createButton({
-      onclick: function(event) {
-        self.editMetadata(context, filepath, item);
-      },
-      icon: 'fa fa-edit',
-      className : 'text-primary'
-    }, _('Edit Metadata'));
-    buttons.push(editButton);
+    if (self.isMetadataEditable(item)) {
+      const editButton = createButton({
+        onclick: function(event) {
+          self.editMetadata(context, filepath, item);
+        },
+        icon: 'fa fa-edit',
+        className : 'text-primary'
+      }, _('Edit Metadata'));
+      buttons.push(editButton);
+    }
     if (currentMetadata) {
-      const registerButton = createButton({
-        onclick: function(event) {
-          self.registerMetadata(context, filepath, item);
-        },
-        icon: 'fa fa-external-link',
-        className : 'text-success'
-      }, _('Register Metadata'));
-      buttons.push(registerButton)
-      const deleteButton = createButton({
-        onclick: function(event) {
-          self.deleteMetadata(context, filepath, item);
-        },
-        icon: 'fa fa-trash',
-        className : 'text-danger'
-      }, _('Delete Metadata'));
-      buttons.push(deleteButton)
+      if (self.isMetadataRegisterable(item)) {
+        const registerButton = createButton({
+          onclick: function(event) {
+            self.registerMetadata(context, filepath, item);
+          },
+          icon: 'fa fa-external-link',
+          className : 'text-success'
+        }, _('Register Metadata'));
+        buttons.push(registerButton);
+      }
+      if (self.isMetadataEditable(item)) {
+        const deleteButton = createButton({
+          onclick: function(event) {
+            self.deleteMetadata(context, filepath, item);
+          },
+          icon: 'fa fa-trash',
+          className : 'text-danger'
+        }, _('Delete Metadata'));
+        buttons.push(deleteButton);
+      }
     }
     return buttons;
   }
@@ -2189,7 +2235,7 @@ if (contextVars.metadataAddonEnabled) {
       }
       btn.loadMetadata(nodeId, metadataUrl + 'metadata/', callback);
     },
-    getMetadata: function(nodeId, path) {
+    getFileMetadata: function(nodeId, path) {
       if (!btn.contexts) {
         return undefined;
       }
@@ -2205,6 +2251,75 @@ if (contextVars.metadataAddonEnabled) {
         return null;
       }
       return results[0];
+    },
+    getProjectMetadata: function(nodeId) {
+      if (!btn.contexts) {
+        return undefined;
+      }
+      const context = btn.contexts[nodeId];
+      if (!context) {
+        return undefined;
+      }
+      return context.projectMetadata;
+    },
+    findSchemaById: function(schemaId) {
+      return btn.findSchemaById(schemaId);
+    },
+    getRegistrations: function(callback) {
+      if (!callback) {
+        throw new Error('callback is required');
+      }
+      const r = new Registrations();
+      r.load(function(error) {
+        callback(error, r);
+      });
+    },
+    getDraftRegistrations: function(callback) {
+      if (!callback) {
+        throw new Error('callback is required');
+      }
+      const r = new DraftRegistrations();
+      r.load(function(error) {
+        callback(error, r);
+      });
+    },
+    isLoadingProjectMetadata: function(nodeId) {
+      if (!btn.loadingMetadatas) {
+        return true;
+      }
+      return btn.loadingMetadatas[nodeId];
+    },
+    extractProjectName: function(projectMetadata) {
+      return btn.extractProjectName(projectMetadata);
+    },
+    createFileMetadataItemPage: function(fileMetadataItem) {
+      const schema = btn.findSchemaById(fileMetadataItem.schema);
+      if (!schema) {
+        throw new Error('Schema not found: ' + fileMetadataItem.schema);
+      }
+      const questionPage = btn.createQuestionPage(
+        schema.attributes.schema,
+        fileMetadataItem,
+        {
+          readonly: true,
+        }
+      );
+      return questionPage;
+    },
+    createProjectMetadataPage: function(registration) {
+      const schemaId = registration.relationships.registration_schema.data.id;
+      const schema = btn.findSchemaById(schemaId);
+      if (!schema) {
+        throw new Error('Schema not found: ' + schemaId);
+      }
+      const questionPage = btn.createProjectMetadataQuestionPage(
+        schema.attributes.schema,
+        registration.attributes.registration_metadata,
+        {
+          readonly: true,
+        }
+      );
+      return questionPage;
     },
   };
   if ($('#fileViewPanelLeft').length > 0) {

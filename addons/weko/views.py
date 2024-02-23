@@ -21,7 +21,7 @@ from website.project.decorators import (
     must_have_permission, must_not_be_registration,
     must_be_contributor_or_public,
 )
-from osf.models import AbstractNode
+from osf.models import AbstractNode, Registration, DraftRegistration, RegistrationSchema
 
 from website.util import rubeus, api_url_for
 from website.oauth.utils import get_service
@@ -31,6 +31,7 @@ from admin.rdm_addons.decorators import must_be_rdm_addons_allowed
 from admin.rdm_addons.utils import get_rdm_addon_option
 from addons.metadata import SHORT_NAME as METADATA_SHORT_NAME
 from .deposit import deposit_metadata
+from .schema import get_available_schema_id
 
 
 logger = logging.getLogger('addons.weko.views')
@@ -77,6 +78,15 @@ def _response_file_metadata(addon, path, progress=None, result=None, error=None)
             'type': 'weko-sword-result',
             'attributes': attr,
         }
+    }
+
+def _response_registration_schema(schema):
+    return {
+        'id': schema._id,
+        'attributes': {
+            'name': schema.name,
+            'description': schema.description,
+        },
     }
 
 def _get_file_metadata_node(node, metadata_node_id):
@@ -220,11 +230,52 @@ def weko_publish_file(auth, did=None, index_id=None, mnode=None, filepath=None, 
         return HTTPError(http_status.HTTP_400_BAD_REQUEST)
     content_path = request.json.get('content_path', filepath) if request.json is not None else filepath
     after_delete_path = request.json.get('after_delete_path', None) if request.json is not None else None
+    schema_id = request.json.get('schema_id', None) if request.json is not None else None
+    if schema_id is None:
+        schema_id = get_available_schema_id(file_metadata_)
     addon.set_publish_task_id(filepath, None)
+    project_metadata_id = request.json.get('project_metadata_id', None) if request.json is not None else None
+    project_metadata_ = None
+    if project_metadata_id is not None and project_metadata_id.startswith('registration/'):
+        id = project_metadata_id[len('registration/'):]
+        project_metadata = Registration.objects.filter(guids___id=id).first()
+        project_metadata_ = project_metadata.registered_meta
+    elif project_metadata_id is not None and project_metadata_id.startswith('draft-registration/'):
+        id = project_metadata_id[len('draft-registration/'):]
+        project_metadata = DraftRegistration.objects.filter(_id=id).first()
+        project_metadata_ = project_metadata.registration_metadata
+    elif project_metadata_id is not None:
+        logger.error(f'Invalid project metadata ID: {project_metadata_id}')
+        return HTTPError(http_status.HTTP_400_BAD_REQUEST)
     enqueue_task(deposit_metadata.s(
-        auth.user._id, index_id, node._id, mnode_obj._id, file_metadata_, None, filepath, content_path, after_delete_path
+        auth.user._id, index_id, node._id, mnode_obj._id,
+        schema_id, file_metadata_, project_metadata_, filepath, content_path, after_delete_path
     ))
     return _response_file_metadata(addon, filepath)
+
+@must_be_logged_in
+@must_have_permission('read')
+@must_have_addon(SHORT_NAME, 'node')
+@must_have_addon(METADATA_SHORT_NAME, 'node')
+def weko_get_available_schemas(auth, **kwargs):
+    from .models import RegistrationMetadataMapping
+    available_schema_ids = [
+        mapping.registration_schema_id
+        for mapping in RegistrationMetadataMapping.objects.all()
+    ]
+    node = kwargs['node'] or kwargs['project']
+    addon = node.get_addon(SHORT_NAME)
+    schemas = [
+        _response_registration_schema(RegistrationSchema.objects.get(_id=schema_id))
+        for schema_id in available_schema_ids
+    ]
+    return {
+        'data': {
+            'id': addon.owner._id,
+            'type': 'weko-schemas',
+            'attributes': schemas,
+        }
+    }
 
 @must_be_logged_in
 @must_have_permission('read')

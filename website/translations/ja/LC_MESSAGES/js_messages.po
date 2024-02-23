@@ -368,40 +368,63 @@ msgstr ""
 msgid "Enable"
 msgstr "有効にする"
 
-#: addons/weko/static/wekoFangornConfig.js:40
-#: addons/weko/static/wekoFangornConfig.js:60 website/static/js/fangorn.js:2367
-#: website/static/js/filepage/index.js:542
+#: addons/weko/static/wekoFangornConfig.js:43
+#: addons/weko/static/wekoFangornConfig.js:63 website/static/js/fangorn.js:2367
+#: website/static/js/fangorn.js:2434 website/static/js/filepage/index.js:542
+#: website/static/js/filepage/index.js:544
 msgid "View"
 msgstr "プレビュー"
 
-#: addons/weko/static/wekoFangornConfig.js:79
-#: addons/weko/static/wekoFangornConfig.js:558
+#: addons/weko/static/wekoFangornConfig.js:87
+#: addons/weko/static/wekoFangornConfig.js:809
 msgid "Deposit"
 msgstr "登録"
 
-#: addons/weko/static/wekoFangornConfig.js:240
-#: addons/weko/static/wekoFangornConfig.js:261
-#: addons/weko/static/wekoFangornConfig.js:301
+#: addons/weko/static/wekoFangornConfig.js:256
+#: addons/weko/static/wekoFangornConfig.js:277
+#: addons/weko/static/wekoFangornConfig.js:317
 msgid "Error occurred: "
 msgstr "エラーが発生しました: "
 
-#: addons/weko/static/wekoFangornConfig.js:274
+#: addons/weko/static/wekoFangornConfig.js:290
 msgid "Deposit was successful."
 msgstr "登録が成功しました。"
 
-#: addons/weko/static/wekoFangornConfig.js:372
+#: addons/weko/static/wekoFangornConfig.js:540
+msgid "Send without project metadata"
+msgstr "プロジェクトメタデータを送信しない"
+
+#: addons/weko/static/wekoFangornConfig.js:569
+msgid "Error occurred while "
+msgstr "エラーが発生しました: "
+
+#: addons/weko/static/wekoFangornConfig.js:588
+msgid "Schema"
+msgstr "メタデータ様式"
+
+#: addons/weko/static/wekoFangornConfig.js:591
+msgid "Select a schema for the file."
+msgstr "送信するファイルメタデータのメタデータ様式を選択してください。"
+
+#: addons/weko/static/wekoFangornConfig.js:593
+msgid "Project Metadata"
+msgstr "プロジェクトメタデータ"
+
+#: addons/weko/static/wekoFangornConfig.js:597
+msgid "Select a registration for the file."
+msgstr "送信するプロジェクトメタデータを選択してください。"
+
+#: addons/weko/static/wekoFangornConfig.js:623
 msgid ""
 "Do you want to deposit the file/folder \"%1$s\" to WEKO? This operation "
 "is irreversible."
 msgstr "ファイル(フォルダ) \"%1$s\" をWEKOに登録しますか？この操作は元に戻せません。"
 
-#: addons/weko/static/wekoFangornConfig.js:383
-#: addons/weko/static/wekoFangornConfig.js:424
+#: addons/weko/static/wekoFangornConfig.js:633
 msgid "OK"
 msgstr "OK"
 
-#: addons/weko/static/wekoFangornConfig.js:395
-#: addons/weko/static/wekoFangornConfig.js:426
+#: addons/weko/static/wekoFangornConfig.js:652
 msgid "Deposit files"
 msgstr "ファイルの登録"
 
@@ -5494,6 +5517,10 @@ msgstr "移動"
 #: website/static/js/js_messages.js:25
 msgid "renamed"
 msgstr "名前の変更"
+
+#: website/static/js/js_messages.js:25
+msgid "copied"
+msgstr "コピー"
 
 #: website/static/js/js_messages.js:27
 msgid "Skipped"

@@ -249,16 +249,17 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
         return self._validate_index_id(index, index_id)
 
     def get_metadata_repository(self):
+        from .models import RegistrationMetadataMapping
         c = self.create_client()
         try:
             index = c.get_index_by_id(self.index_id)
         except ValueError:
             logger.warn(f'WEKO3 Index is not found. Ignored: {self.index_id}')
             return []
-        schema_id = RegistrationSchema.objects \
-            .filter(name=settings.DEFAULT_REGISTRATION_SCHEMA_NAME) \
-            .order_by('-schema_version') \
-            .first()._id
+        available_schema_ids = [
+            mapping.registration_schema_id
+            for mapping in RegistrationMetadataMapping.objects.all()
+        ]
         return {
             'metadata': {
                 'provider': SHORT_NAME,
@@ -269,7 +270,13 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
                     'provider': False,
                 },
             },
-            'registries': self._as_destinations(schema_id, index, ''),
+            'registries': sum(
+                [
+                    self._as_destinations(schema_id, index, '')
+                    for schema_id in available_schema_ids
+                ],
+                [],
+            ),
         }
 
     def get_default_provider(self):

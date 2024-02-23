@@ -41,7 +41,7 @@ from addons.weko import settings as weko_settings
 
 logger = logging.getLogger(__name__)
 
-
+EXPORT_REGISTRATION_SCHEMA_NAME = '公的資金による研究データのメタデータ登録'
 DEFAULT_ADDONS_FILES = [{
     'materialized': '/.weko/',
     'enable': False,
@@ -1357,7 +1357,7 @@ def export_project(self, user_id, node_id, config):
     wb = WaterButlerClient(user)
     metadata_addon = node.get_addon(SHORT_NAME)
     schema_id = RegistrationSchema.objects \
-        .filter(name=weko_settings.DEFAULT_REGISTRATION_SCHEMA_NAME) \
+        .filter(name=EXPORT_REGISTRATION_SCHEMA_NAME) \
         .order_by('-schema_version') \
         .first()._id
     logger.info(f'Exporting: {node_id}')

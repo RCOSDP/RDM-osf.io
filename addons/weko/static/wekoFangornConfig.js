@@ -8,6 +8,7 @@ const Raven = require('raven-js');
 const fangorn = require('js/fangorn');
 const Fangorn = fangorn.Fangorn;
 const $osf = require('js/osfHelpers');
+const { refresh } = require('less');
 
 const _ = require('js/rdmGettext')._;
 const sprintf = require('agh.sprintf').sprintf;
@@ -72,13 +73,19 @@ const wekoItemButtons = {
                         {treebeard : tb, mode : mode, item : aritem })
                 );
             } else if ((item.data.extra || {}).weko === 'draft') {
-                buttons.push(m.component(Fangorn.Components.button, {
-                    onclick: function (event) {
-                        deposit(tb, item);
-                    },
-                    icon: 'fa fa-upload',
-                    className: 'text-primary weko-button-publish'
-                }, _('Deposit')));
+                const metadata = contextVars.metadata && contextVars.metadata.getFileMetadata(
+                    item.data.nodeId,
+                    item.data.provider + item.data.materialized
+                );
+                if (metadata) {
+                    buttons.push(m.component(Fangorn.Components.button, {
+                        onclick: function (event) {
+                            deposit(tb, item);
+                        },
+                        icon: 'fa fa-upload',
+                        className: 'text-success weko-button-publish'
+                    }, _('Deposit')));
+                }
                 buttons.push(m.component(Fangorn.Components.defaultItemButtons, {
                     treebeard : tb, mode : mode, item : item
                 }));
@@ -220,8 +227,8 @@ function showError(tb, message) {
     tb.modal.update(modalContent, modalActions, m('h3.break-word.modal-title', 'Error'));
 }
 
-function performDeposit(tb, contextItem) {
-    console.log(logPrefix, 'publish', contextItem);
+function performDeposit(tb, contextItem, options) {
+    console.log(logPrefix, 'publish', contextItem, options);
     const extra = contextItem.data.extra;
     var url = contextVars.node.urls.api;
     if (!url.match(/.*\/$/)) {
@@ -231,10 +238,17 @@ function performDeposit(tb, contextItem) {
         + '/files/' + contextItem.data.nodeId + '/' + contextItem.data.provider
         + contextItem.data.materialized;
     startDepositing(tb, contextItem);
-    return $osf.putJSON(url, {
+    const params = {
         content_path: extra.source.provider + extra.source.materialized_path,
         after_delete_path: contextItem.data.path,
-    }).done(function (data) {
+    };
+    if (options.schema) {
+        params.schema_id = options.schema;
+    }
+    if (options.project_metadata) {
+        params.project_metadata_id = options.project_metadata;
+    }
+    return $osf.putJSON(url, params).done(function (data) {
       console.log(logPrefix, 'checking progress...');
       checkDepositing(tb, contextItem, url);
     }).fail(function(xhr, status, error) {
@@ -358,7 +372,7 @@ function reserveDeposit(treebeard, item, cancelCallback) {
 }
 
 function deposit(treebeard, item, cancelCallback) {
-    showConfirmDeposit(treebeard, item, function(deposit) {
+    showConfirmDeposit(treebeard, item, function(deposit, options) {
         if (!deposit) {
             if (!cancelCallback) {
                 return;
@@ -366,17 +380,244 @@ function deposit(treebeard, item, cancelCallback) {
             cancelCallback();
             return;
         }
-        performDeposit(treebeard, item);
+        performDeposit(treebeard, item, options || {});
     });
 }
 
+function createMetadataSelectorBase(item, schemaCallback, projectMetadataCallback, errorCallback) {
+    if (!contextVars.metadata) {
+        throw new Error('Metadata addon is not available');
+    }
+    const fileMetadata = contextVars.metadata.getFileMetadata(
+        item.data.nodeId,
+        item.data.provider + item.data.materialized
+    );
+    if (!fileMetadata) {
+        throw new Error('File metadata is not found');
+    }
+    const targetIndex = item.data.extra && item.data.extra.index;
+    if (!targetIndex) {
+        throw new Error('Extra field is not found');
+    }
+    var registrations = {};
+    function loadHandler() {
+        contextVars.metadata.getRegistrations(function(error, r) {
+            if (error) {
+                console.error(logPrefix, 'Error while retrieving registrations', error);
+                if (errorCallback) {
+                    errorCallback('retrieving registrations', error);
+                }
+                return;
+            }
+            registrations['registrations'] = r.registrations;
+            if (projectMetadataCallback) {
+                projectMetadataCallback(registrations);
+            }
+        });
+        contextVars.metadata.getDraftRegistrations(function(error, r) {
+            if (error) {
+                console.error(logPrefix, 'Error while retrieving draft registrations', error);
+                if (errorCallback) {
+                    errorCallback('retrieving draft registrations', error);
+                }
+                return;
+            }
+            registrations['draftRegistrations'] = r.registrations;
+            if (projectMetadataCallback) {
+                projectMetadataCallback(registrations);
+            }
+        });
+    }
+    loadHandler();
+    if (schemaCallback) {
+        const url = item.data.nodeApiUrl + 'weko/schemas/';
+        console.log(logPrefix, 'loading: ', url);
+        $.ajax({
+            url: url,
+            type: 'GET',
+            dataType: 'json'
+        }).done(function (data) {
+            const schemas = (data.data.attributes || [])
+                .filter(function(r) {
+                    const items = fileMetadata.items || [];
+                    return items.find(function(i) {
+                        return i.schema === r.id;
+                    });
+                });
+            schemaCallback(schemas);
+        })
+        .fail(function(xhr, status, error) {
+            Raven.captureMessage('Error while retrieving addon info', {
+                extra: {
+                    url: url,
+                    status: status,
+                    error: error
+                }
+            });
+            if (errorCallback) {
+                errorCallback('retrieving addon info', error);
+            }
+        });
+    }
+    return {
+        fileMetadata: fileMetadata,
+        refreshHandler: loadHandler,
+        validateFileMetadataItem: function(item, preview) {
+            const page = contextVars.metadata.createFileMetadataItemPage(item);
+            page.validateAll();
+            if (preview) {
+                preview.empty();
+                page.create().forEach(function(f) {
+                    preview.append(f.element);
+                });
+            }
+            return !page.hasValidationError;
+        },
+    };
+}
+
+function validateProjectMetadata(registration) {
+    const page = contextVars.metadata.createProjectMetadataPage(registration);
+    page.validateAll();
+    return !page.hasValidationError;
+}
+
+function createMetadataSelectorForJQuery(item, changedCallback) {
+    const errorView = $('<div></div>').addClass('alert alert-danger').hide();
+    const validationResult = $('<div></div>')
+        .css('color', 'red')
+        .text(_('There are errors in some fields.'))
+        .hide();
+    const metadataPreview = $('<div></div>').css('overflow', 'auto').css('max-height', '40vh');
+    const metadataSelect = $('<select></select>').addClass('form-control').hide()
+    const schemaLoading = $('<span></span>').addClass('fa fa-spinner fa-pulse').show();
+    const metadataLoading = $('<span></span>').addClass('fa fa-spinner fa-pulse').show();
+    const refreshButton = $('<button></button>')
+        .addClass('btn btn-sm')
+        .append($('<span></span>').addClass('fa fa-refresh'))
+        .attr('disabled', 'disabled');
+    const schemaSelect = $('<select></select>').addClass('form-control');
+    var lastSchema = null;
+    var lastSchemaValid = null;
+    function valueChanged() {
+        var valid = false;
+        if (lastSchemaValid === null || lastSchema !== schemaSelect.val()) {
+            valid = validateSchema(schemaSelect.val());
+        } else {
+            valid = lastSchemaValid;
+        }
+        if (!changedCallback) {
+            return;
+        }
+        changedCallback(valid, schemaSelect.val(), metadataSelect.val());
+    }
+    var selector = null;
+    function validateSchema(schema) {
+        if (!schema) {
+            return false;
+        }
+        const items = selector.fileMetadata.items.filter(function(i) {
+            return i.schema === schema;
+        });
+        if (items.length === 0) {
+            throw new Error('Schema not found');
+        }
+        const item = items[0];
+        if (selector.validateFileMetadataItem(item, metadataPreview)) {
+            validationResult.hide();
+            return true;
+        }
+        validationResult.show();
+        return false;
+    }
+    var registrationsCache = null;
+    const projectMetadataCallback = function(registrations) {
+        if (!registrations.registrations || !registrations.draftRegistrations) {
+            return;
+        }
+        registrationsCache = registrations;
+        metadataSelect.empty().show();
+        metadataLoading.hide();
+        refreshButton.attr('disabled', null);
+        metadataSelect.append($('<option></option>').attr('value', '').text(_('Send without project metadata')));
+        (registrations.registrations || []).forEach(function(r) {
+            if (!(r.relationships && r.relationships.registration_schema && r.relationships.registration_schema.data &&
+                r.relationships.registration_schema.data.id === schemaSelect.val())) {
+                return;
+            }
+            const title = r.attributes.title || contextVars.metadata.extractProjectName(r.attributes.registered_meta);
+            const registered = new Date(Date.parse(r.attributes.date_registered));
+            metadataSelect.append($('<option></option>')
+                .attr('value', 'registration/' + r.id)
+                .text(title + ' (' + registered + ')'));
+        });
+        (registrations.draftRegistrations || []).forEach(function(r) {
+            if (!(r.relationships && r.relationships.registration_schema && r.relationships.registration_schema.data &&
+                r.relationships.registration_schema.data.id === schemaSelect.val())) {
+                return;
+            }
+            if (!validateProjectMetadata(r)) {
+                console.warn('Project metadata validation failed', r.attributes.registration_metadata);
+                return;
+            }
+            const title = r.attributes.title || contextVars.metadata.extractProjectName(r.attributes.registration_metadata);
+            const updated = new Date(Date.parse(r.attributes.datetime_updated));
+            metadataSelect.append($('<option></option>')
+                .attr('value', 'draft-registration/' + r.id)
+                .text(title + ' (' + updated + ')'));
+        });
+    };
+    const errorCallback = function(action, error) {
+        errorView.text(_('Error occurred while ') + action + ': ' + error).show();
+    };
+    const schemaCallback = function(schemas) {
+        (schemas || []).forEach(function(s) {
+            schemaSelect.append($('<option></option>').attr('value', s.id).text(s.attributes.name));
+        });
+        schemaLoading.hide();
+        valueChanged();
+    };
+    selector = createMetadataSelectorBase(item, schemaCallback, projectMetadataCallback, errorCallback);
+    metadataSelect.change(valueChanged);
+    schemaSelect.change(function() {
+        if (registrationsCache) {
+            projectMetadataCallback(registrationsCache);
+        }
+        valueChanged();
+    });
+    refreshButton.click(function() {
+        metadataLoading.show();
+        errorView.hide();
+        selector.refreshHandler();
+        refreshButton.attr('disabled', 'disabled');
+    });
+    const schemaSelectPanel = $('<div></div>').addClass('form-group')
+        .append($('<label></label>').text(_('Schema')))
+        .append(schemaLoading)
+        .append(schemaSelect)
+        .append($('<div></div>').addClass('help-block').text(_('Select a schema for the file.')));
+    const metadataSelectPanel = $('<div></div>').addClass('form-group')
+        .append($('<label></label>').text(_('Project Metadata')))
+        .append(metadataLoading)
+        .append(refreshButton)
+        .append(metadataSelect)
+        .append($('<div></div>').addClass('help-block').text(_('Select a registration for the file.')));
+    return $('<div></div>')
+        .append(errorView)
+        .append(schemaSelectPanel)
+        .append(metadataSelectPanel)
+        .append(validationResult)
+        .append(metadataPreview);
+}
+
 function showConfirmDeposit(tb, contextItem, callback) {
+    var options = {};
     const okHandler = function (dismiss) {
         dismiss()
         if (!callback) {
             return;
         }
-        callback(true);
+        callback(true, options);
     };
     const cancelHandler = function (dismiss) {
         dismiss()
@@ -389,58 +630,43 @@ function showConfirmDeposit(tb, contextItem, callback) {
         _('Do you want to deposit the file/folder "%1$s" to WEKO? This operation is irreversible.'),
         $osf.htmlEscape(contextItem.data.name)
     );
-    if (!tb) {
-        const dialog = $('<div class="modal fade" data-backdrop="static"></div>');
-        const close = $('<a href="#" class="btn btn-default" data-dismiss="modal"></a>').text(_('Cancel'));
-        close.click(function() {
-            cancelHandler(function() {
-                dialog.modal('hide');
-            });
+    const dialog = $('<div class="modal fade" data-backdrop="static"></div>');
+    const close = $('<a href="#" class="btn btn-default" data-dismiss="modal"></a>').text(_('Cancel'));
+    close.click(function() {
+        cancelHandler(function() {
+            dialog.modal('hide');
         });
-        const save = $('<a href="#" class="btn btn-primary"></a>').text(_('OK'));
-        save.click(function() {
-            okHandler(function() {
-                dialog.modal('hide');
-            });
+    });
+    const save = $('<a href="#" class="btn btn-primary"></a>').text(_('OK')).attr('disabled', 'disabled');
+    save.click(function() {
+        okHandler(function() {
+            dialog.modal('hide');
         });
-        const toolbar = $('<div></div>');
-        const container = $('<ul></ul>').css('padding', '0 20px');
-        dialog
-            .append($('<div class="modal-dialog modal-lg"></div>')
-                .append($('<div class="modal-content"></div>')
-                    .append($('<div class="modal-header"></div>')
-                        .append($('<h3></h3>').text(_('Deposit files'))))
-                    .append($('<div class="modal-body"></div>')
-                        .append(message))
-                    .append($('<div class="modal-footer"></div>')
-                        .css('display', 'flex')
-                        .css('align-items', 'center')
-                        .append(close.css('margin-left', 'auto'))
-                        .append(save))));
-        dialog.appendTo($('#treeGrid'));
-        dialog.modal('show');
-        return;
-    }
-    var modalContent = [
-            m('p.m-md', message)
-        ];
-    var modalActions = [
-            m('button.btn.btn-default', {
-                    'onclick': function() {
-                        cancelHandler(function() {
-                            tb.modal.dismiss();
-                        });
-                    }
-                }, _('Cancel')),
-            m('button.btn.btn-primary', {
-                    'onclick': function() {
-                        okHandler(function() {
-                            tb.modal.dismiss();
-                        });
-                    }
-                }, _('OK'))
-        ];
-    tb.modal.update(modalContent, modalActions, m('h3.break-word.modal-title', _('Deposit files')));
+    });
+    const optionsHandler = function(valid, schema, projectMetadata) {
+        if (!valid) {
+            save.attr('disabled', 'disabled');
+        } else {
+            save.attr('disabled', null);
+        }
+        options.schema = schema;
+        options.project_metadata = projectMetadata;
+    };
+    dialog
+        .append($('<div class="modal-dialog modal-lg"></div>')
+            .append($('<div class="modal-content"></div>')
+                .append($('<div class="modal-header"></div>')
+                    .append($('<h3></h3>').text(_('Deposit files'))))
+                .append($('<div class="modal-body"></div>')
+                    .append($('<p></p>').append(message))
+                    .append(createMetadataSelectorForJQuery(contextItem, optionsHandler))
+                .append($('<div class="modal-footer"></div>')
+                    .css('display', 'flex')
+                    .css('align-items', 'center')
+                    .append(close.css('margin-left', 'auto'))
+                    .append(save)))));
+    dialog.appendTo($('#treeGrid'));
+    dialog.modal('show');
 }
 
 function checkAndReserveRefreshingMetadata(item, callback) {
@@ -475,6 +701,10 @@ function checkAndReserveRefreshingMetadata(item, callback) {
 }
 
 function reserveMetadataRefresh(item, timeout, retries, callback) {
+    if (!contextVars.metadata) {
+        console.warn('Metadata addon is not available');
+        return;
+    }
     console.log(logPrefix, 'reserveRefreshMetadata', item);
     setTimeout(function() {
         contextVars.metadata.loadMetadata(
@@ -513,7 +743,10 @@ function searchMetadatas(tree, recursive) {
     const data = tree.data;
     var r = [];
     if (data.extra && data.extra.weko === 'draft' && isTopLevelDraft(tree)) {
-        const metadata = contextVars.metadata.getMetadata(
+        if (!contextVars.metadata) {
+            return [];
+        }
+        const metadata = contextVars.metadata.getFileMetadata(
             data.nodeId,
             data.provider + data.materialized
         );
@@ -556,6 +789,14 @@ function refreshFileViewButtons(item) {
     if (!isTopLevelDraft(item)) {
         return;
     }
+    const metadata = contextVars.metadata && contextVars.metadata.getFileMetadata(
+        item.data.nodeId,
+        item.data.provider + item.data.materialized
+    );
+    if (!metadata) {
+        console.warn(logPrefix, 'Metadata not found', item);
+        return;
+    }
     if (!fileViewButtons) {
         fileViewButtons = $('<div></div>')
             .addClass('btn-group m-t-xs')
@@ -566,7 +807,7 @@ function refreshFileViewButtons(item) {
     const btn = $('<button></button>')
         .addClass('btn')
         .addClass('btn-sm')
-        .addClass('btn-primary')
+        .addClass('btn-success')
         .attr('id', 'weko-deposit');
     btn.append($('<i></i>').addClass('fa fa-upload'));
     btn.click(function(event) {
@@ -609,10 +850,20 @@ function initFileView() {
                 }
             )
         };
-        refreshFileViewButtons(item);
-        setTimeout(function() {
-            processHash(item);
-        }, 0);
+        function refreshIfMetadataNotLoaded() {
+            console.log(logPrefix, 'Checking metadata...', contextVars.metadataAddonEnabled, contextVars.metadata);
+            if (contextVars.metadataAddonEnabled && (!contextVars.metadata ||
+                !contextVars.metadata.getProjectMetadata(item.data.nodeId) ||
+                contextVars.metadata.getProjectMetadata(item.data.nodeId).files === undefined)) {
+                setTimeout(refreshIfMetadataNotLoaded, 500);
+                return;
+            }
+            refreshFileViewButtons(item);
+            setTimeout(function() {
+                processHash(item);
+            }, 0);
+        }
+        setTimeout(refreshIfMetadataNotLoaded, 500);
     }
     const toggleBar = $('#toggleBar').get(0);
     observer.observe(toggleBar, {attributes: false, childList: true, subtree: false});

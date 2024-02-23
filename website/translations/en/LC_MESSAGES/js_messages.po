@@ -187,10 +187,10 @@ msgstr ""
 msgid "Edit Multiple File Metadata"
 msgstr ""
 
-#: addons/metadata/static/files.js:1905 website/static/js/fangorn.js:1549
-#: website/static/js/fangorn.js:1572 website/static/js/fangorn.js:2442
-#: website/static/js/fangorn.js:2478 website/static/js/filepage/index.js:204
-#: website/static/js/filepage/index.js:519 website/static/js/myProjects.js:1637
+#: addons/metadata/static/files.js:2171 website/static/js/fangorn.js:1492
+#: website/static/js/fangorn.js:1515 website/static/js/fangorn.js:2377
+#: website/static/js/fangorn.js:2413 website/static/js/filepage/index.js:204
+#: website/static/js/filepage/index.js:517 website/static/js/myProjects.js:1637
 msgid "Delete"
 msgstr ""
 
@@ -364,40 +364,63 @@ msgstr ""
 msgid "Enable"
 msgstr ""
 
-#: addons/weko/static/wekoFangornConfig.js:40
-#: addons/weko/static/wekoFangornConfig.js:60 website/static/js/fangorn.js:2367
-#: website/static/js/filepage/index.js:542
+#: addons/weko/static/wekoFangornConfig.js:43
+#: addons/weko/static/wekoFangornConfig.js:63 website/static/js/fangorn.js:2367
+#: website/static/js/fangorn.js:2434 website/static/js/filepage/index.js:542
+#: website/static/js/filepage/index.js:544
 msgid "View"
 msgstr ""
 
-#: addons/weko/static/wekoFangornConfig.js:79
-#: addons/weko/static/wekoFangornConfig.js:558
+#: addons/weko/static/wekoFangornConfig.js:87
+#: addons/weko/static/wekoFangornConfig.js:809
 msgid "Deposit"
 msgstr ""
 
-#: addons/weko/static/wekoFangornConfig.js:240
-#: addons/weko/static/wekoFangornConfig.js:261
-#: addons/weko/static/wekoFangornConfig.js:301
+#: addons/weko/static/wekoFangornConfig.js:256
+#: addons/weko/static/wekoFangornConfig.js:277
+#: addons/weko/static/wekoFangornConfig.js:317
 msgid "Error occurred: "
 msgstr ""
 
-#: addons/weko/static/wekoFangornConfig.js:274
+#: addons/weko/static/wekoFangornConfig.js:290
 msgid "Deposit was successful."
 msgstr ""
 
-#: addons/weko/static/wekoFangornConfig.js:372
+#: addons/weko/static/wekoFangornConfig.js:540
+msgid "Send without project metadata"
+msgstr ""
+
+#: addons/weko/static/wekoFangornConfig.js:569
+msgid "Error occurred while "
+msgstr ""
+
+#: addons/weko/static/wekoFangornConfig.js:588
+msgid "Schema"
+msgstr ""
+
+#: addons/weko/static/wekoFangornConfig.js:591
+msgid "Select a schema for the file."
+msgstr ""
+
+#: addons/weko/static/wekoFangornConfig.js:593
+msgid "Project Metadata"
+msgstr ""
+
+#: addons/weko/static/wekoFangornConfig.js:597
+msgid "Select a registration for the file."
+msgstr ""
+
+#: addons/weko/static/wekoFangornConfig.js:623
 msgid ""
 "Do you want to deposit the file/folder \"%1$s\" to WEKO? This operation "
 "is irreversible."
 msgstr ""
 
-#: addons/weko/static/wekoFangornConfig.js:383
-#: addons/weko/static/wekoFangornConfig.js:424
+#: addons/weko/static/wekoFangornConfig.js:633
 msgid "OK"
 msgstr ""
 
-#: addons/weko/static/wekoFangornConfig.js:395
-#: addons/weko/static/wekoFangornConfig.js:426
+#: addons/weko/static/wekoFangornConfig.js:652
 msgid "Deposit files"
 msgstr ""
 
@@ -4270,6 +4293,10 @@ msgstr ""
 
 #: website/static/js/js_messages.js:25
 msgid "renamed"
+msgstr ""
+
+#: website/static/js/js_messages.js:25
+msgid "copied"
 msgstr ""
 
 #: website/static/js/js_messages.js:27
