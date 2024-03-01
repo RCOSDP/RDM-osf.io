@@ -16,7 +16,6 @@ logger = logging.getLogger(__name__)
 columns_default = [
     ('#.id', '#ID', '#', '#', ''),
     ('.uri', 'URI', '', '', ''),
-    ('.feedback_mail[0]', '.FEEDBACK_MAIL[0]', '', 'Allow Multiple', ''),
     ('.cnri', '.CNRI', '', '', ''),
     ('.doi_ra', '.DOI_RA', '', '', ''),
     ('.doi', '.DOI', '', '', ''),
@@ -301,7 +300,15 @@ def _concatenate_sources(metadatas, check_duplicates=[]):
         raise ValueError(f'Duplicated values for key: {key}, {non_empty_values}')
     return r
 
-def _get_sources_for_key(file_metadatas, download_file_names, project_metadatas, schema, key):
+def _has_serializable_attr(object, k):
+    try:
+        value = getattr(object, k)
+        json.dumps(value)
+        return True
+    except:
+        return False
+
+def _get_sources_for_key(user, file_metadatas, download_file_names, project_metadatas, schema, key):
     common_file_metadata_datas = sum([
         [item['data'] for item in file_metadata['items'] if item['schema'] == schema._id]
         for file_metadata in file_metadatas
@@ -360,6 +367,21 @@ def _get_sources_for_key(file_metadatas, download_file_names, project_metadatas,
         schema,
     )
     commonvars.update(common_project_commonvars)
+    if key == '@agent':
+        user_metadata = dict([
+            (k, getattr(user, k))
+            for k in dir(user)
+            if _has_serializable_attr(user, k)
+        ])
+        logger.info(f'@agent: {user_metadata}')
+        return [(
+            {
+                '@agent': {
+                    'value': user_metadata,
+                },
+            },
+            commonvars,
+        )]
     return [(
         _concatenate_sources(
             common_project_metadatas + common_file_metadata_datas,
@@ -369,9 +391,9 @@ def _get_sources_for_key(file_metadatas, download_file_names, project_metadatas,
     )]
 
 def _is_special_key(key):
-    return key in ['_', '@files', '@projects']
+    return key in ['_', '@files', '@projects', '@agent']
 
-def write_csv(f, target_index, download_file_names, schema_id, file_metadatas, project_metadatas):
+def write_csv(user, f, target_index, download_file_names, schema_id, file_metadatas, project_metadatas):
     from .models import RegistrationMetadataMapping
     schema = RegistrationSchema.objects.get(_id=schema_id)
     mapping_def = RegistrationMetadataMapping.objects.get(
@@ -397,7 +419,7 @@ def write_csv(f, target_index, download_file_names, schema_id, file_metadatas, p
     weko_key_counts = {}
     for key in sorted(mappings.keys()):
         for source, commonvars in _get_sources_for_key(
-            file_metadatas, download_file_names, project_metadatas, schema, key
+            user, file_metadatas, download_file_names, project_metadatas, schema, key
         ):
             if key not in mappings:
                 logger.warning(f'No mappings: {key}')
@@ -421,7 +443,7 @@ def write_csv(f, target_index, download_file_names, schema_id, file_metadatas, p
                     continue
                 columns += _get_columns(
                     source_data,
-                    f'.metadata',
+                    '',
                     weko_mapping,
                     weko_key_counts=weko_key_counts,
                     commonvars=commonvars,
@@ -454,7 +476,7 @@ def write_csv(f, target_index, download_file_names, schema_id, file_metadatas, p
                         continue
                     columns += _get_columns(
                         target_data,
-                        f'.metadata',
+                        '',
                         weko_mapping,
                         weko_key_counts=weko_key_counts,
                         commonvars=commonvars,
@@ -486,7 +508,7 @@ def write_csv(f, target_index, download_file_names, schema_id, file_metadatas, p
                     continue
                 columns += _get_columns(
                     target_data,
-                    f'.metadata',
+                    '',
                     weko_mapping,
                     weko_key_counts=weko_key_counts,
                     commonvars=commonvars,

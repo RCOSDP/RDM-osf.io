@@ -258,6 +258,8 @@ def weko_publish_file(auth, did=None, index_id=None, mnode=None, filepath=None, 
     project_metadatas = []
     for project_metadata_id in project_metadata_ids:
         project_metadata_ = None
+        if len(project_metadata_id) == 0:
+            continue
         if project_metadata_id is not None and project_metadata_id.startswith('registration/'):
             id = project_metadata_id[len('registration/'):]
             project_metadata = Registration.objects.filter(guids___id=id).first()

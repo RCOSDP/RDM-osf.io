@@ -17,7 +17,7 @@ def _validate_mapping_element(element):
             if key not in ['@type', '@createIf']:
                 raise ValueError(f'Unexpected special property: {key}')
             continue
-        if not re.match(r'([a-zA-Z_]+)(\[[A-Z_]*\])?', key):
+        if not re.match(r'([\.a-zA-Z_]+)(\[[A-Z_]*\])?', key):
             raise ValueError(f'Unexpected key format "{key}" (must be [a-zA-Z_]+[[A-Z_]*]?)')
         if isinstance(v, str):
             continue

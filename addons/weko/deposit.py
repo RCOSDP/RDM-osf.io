@@ -111,6 +111,7 @@ def deposit_metadata(
             with zf.open('data/index.csv', 'w') as f:
                 with io.TextIOWrapper(f, encoding='utf8') as tf:
                     schema.write_csv(
+                        user,
                         tf,
                         target_index,
                         download_file_names,
