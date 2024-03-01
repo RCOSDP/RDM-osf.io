@@ -7,6 +7,7 @@ import re
 from jinja2 import Environment
 
 from osf.models.metaschema import RegistrationSchema
+from .mappings.utils import JINJA2_FILTERS
 
 
 logger = logging.getLogger(__name__)
@@ -26,13 +27,6 @@ columns_default = [
 def _generate_file_columns(index, download_file_name, download_file_type):
     columns = []
     columns.append((f'.file_path[{index}]', f'.ファイルパス[{index}]', '', 'Allow Multiple', download_file_name))
-    base_item = f'.metadata.item_1617605131499[{index}]'
-    base_file = f'File[{index}]'
-    columns.append((f'{base_item}.filename', f'{base_file}.表示名', '', 'Allow Multiple', download_file_name))
-    if download_file_type is not None:
-        columns.append((f'{base_item}.format', f'{base_file}.フォーマット', '', 'Allow Multiple', download_file_type))
-    # TBD サムネイル？
-    # TBD Content-Type調整？デフォルトストレージはContent-Typeを供給しないので application/octet-streamだったら拡張子から推定するとか
     return columns
 
 def _get_metadata_value(file_metadata_data, item, lang, index):
@@ -105,6 +99,8 @@ def _get_value(file_metadata, text, commonvars=None, schema=None):
     if commonvars is not None:
         values.update(commonvars)
     env = Environment(autoescape=False)
+    for name, filter_ in JINJA2_FILTERS.items():
+        env.filters[name] = filter_
     template = env.from_string(text)
     return template.render(**values)
 
@@ -252,15 +248,140 @@ def _expand_listed_key(mappings):
             r[e] = v
     return r
 
-def write_csv(f, target_index, download_file_names, schema_id, file_metadata, project_metadata):
+def _resolve_duplicated_values(items):
+    if len(items) == 0:
+        raise ValueError('No items')
+    if len(items) == 1:
+        return items[0]['value']
+    values = [json.dumps(item['value']) for item in items]
+    if len(set(values)) == 1:
+        return items[0]['value']
+    return None
+
+def _is_empty(value):
+    if value is None:
+        return True
+    if isinstance(value, str) and len(value) == 0:
+        return True
+    if isinstance(value, list) and len(value) == 0:
+        return True
+    if isinstance(value, dict):
+        for v in value.values():
+            if not _is_empty(v):
+                return False
+        return True
+    return False
+
+def _concatenate_sources(metadatas, check_duplicates=[]):
+    if len(metadatas) == 0:
+        return {}
+    keys = sorted(set(sum([list(m.keys()) for m in metadatas], [])))
+    r = {}
+    for key in keys:
+        items = [metadata[key] for metadata in metadatas if key in metadata]
+        if len(items) == 0:
+            continue
+        empty_items = [item for item in items if _is_empty(item.get('value', ''))]
+        non_empty_items = [item for item in items if not _is_empty(item.get('value', ''))]
+        if len(non_empty_items) == 0:
+            r[key] = empty_items[0]
+            continue
+        if len(non_empty_items) == 1:
+            r[key] = non_empty_items[0]
+            continue
+        value = _resolve_duplicated_values(non_empty_items)
+        if value is not None:
+            r[key] = {
+                'value': value,
+            }
+            continue
+        if key not in check_duplicates:
+            continue
+        non_empty_values = [item['value'] for item in non_empty_items]
+        raise ValueError(f'Duplicated values for key: {key}, {non_empty_values}')
+    return r
+
+def _get_sources_for_key(file_metadatas, download_file_names, project_metadatas, schema, key):
+    common_file_metadata_datas = sum([
+        [item['data'] for item in file_metadata['items'] if item['schema'] == schema._id]
+        for file_metadata in file_metadatas
+    ], [])
+    common_project_metadatas = project_metadatas
+    common_file_metadata_data = _concatenate_sources(common_file_metadata_datas)
+    common_file_commonvars = _get_common_variables(
+        common_file_metadata_data,
+        schema,
+        skip_empty=True,
+    )
+    common_project_metadata = _concatenate_sources(common_project_metadatas)
+    common_project_commonvars = _get_common_variables(
+        common_project_metadata,
+        schema,
+        skip_empty=True,
+    )
+    if key == '@files':
+        if len(file_metadatas) != len(download_file_names):
+            raise ValueError(f'File metadata count mismatch: {len(file_metadatas)} != {len(download_file_names)}')
+        r = []
+        for file_metadata, (download_file_name, download_file_type) in zip(file_metadatas, download_file_names):
+            file_metadata_items = [item for item in file_metadata['items'] if item['schema'] == schema._id]
+            if len(file_metadata_items) == 0:
+                raise ValueError(f'Schema not found: {file_metadata}, {schema._id}')
+            file_metadata_data = file_metadata_items[0]['data']
+            commonvars = _get_common_variables(file_metadata_data, schema)
+            commonvars.update(common_project_commonvars)
+            file_metadata_data_ = {
+                'filename': download_file_name,
+                'format': download_file_type,
+            }
+            file_metadata_data_.update(dict([
+                (k, v.get('value', ''))
+                for k, v in file_metadata_data.items()
+            ]))
+            r.append(({
+                '@files': {
+                    'value': file_metadata_data_,
+                },
+            }, commonvars))
+        return r
+    if key == '@projects':
+        r = []
+        for project_metadata in project_metadatas:
+            commonvars = _get_common_variables(project_metadata, schema)
+            commonvars.update(common_file_commonvars)
+            r.append(({
+                '@projects': {
+                    'value': project_metadata,
+                },
+            }, commonvars))
+        return r
+    commonvars = _get_common_variables(
+        common_file_metadata_data,
+        schema,
+    )
+    commonvars.update(common_project_commonvars)
+    return [(
+        _concatenate_sources(
+            common_project_metadatas + common_file_metadata_datas,
+            check_duplicates=[key],
+        ),
+        commonvars,
+    )]
+
+def _is_special_key(key):
+    return key in ['_', '@files', '@projects']
+
+def write_csv(f, target_index, download_file_names, schema_id, file_metadatas, project_metadatas):
     from .models import RegistrationMetadataMapping
     schema = RegistrationSchema.objects.get(_id=schema_id)
     mapping_def = RegistrationMetadataMapping.objects.get(
         registration_schema_id=schema._id,
     )
     logger.debug(f'Mappings: {mapping_def.rules}')
-    logger.debug(f'File metadata: {file_metadata}')
-    logger.debug(f'Project metadata: {project_metadata}')
+    for i, file_metadata in enumerate(file_metadatas):
+        logger.debug(f'File metadata #{i}: {file_metadata}')
+    for i, project_metadata in enumerate(project_metadatas):
+        logger.debug(f'Project metadata #{i}: {project_metadata}')
     mapping_metadata = mapping_def.rules['@metadata']
     itemtype_metadata = mapping_metadata['itemtype']
     header = ['#ItemType', itemtype_metadata['name'], itemtype_metadata['schema']]
@@ -271,23 +392,13 @@ def write_csv(f, target_index, download_file_names, schema_id, file_metadata, pr
     for i, (download_file_name, download_file_type) in enumerate(download_file_names):
         columns += _generate_file_columns(i, download_file_name, download_file_type)
 
-    file_metadata_items = [item for item in file_metadata['items'] if item['schema'] == schema_id]
-    if len(file_metadata_items) == 0:
-        raise ValueError(f'Schema not found: {schema_id}')
-    file_metadata_item = file_metadata_items[0]
-    file_metadata_data = file_metadata_item['data']
-
     mappings = _expand_listed_key(mapping_def.rules)
 
     weko_key_counts = {}
-    commonvars = _get_common_variables(file_metadata_data, schema)
-    sources = [('file', file_metadata_data)]
-    if project_metadata is not None:
-        commonvars.update(_get_common_variables(project_metadata, schema, skip_empty=True))
-        sources.append(('project', project_metadata))
     for key in sorted(mappings.keys()):
-        for source_type, source in sources:
-            commonvars['context'] = source_type
+        for source, commonvars in _get_sources_for_key(
+            file_metadatas, download_file_names, project_metadatas, schema, key
+        ):
             if key not in mappings:
                 logger.warning(f'No mappings: {key}')
                 continue
@@ -298,7 +409,7 @@ def write_csv(f, target_index, download_file_names, schema_id, file_metadata, pr
             source_data = source.get(key, {
                 'value': '',
             }) if key != '_' else None
-            question_schema = _find_schema_question(schema.schema, key) if key != '_' else None
+            question_schema = _find_schema_question(schema.schema, key) if not _is_special_key(key) else None
             if key == '_' or weko_mapping.get('@type', None) == 'string':
                 if not _is_column_present(
                     source_data,
@@ -306,7 +417,7 @@ def write_csv(f, target_index, download_file_names, schema_id, file_metadata, pr
                     commonvars=commonvars,
                     schema=question_schema,
                 ):
-                    logger.debug(f'Skipped: {key} @ {source_type}')
+                    logger.debug(f'Skipped: {key}')
                     continue
                 columns += _get_columns(
                     source_data,
@@ -321,12 +432,12 @@ def write_csv(f, target_index, download_file_names, schema_id, file_metadata, pr
                 value = source_data.get('value', '')
                 if weko_mapping['@type'] == 'jsonarray':
                     if value is None or not isinstance(value, str):
-                        logger.warn(f'Unexpected value: {value}, {key} @ {source_type}')
+                        logger.warn(f'Unexpected value: {value}, {key}')
                         continue
                     jsonarray = json.loads(value) if value is not None and len(value) > 0 else []
                 else:
                     if value is None or not isinstance(value, list):
-                        logger.warn(f'Unexpected value: {value}, {key} @ {source_type}')
+                        logger.warn(f'Unexpected value: {value}, {key}')
                         continue
                     jsonarray = value if value is not None else []
                 for i, jsonelement in enumerate(jsonarray):
@@ -339,7 +450,7 @@ def write_csv(f, target_index, download_file_names, schema_id, file_metadata, pr
                         commonvars=commonvars,
                         schema=question_schema,
                     ):
-                        logger.debug(f'Skipped: {key}[{i}] @ {source_type}')
+                        logger.debug(f'Skipped: {key}[{i}]')
                         continue
                     columns += _get_columns(
                         target_data,
@@ -354,12 +465,12 @@ def write_csv(f, target_index, download_file_names, schema_id, file_metadata, pr
                 value = source_data.get('value', '')
                 if weko_mapping['@type'] == 'jsonobject':
                     if value is None or not isinstance(value, str):
-                        logger.warn(f'Unexpected value: {value}, {key} @ {source_type}')
+                        logger.warn(f'Unexpected value: {value}, {key}')
                         continue
                     jsonobject = json.loads(value) if value is not None and len(value) > 0 else {}
                 else:
                     if value is None or not isinstance(value, dict):
-                        logger.warn(f'Unexpected value: {value}, {key} @ {source_type}')
+                        logger.warn(f'Unexpected value: {value}, {key}')
                         continue
                     jsonobject = value if value is not None else {}
                 target_data = {
@@ -371,7 +482,7 @@ def write_csv(f, target_index, download_file_names, schema_id, file_metadata, pr
                     commonvars=commonvars,
                     schema=question_schema,
                 ):
-                    logger.debug(f'Skipped: {key} @ {source_type}')
+                    logger.debug(f'Skipped: {key}')
                     continue
                 columns += _get_columns(
                     target_data,

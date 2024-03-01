@@ -253,22 +253,31 @@ def weko_publish_file(auth, did=None, index_id=None, mnode=None, filepath=None, 
     if schema_id is None:
         schema_id = get_available_schema_id(file_metadata_)
     addon.set_publish_task_id(filepath, None)
-    project_metadata_id = request.json.get('project_metadata_id', None) if request.json is not None else None
-    project_metadata_ = None
-    if project_metadata_id is not None and project_metadata_id.startswith('registration/'):
-        id = project_metadata_id[len('registration/'):]
-        project_metadata = Registration.objects.filter(guids___id=id).first()
-        project_metadata_ = project_metadata.registered_meta
-    elif project_metadata_id is not None and project_metadata_id.startswith('draft-registration/'):
-        id = project_metadata_id[len('draft-registration/'):]
-        project_metadata = DraftRegistration.objects.filter(_id=id).first()
-        project_metadata_ = project_metadata.registration_metadata
-    elif project_metadata_id is not None:
-        logger.error(f'Invalid project metadata ID: {project_metadata_id}')
-        return HTTPError(http_status.HTTP_400_BAD_REQUEST)
+    project_metadata_ids_text = request.json.get('project_metadata_ids', None) if request.json is not None else None
+    project_metadata_ids = project_metadata_ids_text.split(',') if project_metadata_ids_text is not None else []
+    project_metadatas = []
+    for project_metadata_id in project_metadata_ids:
+        project_metadata_ = None
+        if project_metadata_id is not None and project_metadata_id.startswith('registration/'):
+            id = project_metadata_id[len('registration/'):]
+            project_metadata = Registration.objects.filter(guids___id=id).first()
+            project_metadata_ = project_metadata.registered_meta[schema_id]
+        elif project_metadata_id is not None and project_metadata_id.startswith('draft-registration/'):
+            id = project_metadata_id[len('draft-registration/'):]
+            project_metadata = DraftRegistration.objects.filter(_id=id).first()
+            project_metadata_ = project_metadata.registration_metadata
+        elif project_metadata_id is not None:
+            logger.error(f'Invalid project metadata ID: {project_metadata_id}')
+            return HTTPError(http_status.HTTP_400_BAD_REQUEST)
+        project_metadatas.append(project_metadata_)
     enqueue_task(deposit_metadata.s(
         auth.user._id, index_id, node._id, mnode_obj._id,
-        schema_id, file_metadata_, project_metadata_, filepath, filepath, delete_after=True
+        schema_id,
+        [file_metadata_],
+        project_metadatas,
+        [filepath],
+        filepath,
+        delete_after=True,
     ))
     return _response_file_metadata(addon, filepath)
 
@@ -314,19 +323,18 @@ def _publish_project_metadata(auth, node, addon, index_id, metadata_type, metada
     if len(files) == 0:
         logger.error(f'No files: {project_metadata}')
         return HTTPError(http_status.HTTP_400_BAD_REQUEST)
-    file = files[0]
-    filepath = file['path']
-    file_metadata = {
+    filepaths = [file['path'] for file in files]
+    file_metadata = [{
         'items': [
             {
                 'schema': schema_id,
                 'data': file['metadata'],
             }
         ]
-    }
+    } for file in files]
     enqueue_task(deposit_metadata.s(
         auth.user._id, index_id, node._id, node._id,
-        schema_id, file_metadata, project_metadata, filepath, status_path,
+        schema_id, file_metadata, [project_metadata], filepaths, status_path,
     ))
     return _response_project_metadata(addon, metadata_type, metadata_id)
 

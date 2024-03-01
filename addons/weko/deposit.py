@@ -58,60 +58,65 @@ def _download(node, file, tmp_dir):
 @celery_app.task(bind=True, max_retries=5, default_retry_delay=60)
 def deposit_metadata(
     self, user_id, index_id, node_id, metadata_node_id,
-    schema_id, file_metadata, project_metadata, metadata_path, status_path, delete_after=False,
+    schema_id, file_metadatas, project_metadatas, metadata_paths, status_path, delete_after=False,
 ):
     user = OSFUser.load(user_id)
-    logger.info(f'Deposit: {metadata_path}, {status_path} {self.request.id}')
-    path = metadata_path
-    if '/' not in path:
-        raise ValueError(f'Malformed path: {path}')
-    self.update_state(state='initializing', meta={
-        'progress': 0,
-        'path': metadata_path,
-    })
-    materialized_path = path[path.index('/'):]
+    logger.info(f'Deposit: {metadata_paths}, {status_path} {self.request.id}')
     node = AbstractNode.load(node_id)
     weko_addon = node.get_addon(SHORT_NAME)
     weko_addon.set_publish_task_id(status_path, self.request.id)
     wb = WaterButlerClient(user).get_client_for_node(node)
-    file = wb.get_file_by_materialized_path(path)
-    logger.debug(f'File: {file}')
-    if file is None:
-        raise KeyError(f'File not found: {materialized_path}')
     tmp_dir = None
     try:
         tmp_dir = tempfile.mkdtemp()
         self.update_state(state='downloading', meta={
             'progress': 10,
-            'path': metadata_path,
+            'paths': metadata_paths,
         })
-        download_file_path, download_file_type = _download(node, file, tmp_dir)
-        filesize = os.path.getsize(download_file_path)
-        logger.info(f'Downloaded: {download_file_path} {filesize}')
+        download_file_names = []
+        download_files = []
+        for metadata_path in metadata_paths:
+            path = metadata_path
+            if '/' not in path:
+                raise ValueError(f'Malformed path: {path}')
+            self.update_state(state='initializing', meta={
+                'progress': 0,
+                'path': metadata_path,
+            })
+            materialized_path = path[path.index('/'):]
+            file = wb.get_file_by_materialized_path(path)
+            logger.debug(f'File: {file}')
+            if file is None:
+                raise KeyError(f'File not found: {materialized_path}')
+            download_file_path, download_file_type = _download(node, file, tmp_dir)
+            filesize = os.path.getsize(download_file_path)
+            _, download_file_name = os.path.split(download_file_path)
+            download_file_names.append((download_file_name, download_file_type))
+            download_files.append(file)
+            logger.info(f'Downloaded: {download_file_path} {filesize}')
         self.update_state(state='packaging', meta={
             'progress': 50,
-            'path': metadata_path,
+            'paths': metadata_paths,
         })
 
         c = weko_addon.create_client()
         target_index = c.get_index_by_id(index_id)
 
-        _, download_file_name = os.path.split(download_file_path)
-
         zip_path = os.path.join(tmp_dir, 'payload.zip')
         with ZipFile(zip_path, 'w') as zf:
-            with zf.open(os.path.join('data/', download_file_name), 'w') as df:
-                with open(download_file_path, 'rb') as sf:
-                    shutil.copyfileobj(sf, df)
+            for download_file_name, _ in download_file_names:
+                with zf.open(os.path.join('data/', download_file_name), 'w') as df:
+                    with open(download_file_path, 'rb') as sf:
+                        shutil.copyfileobj(sf, df)
             with zf.open('data/index.csv', 'w') as f:
                 with io.TextIOWrapper(f, encoding='utf8') as tf:
                     schema.write_csv(
                         tf,
                         target_index,
-                        [(download_file_name, download_file_type)],
+                        download_file_names,
                         schema_id,
-                        file_metadata,
-                        project_metadata,
+                        file_metadatas,
+                        project_metadatas,
                     )
         headers = {
             'Packaging': 'http://purl.org/net/sword/3.0/package/SimpleZip',
@@ -122,30 +127,31 @@ def deposit_metadata(
         }
         self.update_state(state='uploading', meta={
             'progress': 60,
-            'path': metadata_path,
+            'paths': metadata_paths,
         })
-        logger.info(f'Uploading... {file_metadata}')
+        logger.info(f'Uploading... {file_metadatas}')
         respbody = c.deposit(files, headers=headers)
         logger.info(f'Uploaded: {respbody}')
         self.update_state(state='uploaded', meta={
             'progress': 100,
-            'path': metadata_path,
+            'paths': metadata_paths,
         })
         links = [l for l in respbody['links'] if 'contentType' in l and '@id' in l and l['contentType'] == 'text/html']
-        if delete_after:
-            file.delete()
-        weko_addon.create_waterbutler_deposit_log(
-            Auth(user),
-            'item_deposited',
-            {
-                'materialized': file.materialized,
-                'path': file.path,
-                'item_html_url': links[0]['@id'],
-            },
-        )
+        for file in download_files:
+            if delete_after:
+                file.delete()
+            weko_addon.create_waterbutler_deposit_log(
+                Auth(user),
+                'item_deposited',
+                {
+                    'materialized': file.materialized,
+                    'path': file.path,
+                    'item_html_url': links[0]['@id'],
+                },
+            )
         return {
             'result': links[0]['@id'] if len(links) > 0 else None,
-            'path': metadata_path,
+            'paths': metadata_paths,
         }
     finally:
         if tmp_dir and os.path.exists(tmp_dir):

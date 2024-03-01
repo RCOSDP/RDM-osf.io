@@ -242,8 +242,8 @@ function performDeposit(tb, contextItem, options) {
     if (options.schema) {
         params.schema_id = options.schema;
     }
-    if (options.project_metadata) {
-        params.project_metadata_id = options.project_metadata;
+    if (options.project_metadatas) {
+        params.project_metadata_ids = options.project_metadatas.join(',');
     }
     return $osf.putJSON(url, params).done(function (data) {
       console.log(logPrefix, 'checking progress...');
@@ -473,12 +473,6 @@ function createMetadataSelectorBase(item, schemaCallback, projectMetadataCallbac
     };
 }
 
-function validateProjectMetadata(registration) {
-    const page = contextVars.metadata.createProjectMetadataPage(registration);
-    page.validateAll();
-    return !page.hasValidationError;
-}
-
 function createMetadataSelectorForJQuery(item, changedCallback) {
     const errorView = $('<div></div>').addClass('alert alert-danger').hide();
     const validationResult = $('<div></div>')
@@ -486,7 +480,7 @@ function createMetadataSelectorForJQuery(item, changedCallback) {
         .text(_('There are errors in some fields.'))
         .hide();
     const metadataPreview = $('<div></div>').css('overflow', 'auto').css('max-height', '40vh');
-    const metadataSelect = $('<select></select>').addClass('form-control').hide()
+    const metadataSelect = $('<div></div>').hide();
     const schemaLoading = $('<span></span>').addClass('fa fa-spinner fa-pulse').show();
     const metadataLoading = $('<span></span>').addClass('fa fa-spinner fa-pulse').show();
     const refreshButton = $('<button></button>')
@@ -496,6 +490,11 @@ function createMetadataSelectorForJQuery(item, changedCallback) {
     const schemaSelect = $('<select></select>').addClass('form-control');
     var lastSchema = null;
     var lastSchemaValid = null;
+    function getMetadataSelectValue() {
+        return metadataSelect.find('input:checked').map(function() {
+            return $(this).val();
+        }).get();
+    }
     function valueChanged() {
         var valid = false;
         if (lastSchemaValid === null || lastSchema !== schemaSelect.val()) {
@@ -506,7 +505,7 @@ function createMetadataSelectorForJQuery(item, changedCallback) {
         if (!changedCallback) {
             return;
         }
-        changedCallback(valid, schemaSelect.val(), metadataSelect.val());
+        changedCallback(valid, schemaSelect.val(), getMetadataSelectValue());
     }
     var selector = null;
     function validateSchema(schema) {
@@ -536,7 +535,6 @@ function createMetadataSelectorForJQuery(item, changedCallback) {
         metadataSelect.empty().show();
         metadataLoading.hide();
         refreshButton.attr('disabled', null);
-        metadataSelect.append($('<option></option>').attr('value', '').text(_('Send without project metadata')));
         (registrations.registrations || []).forEach(function(r) {
             if (!(r.relationships && r.relationships.registration_schema && r.relationships.registration_schema.data &&
                 r.relationships.registration_schema.data.id === schemaSelect.val())) {
@@ -544,24 +542,28 @@ function createMetadataSelectorForJQuery(item, changedCallback) {
             }
             const title = r.attributes.title || contextVars.metadata.extractProjectName(r.attributes.registered_meta);
             const registered = new Date(Date.parse(r.attributes.date_registered));
-            metadataSelect.append($('<option></option>')
-                .attr('value', 'registration/' + r.id)
-                .text(title + ' (' + registered + ')'));
+            metadataSelect.append($('<div></div>')
+                .append($('<input></input>')
+                    .attr('type', 'checkbox')
+                    .attr('value', 'registration/' + r.id)
+                    .change(valueChanged))
+                .append($('<span></span>')
+                    .text(title + ' (' + registered + ')')));
         });
         (registrations.draftRegistrations || []).forEach(function(r) {
             if (!(r.relationships && r.relationships.registration_schema && r.relationships.registration_schema.data &&
                 r.relationships.registration_schema.data.id === schemaSelect.val())) {
                 return;
             }
-            if (!validateProjectMetadata(r)) {
-                console.warn('Project metadata validation failed', r.attributes.registration_metadata);
-                return;
-            }
             const title = r.attributes.title || contextVars.metadata.extractProjectName(r.attributes.registration_metadata);
             const updated = new Date(Date.parse(r.attributes.datetime_updated));
-            metadataSelect.append($('<option></option>')
-                .attr('value', 'draft-registration/' + r.id)
-                .text(title + ' (' + updated + ')'));
+            metadataSelect.append($('<div></div>')
+                .append($('<input></input>')
+                    .attr('type', 'checkbox')
+                    .attr('value', 'draft-registration/' + r.id)
+                    .change(valueChanged))
+                .append($('<span></span>')
+                    .text(title + ' (' + updated + ')')));
         });
     };
     const errorCallback = function(action, error) {
@@ -634,20 +636,15 @@ function showConfirmDeposit(tb, contextItem, callback) {
             dialog.modal('hide');
         });
     });
-    const save = $('<a href="#" class="btn btn-primary"></a>').text(_('OK')).attr('disabled', 'disabled');
+    const save = $('<a href="#" class="btn btn-primary"></a>').text(_('OK'));
     save.click(function() {
         okHandler(function() {
             dialog.modal('hide');
         });
     });
-    const optionsHandler = function(valid, schema, projectMetadata) {
-        if (!valid) {
-            save.attr('disabled', 'disabled');
-        } else {
-            save.attr('disabled', null);
-        }
+    const optionsHandler = function(valid, schema, projectMetadatas) {
         options.schema = schema;
-        options.project_metadata = projectMetadata;
+        options.project_metadatas = projectMetadatas;
     };
     dialog
         .append($('<div class="modal-dialog modal-lg"></div>')
