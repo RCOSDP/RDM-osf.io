@@ -333,14 +333,16 @@ class BaseROCrateFactory(object):
         tmp_path = os.path.join(self.work_dir, 'temp.dat')
         total_size = 0
         for path, file, _ in files:
-            logger.info(f'Downloading... {path}')
+            logger.info(f'Downloading... {path}, size={file.size}')
             assert path.startswith('./'), path
+            self._check_file_size(total_size + file.size)
             with open(tmp_path, 'wb') as df:
                 file.download_to(df)
             size = os.path.getsize(tmp_path)
+            if size != file.size:
+                raise IOError(f'File size mismatch: {size} != {file.size}')
             total_size += size
             logger.info(f'Downloaded: path={path}, size={size} (total downloaded={total_size})')
-            self._check_file_size(total_size)
             yield {
                 'fs': tmp_path,
                 'n': path[2:],

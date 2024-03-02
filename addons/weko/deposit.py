@@ -10,12 +10,12 @@ from zipfile import ZipFile
 
 from framework.auth import Auth
 from framework.celery_tasks import app as celery_app
-from osf.models import AbstractNode, OSFUser, DraftRegistration, Registration
-from osf.models.metaschema import RegistrationSchema
+from osf.models import AbstractNode, OSFUser
 
 from addons.metadata.packages import WaterButlerClient, BaseROCrateFactory
 from .apps import SHORT_NAME
 from . import schema
+from . import settings
 
 
 logger = logging.getLogger('addons.weko.views')
@@ -55,6 +55,12 @@ def _download(node, file, tmp_dir):
     rocrate.download_to(download_file_path)
     return download_file_path, ROCRATE_DATASET_MIME_TYPE
 
+def _check_file_size(total_size):
+    if total_size <= settings.MAX_UPLOAD_SIZE:
+        return
+    params = f'exported={total_size}, limit={settings.MAX_UPLOAD_SIZE}'
+    raise IOError(f'Exported file size exceeded limit: {params}')
+
 @celery_app.task(bind=True, max_retries=5, default_retry_delay=60)
 def deposit_metadata(
     self, user_id, index_id, node_id, metadata_node_id,
@@ -75,6 +81,7 @@ def deposit_metadata(
         })
         download_file_names = []
         download_files = []
+        total_size = 0
         for metadata_path in metadata_paths:
             path = metadata_path
             if '/' not in path:
@@ -85,11 +92,15 @@ def deposit_metadata(
             })
             materialized_path = path[path.index('/'):]
             file = wb.get_file_by_materialized_path(path)
-            logger.debug(f'File: {file}')
+            logger.debug(f'File: {file}, size={file.size}')
             if file is None:
                 raise KeyError(f'File not found: {materialized_path}')
+            _check_file_size(total_size + file.size)
             download_file_path, download_file_type = _download(node, file, tmp_dir)
             filesize = os.path.getsize(download_file_path)
+            if filesize != file.size:
+                raise IOError(f'File size mismatch: {filesize} != {file.size}')
+            total_size += filesize
             _, download_file_name = os.path.split(download_file_path)
             download_file_names.append((download_file_name, download_file_type))
             download_files.append(file)

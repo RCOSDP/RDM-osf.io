@@ -10,6 +10,7 @@
         "metadata.item_1617605131499[]": {
             "filename": "{{object_filename}}",
             "format": "{{object_format}}",
+            "displaytype": "preview",
             "accessrole": "{% if object_grdm_file_access_rights == \"open access\" %}open_access{% elif object_grdm_file_access_rights == \"restricted access\" %}open_login{% elif object_grdm_file_access_rights == \"embargoed access\" %}open_date{% else %}open_no{% endif %}",
             "date[]": {
                 "@createIf": "{% if object_grdm_file_access_rights == \"embargoed access\" %}{{object_grdm_file_available_date}}{% endif %}",
