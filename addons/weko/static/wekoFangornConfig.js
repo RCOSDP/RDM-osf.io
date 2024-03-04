@@ -8,7 +8,6 @@ const Raven = require('raven-js');
 const fangorn = require('js/fangorn');
 const Fangorn = fangorn.Fangorn;
 const $osf = require('js/osfHelpers');
-const { refresh } = require('less');
 
 const _ = require('js/rdmGettext')._;
 const sprintf = require('agh.sprintf').sprintf;
