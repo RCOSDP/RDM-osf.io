@@ -713,12 +713,23 @@ class WikiFile(object):
     def __init__(self, wiki):
         self.wiki = wiki
 
+    @property
+    def size(self):
+        data = self._get_content_as_bytes()
+        return len(data) if data is not None else 0
+
     def download_to(self, f):
-        latest = self.wiki.get_version()
-        if latest is None:
+        data = self._get_content_as_bytes()
+        if data is None:
             logger.warn(f'Wiki content is empty: {self.wiki.page_name}')
             return
-        f.write(latest.content.encode('utf8'))
+        f.write(data)
+
+    def _get_content_as_bytes(self):
+        latest = self.wiki.get_version()
+        if latest is None:
+            return None
+        return latest.content.encode('utf8')
 
 class ROCrateFactory(BaseROCrateFactory):
 
