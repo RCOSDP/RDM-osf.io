@@ -305,7 +305,7 @@ def _has_serializable_attr(object, k):
         value = getattr(object, k)
         json.dumps(value)
         return True
-    except:
+    except Exception:
         return False
 
 def _get_sources_for_key(user, file_metadatas, download_file_names, project_metadatas, schema, key):

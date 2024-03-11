@@ -15,7 +15,6 @@ from framework.auth.decorators import Auth
 
 from osf.models.base import BaseModel
 from osf.models.files import File, Folder, BaseFileNode
-from osf.models.metaschema import RegistrationSchema
 from osf.models.nodelog import NodeLog
 from osf.utils.fields import NonNaiveDateTimeField
 from osf.utils.datetime_aware_jsonfield import DateTimeAwareJSONField

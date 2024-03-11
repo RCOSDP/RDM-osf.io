@@ -37,7 +37,6 @@ from .jsonld import (
 )
 from addons.wiki.models import WikiPage
 from addons.metadata.apps import SHORT_NAME as METADATA_SHORT_NAME
-from addons.weko import settings as weko_settings
 
 
 logger = logging.getLogger(__name__)
