@@ -23,6 +23,18 @@ ERAD_COLUMNS = [
 ROR_URL = 'https://api.ror.org/organizations'
 
 
+def valid_suggestion_key(key):
+    if key == 'file-data-number':
+        return True
+    elif key == 'ror':
+        return True
+    elif key.startswith('erad:'):
+        return True
+    elif key.startswith('asset:'):
+        return True
+    return False
+
+
 def suggestion_metadata(key, keyword, filepath, node):
     suggestions = []
     if key == 'file-data-number':
@@ -33,6 +45,8 @@ def suggestion_metadata(key, keyword, filepath, node):
         suggestions.extend(suggestion_erad(key, keyword, node))
     elif key.startswith('asset:'):
         suggestions.extend(suggestion_asset(key, keyword, node))
+    else:
+        raise KeyError('Invalid key: {}'.format(key))
     return suggestions
 
 

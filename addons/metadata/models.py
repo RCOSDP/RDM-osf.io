@@ -267,11 +267,21 @@ class NodeSettings(BaseNodeSettings):
         for schema in schemas:
             for format in RegistrationReportFormat.objects.filter(registration_schema_id=schema._id):
                 formats.append({
+                    'id': f'format-{format.id}',
                     'schema_id': schema._id,
                     'name': format.name,
                 })
+        destinations = []
+        for addon in self.owner.get_addons():
+            if not hasattr(addon, 'has_metadata') or not addon.has_metadata:
+                continue
+            dests = addon.get_metadata_destinations(schemas)
+            if dests is None:
+                continue
+            destinations += dests
         return {
-            'formats': formats
+            'formats': formats,
+            'destinations': destinations,
         }
 
     def update_file_metadata_for(self, action, payload, auth):
