@@ -89,8 +89,8 @@ class Client(object):
         logger.info(f'_post: url={self._base_host + path}, status={resp.status_code}, response={resp.content}')
         if resp.status_code == 400:
             error_reason = resp.json()
-            error_type = error_reason.get("@type", "Unknown")
-            error_message = error_reason.get("error", "Unknown")
+            error_type = error_reason.get('@type', 'Unknown')
+            error_message = error_reason.get('error', 'Unknown')
             raise HTTPError(f'Bad Request for URL: {self._base_host + path}: type={error_type}, message={error_message}')
         resp.raise_for_status()
         return resp.json()

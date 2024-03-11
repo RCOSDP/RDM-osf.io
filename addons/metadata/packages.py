@@ -36,7 +36,6 @@ from .jsonld import (
     convert_json_ld_entity_to_file_metadata_item,
 )
 from addons.wiki.models import WikiPage
-from addons.weko import settings as weko_settings
 
 
 logger = logging.getLogger(__name__)
