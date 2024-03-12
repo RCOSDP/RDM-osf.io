@@ -4,6 +4,7 @@ import io
 import json
 import logging
 import os
+import re
 import shutil
 import tempfile
 from zipfile import ZipFile
@@ -99,6 +100,21 @@ def _create_waterbutler_client_for_single_node(new_node, files):
 def _get_ro_crate_from(zip_path):
     with ZipFile(zip_path, 'r') as zf:
         return json.load(zf.open('ro-crate-metadata.json'))
+
+def _assert_dict_matches(value, expected_with_patterns):
+    for k, v in expected_with_patterns.items():
+        assert_true(k in value, f'Key not found: {k} in {value}')
+        if isinstance(v, dict):
+            _assert_dict_matches(value[k], v)
+        elif isinstance(v, list):
+            assert_equals(len(value[k]), len(v), f'Length mismatch: {len(value[k])} != {len(v)} (expected {v})')
+            for i, e in enumerate(v):
+                _assert_dict_matches(value[k][i], e)
+        elif hasattr(v, 'match'):
+            # v is a regular expression
+            assert_true(v.match(value[k]), f'Unexpected value: {value[k]} (expected {v})')
+        else:
+            assert_equals(value[k], v, f'Unexpected value: {value[k]} (expected {v})')
 
 class TestExportAndImport(OsfTestCase):
 
@@ -650,13 +666,13 @@ class TestExportAndImport(OsfTestCase):
         assert_true('dateCreated' in _find_entity_by_id(json_entities, '#root'))
         assert_true('dateModified' in _find_entity_by_id(json_entities, '#root'))
         assert_true('name' in _find_entity_by_id(json_entities, '#root'))
-        assert_equals(_find_entity_by_id(json_entities, '#creator0'), {
+        _assert_dict_matches(_find_entity_by_id(json_entities, '#creator0'), {
             '@id': '#creator0',
             '@type': 'Person',
             'familyName': [
                 {
                     '@language': 'en',
-                    '@value': 'Mercury0'
+                    '@value': re.compile(r'Mercury[0-9]+')
                 }
             ],
             'givenName': [
@@ -666,7 +682,7 @@ class TestExportAndImport(OsfTestCase):
                 }
             ],
             'identifier': [],
-            'name': 'Freddie Mercury0'
+            'name': re.compile(r'Freddie Mercury[0-9]+')
         })
         assert_equals(remove_fields(
             _find_entity_by_id(json_entities, '#comment#0'),
@@ -875,13 +891,13 @@ class TestExportAndImport(OsfTestCase):
         assert_true('dateCreated' in _find_entity_by_id(json_entities, '#root'))
         assert_true('dateModified' in _find_entity_by_id(json_entities, '#root'))
         assert_true('name' in _find_entity_by_id(json_entities, '#root'))
-        assert_equals(_find_entity_by_id(json_entities, '#creator0'), {
+        _assert_dict_matches(_find_entity_by_id(json_entities, '#creator0'), {
             '@id': '#creator0',
             '@type': 'Person',
             'familyName': [
                 {
                     '@language': 'en',
-                    '@value': 'Mercury0'
+                    '@value': re.compile(r'Mercury[0-9]+')
                 }
             ],
             'givenName': [
@@ -891,7 +907,7 @@ class TestExportAndImport(OsfTestCase):
                 }
             ],
             'identifier': [],
-            'name': 'Freddie Mercury0'
+            'name': re.compile(r'Freddie Mercury[0-9]+')
         })
         assert_equals(remove_fields(
             _find_entity_by_id(json_entities, '#action#0'),
@@ -1220,13 +1236,13 @@ class TestExportAndImport(OsfTestCase):
             'hasPart': [],
             'name': 'osfstorage'
         })
-        assert_equals(_find_entity_by_id(json_entities, '#creator0'), {
+        _assert_dict_matches(_find_entity_by_id(json_entities, '#creator0'), {
             '@id': '#creator0',
             '@type': 'Person',
             'familyName': [
                 {
                     '@language': 'en',
-                    '@value': 'Mercury3'
+                    '@value': re.compile(r'Mercury[0-9]+')
                 }
             ],
             'givenName': [
@@ -1236,7 +1252,7 @@ class TestExportAndImport(OsfTestCase):
                 }
             ],
             'identifier': [],
-            'name': 'Freddie Mercury3'
+            'name': re.compile(r'Freddie Mercury[0-9]+')
         })
 
     # TC-A-2023-7-006

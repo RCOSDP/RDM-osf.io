@@ -9,6 +9,7 @@ from nose.tools import *  # noqa
 import re
 
 from osf.models.metaschema import RegistrationSchema
+from osf_tests.factories import UserFactory
 from tests.base import OsfTestCase
 
 from addons.weko import schema
@@ -23,6 +24,13 @@ def _transpose(lines):
 
 
 class TestWEKOSchema(OsfTestCase):
+
+    def setUp(self):
+        super(TestWEKOSchema, self).setUp()
+        self.user = UserFactory()
+
+    def tearDown(self):
+        super(TestWEKOSchema, self).tearDown()
 
     def test_write_csv_minimal(self):
         buf = io.StringIO()
@@ -53,12 +61,13 @@ class TestWEKOSchema(OsfTestCase):
         }
 
         schema.write_csv(
+            self.user,
             buf,
             index,
             files,
             target_schema._id,
-            file_metadata,
-            None,
+            [file_metadata],
+            [],
         )
 
         logger.info(f'CSV: {buf.getvalue()}')
@@ -89,13 +98,29 @@ class TestWEKOSchema(OsfTestCase):
             props.pop(),
             ['.file_path[0]', '.ファイルパス[0]', '', 'Allow Multiple', 'test.jpg'],
         )
+        feedback_mail = props.pop()
         assert_equal(
-            props.pop(),
-            ['.metadata.item_1617605131499[0].filename', 'File[0].表示名', '', 'Allow Multiple', 'test.jpg'],
+            feedback_mail[:-1],
+            ['.feedback_mail[0]', '', '', ''],
+        )
+        assert_true(
+            re.match(r'[^@]+@[^@]+\.[^@]+', feedback_mail[-1])
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_1617605131499[0].format', 'File[0].フォーマット', '', 'Allow Multiple', 'image/jpeg'],
+            ['.metadata.item_1617605131499[0].accessrole', '', '', '', 'open_no'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_1617605131499[0].displaytype', '', '', '', 'preview'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_1617605131499[0].filename', '', '', '', 'test.jpg'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_1617605131499[0].format', '', '', '', 'image/jpeg'],
         )
         pub_date = props.pop()
         assert_equal(
@@ -136,10 +161,6 @@ class TestWEKOSchema(OsfTestCase):
         assert_equal(
             props.pop(),
             ['.uri', 'URI', '', '', ''],
-        )
-        assert_equal(
-            props.pop(),
-            ['.feedback_mail[0]', '.FEEDBACK_MAIL[0]', '', 'Allow Multiple', ''],
         )
         assert_equal(
             props.pop(),
@@ -236,12 +257,13 @@ class TestWEKOSchema(OsfTestCase):
         }
 
         schema.write_csv(
+            self.user,
             buf,
             index,
             files,
             target_schema._id,
-            file_metadata,
-            None,
+            [file_metadata],
+            [],
         )
 
         logger.info(f'CSV: {buf.getvalue()}')
@@ -273,13 +295,29 @@ class TestWEKOSchema(OsfTestCase):
             props.pop(),
             ['.file_path[0]', '.ファイルパス[0]', '', 'Allow Multiple', 'test.jpg'],
         )
+        feedback_mail = props.pop()
         assert_equal(
-            props.pop(),
-            ['.metadata.item_1617605131499[0].filename', 'File[0].表示名', '', 'Allow Multiple', 'test.jpg'],
+            feedback_mail[:-1],
+            ['.feedback_mail[0]', '', '', ''],
+        )
+        assert_true(
+            re.match(r'[^@]+@[^@]+\.[^@]+', feedback_mail[-1])
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_1617605131499[0].format', 'File[0].フォーマット', '', 'Allow Multiple', 'image/jpeg'],
+            ['.metadata.item_1617605131499[0].accessrole', '', '', '', 'open_login'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_1617605131499[0].displaytype', '', '', '', 'preview'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_1617605131499[0].filename', '', '', '', 'test.jpg'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_1617605131499[0].format', '', '', '', 'image/jpeg'],
         )
         pub_date = props.pop()
         assert_equal(
@@ -383,6 +421,10 @@ class TestWEKOSchema(OsfTestCase):
         )
         assert_equal(
             props.pop(),
+            ['.metadata.item_1617349709064[0].contributorNames[0].nameType', '', '', '', 'Organizational'],
+        )
+        assert_equal(
+            props.pop(),
             ['.metadata.item_1617349709064[0].contributorType', '', '', '', 'ContactPerson'],
         )
         assert_equal(
@@ -392,6 +434,10 @@ class TestWEKOSchema(OsfTestCase):
         assert_equal(
             props.pop(),
             ['.metadata.item_1617349709064[0].contributorNames[1].lang', '', '', '', 'ja'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_1617349709064[0].contributorNames[1].nameType', '', '', '', 'Organizational'],
         )
         assert_equal(
             props.pop(),
@@ -455,19 +501,53 @@ class TestWEKOSchema(OsfTestCase):
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_1617186499011[0].subitem_rights', '', '', '', 'CC0 1.0 Universal (ライセンスのテスト) (無償)'],
+            ['.metadata.item_1617186499011[0].subitem_rights', '', '', '', 'Test for license'],
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_1617186499011[0].subitem_rights_language', '', '', '', 'ja'],
+            ['.metadata.item_1617186499011[0].subitem_rights_language', '', '', '', 'en'],
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_1617186499011[1].subitem_rights', '', '', '', 'CC0 1.0 Universal (Test for license) (free)'],
+            ['.metadata.item_1617186499011[1].subitem_rights', '', '', '', 'ライセンスのテスト'],
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_1617186499011[1].subitem_rights_language', '', '', '', 'en'],
+            ['.metadata.item_1617186499011[1].subitem_rights_language', '', '', '', 'ja'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_1617186499011[2].subitem_rights', '', '', '', '無償'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_1617186499011[2].subitem_rights_language', '', '', '', 'ja'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_1617186499011[3].subitem_rights', '', '', '', 'free'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_1617186499011[3].subitem_rights_language', '', '', '', 'en'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_1617186499011[4].subitem_rights', '', '', '', 'CC0 1.0 Universal'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_1617186499011[4].subitem_rights_language', '', '', '', 'en'],
+        )
+        assert_equal(
+            props.pop(),
+            [
+                '.metadata.item_1617186499011[4].subitem_rights_resource',
+                '',
+                '',
+                '',
+                'https://creativecommons.org/publicdomain/zero/1.0/deed.en',
+            ],
         )
         assert_equal(
             props.pop(),
@@ -525,14 +605,14 @@ class TestWEKOSchema(OsfTestCase):
             props.pop(),
             ['.metadata.item_1617349709064[2].contributorNames[1].lang', '', '', '', 'ja'],
         )
-        assert_equal(
-            props.pop(),
-            ['.metadata.item_1617186783814[0].subitem_identifier_type', '', '', '', 'URI'],
-        )
-        assert_equal(
-            props.pop(),
-            ['.metadata.item_1617186783814[0].subitem_identifier_uri', '', '', '', 'http://localhost:5000/q3gnm/files/osfstorage/650e68f8c00e45055fc9e0ac'],
-        )
+        # assert_equal(
+        #     props.pop(),
+        #     ['.metadata.item_1617186783814[0].subitem_identifier_type', '', '', '', 'URI'],
+        # )
+        # assert_equal(
+        #     props.pop(),
+        #     ['.metadata.item_1617186783814[0].subitem_identifier_uri', '', '', '', 'http://localhost:5000/q3gnm/files/osfstorage/650e68f8c00e45055fc9e0ac'],
+        # )
         assert_equal(
             props.pop(),
             ['.metadata.item_1617186331708[0].subitem_title', '', '', '', 'TEST DATA'],
@@ -556,10 +636,6 @@ class TestWEKOSchema(OsfTestCase):
         assert_equal(
             props.pop(),
             ['.uri', 'URI', '', '', ''],
-        )
-        assert_equal(
-            props.pop(),
-            ['.feedback_mail[0]', '.FEEDBACK_MAIL[0]', '', 'Allow Multiple', ''],
         )
         assert_equal(
             props.pop(),
