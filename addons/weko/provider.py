@@ -30,6 +30,12 @@ def _get_repoid(account):
         return None
     return rid
 
+def _get_repodomain_from_repoid(repoid):
+    pos = repoid.rindex('.')
+    if pos == -1:
+        raise ValueError('Invalid repoid: ' + repoid)
+    return repoid[:pos]
+
 def find_repository(repoid):
     logger.debug(f'find_repository by id: {repoid}')
     if repoid in weko_settings.REPOSITORIES:
@@ -146,13 +152,14 @@ class WEKOProvider(ExternalProvider):
             session.data['oauth_states'] = {}
 
         repo_settings = find_repository(repoid)
+        repodomain = _get_repodomain_from_repoid(repoid)
 
         assert self._oauth_version == OAUTH2
         # build the URL
         oauth = OAuth2Session(
             repo_settings['client_id'],
             redirect_uri=web_url_for('weko_oauth_callback',
-                                     repoid=repoid,
+                                     repodomain=repodomain,
                                      _absolute=True),
             scope=self.default_scopes,
         )
@@ -160,12 +167,15 @@ class WEKOProvider(ExternalProvider):
         url, state = oauth.authorization_url(repo_settings['authorize_url'])
 
         # save state token to the session for confirmation in the callback
-        session.data['oauth_states'][self.short_name] = {'state': state}
+        session.data['oauth_states'][self.short_name] = {
+            'state': state,
+            'repoid': repoid,
+        }
 
         session.save()
         return url
 
-    def repo_auth_callback(self, user, repoid, **kwargs):
+    def repo_auth_callback(self, user, repodomain, **kwargs):
         """Exchange temporary credentials for permanent credentials
 
         This is called in the view that handles the user once they are returned
@@ -174,8 +184,6 @@ class WEKOProvider(ExternalProvider):
 
         if 'error' in request.args:
             return False
-
-        repo_settings = find_repository(repoid)
 
         # make sure the user has temporary credentials for this provider
         try:
@@ -190,8 +198,11 @@ class WEKOProvider(ExternalProvider):
         if cached_credentials.get('state') != state:
             raise PermissionsError('Request token does not match')
 
+        # repoid from session
+        repoid = cached_credentials['repoid']
+        repo_settings = find_repository(repoid)
         try:
-            callback_url = web_url_for('weko_oauth_callback', repoid=repoid,
+            callback_url = web_url_for('weko_oauth_callback', repodomain=repodomain,
                                        _absolute=True)
             response = OAuth2Session(
                 repo_settings['client_id'],
