@@ -12,7 +12,7 @@ from .utils import make_report_as_csv
 from .packages import start_importing, import_project, export_project, get_task_result
 from .suggestion import suggestion_metadata, _erad_candidates, valid_suggestion_key
 from framework.exceptions import HTTPError
-from framework.auth.decorators import must_be_logged_in
+from framework.auth.decorators import must_be_logged_in, email_required
 from framework.flask import redirect
 from osf.models import AbstractNode, DraftRegistration, Registration
 from osf.models.metaschema import RegistrationSchema
@@ -105,7 +105,6 @@ def metadata_get_erad_candidates(auth, **kwargs):
     }
 
 @must_be_valid_project
-@must_be_logged_in
 @must_have_permission('read')
 @must_have_addon(SHORT_NAME, 'node')
 def metadata_get_project(auth, **kwargs):
@@ -126,7 +125,6 @@ def metadata_get_schemas(auth, **kwargs):
     return _response_schemas(addon, schemas)
 
 @must_be_valid_project
-@must_be_logged_in
 @must_have_permission('read')
 @must_have_addon(SHORT_NAME, 'node')
 def metadata_get_file(auth, filepath=None, **kwargs):
@@ -135,7 +133,6 @@ def metadata_get_file(auth, filepath=None, **kwargs):
     return _response_file_metadata(addon, filepath)
 
 @must_be_valid_project
-@must_be_logged_in
 @must_have_permission('write')
 @must_have_addon(SHORT_NAME, 'node')
 def metadata_set_file(auth, filepath=None, **kwargs):
@@ -149,7 +146,6 @@ def metadata_set_file(auth, filepath=None, **kwargs):
     return _response_file_metadata(addon, filepath)
 
 @must_be_valid_project
-@must_be_logged_in
 @must_have_permission('write')
 @must_have_addon(SHORT_NAME, 'node')
 def metadata_set_file_hash(auth, filepath=None, **kwargs):
@@ -163,7 +159,6 @@ def metadata_set_file_hash(auth, filepath=None, **kwargs):
     return _response_file_metadata(addon, filepath)
 
 @must_be_valid_project
-@must_be_logged_in
 @must_have_permission('write')
 @must_have_addon(SHORT_NAME, 'node')
 def metadata_delete_file(auth, filepath=None, **kwargs):
@@ -173,7 +168,6 @@ def metadata_delete_file(auth, filepath=None, **kwargs):
     return _response_file_metadata(addon, filepath)
 
 @must_be_valid_project
-@must_be_logged_in
 @must_have_permission('write')
 @must_have_addon(SHORT_NAME, 'node')
 def metadata_set_file_to_drafts(auth, did=None, mnode=None, filepath=None, **kwargs):
@@ -219,7 +213,6 @@ def metadata_set_file_to_drafts(auth, did=None, mnode=None, filepath=None, **kwa
         raise HTTPError(http_status.HTTP_404_NOT_FOUND)
 
 @must_be_valid_project
-@must_be_logged_in
 @must_have_permission('write')
 @must_have_addon(SHORT_NAME, 'node')
 def metadata_delete_file_from_drafts(auth, did=None, mnode=None, filepath=None, **kwargs):
@@ -263,7 +256,6 @@ def metadata_package_view(**kwargs):
     return use_ember_app()
 
 @must_be_valid_project
-@must_be_logged_in
 @must_have_permission('read')
 @must_have_addon(SHORT_NAME, 'node')
 def metadata_export_draft_registrations_csv(auth, did=None, **kwargs):
@@ -291,7 +283,6 @@ def metadata_export_draft_registrations_csv(auth, did=None, **kwargs):
         raise HTTPError(http_status.HTTP_404_NOT_FOUND)
 
 @must_be_valid_project
-@must_be_logged_in
 @must_have_permission('read')
 def metadata_export_registrations_csv(auth, rid=None, **kwargs):
     registration = kwargs['node'] or kwargs['project']
@@ -354,7 +345,7 @@ def metadata_task_progress_page(auth, taskid=None, **kwargs):
         'result': result,
     }
 
-@must_be_logged_in
+@email_required
 def metadata_task_progress(auth, taskid=None):
     return get_task_result(auth, taskid)
 
@@ -379,7 +370,6 @@ def metadata_export_project(auth, **kwargs):
     }
 
 @must_be_valid_project
-@must_be_logged_in
 @must_have_permission('read')
 @must_have_addon(SHORT_NAME, 'node')
 def metadata_node_task_progress(auth, taskid=None, **kwargs):
