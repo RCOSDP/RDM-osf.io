@@ -32,16 +32,20 @@ class ROCrateFactory(BaseROCrateFactory):
 
     def _build_ro_crate(self, crate):
         user_ids = {}
+        schema_ids = {}
+        comment_ids = {}
         files = []
         for file in self.folder.get_files():
-            files += self._create_file_entities(crate, f'./', file, user_ids)
+            _, children = self._create_file_entities(crate, self.node, f'./', file, user_ids, schema_ids, comment_ids)
+            files += children
         for _, _, comments in files:
             crate.add(*comments)
         return crate, files
 
 
-def _download(node, file, tmp_dir):
+def _download(node, file, tmp_dir, total_size):
     if file.kind == 'file':
+        _check_file_size(total_size + int(file.size))
         download_file_path = os.path.join(tmp_dir, file.name)
         with open(os.path.join(download_file_path), 'wb') as f:
             file.download_to(f)
@@ -49,6 +53,9 @@ def _download(node, file, tmp_dir):
             mtype = ROCRATE_PROJECT_MIME_TYPE
         else:
             mtype, _ = mimetypes.guess_type(download_file_path)
+        filesize = os.path.getsize(download_file_path)
+        if filesize != int(file.size):
+            raise IOError(f'File size mismatch: {filesize} != {file.size}')
         return download_file_path, mtype
     rocrate = ROCrateFactory(node, tmp_dir, file)
     download_file_path = os.path.join(tmp_dir, 'rocrate.zip')
@@ -95,11 +102,8 @@ def deposit_metadata(
             logger.debug(f'File: {file}, size={file.size}')
             if file is None:
                 raise KeyError(f'File not found: {materialized_path}')
-            _check_file_size(total_size + file.size)
-            download_file_path, download_file_type = _download(node, file, tmp_dir)
+            download_file_path, download_file_type = _download(node, file, tmp_dir, total_size)
             filesize = os.path.getsize(download_file_path)
-            if filesize != file.size:
-                raise IOError(f'File size mismatch: {filesize} != {file.size}')
             total_size += filesize
             _, download_file_name = os.path.split(download_file_path)
             download_file_names.append((download_file_name, download_file_type))
