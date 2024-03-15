@@ -122,7 +122,7 @@ ViewModel.prototype.refresh = function(callback) {
 
 ViewModel.prototype.waitForAddonSetting = function(targetAddon, callback) {
     const self = this;
-    let retry = MAX_RETRY_NODE_SETTINGS;
+    var retry = MAX_RETRY_NODE_SETTINGS;
     const interval = setInterval(function() {
         self.refresh(function() {
             const setting = self.importedAddonSettings().filter(function(setting) {
