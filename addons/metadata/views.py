@@ -12,7 +12,7 @@ from .utils import make_report_as_csv
 from .packages import start_importing, import_project, export_project, get_task_result
 from .suggestion import suggestion_metadata, _erad_candidates, valid_suggestion_key
 from framework.exceptions import HTTPError
-from framework.auth.decorators import must_be_logged_in, email_required
+from framework.auth.decorators import must_be_logged_in
 from framework.flask import redirect
 from osf.models import AbstractNode, DraftRegistration, Registration
 from osf.models.metaschema import RegistrationSchema
@@ -29,6 +29,22 @@ from website.util import web_url_for, api_url_for
 
 logger = logging.getLogger(__name__)
 
+
+def _response_config(addon):
+    return {
+        'data': {
+            'type': 'metadata-config',
+            'attributes': {
+                'imported_addon_settings': [{
+                    'name': imported.name,
+                    'folder_id': imported.folder_id,
+                    'applicable': imported.is_applicable,
+                    'applied': imported.is_applied,
+                    'full_name': imported.full_name,
+                } for imported in addon.imported_addon_settings.all()],
+            }
+        }
+    }
 
 def _response_project_metadata(user, addon):
     attr = {
@@ -82,6 +98,32 @@ def _get_file_metadata_node(node, metadata_node_id):
     if len(nodes) == 0:
         raise ValueError('Unexpected node ID: {}'.format(metadata_node_id))
     return AbstractNode.objects.filter(guids___id=metadata_node_id).first()
+
+@must_be_valid_project
+@must_be_logged_in
+@must_have_permission('read')
+@must_have_addon(SHORT_NAME, 'node')
+def metadata_get_config(auth, **kwargs):
+    node = kwargs['node'] or kwargs['project']
+    addon = node.get_addon(SHORT_NAME)
+    return _response_config(addon)
+
+@must_be_valid_project
+@must_be_logged_in
+@must_have_permission('admin')
+@must_have_addon(SHORT_NAME, 'node')
+def metadata_update_config(auth, **kwargs):
+    node = kwargs['node'] or kwargs['project']
+    addon = node.get_addon(SHORT_NAME)
+    addon_names = request.json.get('addons', [])
+    if len(addon_names) == 0:
+        raise HTTPError(http_status.HTTP_400_BAD_REQUEST)
+    try:
+        addon.apply_imported_addon_settings(addon_names, auth)
+    except ValueError:
+        logger.exception('Failed to apply imported addon settings')
+        raise HTTPError(http_status.HTTP_400_BAD_REQUEST)
+    return _response_config(addon)
 
 @must_be_valid_project
 @must_be_logged_in
@@ -345,7 +387,7 @@ def metadata_task_progress_page(auth, taskid=None, **kwargs):
         'result': result,
     }
 
-@email_required
+@must_be_logged_in
 def metadata_task_progress(auth, taskid=None):
     return get_task_result(auth, taskid)
 

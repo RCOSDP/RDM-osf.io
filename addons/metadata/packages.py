@@ -36,6 +36,7 @@ from .jsonld import (
     convert_json_ld_entity_to_file_metadata_item,
 )
 from addons.wiki.models import WikiPage
+from addons.metadata.apps import SHORT_NAME as METADATA_SHORT_NAME
 from addons.weko import settings as weko_settings
 
 
@@ -992,7 +993,11 @@ class ROCrateExtractor(object):
         addon_object = node.get_addon(addon_name)
         if addon_object is None:
             addon_object = node.add_addon(addon_name, auth=Auth(user=self.user), log=False)
-        # TBD: restore addon settings
+        folder_id = addon.properties().get('rdmFolderId', None)
+        if not folder_id:
+            return
+        metadata_addon = node.get_or_add_addon(METADATA_SHORT_NAME, auth=Auth(user=self.user))
+        metadata_addon.add_imported_addon_settings(addon_name, folder_id)
 
     def ensure_folders(self, wb):
         addons = [

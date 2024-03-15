@@ -102,7 +102,10 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
         token = provider.fetch_access_token()
         return Client(provider.sword_url, token=token)
 
-    def set_folder(self, index, auth=None):
+    def set_folder(self, index_id, auth=None):
+        c = self.create_client()
+        index = c.get_index_by_id(index_id)
+
         self.index_id = index.identifier
         self.index_title = index.title
 
@@ -118,6 +121,7 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
                 },
                 auth=auth,
             )
+        return index
 
     def set_publish_task_id(self, path, task_id):
         q = self.publish_task.filter(path=path).order_by('-updated')

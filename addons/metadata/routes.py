@@ -14,6 +14,14 @@ TEMPLATE_DIR = './addons/metadata/templates/'
 api_routes = {
     'rules': [
         Rule([
+            '/project/<pid>/{}/settings/'.format(SHORT_NAME),
+            '/project/<pid>/node/<nid>/{}/settings/'.format(SHORT_NAME),
+        ], 'get', views.metadata_get_config, json_renderer),
+        Rule([
+            '/project/<pid>/{}/settings/'.format(SHORT_NAME),
+            '/project/<pid>/node/<nid>/{}/settings/'.format(SHORT_NAME),
+        ], 'put', views.metadata_update_config, json_renderer),
+        Rule([
             '/project/<pid>/{}/erad/candidates'.format(SHORT_NAME),
             '/project/<pid>/node/<nid>/{}/erad/candidates'.format(SHORT_NAME),
         ], 'get', views.metadata_get_erad_candidates, json_renderer),

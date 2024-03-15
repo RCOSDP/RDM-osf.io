@@ -208,10 +208,7 @@ def weko_set_config(node_addon, user_addon, auth, **kwargs):
     if index_id is None:
         return HTTPError(http_status.HTTP_400_BAD_REQUEST)
 
-    c = node_addon.create_client()
-    index = c.get_index_by_id(index_id)
-
-    node_addon.set_folder(index, auth)
+    index = node_addon.set_folder(index_id, auth)
 
     return {'index': index.title}, http_status.HTTP_200_OK
 
