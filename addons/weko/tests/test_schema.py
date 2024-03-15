@@ -605,14 +605,6 @@ class TestWEKOSchema(OsfTestCase):
             props.pop(),
             ['.metadata.item_1617349709064[2].contributorNames[1].lang', '', '', '', 'ja'],
         )
-        # assert_equal(
-        #     props.pop(),
-        #     ['.metadata.item_1617186783814[0].subitem_identifier_type', '', '', '', 'URI'],
-        # )
-        # assert_equal(
-        #     props.pop(),
-        #     ['.metadata.item_1617186783814[0].subitem_identifier_uri', '', '', '', 'http://localhost:5000/q3gnm/files/osfstorage/650e68f8c00e45055fc9e0ac'],
-        # )
         assert_equal(
             props.pop(),
             ['.metadata.item_1617186331708[0].subitem_title', '', '', '', 'TEST DATA'],

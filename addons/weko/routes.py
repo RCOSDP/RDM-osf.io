@@ -14,7 +14,7 @@ oauth_routes = {
             json_renderer,
         ),
         Rule(
-            '/callback/weko/<repoid>/',
+            '/callback/weko/<repodomain>/',
             'get',
             views.weko_oauth_callback,
             OsfWebRenderer('util/oauth_complete.mako', trust=False),

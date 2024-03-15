@@ -127,12 +127,12 @@ def weko_oauth_connect(repoid, auth):
 
 @must_be_logged_in
 @must_be_rdm_addons_allowed(SHORT_NAME)
-def weko_oauth_callback(repoid, auth):
+def weko_oauth_callback(repodomain, auth):
     user = auth.user
     provider = get_service(SHORT_NAME)
 
     # Retrieve permanent credentials from provider
-    if not provider.repo_auth_callback(user=user, repoid=repoid):
+    if not provider.repo_auth_callback(user=user, repodomain=repodomain):
         return {}
 
     if provider.account and not user.external_accounts.filter(id=provider.account.id).exists():
@@ -208,10 +208,7 @@ def weko_set_config(node_addon, user_addon, auth, **kwargs):
     if index_id is None:
         return HTTPError(http_status.HTTP_400_BAD_REQUEST)
 
-    c = node_addon.create_client()
-    index = c.get_index_by_id(index_id)
-
-    node_addon.set_folder(index, auth)
+    index = node_addon.set_folder(index_id, auth)
 
     return {'index': index.title}, http_status.HTTP_200_OK
 

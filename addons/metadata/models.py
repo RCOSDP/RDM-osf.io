@@ -352,6 +352,31 @@ class NodeSettings(BaseNodeSettings):
         else:
             self.metadata_asset_pool.filter(path=path).delete()
 
+    def add_imported_addon_settings(self, name, folder_id):
+        settings = ImportedAddonSettings.objects.create(
+            name=name,
+            folder_id=folder_id,
+        )
+        self.imported_addon_settings.add(settings)
+
+    def delete_imported_addon_settings(self, name):
+        self.imported_addon_settings.filter(name=name).delete()
+
+    def apply_imported_addon_settings(self, addon_names, auth, delete_applied=False):
+        addons = self.imported_addon_settings.filter(name__in=addon_names)
+        for addon in addons:
+            if not addon.is_applicable:
+                logger.warning(f'Imported {addon.name} settings are not applicable to {self.owner._id}')
+                continue
+            result = addon.apply(auth)
+            if not result:
+                continue
+            if delete_applied:
+                self.delete_imported_addon_settings(addon.name)
+
+    def has_imported_addon_settings_for(self, addon):
+        return self.imported_addon_settings.filter(name=addon.config.short_name).exists()
+
     def _get_file_metadata(self, file_metadata):
         if file_metadata.metadata is None or file_metadata.metadata == '':
             return {}
@@ -579,6 +604,64 @@ class MetadataAssetPool(BaseModel):
         if self.project is None:
             return None
         return self.project.owner
+
+
+class ImportedAddonSettings(BaseModel):
+    node_settings = models.ForeignKey(NodeSettings, related_name='imported_addon_settings',
+                                      db_index=True, null=True, blank=True,
+                                      on_delete=models.CASCADE)
+
+    name = models.TextField(blank=True, null=True)
+
+    folder_id = models.TextField(blank=True, null=True)
+
+    @property
+    def is_applicable(self):
+        node = self.node_settings.owner
+        addon = node.get_addon(self.name)
+        if addon is None:
+            return False
+        # Storage Addon?
+        if not hasattr(addon, 'set_folder') and not hasattr(addon, 'set_folder_by_id'):
+            return False
+        if not hasattr(addon, 'has_auth') or not addon.has_auth:
+            return False
+        return True
+
+    @property
+    def is_applied(self):
+        node = self.node_settings.owner
+        addon = node.get_addon(self.name)
+        if addon is None:
+            return False
+        return hasattr(addon, 'complete') and addon.complete
+
+    @property
+    def full_name(self):
+        node = self.node_settings.owner
+        addon = node.get_addon(self.name)
+        if addon is None:
+            return None
+        return addon.config.full_name
+
+    def apply(self, auth):
+        node = self.node_settings.owner
+        addon = node.get_addon(self.name)
+        if addon is None:
+            raise ValueError('Addon not found')
+        if not hasattr(addon, 'set_folder'):
+            raise ValueError('Addon has no set_folder')
+        if not hasattr(addon, 'has_auth'):
+            raise ValueError('Addon has no has_auth')
+        if not addon.has_auth:
+            return False
+        if hasattr(addon, 'set_folder_by_id'):
+            # For add-ons with a type set_folder method that accepts a folder "object" (not ID)
+            addon.set_folder_by_id(self.folder_id, auth)
+        else:
+            addon.set_folder(self.folder_id, auth)
+        logger.info(f'Imported {self.name} settings to {node._id}')
+        return True
 
 
 class WaterButlerClient(object):

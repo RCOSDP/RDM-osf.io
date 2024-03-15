@@ -529,6 +529,26 @@ function MetadataButtons() {
         .css('display', 'flex')
         .append(pasteButton));
     }
+    dialog.customHandler.empty();
+    if (item.data && item.data.provider && contextVars.metadataHandlers && contextVars.metadataHandlers[item.data.provider]) {
+      const customButton = contextVars.metadataHandlers[item.data.provider];
+      const button = $('<a href="#" class="btn btn-success"></a>')
+        .text(customButton.text)
+        .css('margin-left', '5px');
+      button.click(function() {
+        osfBlock.block();
+        self.saveEditMetadataModal()
+          .finally(function() {
+            osfBlock.unblock();
+            $(dialog.dialog).modal('hide');
+            const activeItems = (self.lastMetadata.items || []).filter(function(item_) {
+              return item_.active;
+            });
+            customButton.click(item, self.currentSchemaId, activeItems[0] || null);
+          })
+      });
+      dialog.customHandler.append(button);
+    }
     self.prepareFields(
       context,
       fieldContainer,
@@ -2047,6 +2067,7 @@ function MetadataButtons() {
       self.copyToClipboard(event, copyStatus);
     });
     const toolbar = $('<div></div>');
+    const customHandler = $('<span></span>');
     const container = $('<ul></ul>').css('padding', '0 20px');
     var notice = $('<span></span>');
     if (editable) {
@@ -2077,7 +2098,8 @@ function MetadataButtons() {
               .append(copyStatus.css('margin-left', 0).css('margin-right', 'auto'))
               .append(notice)
               .append(close)
-              .append(save)))));
+              .append(save)
+              .append(customHandler)))));
     $(window).on('beforeunload', function() {
       if ($(dialog).data('bs.modal').isShown) {
         return _('You have unsaved changes.');
@@ -2089,6 +2111,7 @@ function MetadataButtons() {
       container: container,
       toolbar: toolbar,
       copyStatus: copyStatus,
+      customHandler: customHandler,
     };
   };
 

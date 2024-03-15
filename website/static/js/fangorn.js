@@ -1874,6 +1874,10 @@ function _fangornTitleColumnHelper(tb, item, col, nameTitle, toUrl, classNameOpt
     if (item.data.isAddonRoot && item.connected === false) {
         return _connectCheckTemplate.call(this, item);
     }
+    // GRDM-36019 Package Export/Import
+    if (item.data.unavailable && (item.data.name || '').match(/is not configured$/)) {
+        return _addonConfigureTemplate.call(this, item);
+    }
     if (item.kind === 'file' && item.data.permissions.view) {
         var attrs = {};
         if (tb.options.links) {
@@ -1970,6 +1974,23 @@ function _connectCheckTemplate(item){
                 }
             }
         }, [m('i.fa.fa-refresh'), ' Retry'])
+    ]);
+}
+
+/**
+ * Returns a reusable template for column titles when there is no connection
+ * GRDM-36019 Package Export/Import
+ * @param {Object} item A Treebeard _item object for the row involved. Node information is inside item.data
+ * @this Treebeard.controller
+ * @private
+ */
+function _addonConfigureTemplate(item){
+    var tb = this;
+    return m('span.text-warning', [
+        m('span', item.data.name),
+        m('a.btn.btn-xs.btn-default.m-l-xs', {
+            href: 'addons/'
+        }, [m('i.fa.fa-cog'), ' Configure'])
     ]);
 }
 
