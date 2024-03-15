@@ -457,28 +457,12 @@ function createMetadataSelectorBase(item, schemaCallback, projectMetadataCallbac
     }
     return {
         fileMetadata: fileMetadata,
-        refreshHandler: loadHandler,
-        validateFileMetadataItem: function(item, preview) {
-            const page = contextVars.metadata.createFileMetadataItemPage(item);
-            page.validateAll();
-            if (preview) {
-                preview.empty();
-                page.create().forEach(function(f) {
-                    preview.append(f.element);
-                });
-            }
-            return !page.hasValidationError;
-        },
+        refreshHandler: loadHandler
     };
 }
 
 function createMetadataSelectorForJQuery(item, changedCallback) {
     const errorView = $('<div></div>').addClass('alert alert-danger').hide();
-    const validationResult = $('<div></div>')
-        .css('color', 'red')
-        .text(_('There are errors in some fields.'))
-        .hide();
-    const metadataPreview = $('<div></div>').css('overflow', 'auto').css('max-height', '40vh');
     const metadataSelect = $('<div></div>').hide();
     const schemaLoading = $('<span></span>').addClass('fa fa-spinner fa-pulse').show();
     const metadataLoading = $('<span></span>').addClass('fa fa-spinner fa-pulse').show();
@@ -517,13 +501,7 @@ function createMetadataSelectorForJQuery(item, changedCallback) {
         if (items.length === 0) {
             throw new Error('Schema not found');
         }
-        const item = items[0];
-        if (selector.validateFileMetadataItem(item, metadataPreview)) {
-            validationResult.hide();
-            return true;
-        }
-        validationResult.show();
-        return false;
+        return true;
     }
     var registrationsCache = null;
     const projectMetadataCallback = function(registrations) {
@@ -603,9 +581,7 @@ function createMetadataSelectorForJQuery(item, changedCallback) {
     return $('<div></div>')
         .append(errorView)
         .append(schemaSelectPanel)
-        .append(metadataSelectPanel)
-        .append(validationResult)
-        .append(metadataPreview);
+        .append(metadataSelectPanel);
 }
 
 function showConfirmDeposit(tb, contextItem, callback) {
@@ -892,6 +868,28 @@ function wekoUploadSuccess(file, row) {
     }, 500);
 }
 
+function addDepositButtonToMetadataDialog() {
+    let metadataHandlers = contextVars.metadataHandlers;
+    if (!metadataHandlers) {
+        contextVars.metadataHandlers = metadataHandlers = {};
+    }
+    metadataHandlers.weko = {
+        text: _('Save and Deposit to WEKO'),
+        click: function(item, schema, fileMetadata) {
+            if (!item.data.nodeApiUrl) {
+                const item_ = {
+                    data: Object.assign({
+                        nodeApiUrl: contextVars.node.urls.api
+                    }, item.data),
+                }
+                deposit(null, item_);
+                return;
+            }
+            deposit(null, item);
+        }
+    };
+}
+
 Fangorn.config.weko = {
     folderIcon: wekoFolderIcons,
     itemButtons: wekoItemButtons,
@@ -899,6 +897,8 @@ Fangorn.config.weko = {
     uploadAdd: wekoUploadAdd,
     uploadSuccess: wekoUploadSuccess,
 };
+
+addDepositButtonToMetadataDialog();
 
 if ($('#fileViewPanelLeft').length > 0) {
     // File View
