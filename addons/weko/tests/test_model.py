@@ -135,10 +135,15 @@ class TestNodeSettings(OAuthAddonNodeSettingsTestSuiteMixin, unittest.TestCase):
 
     def test_set_folder(self):
         index_id = '1234567890'
-        self.node_settings.set_folder(
-            client.Index(None, dict(id=index_id, name='Test')),
-            auth=Auth(self.user),
-        )
+        with mock.patch.object(self.node_settings, 'create_client') as mock_create_client:
+            mock_client = mock.MagicMock()
+            mock_client.get_index_by_id.return_value = client.Index(None, dict(id=index_id, name='Test'))
+            mock_create_client.return_value = mock_client
+            self.node_settings.set_folder(
+                index_id,
+                auth=Auth(self.user),
+            )
+            assert_true(mock_client.get_index_by_id.called)
         self.node_settings.save()
         # Container was set
         assert_equal(self.node_settings.index_id, index_id)
