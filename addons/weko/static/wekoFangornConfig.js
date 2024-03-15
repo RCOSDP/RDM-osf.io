@@ -869,7 +869,7 @@ function wekoUploadSuccess(file, row) {
 }
 
 function addDepositButtonToMetadataDialog() {
-    let metadataHandlers = contextVars.metadataHandlers;
+    var metadataHandlers = contextVars.metadataHandlers;
     if (!metadataHandlers) {
         contextVars.metadataHandlers = metadataHandlers = {};
     }

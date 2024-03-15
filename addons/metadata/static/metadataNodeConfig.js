@@ -23,7 +23,7 @@ function initHooks(nodeId, addons, callback) {
         return;
     }
     const prefixes = addons.map(function(addon) {
-        return `/api/v1/project/${nodeId}/${addon.name}/`;
+        return '/api/v1/project/' + nodeId + '/' + addon.name + '/';
     });
     console.log(logPrefix, 'initHooks', prefixes);
     (function() {
