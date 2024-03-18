@@ -17,9 +17,9 @@ SECURE_MODE = not DEBUG_MODE  # Disable osf cookie secure
 #       when localhost inside a container != localhost on the client machine/docker host.
 
 PROTOCOL = 'https://' if SECURE_MODE else 'http://'
-DOMAIN = PROTOCOL + 'localhost:5000/'
+DOMAIN = PROTOCOL + 'perfin.rdm.nii.ac.jp:5000/'
 INTERNAL_DOMAIN = DOMAIN
-API_DOMAIN = PROTOCOL + 'localhost:8000/'
+API_DOMAIN = PROTOCOL + 'perfin.rdm.nii.ac.jp:8000/'
 
 #WATERBUTLER_URL = 'http://localhost:7777'
 #WATERBUTLER_INTERNAL_URL = WATERBUTLER_URL
@@ -67,7 +67,7 @@ ENABLE_EMAIL_SUBSCRIPTIONS = False
 
 # Session
 COOKIE_NAME = 'osf'
-OSF_COOKIE_DOMAIN = None
+OSF_COOKIE_DOMAIN = '.perfin.rdm.nii.ac.jp'
 SECRET_KEY = 'CHANGEME'
 SESSION_COOKIE_SECURE = SECURE_MODE
 SESSION_COOKIE_SAMESITE = 'None'
