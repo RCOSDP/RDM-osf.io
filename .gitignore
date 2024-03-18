@@ -124,7 +124,7 @@ website/static/sitemaps/
 api/static/vendor
 
 # Local settings files
-local.py
+#local.py
 local.json
 
 website/uploads/
