@@ -10,7 +10,9 @@ var Raven = require('raven-js');
 var $osf = require('js/osfHelpers');
 
 var $modal = $('#wekoInputCredentials');
-var language = require('js/osfLanguage').Addons.weko;
+
+var _ = require('js/rdmGettext')._;
+var sprintf = require('agh.sprintf').sprintf;
 
 
 function _getIndexById(indices, id) {
@@ -77,52 +79,50 @@ function ViewModel(url) {
     self.selectedRepo = ko.observable();
     self.repositories = ko.observableArray();
 
+    var addonSafeName = $osf.htmlEscape(self.addonName);
+
     self.messages = {
         userSettingsError: ko.pureComputed(function() {
-            return 'Could not retrieve settings. Please refresh the page or ' +
-                'contact <a href="mailto: rdm_support@nii.ac.jp">rdm_support@nii.ac.jp</a> if the ' +
-                'problem persists.';
+            return sprintf(_('Could not retrieve %1$s settings at this time. Please refresh the page. If the problem persists, email %2$s.'),
+                addonSafeName,$osf.osfSupportLink());
         }),
         confirmDeauth: ko.pureComputed(function() {
-            return 'Are you sure you want to remove this ' + self.addonName + ' account?';
+            return sprintf(_('Are you sure you want to remove this %1$s account?'),addonSafeName);
         }),
         confirmAuth: ko.pureComputed(function() {
-            return 'Are you sure you want to authorize this project with your ' + self.addonName + ' access token?';
+            return sprintf(_('Are you sure you want to link your %1$s account with this project?'),addonSafeName);
         }),
         deauthorizeSuccess: ko.pureComputed(function() {
-            return 'Disconnected ' + self.addonName + '.';
+            return sprintf(_('Disconnected %1$s.') , addonSafeName );
         }),
         deauthorizeFail: ko.pureComputed(function() {
-            return 'Could not disconnect because of an error. Please try again later.';
+            return sprintf(_('Could not disconnect %1$s account because of an error. Please try again later.'),addonSafeName);
         }),
         authInvalid: ko.pureComputed(function() {
-            return 'The API token provided for ' + $osf.htmlEscape(self.host()) + ' is invalid.';
+            return sprintf(_('Error occurred while importing %1$s account.'),addonSafeName);
         }),
         authError: ko.pureComputed(function() {
-            return 'Sorry, but there was a problem connecting to that instance of WEKO.' +
-                'If you have any questions or believe this to be an error, please contact ' +
-                'rdm_support@nii.ac.jp.';
+            return sprintf(_('Sorry, but there was a problem connecting to that instance of %1$s.' +
+                'If you have any questions, please contact %2$s.'),addonSafeName,$osf.osfSupportLink());
         }),
         tokenImportSuccess: ko.pureComputed(function() {
-            return 'Successfully imported access token from profile.';
+            return sprintf(_('Successfully imported %1$s account from profile.'), addonSafeName);
         }),
         tokenImportError: ko.pureComputed(function() {
-            return 'Error occurred while importing access token.';
+            return sprintf(_('Error occurred while importing %1$s account.'),addonSafeName);
         }),
         updateAccountsError: ko.pureComputed(function() {
-            return 'Could not retrieve ' + self.addonName + ' account list at ' +
-                'this time. Please refresh the page. If the problem persists, email ' +
-                '<a href="mailto:rdm_support@nii.ac.jp">rdm_support@nii.ac.jp</a>.';
+            return sprintf(_('Could not retrieve %1$s settings at this time. Please refresh the page. If the problem persists, email %2$s.'),
+                addonSafeName,$osf.osfSupportLink());
         }),
         setInfoSuccess: ko.pureComputed(function() {
             var filesUrl = window.contextVars.node.urls.web + 'files/';
-            return 'Successfully linked index \'' + $osf.htmlEscape(self.savedIndexTitle()) + '\'. Go to the <a href="' +
-                filesUrl + '">Files page</a> to view your content.';
+            return sprintf(_('Successfully linked index "%1$s". Go to the <a href="%2$s">Files page</a> to view your content.'),
+                $osf.htmlEscape(self.options.decodeFolder(self.folder().name)), filesUrl);
         }),
         setIndexError: ko.pureComputed(function() {
-            return 'Could not connect to this index. Please refresh the page or ' +
-                'contact <a href="mailto: rdm_support@nii.ac.jp">rdm_support@nii.ac.jp</a> if the ' +
-                'problem persists.';
+            return sprintf(_('Could not connect to this index. Please refresh the page or ' +
+                'contact %1$s if the problem persists.'), $osf.osfSupportLink());
         })
     };
 
@@ -267,7 +267,7 @@ ViewModel.prototype.connectOAuth = function() {
     var self = this;
     // Selection should not be empty
     if(!self.selectedRepo()) {
-        self.changeMessage('Please select WEKO repository.', 'text-danger');
+        self.changeMessage(_('Please select WEKO repository.'), 'text-danger');
         return;
     }
     window.oauthComplete = function() {
@@ -370,7 +370,7 @@ ViewModel.prototype.importAuth = function() {
         .then(function(){
             if (self.accounts().length > 1) {
                 bootbox.prompt({
-                    title: 'Choose ' + $osf.htmlEscape(self.addonName) + ' Access Token to Import',
+                    title: sprintf(_('Choose %1$s Access Token to Import'),$osf.htmlEscape(self.addonName)),
                     inputType: 'select',
                     inputOptions: ko.utils.arrayMap(
                         self.accounts(),
@@ -389,13 +389,13 @@ ViewModel.prototype.importAuth = function() {
                     },
                     buttons:{
                         confirm:{
-                            label: 'Import'
+                            label: _('Import')
                         }
                     }
                 });
             } else {
                 bootbox.confirm({
-                    title: 'Import ' + $osf.htmlEscape(self.addonName) + ' Access Token?',
+                    title: sprintf(_('Import %1$s Account?'),$osf.htmlEscape(self.addonName)),
                     message: self.messages.confirmAuth(),
                     callback: function(confirmed) {
                         if (confirmed) {
@@ -404,7 +404,7 @@ ViewModel.prototype.importAuth = function() {
                     },
                     buttons:{
                         confirm:{
-                            label:'Import'
+                            label: _('Import')
                         }
                     }
                 });
@@ -446,7 +446,7 @@ ViewModel.prototype._deauthorizeConfirm = function() {
 ViewModel.prototype.deauthorize = function() {
     var self = this;
     bootbox.confirm({
-        title: 'Disconnect ' + $osf.htmlEscape(self.addonName) + ' Account?',
+        title: sprintf(_('Disconnect %1$s Account?'),$osf.htmlEscape(self.addonName)),
         message: self.messages.confirmDeauth(),
         callback: function(confirmed) {
             if (confirmed) {
@@ -455,7 +455,7 @@ ViewModel.prototype.deauthorize = function() {
         },
         buttons:{
             confirm:{
-                label: 'Disconnect',
+                label: _('Disconnect'),
                 className: 'btn-danger'
             }
         }

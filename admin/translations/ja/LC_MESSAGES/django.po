@@ -2520,28 +2520,28 @@ msgid "Secret Key"
 msgstr "シークレットキー"
 
 #: admin/templates/rdm_addons/addons/weko_applications_modal.html:7
-msgid "Configure a WEKO3 application"
-msgstr "WEKO3アプリケーションの設定"
+msgid "Configure a WEKO application"
+msgstr "WEKOアプリケーションの設定"
 
 #: admin/templates/rdm_addons/addons/weko_applications_modal.html:18
-msgid "WEKO3 Display Name"
-msgstr "WEKO3 表示名"
+msgid "WEKO Display Name"
+msgstr "WEKO 表示名"
 
 #: admin/templates/rdm_addons/addons/weko_applications_modal.html:22
-msgid "WEKO3 URL"
-msgstr "WEKO3 URL"
+msgid "WEKO URL"
+msgstr "WEKO URL"
 
 #: admin/templates/rdm_addons/addons/weko_applications_modal.html:26
-msgid "WEKO3 OAuth Client ID"
-msgstr "WEKO3 OAuthクライアントID"
+msgid "WEKO OAuth Client ID"
+msgstr "WEKO OAuthクライアントID"
 
 #: admin/templates/rdm_addons/addons/weko_applications_modal.html:30
-msgid "WEKO3 OAuth Client Secret"
-msgstr "WEKO3 OAuthクライアントシークレット"
+msgid "WEKO OAuth Client Secret"
+msgstr "WEKO OAuthクライアントシークレット"
 
 #: admin/templates/rdm_addons/addons/weko_applications_modal.html:40
-msgid "WEKO3 URL is invalid. WEKO3 URL should be start with http(s)://"
-msgstr "WEKO3 URLが不正です。WEKO3 URLはhttp(s)://から始まる文字列である必要があります。"
+msgid "WEKO URL is invalid. WEKO URL should be start with http(s)://"
+msgstr "WEKO URLが不正です。WEKO URLはhttp(s)://から始まる文字列である必要があります。"
 
 #: admin/templates/rdm_addons/addons/weko_institution_settings.html:17
 msgid "Add"

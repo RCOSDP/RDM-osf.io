@@ -363,63 +363,193 @@ msgstr ""
 msgid "Enable"
 msgstr ""
 
-#: addons/weko/static/wekoFangornConfig.js:43
-#: addons/weko/static/wekoFangornConfig.js:63 website/static/js/fangorn.js:2434
+#: addons/weko/static/wekoFangornConfig.js:42
+#: addons/weko/static/wekoFangornConfig.js:62 website/static/js/fangorn.js:2455
 #: website/static/js/filepage/index.js:544
 msgid "View"
 msgstr ""
 
-#: addons/weko/static/wekoFangornConfig.js:87
-#: addons/weko/static/wekoFangornConfig.js:809
+#: addons/weko/static/wekoFangornConfig.js:86
+#: addons/weko/static/wekoFangornConfig.js:785
 msgid "Deposit"
 msgstr ""
 
-#: addons/weko/static/wekoFangornConfig.js:256
-#: addons/weko/static/wekoFangornConfig.js:277
-#: addons/weko/static/wekoFangornConfig.js:317
+#: addons/weko/static/wekoFangornConfig.js:252
+#: addons/weko/static/wekoFangornConfig.js:273
+#: addons/weko/static/wekoFangornConfig.js:313
 msgid "Error occurred: "
 msgstr ""
 
-#: addons/weko/static/wekoFangornConfig.js:290
+#: addons/weko/static/wekoFangornConfig.js:286
 msgid "Deposit was successful."
 msgstr ""
 
-#: addons/weko/static/wekoFangornConfig.js:540
-msgid "Send without project metadata"
-msgstr ""
-
-#: addons/weko/static/wekoFangornConfig.js:569
+#: addons/weko/static/wekoFangornConfig.js:547
 msgid "Error occurred while "
 msgstr ""
 
-#: addons/weko/static/wekoFangornConfig.js:588
+#: addons/weko/static/wekoFangornConfig.js:571
 msgid "Schema"
 msgstr ""
 
-#: addons/weko/static/wekoFangornConfig.js:591
+#: addons/weko/static/wekoFangornConfig.js:574
 msgid "Select a schema for the file."
 msgstr ""
 
-#: addons/weko/static/wekoFangornConfig.js:593
+#: addons/weko/static/wekoFangornConfig.js:576
 msgid "Project Metadata"
 msgstr ""
 
-#: addons/weko/static/wekoFangornConfig.js:597
+#: addons/weko/static/wekoFangornConfig.js:580
 msgid "Select a registration for the file."
 msgstr ""
 
-#: addons/weko/static/wekoFangornConfig.js:623
+#: addons/weko/static/wekoFangornConfig.js:604
 msgid ""
 "Do you want to deposit the file/folder \"%1$s\" to WEKO? This operation "
 "is irreversible."
 msgstr ""
 
-#: addons/weko/static/wekoFangornConfig.js:633
+#: addons/weko/static/wekoFangornConfig.js:614
 msgid "OK"
 msgstr ""
 
-#: addons/weko/static/wekoFangornConfig.js:652
+#: addons/weko/static/wekoFangornConfig.js:628
 msgid "Deposit files"
+msgstr ""
+
+#: addons/weko/static/wekoFangornConfig.js:877
+msgid "Save and Deposit to WEKO"
+msgstr ""
+
+#: addons/weko/static/wekoNodeConfig.js:86
+#: addons/weko/static/wekoNodeConfig.js:116
+#: website/static/js/folderPickerNodeConfig.js:116
+msgid ""
+"Could not retrieve %1$s settings at this time. Please refresh the page. "
+"If the problem persists, email %2$s."
+msgstr ""
+
+#: addons/weko/static/wekoNodeConfig.js:90
+#: website/static/js/folderPickerNodeConfig.js:142
+msgid "Are you sure you want to remove this %1$s account?"
+msgstr ""
+
+#: addons/weko/static/wekoNodeConfig.js:93
+#: website/static/js/folderPickerNodeConfig.js:145
+msgid "Are you sure you want to link your %1$s account with this project?"
+msgstr ""
+
+#: addons/weko/static/wekoNodeConfig.js:96
+#: website/static/js/folderPickerNodeConfig.js:122
+msgid "Disconnected %1$s."
+msgstr ""
+
+#: addons/weko/static/wekoNodeConfig.js:99
+#: website/static/js/folderPickerNodeConfig.js:125
+msgid ""
+"Could not disconnect %1$s account because of an error. Please try again "
+"later."
+msgstr ""
+
+#: addons/weko/static/wekoNodeConfig.js:102
+#: addons/weko/static/wekoNodeConfig.js:113
+#: website/static/js/folderPickerNodeConfig.js:151
+msgid "Error occurred while importing %1$s account."
+msgstr ""
+
+#: addons/weko/static/wekoNodeConfig.js:105
+msgid ""
+"Sorry, but there was a problem connecting to that instance of %1$s.If you"
+" have any questions, please contact %2$s."
+msgstr ""
+
+#: addons/weko/static/wekoNodeConfig.js:110
+#: website/static/js/folderPickerNodeConfig.js:148
+msgid "Successfully imported %1$s account from profile."
+msgstr ""
+
+#: addons/weko/static/wekoNodeConfig.js:121
+msgid ""
+"Successfully linked index \"%1$s\". Go to the <a href=\"%2$s\">Files "
+"page</a> to view your content."
+msgstr ""
+
+#: addons/weko/static/wekoNodeConfig.js:125
+msgid ""
+"Could not connect to this index. Please refresh the page or contact %1$s "
+"if the problem persists."
+msgstr ""
+
+#: addons/weko/static/wekoNodeConfig.js:271
+msgid "Please select WEKO repository."
+msgstr ""
+
+#: addons/weko/static/wekoNodeConfig.js:374
+#: website/static/js/citationsNodeConfig.js:147
+msgid "Choose %1$s Access Token to Import"
+msgstr ""
+
+#: addons/weko/static/wekoNodeConfig.js:393
+#: addons/weko/static/wekoNodeConfig.js:408
+#: website/static/js/citationsNodeConfig.js:166
+#: website/static/js/citationsNodeConfig.js:184
+#: website/static/js/folderPickerNodeConfig.js:507
+#: website/static/js/oauthAddonNodeConfig.js:153
+#: website/static/js/oauthAddonNodeConfig.js:171
+msgid "Import"
+msgstr ""
+
+#: addons/weko/static/wekoNodeConfig.js:399
+#: website/static/js/folderPickerNodeConfig.js:497
+#: website/static/js/oauthAddonNodeConfig.js:162
+msgid "Import %1$s Account?"
+msgstr ""
+
+#: addons/weko/static/wekoNodeConfig.js:450
+#: website/static/js/folderPickerNodeConfig.js:552
+msgid "Disconnect %1$s Account?"
+msgstr ""
+
+#: addons/weko/static/wekoNodeConfig.js:459
+#: addons/weko/static/wekoUserConfig.js:111
+#: admin/static/js/rdm_addons/dataverse/dataverseRdmConfig.js:155
+#: admin/static/js/rdm_addons/figshare/rdm-cfg.js:34
+#: admin/static/js/rdm_addons/s3/s3RdmConfig.js:124
+#: admin/static/js/rdm_addons/weko/wekoRdmConfig.js:116
+#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:469
+#: website/static/js/addonSettings.js:130
+#: website/static/js/folderPickerNodeConfig.js:562
+msgid "Disconnect"
+msgstr ""
+
+#: addons/weko/static/wekoUserConfig.js:61
+#: website/static/js/addonSettings.js:106
+msgid ""
+"Add-on successfully authorized. To link this add-on to an GakuNin RDM "
+"project, go to the settings page of the project, enable %1$s, and choose "
+"content to connect."
+msgstr ""
+
+#: addons/weko/static/wekoUserConfig.js:63
+#: website/static/js/addonSettings.js:109
+msgid ""
+"Error while authorizing add-on. Please log in to your %1$s account and "
+"grant access to the GakuNin RDM to enable this add-on."
+msgstr ""
+
+#: addons/weko/static/wekoUserConfig.js:99
+#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:449
+#: website/static/js/addonSettings.js:118
+msgid "Disconnect Account?"
+msgstr ""
+
+#: addons/weko/static/wekoUserConfig.js:101
+#: website/static/js/addonSettings.js:120
+msgid ""
+"Are you sure you want to disconnect the %1$s account "
+"<strong>%2$s</strong>? This will revoke access to %1$s for all projects "
+"you have authorized."
 msgstr ""
 
 #: addons/wiki/static/WikiEditor.js:86
@@ -455,7 +585,7 @@ msgid "the page now, those changes may be lost."
 msgstr ""
 
 #: addons/wiki/static/wikiPage.js:94
-#: website/static/js/pages/project-dashboard-page.js:748
+#: website/static/js/pages/project-dashboard-page.js:749
 msgid ""
 "*Add important information, links, or images here to describe your "
 "project.*"
@@ -647,16 +777,6 @@ msgid ""
 "projects associated with this account."
 msgstr ""
 
-#: admin/static/js/rdm_addons/dataverse/dataverseRdmConfig.js:155
-#: admin/static/js/rdm_addons/figshare/rdm-cfg.js:34
-#: admin/static/js/rdm_addons/s3/s3RdmConfig.js:124
-#: admin/static/js/rdm_addons/weko/wekoRdmConfig.js:116
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:469
-#: website/static/js/addonSettings.js:130
-#: website/static/js/folderPickerNodeConfig.js:562
-msgid "Disconnect"
-msgstr ""
-
 #: admin/static/js/rdm_addons/dataverse/dataverseRdmConfig.js:173
 #: admin/static/js/rdm_addons/s3/s3RdmConfig.js:142
 #: admin/static/js/rdm_addons/weko/wekoRdmConfig.js:134
@@ -812,17 +932,17 @@ msgid "Error while retrieving addon account"
 msgstr ""
 
 #: admin/static/js/rdm_addons/weko/wekoRdmConfig.js:89
-msgid "Could not set accounts for WEKO3"
+msgid "Could not set accounts for WEKO"
 msgstr ""
 
 #: admin/static/js/rdm_addons/weko/wekoRdmConfig.js:105
-msgid "Disconnect WEKO3 Application?"
+msgid "Disconnect WEKO Application?"
 msgstr ""
 
 #: admin/static/js/rdm_addons/weko/wekoRdmConfig.js:107
 msgid ""
-"Are you sure you want to disconnect the WEKO3 application on "
-"<strong>%1$s</strong>? This will revoke access to WEKO3 for all projects "
+"Are you sure you want to disconnect the WEKO application on "
+"<strong>%1$s</strong>? This will revoke access to WEKO for all projects "
 "associated with this account."
 msgstr ""
 
@@ -851,11 +971,6 @@ msgstr ""
 
 #: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:369
 msgid "Institutional Storage set successfully"
-msgstr ""
-
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:449
-#: website/static/js/addonSettings.js:118
-msgid "Disconnect Account?"
 msgstr ""
 
 #: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:451
@@ -2794,26 +2909,6 @@ msgid ""
 "credentials stored in your browser."
 msgstr ""
 
-#: website/static/js/addonSettings.js:106
-msgid ""
-"Add-on successfully authorized. To link this add-on to an GakuNin RDM "
-"project, go to the settings page of the project, enable %1$s, and choose "
-"content to connect."
-msgstr ""
-
-#: website/static/js/addonSettings.js:109
-msgid ""
-"Error while authorizing add-on. Please log in to your %1$s account and "
-"grant access to the GakuNin RDM to enable this add-on."
-msgstr ""
-
-#: website/static/js/addonSettings.js:120
-msgid ""
-"Are you sure you want to disconnect the %1$s account "
-"<strong>%2$s</strong>? This will revoke access to %1$s for all projects "
-"you have authorized."
-msgstr ""
-
 #: website/static/js/alertsManager.js:42
 msgid "Could not dismiss alert. Please refresh page and try again."
 msgstr ""
@@ -3006,18 +3101,6 @@ msgstr ""
 #: website/static/js/citationsNodeConfig.js:81
 #: website/static/js/oauthAddonNodeConfig.js:209
 msgid "Could not GET %1$s accounts for user"
-msgstr ""
-
-#: website/static/js/citationsNodeConfig.js:147
-msgid "Choose %1$s Access Token to Import"
-msgstr ""
-
-#: website/static/js/citationsNodeConfig.js:166
-#: website/static/js/citationsNodeConfig.js:184
-#: website/static/js/folderPickerNodeConfig.js:507
-#: website/static/js/oauthAddonNodeConfig.js:153
-#: website/static/js/oauthAddonNodeConfig.js:171
-msgid "Import"
 msgstr ""
 
 #: website/static/js/citationsNodeConfig.js:175
@@ -3812,26 +3895,10 @@ msgstr ""
 msgid " Contact %1$s to verify."
 msgstr ""
 
-#: website/static/js/folderPickerNodeConfig.js:116
-msgid ""
-"Could not retrieve %1$s settings at this time. Please refresh the page. "
-"If the problem persists, email %2$s."
-msgstr ""
-
 #: website/static/js/folderPickerNodeConfig.js:119
 msgid ""
 "Could not retrieve %1$s account list at this time. Please refresh the "
 "page. If the problem persists, email %2$s."
-msgstr ""
-
-#: website/static/js/folderPickerNodeConfig.js:122
-msgid "Disconnected %1$s."
-msgstr ""
-
-#: website/static/js/folderPickerNodeConfig.js:125
-msgid ""
-"Could not disconnect %1$s account because of an error. Please try again "
-"later."
 msgstr ""
 
 #: website/static/js/folderPickerNodeConfig.js:128
@@ -3846,22 +3913,6 @@ msgstr ""
 
 #: website/static/js/folderPickerNodeConfig.js:139
 msgid "Could not change %1$s settings. Please try again later."
-msgstr ""
-
-#: website/static/js/folderPickerNodeConfig.js:142
-msgid "Are you sure you want to remove this %1$s account?"
-msgstr ""
-
-#: website/static/js/folderPickerNodeConfig.js:145
-msgid "Are you sure you want to link your %1$s account with this project?"
-msgstr ""
-
-#: website/static/js/folderPickerNodeConfig.js:148
-msgid "Successfully imported %1$s account from profile."
-msgstr ""
-
-#: website/static/js/folderPickerNodeConfig.js:151
-msgid "Error occurred while importing %1$s account."
 msgstr ""
 
 #: website/static/js/folderPickerNodeConfig.js:154
@@ -3889,17 +3940,8 @@ msgstr ""
 msgid "Failed to import %1$s group libraries."
 msgstr ""
 
-#: website/static/js/folderPickerNodeConfig.js:497
-#: website/static/js/oauthAddonNodeConfig.js:162
-msgid "Import %1$s Account?"
-msgstr ""
-
 #: website/static/js/folderPickerNodeConfig.js:536
 msgid "Could not deauthorize %1$s account from node"
-msgstr ""
-
-#: website/static/js/folderPickerNodeConfig.js:552
-msgid "Disconnect %1$s Account?"
 msgstr ""
 
 #: website/static/js/folderPickerNodeConfig.js:645

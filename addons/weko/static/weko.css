@@ -1,5 +1,5 @@
 #wekoAddonScope .import-account {
-    /* In WEKO3, External Account holds OAuth Application information, so import from administrator is disabled. */
+    /* In WEKO, External Account holds OAuth Application information, so import from administrator is disabled. */
     display: none;
 }
 

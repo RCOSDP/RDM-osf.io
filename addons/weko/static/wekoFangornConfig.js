@@ -210,7 +210,7 @@ function findItem(item, item_id) {
 
 function showError(tb, message) {
     if (!tb) {
-        $osf.growl('WEKO3 Error:', message);
+        $osf.growl('WEKO Error:', message);
         return;
     }
     var modalContent = [
