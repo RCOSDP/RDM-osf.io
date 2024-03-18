@@ -1,5 +1,5 @@
 """
-Register the mapping definition file for WEKO3 deposit.
+Register the mapping definition file for WEKO deposit.
 """
 
 import logging

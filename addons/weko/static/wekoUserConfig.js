@@ -14,11 +14,12 @@ var osfHelpers = require('js/osfHelpers');
 var addonSettings = require('js/addonSettings');
 var ChangeMessageMixin = require('js/changeMessage');
 
-
 var ExternalAccount = addonSettings.ExternalAccount;
 
 var $modal = $('#wekoInputCredentials');
 
+var _ = require('js/rdmGettext')._;
+var sprintf = require('agh.sprintf').sprintf;
 
 function ViewModel(configUrl, accountsUrl) {
     var self = this;
@@ -57,9 +58,9 @@ function ViewModel(configUrl, accountsUrl) {
             var accountCount = self.accounts().length;
             self.updateAccounts().done( function() {
                 if (self.accounts().length > accountCount) {
-                    self.setMessage('Add-on successfully authorized. To link this add-on to an OSF project, go to the settings page of the project, enable WEKO, and choose content to connect.', 'text-success');
+                    self.setMessage(sprintf(_('Add-on successfully authorized. To link this add-on to an GakuNin RDM project, go to the settings page of the project, enable %1$s, and choose content to connect.'),self.properName), 'text-success');
                 } else {
-                    self.setMessage('Error while authorizing add-on. Please log in to your WEKO account and grant access to the GakuNin RDM to enable this add-on.', 'text-danger');
+                    self.setMessage(sprintf(_('Error while authorizing add-on. Please log in to your %1$s account and grant access to the GakuNin RDM to enable this add-on.'),self.properName), 'text-danger');
                 }
             });
         };
@@ -95,10 +96,10 @@ function ViewModel(configUrl, accountsUrl) {
     self.askDisconnect = function(account) {
         var self = this;
         bootbox.confirm({
-            title: 'Disconnect WEKO Account?',
+            title: _('Disconnect Account?'),
             message: '<p class="overflow">' +
-                'Are you sure you want to disconnect the WEKO account <strong>' +
-                osfHelpers.htmlEscape(account.name) + '</strong>? This will revoke access to WEKO for all projects associated with this account.' +
+                sprintf(_('Are you sure you want to disconnect the %1$s account <strong>%2$s</strong>? This will revoke access to %1$s for all projects you have authorized.'),
+                $osf.htmlEscape(self.properName),$osf.htmlEscape(account.name)) +
                 '</p>',
             callback: function (confirm) {
                 if (confirm) {
@@ -107,7 +108,7 @@ function ViewModel(configUrl, accountsUrl) {
             },
             buttons:{
                 confirm:{
-                    label:'Disconnect',
+                    label:_('Disconnect'),
                     className:'btn-danger'
                 }
             }

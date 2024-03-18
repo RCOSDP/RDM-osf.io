@@ -744,12 +744,38 @@ msgid "Service Base URL"
 msgstr "サービスベースURL"
 
 #: addons/jupyterhub/templates/jupyterhub_node_settings.mako:102
+#: addons/metadata/templates/metadata_node_settings.mako:75
 msgid "OK"
 msgstr "OK"
 
 #: addons/metadata/templates/metadata_node_settings.mako:12
 msgid "No configuration items."
 msgstr "設定項目はありません。"
+
+#: addons/metadata/templates/metadata_node_settings.mako:17
+msgid "Imported add-on settings can be restored:"
+msgstr "アドオンをインポートされた設定に復元可能です:"
+
+#: addons/metadata/templates/metadata_node_settings.mako:26
+#: website/templates/project/timestamp.mako:60
+msgid "Apply"
+msgstr "適用"
+
+#: addons/metadata/templates/metadata_node_settings.mako:32
+msgid ""
+"Please set the credentials for each add-on to apply the imported add-on "
+"settings:"
+msgstr "アドオンにインポートされた設定を適用するには、アドオンに認証情報を設定してください:"
+
+#: addons/metadata/templates/metadata_node_settings.mako:52
+msgid "Apply imported add-on settings"
+msgstr "アドオンへのインポートされた設定の適用"
+
+#: addons/metadata/templates/metadata_node_settings.mako:63
+msgid ""
+"Restore imported add-on settings? This operation performs settings for "
+"folders, etc., using the imported settings."
+msgstr "インポートされたアドオン設定へと復元しますか？この操作は、インポートされた設定を用いて，アドオンのフォルダ設定に対する変更を実施します。"
 
 #: addons/metadata/templates/metadata_progress.mako:2
 #: addons/metadata/templates/metadata_project_importer.mako:2
@@ -760,6 +786,26 @@ msgstr "プロジェクトのインポート"
 #: addons/metadata/templates/metadata_progress.mako:13
 msgid "Importing..."
 msgstr "インポートしています..."
+
+#: addons/metadata/templates/metadata_progress.mako:19
+msgid "Preparing node settings..."
+msgstr "ノードを準備しています..."
+
+#: addons/metadata/templates/metadata_progress.mako:20
+msgid "Preparing folders..."
+msgstr "フォルダを準備しています..."
+
+#: addons/metadata/templates/metadata_progress.mako:21
+msgid "Preparing files..."
+msgstr "ファイルを準備しています..."
+
+#: addons/metadata/templates/metadata_progress.mako:22
+msgid "Finished."
+msgstr "完了"
+
+#: addons/metadata/templates/metadata_progress.mako:27
+msgid "An error occurred during the import process:"
+msgstr "インポート処理中にエラーが発生しました:"
 
 #: addons/metadata/templates/metadata_project_importer.mako:15
 msgid "URL to import:"
@@ -4013,10 +4059,6 @@ msgstr "終了日"
 #: website/templates/project/timestamp.mako:53
 msgid "User"
 msgstr "ユーザー"
-
-#: website/templates/project/timestamp.mako:60
-msgid "Apply"
-msgstr "適用"
 
 #: website/templates/project/timestamp.mako:69
 msgid "Verify"

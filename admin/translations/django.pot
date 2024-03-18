@@ -2490,27 +2490,27 @@ msgid "Secret Key"
 msgstr ""
 
 #: admin/templates/rdm_addons/addons/weko_applications_modal.html:7
-msgid "Configure a WEKO3 application"
+msgid "Configure a WEKO application"
 msgstr ""
 
 #: admin/templates/rdm_addons/addons/weko_applications_modal.html:18
-msgid "WEKO3 Display Name"
+msgid "WEKO Display Name"
 msgstr ""
 
 #: admin/templates/rdm_addons/addons/weko_applications_modal.html:22
-msgid "WEKO3 URL"
+msgid "WEKO URL"
 msgstr ""
 
 #: admin/templates/rdm_addons/addons/weko_applications_modal.html:26
-msgid "WEKO3 OAuth Client ID"
+msgid "WEKO OAuth Client ID"
 msgstr ""
 
 #: admin/templates/rdm_addons/addons/weko_applications_modal.html:30
-msgid "WEKO3 OAuth Client Secret"
+msgid "WEKO OAuth Client Secret"
 msgstr ""
 
 #: admin/templates/rdm_addons/addons/weko_applications_modal.html:40
-msgid "WEKO3 URL is invalid. WEKO3 URL should be start with http(s)://"
+msgid "WEKO URL is invalid. WEKO URL should be start with http(s)://"
 msgstr ""
 
 #: admin/templates/rdm_addons/addons/weko_institution_settings.html:17

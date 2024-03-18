@@ -86,7 +86,7 @@ const ViewModel = oop.extend(OAuthAddonSettingsViewModel, {
             callback();
         }).fail(function(xhr, textStatus, error) {
             self.changeMessage(language.accountsError, 'text-danger');
-            Raven.captureMessage(_('Could not set accounts for WEKO3'), {
+            Raven.captureMessage(_('Could not set accounts for WEKO'), {
                 extra: {
                     url: self.url,
                     textStatus: textStatus,
@@ -102,9 +102,9 @@ const ViewModel = oop.extend(OAuthAddonSettingsViewModel, {
     askDisconnect: function(account) {
         var self = this;
         bootbox.confirm({
-            title: _('Disconnect WEKO3 Application?'),
+            title: _('Disconnect WEKO Application?'),
             message: '<p class="overflow">' +
-                sprintf(_('Are you sure you want to disconnect the WEKO3 application on <strong>%1$s</strong>? This will revoke access to WEKO3 for all projects associated with this account.'),osfHelpers.htmlEscape(account.name)) +
+                sprintf(_('Are you sure you want to disconnect the WEKO application on <strong>%1$s</strong>? This will revoke access to WEKO for all projects associated with this account.'),osfHelpers.htmlEscape(account.name)) +
                 '</p>',
             callback: function (confirm) {
                 if (confirm) {

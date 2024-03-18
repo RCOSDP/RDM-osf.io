@@ -9,7 +9,7 @@ import logging
 from . import SHORT_NAME
 from .models import RegistrationReportFormat, get_draft_files, FIELD_GRDM_FILES, schema_has_field
 from .utils import make_report_as_csv
-from .packages import start_importing, import_project, export_project, get_task_result
+from .packages import import_project, export_project, get_task_result
 from .suggestion import suggestion_metadata, _erad_candidates, valid_suggestion_key
 from framework.exceptions import HTTPError
 from framework.auth.decorators import must_be_logged_in
@@ -365,14 +365,12 @@ def metadata_import_project_page(auth):
 
 @must_be_logged_in
 def metadata_import_project(auth):
-    node = start_importing(auth, request.json['title'])
     task = import_project.delay(
         request.json['url'],
         auth.user._id,
-        node._id,
+        request.json['title'],
     )
     return {
-        'node_id': node._id,
         'task_id': task.task_id,
         'progress_url': web_url_for('metadata_task_progress_page', taskid=task.task_id),
     }

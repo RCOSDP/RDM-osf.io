@@ -1876,7 +1876,7 @@ function _fangornTitleColumnHelper(tb, item, col, nameTitle, toUrl, classNameOpt
     }
     // GRDM-36019 Package Export/Import
     if (item.data.unavailable && (item.data.name || '').match(/is not configured$/)) {
-        return _addonConfigureTemplate.call(this, item);
+        return _connectCheckTemplate.call(this, item);
     }
     if (item.kind === 'file' && item.data.permissions.view) {
         var attrs = {};
@@ -1961,6 +1961,10 @@ function _fangornModifiedColumn(item, col) {
  * @private
  */
 function _connectCheckTemplate(item){
+    // GRDM-36019 Package Export/Import
+    if (item.data.unavailable && (item.data.name || '').match(/is not configured$/)) {
+        return _addonConfigureTemplate.call(this, item);
+    }
     var tb = this;
     return m('span.text-danger', [
         m('span', item.data.name),
