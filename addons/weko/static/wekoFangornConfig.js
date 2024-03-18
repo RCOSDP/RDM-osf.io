@@ -149,6 +149,9 @@ function wekoWEKOTitle(item, col) {
     if (item.data.isAddonRoot && item.connected === false) {
         return Fangorn.Utils.connectCheckTemplate.call(this, item);
     }
+    if (item.data.unavailable && (item.data.name || '').match(/is not configured$/)) {
+        return Fangorn.Utils.connectCheckTemplate.call(this, item);
+    }
     if (item.data.addonFullname) {
         return m('span', [m('span', item.data.name)]);
     } else {
