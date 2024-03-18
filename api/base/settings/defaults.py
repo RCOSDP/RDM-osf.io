@@ -126,6 +126,8 @@ INSTALLED_APPS = (
     'addons.binderhub',
     'addons.onedrivebusiness',
     'addons.metadata',
+    # AWS X-Ray
+    'aws_xray_sdk.ext.django',
 )
 
 # local development using https
@@ -226,6 +228,7 @@ CORS_ALLOW_CREDENTIALS = True
 ORIGINS_WHITELIST = ()
 
 MIDDLEWARE = (
+    'aws_xray_sdk.ext.django.middleware.XRayMiddleware',
     'api.base.middleware.DjangoGlobalMiddleware',
     'api.base.middleware.CeleryTaskMiddleware',
     'api.base.middleware.PostcommitTaskMiddleware',

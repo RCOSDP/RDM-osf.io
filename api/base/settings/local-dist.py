@@ -41,3 +41,13 @@ REST_FRAMEWORK['DEFAULT_THROTTLE_RATES'] = {
     'send-email': '2/minute',
     'burst': '10/second',
 }
+
+XRAY_RECORDER = {
+    'AUTO_INSTRUMENT': True,
+    'AWS_XRAY_CONTEXT_MISSING': 'LOG_ERROR',
+    'AWS_XRAY_DAEMON_ADDRESS': '192.168.168.167:2000',
+    'AWS_XRAY_TRACING_NAME': 'osf-api',
+    'PLUGINS': ('EC2Plugin',),
+    'SAMPLING': False,
+    'DYNAMIC_NAMING': '*.perfin.rdm.nii.ac.jp',
+}

@@ -139,6 +139,8 @@ INSTALLED_APPS = (
     'addons.ociinstitutions',
     'addons.onedrivebusiness',
     'addons.metadata',
+    # AWS X-Ray
+    'aws_xray_sdk.ext.django',
 )
 
 MIGRATION_MODULES = {
@@ -214,6 +216,7 @@ CORS_ORIGIN_WHITELIST = (urlparse(osf_settings.DOMAIN).netloc,
 CORS_ALLOW_CREDENTIALS = True
 
 MIDDLEWARE = (
+    'aws_xray_sdk.ext.django.middleware.XRayMiddleware',
     # TokuMX transaction support
     # Needs to go before CommonMiddleware, so that transactions are always started,
     # even in the event of a redirect. CommonMiddleware may cause other middlewares'

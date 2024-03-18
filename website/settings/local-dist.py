@@ -139,3 +139,18 @@ ENABLE_TIMESTAMP = False
 
 # Show sent emails in console
 logging.getLogger('website.mails.mails').setLevel(logging.DEBUG)
+
+# Application definition
+
+INSTALLED_APPS = (
+    'aws_xray_sdk.ext.django',
+)
+
+XRAY_RECORDER = {
+    'AUTO_INSTRUMENT': True,
+    'AWS_XRAY_CONTEXT_MISSING': 'LOG_ERROR',
+    'AWS_XRAY_DAEMON_ADDRESS': '192.168.168.167:5000',
+    'AWS_XRAY_TRACING_NAME': 'osf-web',
+    'PLUGINS': ('EC2Plugin'),
+    'SAMPLING': False,
+}
