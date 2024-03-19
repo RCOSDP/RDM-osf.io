@@ -4,6 +4,7 @@
 commands, run ``$ invoke --list``.
 """
 import os
+import importlib.util
 import sys
 import json
 import platform
@@ -17,6 +18,8 @@ from invoke import Collection
 from website import settings
 from .utils import pip_install, bin_prefix
 
+from aws_xray_sdk.core import xray_recorder
+from aws_xray_sdk.ext.flask.middleware import XRayMiddleware
 
 try:
     from tasks import local  # noqa
@@ -60,6 +63,39 @@ def task(*args, **kwargs):
         return new_task
     return decorator
 
+def add_label(filename, class_name):
+    with open(filename, 'r') as file:
+        lines = file.readlines()
+
+    new_lines = []
+    for line in lines:
+        new_lines.append(line)
+        if f"class {class_name}(" in line:
+            new_lines.append("    label = 'aws_xray_sdk'\n")
+
+    with open(filename, 'w') as file:
+        file.writelines(new_lines)
+
+
+@task
+def custom_label_for_xary(ctx):
+    module_name = 'aws_xray_sdk.ext.django.apps'
+    class_name = 'XRayConfig'
+    filename = '/usr/lib/python3.6/site-packages/' + module_name.replace('.', os.sep) + '.py'
+
+    spec = importlib.util.find_spec(module_name)
+    if spec is None:
+        print(f"The module '{module_name}' does not exist.")
+    else:
+        module = importlib.import_module(module_name)
+        if hasattr(module, class_name):
+            if hasattr(getattr(module, class_name), 'label'):
+                print(f"The '{class_name}' already has an attribute 'label'.")
+            else:
+                add_label(filename, class_name)
+                print(f"The attribute 'label' has been added to the '{class_name}' class.")
+        else:
+            print(f"The class '{class_name}' does not exist in the module '{module_name}'.")
 
 @task
 def server(ctx, host=None, port=5000, debug=True, gitlogs=False):
@@ -84,6 +120,15 @@ def server(ctx, host=None, port=5000, debug=True, gitlogs=False):
     else:
         from framework.flask import app
 
+    xray_recorder.configure(
+        service='osf-web',
+        daemon_address='192.168.168.167:2000',
+        sampling=False,
+        context_missing='LOG_ERROR',
+        plugins=('EC2Plugin',),
+        dynamic_naming='*.pumpkin-lab.com',
+    )
+    XRayMiddleware(app, xray_recorder)
     context = None
     if settings.SECURE_MODE:
         context = (settings.OSF_SERVER_CERT, settings.OSF_SERVER_KEY)
@@ -150,6 +195,7 @@ def git_logs(ctx, branch=None):
 @task
 def apiserver(ctx, port=8000, wait=True, autoreload=True, host='127.0.0.1', pty=True):
     """Run the API server."""
+    custom_label_for_xary(ctx)
     env = os.environ.copy()
     cmd = 'DJANGO_SETTINGS_MODULE=api.base.settings {} manage.py runserver {}:{} --nothreading'\
         .format(sys.executable, host, port)
@@ -169,6 +215,7 @@ def apiserver(ctx, port=8000, wait=True, autoreload=True, host='127.0.0.1', pty=
 @task
 def adminserver(ctx, port=8001, host='127.0.0.1', pty=True):
     """Run the Admin server."""
+    custom_label_for_xary(ctx)
     env = 'DJANGO_SETTINGS_MODULE="admin.base.settings"'
     cmd = '{} python3 manage.py runserver {}:{} --nothreading'.format(env, host, port)
     if settings.SECURE_MODE:
