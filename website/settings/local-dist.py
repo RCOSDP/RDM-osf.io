@@ -32,10 +32,10 @@ PREPRINT_PROVIDER_DOMAINS = {
 USE_EXTERNAL_EMBER = True
 PROXY_EMBER_APPS = True
 EMBER_DOMAIN = environ.get('EMBER_DOMAIN', 'localhost')
-LIVE_RELOAD_DOMAIN = 'http://{}:4200'.format(EMBER_DOMAIN)  # Change port for the current app
+LIVE_RELOAD_DOMAIN = 'http://{}:4200'.format('ember_osf_web')  # Change port for the current app
 EXTERNAL_EMBER_APPS = {
     'ember_osf_web': {
-        'server': 'http://{}:4200/'.format(EMBER_DOMAIN),
+        'server': 'http://{}:4200/'.format('ember_osf_web'),
         'path': '/ember_osf_web/',
         'routes': [
             'collections',
@@ -44,11 +44,15 @@ EXTERNAL_EMBER_APPS = {
         ],
     },
     'preprints': {
-        'server': 'http://{}:4201/'.format(EMBER_DOMAIN),
+        'server': 'http://{}:4201/'.format('preprints'),
         'path': '/preprints/'
     },
+    'registries': {
+        'server': 'http://{}:4202/'.format('registries'),
+        'path': '/registries/'
+    },
     'reviews': {
-        'server': 'http://{}:4203/'.format(EMBER_DOMAIN),
+        'server': 'http://{}:4203/'.format('reviews'),
         'path': '/reviews/'
     },
 }

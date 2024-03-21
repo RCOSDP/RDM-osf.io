@@ -6,6 +6,7 @@ from rest_framework import status as http_status
 import json
 import logging
 import os
+import sys
 
 from flask import request, make_response
 from mako.lookup import TemplateLookup
@@ -19,6 +20,7 @@ from framework import sentry
 from framework.exceptions import HTTPError
 from framework.flask import app, redirect, get_locale
 from framework.sessions import session
+from aws_xray_sdk.core import xray_recorder
 
 from website import settings
 
@@ -109,6 +111,7 @@ def wrap_with_renderer(fn, renderer, renderer_kwargs=None, debug_mode=True):
     :return: Wrapped view function
 
     """
+    @xray_recorder.capture('wrap_with_renderer')
     @functools.wraps(fn)
     def wrapped(*args, **kwargs):
         if session:
@@ -116,6 +119,7 @@ def wrap_with_renderer(fn, renderer, renderer_kwargs=None, debug_mode=True):
         else:
             session_error_code = None
         if session_error_code:
+            xray_recorder.current_subsegment().put_metadata("auth_error_code", session_error_code)
             return renderer(
                 HTTPError(session_error_code),
                 **renderer_kwargs or {}
@@ -125,8 +129,12 @@ def wrap_with_renderer(fn, renderer, renderer_kwargs=None, debug_mode=True):
                 kwargs.update(renderer_kwargs)
             data = fn(*args, **kwargs)
         except HTTPError as error:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            xray_recorder.current_subsegment().add_exception(exc_value, exc_traceback)
             data = error
         except Exception as error:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            xray_recorder.current_subsegment().add_exception(exc_value, exc_traceback)
             logger.exception(error)
             if settings.SENTRY_DSN and not app.debug:
                 sentry.log_exception()
@@ -336,30 +344,34 @@ class Renderer(object):
         :return: Flask / Werkzeug response object
 
         """
-        # Handle error
-        if isinstance(data, HTTPError):
-            return self.handle_error(data)
+        with xray_recorder.in_subsegment('Renderer: __call__') as subsegment:
+            # Handle error
+            if isinstance(data, HTTPError):
+                return self.handle_error(data)
 
-        # Return if response
-        if isinstance(data, werkzeug.wrappers.BaseResponse):
-            return data
+            # Return if response
+            if isinstance(data, werkzeug.wrappers.BaseResponse):
+                return data
 
-        # Unpack tuple
-        data, status_code, headers, redirect_url = unpack(data)
+            # Unpack tuple
+            data, status_code, headers, redirect_url = unpack(data)
 
-        # Call subclass render
-        rendered = self.render(data, redirect_url, *args, **kwargs)
+            # Call subclass render
+            rendered = self.render(data, redirect_url, *args, **kwargs)
 
-        # Return if response
-        if isinstance(rendered, werkzeug.wrappers.BaseResponse):
-            return rendered
+            # Return if response
+            if isinstance(rendered, werkzeug.wrappers.BaseResponse):
+                return rendered
 
-        # Set content type in headers
-        headers = headers or {}
-        headers['Content-Type'] = self.CONTENT_TYPE + '; charset=' + kwargs.get('charset', 'utf-8')
-
-        # Package as response
-        return make_response(rendered, status_code, headers)
+            # Set content type in headers
+            headers = headers or {}
+            headers['Content-Type'] = self.CONTENT_TYPE + '; charset=' + kwargs.get('charset', 'utf-8')
+            segment = xray_recorder.current_segment()
+            trace_id, parent_id = segment.trace_id, segment.id if segment else None
+            headers['X-Amzn-Trace-Id'] = f'Root={trace_id};Parent={parent_id};Sampled=0' if trace_id and parent_id else "Sampled=0"
+            
+            # Package as response
+            return make_response(rendered, status_code, headers)
 
 
 class JSONRenderer(Renderer):
@@ -380,6 +392,10 @@ class JSONRenderer(Renderer):
             return json.JSONEncoder.default(self, obj)
 
     def handle_error(self, error):
+        subsegment = xray_recorder.current_subsegment()
+        if subsegment:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            subsegment.add_exception(exc_value, exc_traceback)
         headers = {'Content-Type': self.CONTENT_TYPE}
         return self.render(error.to_data(), None), error.code, headers
 
@@ -399,6 +415,10 @@ class XMLRenderer(Renderer):
     CONTENT_TYPE = 'application/xml'
 
     def handle_error(self, error):
+        subsegment = xray_recorder.current_subsegment()
+        if subsegment:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            subsegment.add_exception(exc_value, exc_traceback)
         return str(error.to_data()['message_long']), error.code
 
     def render(self, data, redirect_url, *args, **kwargs):
@@ -468,6 +488,11 @@ class WebRenderer(Renderer):
         :param error: HTTPError object
         :return: HTML error page
         """
+
+        subsegment = xray_recorder.current_subsegment()
+        if subsegment:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            subsegment.add_exception(exc_value, exc_traceback)
 
         # Follow redirects
         if error.redirect_url is not None:

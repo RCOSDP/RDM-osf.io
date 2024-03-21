@@ -295,6 +295,18 @@ class SloanOverrideWaffleMiddleware(WaffleMiddleware):
         if url.startswith('http://localhost:'):
             return 'localhost'
         else:
+            if url.startswith('http://perfin.rdm.nii.ac.jp'):
+                return '.perfin.rdm.nii.ac.jp'
+            if url.startswith('http://api.perfin.rdm.nii.ac.jp'):
+                return '.perfin.rdm.nii.ac.jp'
+            if url.startswith('http://files.perfin.rdm.nii.ac.jp'):
+                return '.perfin.rdm.nii.ac.jp'
+            if url.startswith('http://accounts.perfin.rdm.nii.ac.jp'):
+                return '.perfin.rdm.nii.ac.jp'
+            if url.startswith('http://admin.perfin.rdm.nii.ac.jp'):
+                return '.perfin.rdm.nii.ac.jp'
+            if url.startswith('http://mfr.perfin.rdm.nii.ac.jp'):
+                return '.perfin.rdm.nii.ac.jp'
             # for custom domains
             if url.startswith('http://staging3') or url.startswith('https://staging3'):
                 return '.staging3.osf.io'

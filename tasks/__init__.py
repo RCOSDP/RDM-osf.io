@@ -18,8 +18,6 @@ from invoke import Collection
 from website import settings
 from .utils import pip_install, bin_prefix
 
-from aws_xray_sdk.core import xray_recorder
-from aws_xray_sdk.ext.flask.middleware import XRayMiddleware
 
 try:
     from tasks import local  # noqa
@@ -63,6 +61,29 @@ def task(*args, **kwargs):
         return new_task
     return decorator
 
+
+@task
+def fix_ssl(ctx):
+    filepath = "/usr/lib/python3.6/site-packages/sslserver/management/commands/runsslserver.py"
+    if not os.path.exists(filepath):
+        print(f"File {filepath} does not exist.")
+        return
+
+    with open(filepath, "r") as file:
+        content = file.read()
+
+    if "ssl.PROTOCOL_TLSv1" not in content:
+        print(f"File {filepath} is up to date.")
+        return
+
+    content = content.replace("ssl.PROTOCOL_TLSv1", "ssl.PROTOCOL_TLS_SERVER")
+
+    with open(filepath, "w") as file:
+        file.write(content)
+
+    print(f"File {filepath} has been updated.")
+
+
 def add_label(filename, class_name):
     with open(filename, 'r') as file:
         lines = file.readlines()
@@ -97,6 +118,7 @@ def custom_label_for_xary(ctx):
         else:
             print(f"The class '{class_name}' does not exist in the module '{module_name}'.")
 
+
 @task
 def server(ctx, host=None, port=5000, debug=True, gitlogs=False):
     """Run the app server."""
@@ -120,15 +142,6 @@ def server(ctx, host=None, port=5000, debug=True, gitlogs=False):
     else:
         from framework.flask import app
 
-    xray_recorder.configure(
-        service='osf-web',
-        daemon_address='192.168.168.167:2000',
-        sampling=False,
-        context_missing='LOG_ERROR',
-        plugins=('EC2Plugin',),
-        dynamic_naming='*.pumpkin-lab.com',
-    )
-    XRayMiddleware(app, xray_recorder)
     context = None
     if settings.SECURE_MODE:
         context = (settings.OSF_SERVER_CERT, settings.OSF_SERVER_KEY)
@@ -195,6 +208,7 @@ def git_logs(ctx, branch=None):
 @task
 def apiserver(ctx, port=8000, wait=True, autoreload=True, host='127.0.0.1', pty=True):
     """Run the API server."""
+    fix_ssl(ctx)
     custom_label_for_xary(ctx)
     env = os.environ.copy()
     cmd = 'DJANGO_SETTINGS_MODULE=api.base.settings {} manage.py runserver {}:{} --nothreading'\
@@ -215,6 +229,7 @@ def apiserver(ctx, port=8000, wait=True, autoreload=True, host='127.0.0.1', pty=
 @task
 def adminserver(ctx, port=8001, host='127.0.0.1', pty=True):
     """Run the Admin server."""
+    fix_ssl(ctx)
     custom_label_for_xary(ctx)
     env = 'DJANGO_SETTINGS_MODULE="admin.base.settings"'
     cmd = '{} python3 manage.py runserver {}:{} --nothreading'.format(env, host, port)
@@ -225,6 +240,7 @@ def adminserver(ctx, port=8001, host='127.0.0.1', pty=True):
 
 @task
 def shell(ctx, transaction=True, print_sql=False, notebook=False):
+    custom_label_for_xary(ctx)
     cmd = 'DJANGO_SETTINGS_MODULE="api.base.settings" python3 manage.py osf_shell'
     if print_sql:
         cmd += ' --print-sql'

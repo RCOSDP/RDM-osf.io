@@ -35,6 +35,8 @@ from framework.celery_tasks import app as celery_app
 from framework.auth import Auth
 from inspect import currentframe
 
+from aws_xray_sdk.core import xray_recorder
+
 logger = logging.getLogger(__name__)
 
 ENABLE_DEBUG = False
@@ -238,6 +240,10 @@ def get_full_list(uid, pid, node):
     api_url = util.api_v2_url('nodes/{}/files'.format(pid))
     headers = {'content-type': 'application/json'}
     cookies = {settings.COOKIE_NAME: cookie}
+
+    segment = xray_recorder.current_segment()
+    trace_id, parent_id = segment.trace_id, segment.id if segment else None
+    headers['X-Amzn-Trace-Id'] = f'Root={trace_id};Parent={parent_id};Sampled=0' if trace_id and parent_id else "Sampled=0"
 
     file_res = requests.get(api_url, headers=headers, cookies=cookies)
     provider_json_res = file_res.json()
@@ -583,6 +589,10 @@ def add_token(uid, node, data):
 
 def get_file_info(cookie, file_node, version):
     headers = {'content-type': 'application/json'}
+    segment = xray_recorder.current_segment()
+    trace_id, parent_id = segment.trace_id, segment.id if segment else None
+    headers['X-Amzn-Trace-Id'] = f'Root={trace_id};Parent={parent_id};Sampled=0' if trace_id and parent_id else "Sampled=0"
+
     file_data_request = requests.get(
         file_node.generate_waterbutler_url(
             version=version.identifier, meta='', _internal=True
@@ -896,7 +906,10 @@ def waterbutler_folder_file_info(pid, provider, path, node, cookies, headers):
             path,
             meta=int(time.mktime(datetime.datetime.now().timetuple()))
         )
-
+    segment = xray_recorder.current_segment()
+    trace_id, parent_id = segment.trace_id, segment.id if segment else None
+    headers['X-Amzn-Trace-Id'] = f'Root={trace_id};Parent={parent_id};Sampled=0' if trace_id and parent_id else "Sampled=0"
+    
     waterbutler_res = requests.get(waterbutler_meta_url, headers=headers, cookies=cookies)
     waterbutler_json_res = waterbutler_res.json()
     waterbutler_res.close()

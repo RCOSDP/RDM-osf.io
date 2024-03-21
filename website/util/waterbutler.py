@@ -5,6 +5,8 @@ import shutil
 import os
 from api.base.utils import waterbutler_api_url_for
 from website import settings
+from aws_xray_sdk.core import xray_recorder
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -23,10 +25,15 @@ def download_file(osf_cookie, file_node, download_path, **kwargs):
         return None
 
     try:
+        headers = {}
+        segment = xray_recorder.current_segment()
+        trace_id, parent_id = segment.trace_id, segment.id if segment else None
+        headers['X-Amzn-Trace-Id'] = f'Root={trace_id};Parent={parent_id};Sampled=0' if trace_id and parent_id else "Sampled=0"
         response = requests.get(
             file_node.generate_waterbutler_url(action='download', direct=None, _internal=True, **kwargs),
             cookies={settings.COOKIE_NAME: osf_cookie},
-            stream=True
+            stream=True,
+            headers=headers
         )
     except Exception as err:
         logger.error(err)
@@ -101,11 +108,15 @@ def upload_file(osf_cookie, pid, file_path, file_name, dest_path):
 
 def get_node_info(osf_cookie, pid, provider, path):
     try:
+        headers = {'content-type': 'application/json'}
+        segment = xray_recorder.current_segment()
+        trace_id, parent_id = segment.trace_id, segment.id if segment else None
+        headers['X-Amzn-Trace-Id'] = f'Root={trace_id};Parent={parent_id};Sampled=0' if trace_id and parent_id else "Sampled=0"
         response = requests.get(
             waterbutler_api_url_for(
                 pid, provider, path=path, _internal=True, meta=''
             ),
-            headers={'content-type': 'application/json'},
+            headers=headers,
             cookies={settings.COOKIE_NAME: osf_cookie}
         )
     except Exception as err:

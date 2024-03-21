@@ -13,7 +13,7 @@ from framework.auth.core import get_user, generate_verification_key
 from framework.flask import redirect
 from framework.exceptions import HTTPError
 from website import settings
-
+from aws_xray_sdk.core import xray_recorder
 
 class CasError(HTTPError):
     """General CAS-related error."""
@@ -114,7 +114,12 @@ class CasClient(object):
         url.args['ticket'] = ticket
         url.args['service'] = service_url
 
-        resp = requests.get(url.url)
+        headers = {}
+        segment = xray_recorder.current_segment()
+        trace_id, parent_id = segment.trace_id, segment.id if segment else None
+        headers['X-Amzn-Trace-Id'] = f'Root={trace_id};Parent={parent_id};Sampled=0' if trace_id and parent_id else "Sampled=0"
+
+        resp = requests.get(url.url, headers=headers)
         if resp.status_code == 200:
             return self._parse_service_validation(resp.content)
         else:
@@ -133,6 +138,10 @@ class CasClient(object):
         headers = {
             'Authorization': 'Bearer {}'.format(access_token),
         }
+        segment = xray_recorder.current_segment()
+        trace_id, parent_id = segment.trace_id, segment.id if segment else None
+        headers['X-Amzn-Trace-Id'] = f'Root={trace_id};Parent={parent_id};Sampled=0' if trace_id and parent_id else "Sampled=0"
+        
         resp = requests.get(url, headers=headers)
         if resp.status_code == 200:
             return self._parse_profile(resp.content, access_token)

@@ -316,7 +316,6 @@ services:
       - /bin/bash
       - -c
       - yarn --frozen-lockfile &&
-       ./node_modules/.bin/bower install --allow-root --config.interactive=false &&
        yarn start --host 0.0.0.0 --port 4201 --live-reload-port 41954
     restart: unless-stopped
     depends_on:
@@ -500,12 +499,12 @@ services:
     - /bin/bash
     - -c
     - crond &&
-      cat ./admin/rdm_statistics/cron.sh | crontab - &&
-      (crontab -l; cat admin/rdm_custom_storage_location/cron.sh) | crontab - &&
+      (cat admin/rdm_statistics/cron.sh admin/rdm_custom_storage_location/cron.sh) | sed "s|http://localhost:8001|$${ADMIN_URL%/}|g" | crontab - &&
       invoke adminserver -h 0.0.0.0
     restart: unless-stopped
     environment:
       DJANGO_SETTINGS_MODULE: admin.base.settings
+      AWS_XRAY_TRACING_NAME: admin.perfin.rdm.nii.ac.jp
     ports:
       - 8001:8001
     depends_on:
@@ -536,6 +535,7 @@ services:
       - elasticsearch
     environment:
       DJANGO_SETTINGS_MODULE: api.base.settings
+      AWS_XRAY_TRACING_NAME: api.perfin.rdm.nii.ac.jp
     env_file:
       - .docker-compose.env
     volumes:
@@ -557,6 +557,7 @@ services:
       - elasticsearch
     environment:
       DJANGO_SETTINGS_MODULE: api.base.settings
+      AWS_XRAY_TRACING_NAME: perfin.rdm.nii.ac.jp
     env_file:
       - .docker-compose.env
       - .docker-compose.sharejs.env

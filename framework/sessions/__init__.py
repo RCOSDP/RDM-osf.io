@@ -15,6 +15,7 @@ from framework.flask import redirect
 from framework.sessions.utils import remove_session
 from website import settings
 
+from aws_xray_sdk.core import xray_recorder
 
 def add_key_to_url(url, scheme, key):
     """Redirects the user to the requests URL with the given key appended to the query parameters."""
@@ -181,4 +182,8 @@ def before_request():
 def after_request(response):
     # Disallow embedding in frames
     response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    segment = xray_recorder.current_segment()
+    trace_id, parent_id = segment.trace_id, segment.id if segment else None
+    response.headers['X-Amzn-Trace-Id'] = f'"Root={trace_id};Parent={parent_id};Sampled=0"' if trace_id and parent_id else "Sampled=0"
+    
     return response

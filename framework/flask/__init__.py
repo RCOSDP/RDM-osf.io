@@ -8,12 +8,28 @@ from flask_babel import Babel
 
 from website import settings
 
+from aws_xray_sdk.core import xray_recorder, patch
+from aws_xray_sdk.ext.flask.middleware import XRayMiddleware
+
+libraries = (['requests'])
+patch(libraries)
+
 # Create app
 app = Flask(
     __name__,
     static_folder=settings.STATIC_FOLDER,
     static_url_path=settings.STATIC_URL_PATH,
 )
+
+xray_recorder.configure(
+    service='osf-web',
+    daemon_address='192.168.168.167:2000',
+    sampling=False,
+    context_missing='LOG_ERROR',
+    plugins=('EC2Plugin',),
+    dynamic_naming='*.perfin.rdm.nii.ac.jp',
+)
+XRayMiddleware(app, xray_recorder)
 
 # Pull debug mode from settings
 app.debug = settings.DEBUG_MODE

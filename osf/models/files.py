@@ -28,6 +28,8 @@ from website.files import utils
 from website.files.exceptions import VersionNotFoundError
 from website.util import api_v2_url, web_url_for, api_url_for
 
+from aws_xray_sdk.core import xray_recorder
+
 __all__ = (
     'File',
     'Folder',
@@ -364,6 +366,10 @@ class BaseFileNode(TypedModel, CommentableMixin, OptionalGuidMixin, Taggable, Ob
         if auth_header:
             headers['Authorization'] = auth_header
 
+        segment = xray_recorder.current_segment()
+        trace_id, parent_id = segment.trace_id, segment.id if segment else None
+        headers['X-Amzn-Trace-Id'] = f'Root={trace_id};Parent={parent_id};Sampled=0' if trace_id and parent_id else "Sampled=0"
+        
         resp = requests.get(
             self.generate_waterbutler_url(revision=revision, meta=True, _internal=True, **kwargs),
             headers=headers,

@@ -6,6 +6,7 @@ from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from rest_framework.exceptions import PermissionDenied, NotFound
 from rest_framework.status import is_server_error
+from aws_xray_sdk.core import xray_recorder
 import requests
 
 from addons.osfstorage.models import OsfStorageFile, OsfStorageFolder, NodeSettings, Region
@@ -50,10 +51,14 @@ def get_file_object(target, path, provider, request):
         base_url=base_url, meta=True, view_only=view_only,
     )
 
+    headers={'Authorization': request.META.get('HTTP_AUTHORIZATION')}
+    segment = xray_recorder.current_segment()
+    trace_id, parent_id = segment.trace_id, segment.id if segment else None
+    headers['X-Amzn-Trace-Id'] = f'Root={trace_id};Parent={parent_id};Sampled=0' if trace_id and parent_id else "Sampled=0"
     waterbutler_request = requests.get(
         url,
         cookies=request.COOKIES,
-        headers={'Authorization': request.META.get('HTTP_AUTHORIZATION')},
+        headers=headers,
     )
 
     if waterbutler_request.status_code == 401:
