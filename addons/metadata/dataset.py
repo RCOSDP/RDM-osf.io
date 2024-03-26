@@ -21,13 +21,10 @@ from website.project.decorators import (
 from website.util import api_url_for, waterbutler
 
 from . import SHORT_NAME
-from .settings import (
-    MAX_IMPORTABLE_DATASET_HTML_BYTES,
-    MAX_IMPORTABLE_DATASET_DATA_BYTES,
-    DEFAULT_DATASET_TIMEOUT,
-)
+from .settings import MAX_IMPORTABLE_DATASET_BYTES
 
 logger = logging.getLogger(__name__)
+
 
 @must_be_valid_project
 @must_have_addon(SHORT_NAME, 'node')
@@ -37,7 +34,9 @@ def metadata_import_dataset(auth, provider, filepath, **kwargs):
     dataset_url = request.json.get('url', None)
     if not dataset_url:
         raise HTTPError(http_status.HTTP_400_BAD_REQUEST)
-    logger.info('Importing dataset from {} to {}'.format(dataset_url, filepath))
+    logger.info(
+        'Importing dataset from {} to {}'.format(dataset_url, filepath)
+    )
     task = import_dataset.delay(
         auth.user._id,
         node._id,
@@ -45,7 +44,10 @@ def metadata_import_dataset(auth, provider, filepath, **kwargs):
         provider,
         '/' + filepath,
     )
-    urlparams = dict([(k, v) for k, v in kwargs.items() if k in ['nid', 'pid']] + [('task_id', task.task_id)])
+    urlparams = dict(
+        [(k, v) for k, v in kwargs.items() if k in ['nid', 'pid']]
+        + [('task_id', task.task_id)]
+    )
     if 'nid' not in kwargs:
         urlparams['nid'] = '<no_node>'
     progress_api_url = api_url_for(
@@ -58,6 +60,7 @@ def metadata_import_dataset(auth, provider, filepath, **kwargs):
         'task_id': task.task_id,
         'progress_api_url': progress_api_url,
     }
+
 
 @must_be_valid_project
 @must_have_addon(SHORT_NAME, 'node')
@@ -79,12 +82,6 @@ def metadata_get_importing_dataset(auth, task_id=None, **kwargs):
         'error': error,
     }
 
-def _remove_quotes(s):
-    if s.startswith('"') and s.endswith('"'):
-        return s[1:-1]
-    if s.startswith("'") and s.endswith("'"):
-        return s[1:-1]
-    return s
 
 def _extract_filename(content_url, response):
     # get filename from Content-Disposition header if available
@@ -92,52 +89,46 @@ def _extract_filename(content_url, response):
         return unquote(content_url.rstrip('/').split('/')[-1])
     content_disposition = response.headers['Content-Disposition']
     if 'filename=' in content_disposition:
-        return unquote(_remove_quotes(content_disposition.split('filename=')[1]))
+        return unquote(content_disposition.split('filename=')[1])
     if 'filename*=' in content_disposition:
         filename_with_enc = content_disposition.split('filename*=')[1]
         if not filename_with_enc.startswith("UTF-8''"):
-            raise ValueError('Invalid filename encoding: {}'.format(filename_with_enc))
-        return unquote(_remove_quotes(filename_with_enc[7:]))
+            raise ValueError(
+                'Invalid filename encoding: {}'.format(filename_with_enc)
+            )
+        return unquote(filename_with_enc[7:])
+
 
 @celery_app.task(bind=True, max_retries=1)
 def import_dataset(self, user_id, node_id, dataset_url, provider, filepath):
-    logger.info('Importing dataset from {} to {}/{} on {}'.format(dataset_url, provider, filepath, node_id))
-    self.update_state(state='downloading dataset', meta={
-        'progress': 0,
-        'user': user_id,
-        'node': node_id,
-        'filenames': None,
-    })
-    response = requests.get(
-        dataset_url,
-        stream=True,
-        timeout=DEFAULT_DATASET_TIMEOUT,
+    logger.info(
+        'Importing dataset from {} to {}/{} on {}'.format(
+            dataset_url, provider, filepath, node_id
+        )
     )
+    self.update_state(
+        state='downloading dataset',
+        meta={
+            'progress': 0,
+            'user': user_id,
+            'node': node_id,
+            'filenames': None,
+        },
+    )
+    response = requests.get(dataset_url)
     response.raise_for_status()
-    if 'Content-Type' not in response.headers:
-        raise ValueError('No Content-Type header found in dataset')
-    content_type = response.headers['Content-Type']
-    if 'html' not in content_type:
-        raise ValueError('Dataset is not HTML')
-    if 'Content-Length' in response.headers:
-        total_size = int(response.headers['Content-Length'])
-        if total_size > MAX_IMPORTABLE_DATASET_HTML_BYTES:
-            raise ValueError('Dataset too large')
-    response.raw.decode_content = True
-    body = b''
-    for chunk in response.iter_content(chunk_size=1024 * 1024):
-        body += chunk
-        if len(body) > MAX_IMPORTABLE_DATASET_HTML_BYTES:
-            raise ValueError('Dataset HTML too large')
-    html = BeautifulSoup(body, 'html.parser')
+    html = BeautifulSoup(response.content, 'html.parser')
     logger.info('Downloaded dataset from {}'.format(dataset_url))
     logger.debug('HTML: {}'.format(html))
-    self.update_state(state='parsing dataset', meta={
-        'progress': 10,
-        'user': user_id,
-        'node': node_id,
-        'filenames': None,
-    })
+    self.update_state(
+        state='parsing dataset',
+        meta={
+            'progress': 10,
+            'user': user_id,
+            'node': node_id,
+            'filenames': None,
+        },
+    )
     scripts = html.find_all('script', type='application/ld+json')
     if not scripts:
         raise ValueError('No JSON-LD script found in dataset')
@@ -149,7 +140,9 @@ def import_dataset(self, user_id, node_id, dataset_url, provider, filepath):
         if 'distribution' not in dataset:
             raise ValueError('No distribution found in dataset')
         distributions = dataset['distribution']
-        logger.info('Found {} distributions in dataset'.format(len(distributions)))
+        logger.info(
+            'Found {} distributions in dataset'.format(len(distributions))
+        )
         for distribution in distributions:
             if 'contentUrl' not in distribution:
                 raise ValueError('No contentUrl found in distribution')
@@ -157,50 +150,59 @@ def import_dataset(self, user_id, node_id, dataset_url, provider, filepath):
             content_urls.append(content_url)
     if not content_urls:
         raise ValueError('No contentUrls found in dataset')
-    filenames = [{
-        'url': content_url,
-        'filename': None,
-    } for content_url in content_urls]
-    self.update_state(state='checking destination', meta={
-        'progress': 20,
-        'user': user_id,
-        'node': node_id,
-        'filenames': filenames,
-    })
+    filenames = [
+        {
+            'url': content_url,
+            'filename': None,
+        }
+        for content_url in content_urls
+    ]
+    self.update_state(
+        state='checking destination',
+        meta={
+            'progress': 20,
+            'user': user_id,
+            'node': node_id,
+            'filenames': filenames,
+        },
+    )
     user_info = OSFUser.objects.get(guids___id=user_id)
     cookie = user_info.get_or_create_cookie().decode()
     files = waterbutler.get_node_info(cookie, node_id, provider, filepath)
     if files is None:
         raise ValueError('Failed to get node info')
-    current_filenames = set([
-        current_file['attributes']['name'] for current_file in files['data']
-    ] if 'data' in files and files['data'] is not None else [])
-    self.update_state(state='downloading files', meta={
-        'progress': 25,
-        'user': user_id,
-        'node': node_id,
-        'filenames': filenames,
-    })
+    current_filenames = set(
+        [current_file['attributes']['name'] for current_file in files['data']]
+        if 'data' in files and files['data'] is not None
+        else []
+    )
+    self.update_state(
+        state='downloading files',
+        meta={
+            'progress': 25,
+            'user': user_id,
+            'node': node_id,
+            'filenames': filenames,
+        },
+    )
     work_dir = tempfile.mkdtemp()
     try:
         for index, content_url in enumerate(content_urls):
-            logger.info('Downloading file {} from {}'.format(index, content_url))
-            response = requests.get(
-                content_url,
-                stream=True,
-                timeout=DEFAULT_DATASET_TIMEOUT,
+            logger.info(
+                'Downloading file {} from {}'.format(index, content_url)
             )
+            response = requests.get(content_url, stream=True)
             response.raise_for_status()
             response.raw.decode_content = True
             temp_filepath = os.path.join(work_dir, 'temp.dat')
             if 'Content-Length' in response.headers:
                 total_size = int(response.headers['Content-Length'])
-                if total_size > MAX_IMPORTABLE_DATASET_DATA_BYTES:
+                if total_size > MAX_IMPORTABLE_DATASET_BYTES:
                     raise ValueError('Dataset too large')
             total_size = 0
             with open(temp_filepath, 'wb') as temp_file:
-                for chunk in response.iter_content(chunk_size=1024 * 1024):
-                    if total_size + len(chunk) > MAX_IMPORTABLE_DATASET_DATA_BYTES:
+                for chunk in response.iter_content():
+                    if total_size + len(chunk) > MAX_IMPORTABLE_DATASET_BYTES:
                         raise ValueError('Dataset too large')
                     temp_file.write(chunk)
                     total_size += len(chunk)
@@ -208,7 +210,9 @@ def import_dataset(self, user_id, node_id, dataset_url, provider, filepath):
             duplicated_index = 1
             filenamebody, filenameext = os.path.splitext(filename)
             while filename in current_filenames:
-                filename = '{} ({}){}'.format(filenamebody, duplicated_index, filenameext)
+                filename = '{} ({}){}'.format(
+                    filenamebody, duplicated_index, filenameext
+                )
                 duplicated_index += 1
             logger.info('Uploading file {} to {}'.format(filename, filepath))
             waterbutler.upload_file(
@@ -219,12 +223,18 @@ def import_dataset(self, user_id, node_id, dataset_url, provider, filepath):
                 provider + filepath,
             )
             filenames[index]['filename'] = filename
-            self.update_state(state='downloading files', meta={
-                'progress': 25 + 75 * (content_urls.index(content_url) + 1) / len(content_urls),
-                'user': user_id,
-                'node': node_id,
-                'filenames': filenames,
-            })
+            self.update_state(
+                state='downloading files',
+                meta={
+                    'progress': 25
+                    + 75
+                    * (content_urls.index(content_url) + 1)
+                    / len(content_urls),
+                    'user': user_id,
+                    'node': node_id,
+                    'filenames': filenames,
+                },
+            )
             os.unlink(temp_filepath)
         return {
             'user': user_id,
