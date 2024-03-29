@@ -1473,7 +1473,7 @@ function _createFile(event, dismissCallback, helpText, extension) {
         item.notify.update(gettext('New file created!'), 'success', undefined, 1000);
         if (extension.match('(txt|docx|xlsx|pptx)')) {
             var edit_url = window.contextVars.osfURL + window.contextVars.currentUser.id + '/editonlyoffice' +item.data.path;
-            window.open(edit_url, 'OnlyofficeEditor');
+            window.open(edit_url, 'ONLYOFFICE Editor');
         }
         if(dismissCallback) {
             dismissCallback();

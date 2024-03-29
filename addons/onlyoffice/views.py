@@ -17,8 +17,8 @@ logger = logging.getLogger(__name__)
 
 # Do not add decorator, or else online editor will not open.
 def onlyoffice_check_file_info(**kwargs):
-    file_id_ver = kwargs['file_id_ver']
-    file_id, file_version = onlyoffice_util.parse_file_info(file_id_ver)
+    file_id = kwargs['file_id']
+    file_version = onlyoffice_util.get_file_version(file_id)
     # logger.info('check_file_info : file_id = {}, file_version = {}'.format(file_id, file_version))
 
     file_node = BaseFileNode.load(file_id)
@@ -32,10 +32,10 @@ def onlyoffice_check_file_info(**kwargs):
     file_info = onlyoffice_util.get_file_info(file_node, file_version, cookies)
 
     logger.info('ONLYOFFICE file opened : user id = {}, fullname = {}, file_name = {}'
-                .format(user_info['user_id'], user_info['full_name'], file_info['file_name']))
+                .format(user_info['user_id'], user_info['full_name'], file_info['name']))
 
     res = {
-        'BaseFileName': file_info['file_name'],
+        'BaseFileName': file_info['name'],
         'Version': file_version,
         #'ReadOnly': True,
         'UserCanReview': True,
@@ -87,8 +87,8 @@ def onlyoffice_check_file_info(**kwargs):
 
 # Do not add decorator, or else online editor will not open.
 def onlyoffice_file_content_view(**kwargs):
-    file_id_ver = kwargs['file_id_ver']
-    file_id, file_version = onlyoffice_util.parse_file_info(file_id_ver)
+    file_id = kwargs['file_id']
+    file_version = onlyoffice_util.get_file_version(file_id)
 
     file_node = BaseFileNode.load(file_id)
     access_token = request.args.get('access_token', '')
@@ -121,7 +121,7 @@ def onlyoffice_file_content_view(**kwargs):
     if request.method == 'POST':
         #  wopi PutFile endpoint
         logger.info('ONLYOFFICE file saved  : user id = {}, fullname = {}, file_name = {}'
-                    .format(user_info['user_id'], user_info['full_name'], file_info['file_name']))
+                    .format(user_info['user_id'], user_info['full_name'], file_info['name']))
         if not request.data:
             return Response(response='Not possible to get the file content.', status=401)
 
@@ -139,9 +139,8 @@ def onlyoffice_file_content_view(**kwargs):
 
 # Do not add decorator, or else online editor will not open.
 def onlyoffice_lock_file(**kwargs):
-    file_id_ver = kwargs['file_id_ver']
-    file_id, file_version = onlyoffice_util.parse_file_info(file_id_ver)
-    logger.info('lock_file: file_id = {}, file_version = {}'.format(file_id, file_version))
+    file_id = kwargs['file_id']
+    logger.info('lock_file: file_id = {}'.format(file_id))
 
     if request.method == 'POST':
         operation = request.META.get('X-WOPI-Override', None)
@@ -163,9 +162,7 @@ def onlyoffice_lock_file(**kwargs):
 
 # Do not add decorator, or else online editor will not open.
 def onlyoffice_edit_by_onlyoffice(**kwargs):
-    file_id_ver = kwargs['file_id_ver']
-    file_id, file_version = onlyoffice_util.parse_file_info(file_id_ver)
-
+    file_id = kwargs['file_id']
     cookie = request.cookies.get(websettings.COOKIE_NAME)
     logger.debug('cookie = {}'.format(cookie))
 
@@ -187,7 +184,7 @@ def onlyoffice_edit_by_onlyoffice(**kwargs):
     wopi_client_url = onlyoffice_util.get_onlyoffice_url(wopi_client_host, 'edit', ext)
     if wopi_client_url:
         wopi_src_host = settings.WOPI_SRC_HOST
-        wopi_src = f'{wopi_src_host}/wopi/files/{file_id}-{file_version}'
+        wopi_src = f'{wopi_src_host}/wopi/files/{file_id}'
         # logger.info('edit_by_onlyoffice.index_view wopi_src = {}'.format(wopi_src))
         wopi_url = wopi_client_url \
             + 'rs=ja-jp&ui=ja-jp'  \

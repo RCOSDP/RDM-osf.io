@@ -3,7 +3,7 @@
 import pytest
 import mock
 
-from addons.onlyoffice.util import _ext_to_app_name_onlyoffice, get_onlyoffice_url, parse_file_info, get_file_info
+from addons.onlyoffice.util import _ext_to_app_name_onlyoffice, get_onlyoffice_url, get_file_info
 from addons.onlyoffice.views import onlyoffice_edit_by_onlyoffice, onlyoffice_check_file_info
 from framework.auth import Auth
 from osf.exceptions import ValidationError
@@ -40,11 +40,6 @@ class TestOnlyofficeAddon(OsfTestCase):
         assert _ext_to_app_name_onlyoffice('xlsx') == 'Excel'
         assert _ext_to_app_name_onlyoffice('pptx') == 'PowerPoint'
 
-    def test_parse_file_info(self):
-        id, ver = parse_file_info('0120394556fe24-3')
-        assert id == '0120394556fe24'
-        assert ver == '3'
-
     def test_get_onlyoffice_url(self):
         mock_response = Response()
         mock_response.text = '<?xml version="1.0" encoding="utf-8"?><wopi-discovery><net-zone name="external-http"><app name="Word" favIconUrl="http://192.168.1.1:8002/web-apps/apps/documenteditor/main/resources/img/favicon.ico"><action name="edit" ext="docx" urlsrc="http://192.168.1.1:8002/hosting/wopi/word/view?&amp;&lt;rs=DC_LLCC&amp;&gt;&lt;dchat=DISABLE_CHAT&amp;&gt;&lt;embed=EMBEDDED&amp;&gt;&lt;fs=FULLSCREEN&amp;&gt;&lt;hid=HOST_SESSION_ID&amp;&gt;&lt;rec=RECORDING&amp;&gt;&lt;sc=SESSION_CONTEXT&amp;&gt;&lt;thm=THEME_ID&amp;&gt;&lt;ui=UI_LLCC&amp;&gt;&lt;wopisrc=WOPI_SOURCE&amp;&gt;&amp;" /></app></net-zone></wopi-discovery>'
@@ -62,7 +57,7 @@ class TestOnlyofficeAddon(OsfTestCase):
         with mock.patch.object(request.cookies, 'get', return_value='Cookie String'):
             with mock.patch.object(BaseFileNode, 'load', return_value=mock_filenode):
                 with mock.patch.object(onlyoffice_util, 'get_onlyoffice_url', return_value=mock_get_url_value):
-                    context = onlyoffice_edit_by_onlyoffice(file_id_ver='ABCDEFG-01')
+                    context = onlyoffice_edit_by_onlyoffice(file_id_ver='ABCDEFG')
         assert context['wopi_url'] == 'http://192.168.1.1:8002/onlyoffice/rs=ja-jp&ui=ja-jp&wopisrc=http://srchost/wopi/files/ABCDEFG-01'
         assert context['access_token'] == 'Cookie String'
 
@@ -78,6 +73,5 @@ class TestOnlyofficeAddon(OsfTestCase):
             with mock.patch.object(request.args, 'get', return_value=mock_access_token):
                 with mock.patch.object(onlyoffice_util, 'get_user_info', return_value=mock_user_info):
                     with mock.patch.object(onlyoffice_util, 'get_file_info', return_value=mock_file_info):
-                        res = onlyoffice_check_file_info(file_id_ver='ABCDEFG-01')
+                        res = onlyoffice_check_file_info(file_id_ver='ABCDEFG')
         assert res['BaseFileName'] == 'filename.docx'
-        assert res['Version'] == '01'

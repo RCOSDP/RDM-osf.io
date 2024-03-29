@@ -35,33 +35,26 @@ def get_file_info(file_node, file_version, cookies):
 
     file_data = response.json().get('data')
     file_info = {
-        'file_name': file_node.name,
-        'file_size': file_data['attributes'].get('size'),
-        'file_mtime': file_data['attributes'].get('modified_utc')
+        'name': file_node.name,
+        'size': file_data['attributes'].get('size'),
+        'mtime': file_data['attributes'].get('modified_utc'),
+        'version': ''
     }
+    if file_node.provider == 'osfstorage':
+        file_info['version'] = file_data['attributes']['extra'].get('version')
     return file_info
 
 
-def parse_file_info(file_id_ver):
-    # file_id_ver example : "0120394556fe24-3".
-    #  '-' is separator.
-    #  In this case, file_id is "0120394556fe24" and version is "3".
-
-    file_id = ''
+def get_file_version(file_id):
     file_version = ''
-    if '-' in file_id_ver:
-        file_id, file_version = file_id_ver.rsplit('-', 1)
-    else:
-        # If version not specified, get latest version number of this file.
-        file_id = file_id_ver
-        base_file_data = BaseFileNode.objects.filter(_id=file_id)
-        base_file_data_exists = base_file_data.exists()
-        if base_file_data_exists:
+    base_file_data = BaseFileNode.objects.filter(_id=file_id)
+    if base_file_data.exists():
+        file_node = BaseFileNode.load(file_id)
+        if file_node.provider == 'osfstorage':
             base_file_data = base_file_data.get()
             file_versions = base_file_data.versions.all()
             file_version = file_versions.latest('id').identifier
-
-    return file_id, file_version
+    return file_version
 
 
 def _ext_to_app_name_onlyoffice(ext):
