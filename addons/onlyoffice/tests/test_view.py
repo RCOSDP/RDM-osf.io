@@ -57,8 +57,8 @@ class TestOnlyofficeAddon(OsfTestCase):
         with mock.patch.object(request.cookies, 'get', return_value='Cookie String'):
             with mock.patch.object(BaseFileNode, 'load', return_value=mock_filenode):
                 with mock.patch.object(onlyoffice_util, 'get_onlyoffice_url', return_value=mock_get_url_value):
-                    context = onlyoffice_edit_by_onlyoffice(file_id_ver='ABCDEFG')
-        assert context['wopi_url'] == 'http://192.168.1.1:8002/onlyoffice/rs=ja-jp&ui=ja-jp&wopisrc=http://srchost/wopi/files/ABCDEFG-01'
+                    context = onlyoffice_edit_by_onlyoffice(file_id='ABCDEFG')
+        assert context['wopi_url'] == 'http://192.168.1.1:8002/onlyoffice/rs=ja-jp&ui=ja-jp&wopisrc=http://srchost/wopi/files/ABCDEFG'
         assert context['access_token'] == 'Cookie String'
 
 
@@ -73,5 +73,5 @@ class TestOnlyofficeAddon(OsfTestCase):
             with mock.patch.object(request.args, 'get', return_value=mock_access_token):
                 with mock.patch.object(onlyoffice_util, 'get_user_info', return_value=mock_user_info):
                     with mock.patch.object(onlyoffice_util, 'get_file_info', return_value=mock_file_info):
-                        res = onlyoffice_check_file_info(file_id_ver='ABCDEFG')
+                        res = onlyoffice_check_file_info(file_id='ABCDEFG')
         assert res['BaseFileName'] == 'filename.docx'
