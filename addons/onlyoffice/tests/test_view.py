@@ -66,7 +66,7 @@ class TestOnlyofficeAddon(OsfTestCase):
         mock_filenode = Filenode()
         mock_filenode.name = 'filename.docx'
         mock_user_info = {'user_id': 'userid', 'full_name': 'fullname', 'display_name': 'dispname'}
-        mock_file_info = {'file_name': 'filename.docx'}
+        mock_file_info = {'name': 'filename.docx'}
         mock_access_token = {websettings.COOKIE_NAME: 'cookie'}
 
         with mock.patch.object(BaseFileNode, 'load', return_value=mock_filenode):
