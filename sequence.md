@@ -152,4 +152,4 @@ sequenceDiagram
     browser ->> mfr: GET /static/js/mfr.js
     mfr ->> browser: Response with js resource
  end
-```****
+```
