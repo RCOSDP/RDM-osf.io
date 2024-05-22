@@ -35,9 +35,10 @@ def onlyoffice_check_file_info(**kwargs):
     cookies = {websettings.COOKIE_NAME: access_token}
     user_info = onlyoffice_util.get_user_info(access_token)
     file_info = onlyoffice_util.get_file_info(file_node, file_version, cookies)
+    filename = '' if file_info is None else file_info['name']
 
     logger.info('ONLYOFFICE file opened : user id = {}, fullname = {}, file_name = {}'
-                .format(user_info['user_id'], user_info['full_name'], file_info['name']))
+                .format(user_info['user_id'], user_info['full_name'], filename))
 
     res = {
         'BaseFileName': file_info['name'],
@@ -101,6 +102,7 @@ def onlyoffice_file_content_view(**kwargs):
 
     user_info = onlyoffice_util.get_user_info(access_token)
     file_info = onlyoffice_util.get_file_info(file_node, file_version, cookies)
+    filename = '' if file_info is None else file_info['name']
 
     # logger.info('file_content_view: method, file_id, access_token = {} {} {}'.format(request.method, file_id, access_token))
     # logger.info('waterbutler url = {}'.format(websettings.WATERBUTLER_URL))
@@ -147,7 +149,7 @@ def onlyoffice_file_content_view(**kwargs):
     if request.method == 'POST':
         #  wopi PutFile endpoint
         logger.info('ONLYOFFICE file saved  : user id = {}, fullname = {}, file_name = {}'
-                    .format(user_info['user_id'], user_info['full_name'], file_info['name']))
+                    .format(user_info['user_id'], user_info['full_name'], filename))
         if not request.data:
             return Response(response='Not possible to get the file content.', status=401)
 
