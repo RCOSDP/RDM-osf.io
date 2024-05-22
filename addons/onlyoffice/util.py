@@ -4,6 +4,8 @@ import requests
 from lxml import etree
 from osf.models import BaseFileNode, OSFUser
 
+from . import proof_key as pfkey
+
 logger = logging.getLogger(__name__)
 
 
@@ -104,3 +106,35 @@ def get_onlyoffice_url(server, mode, ext):
 
     online_url = online_url[:online_url.index('?') + 1]
     return online_url
+
+
+def get_proof_key(server):
+    response = requests.get(server + '/hosting/discovery')
+    discovery = response.text
+    if not discovery:
+        logger.error('No able to retrieve the discovery.xml for onlyoffice.')
+        return None
+
+    parsed = etree.fromstring(bytes(discovery, encoding='utf-8'))
+    if parsed is None:
+        logger.error('The retrieved discovery.xml file is not a valid XML file')
+        return None
+
+    result = parsed.xpath(f"/wopi-discovery/proof-key")
+    for res in result:
+        val = res.get(f'value')
+        oval = res.get(f'oldvalue')
+        modulus = res.get(f'modulus')
+        omodulus = res.get(f'oldmodulus')
+        exponent = res.get(f'exponent')
+        oexponent = res.get(f'oldexponent')
+
+    discovery = pfkey.ProofKeyDiscoveryData (
+        value=val,
+        modulus=modulus,
+        exponent=exponent,
+        oldvalue=oval,
+        oldmodulus=omodulus,
+        oldexponent=oexponent)
+
+    return discovery

@@ -8,10 +8,15 @@ import time
 from osf.models import BaseFileNode
 
 from . import util as onlyoffice_util
+from . import proof_key as pfkey
 from . import settings
 from website import settings as websettings
 
+from framework.auth.decorators import must_be_logged_in
+
 logger = logging.getLogger(__name__)
+
+pkhelper = pfkey.ProofKeyHelper()
 
 #  wopi CheckFileInfo endpoint
 
@@ -100,9 +105,26 @@ def onlyoffice_file_content_view(**kwargs):
     # logger.info('file_content_view: method, file_id, access_token = {} {} {}'.format(request.method, file_id, access_token))
     # logger.info('waterbutler url = {}'.format(websettings.WATERBUTLER_URL))
 
+    proof = request.headers.get('X-Wopi-Proof')
+    proofOld = request.headers.get('X-Wopi-ProofOld')
+    timeStamp = int(request.headers.get('X-Wopi-TimeStamp'))
+    url = request.url
+    #logger.info('file_content_view get header X-Wopi Proof =    {}'.format(proof))
+    #logger.info('                             X-Wopi_ProofOld = {}'.format(proofOld))
+    #logger.info('                             TimeStamp =       {}'.format(timeStamp))
+    #logger.info('                             URL =             {}'.format(url))
+
+    check_data = pfkey.ProofKeyValidationInput(access_token, timeStamp, url, proof, proofOld)
+    if pkhelper.validate(check_data) == True:
+        logger.info('proof key check passed.')
+    else:
+        logger.info('proof key check return False.')
+        return Response(response='', status=500)
+
     if request.method == 'GET':
         #  wopi GetFile endpoint
         content = ''
+        status_code = ''
         try:
             wburl = file_node.generate_waterbutler_url(version=file_version, action='download', direct=None, _internal=True)
             # logger.info('wburl, cookies = {}  {}'.format(wburl, cookies))
@@ -111,12 +133,16 @@ def onlyoffice_file_content_view(**kwargs):
                 cookies=cookies,
                 stream=True
             )
-            content = response.raw
+            status_code = response.status_code
+            if status_code == 200:
+                content = response.raw
+            else:
+                logger.error('Waterbutler return error.')
         except Exception as err:
             logger.error(err)
             return
 
-        return Response(response=content, status=200)
+        return Response(response=content, status=status_code)
 
     if request.method == 'POST':
         #  wopi PutFile endpoint
@@ -160,7 +186,7 @@ def onlyoffice_lock_file(**kwargs):
     return Response(status=200)   # Status 200
 
 
-# Do not add decorator, or else online editor will not open.
+@must_be_logged_in
 def onlyoffice_edit_by_onlyoffice(**kwargs):
     file_id = kwargs['file_id']
     cookie = request.cookies.get(websettings.COOKIE_NAME)
@@ -191,6 +217,13 @@ def onlyoffice_edit_by_onlyoffice(**kwargs):
             + '&wopisrc=' + wopi_src
 
     # logger.info('edit_by_online.index_view wopi_url = {}'.format(wopi_url))
+
+    if pkhelper.hasKey() == False:
+        wopi_client_host = settings.WOPI_CLIENT_ONLYOFFICE
+        proof_key = onlyoffice_util.get_proof_key(wopi_client_host)
+        if proof_key is not None:
+            pkhelper.setKey(proof_key)
+            logger.info('edit_by_onlyoffice pkhelper key initialized.')
 
     context = {
         'wopi_url': wopi_url,
