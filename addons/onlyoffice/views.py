@@ -41,7 +41,7 @@ def onlyoffice_check_file_info(**kwargs):
                 .format(user_info['user_id'], user_info['full_name'], filename))
 
     res = {
-        'BaseFileName': file_info['name'],
+        'BaseFileName': filename,
         'Version': file_version,
         #'ReadOnly': True,
         'UserCanReview': True,
