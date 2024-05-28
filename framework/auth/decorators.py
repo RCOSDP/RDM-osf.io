@@ -8,6 +8,7 @@ from flask import request
 
 from framework.auth import cas
 from framework.auth import signing
+from framework.auth import logout as osf_logout
 from framework.flask import redirect
 from framework.exceptions import HTTPError
 from .core import Auth
@@ -133,6 +134,7 @@ def _must_be_logged_in_factory(login=True, email=True, use_mapcore=True):
     def wrapper(func):
         @functools.wraps(func)
         def wrapped(*args, **kwargs):
+            from osf.models import UserExtendedData
 
             auth = Auth.from_kwargs(request.args.to_dict(), kwargs)
             if login:  # require auth
@@ -149,6 +151,17 @@ def _must_be_logged_in_factory(login=True, email=True, use_mapcore=True):
                         # for GakuNin mAP Core (API v2)
                         response = mapcore_check_token(auth, None,
                                                        use_mapcore=use_mapcore)
+
+                        # Get user's extended data
+                        extended_data = UserExtendedData.objects.filter(user=auth.user).first()
+                        if extended_data:
+                            # check user's login availability by user's mail address
+                            login_availability = extended_data.data.get('idp_attr', {}).get('login_availability')
+                            if login_availability == UserExtendedData.CHECK_MAIL_ADDRESS and not auth.user.check_login_availability_by_mail_address():
+                                # If user is not allowed to log in by mail address, logout then redirect to top page
+                                osf_logout()
+                                return redirect(web_url_for('index', login_not_available='true'))
+
                         return response or func(*args, **kwargs)
                     else:
                         return redirect(web_url_for('user_account_email'))

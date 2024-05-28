@@ -257,6 +257,12 @@ def update_user(auth):
         if subscription:
             mailchimp_utils.subscribe_mailchimp(list_name, user._id)
 
+    # check user's login availability by user's mail address
+    if not user.check_login_availability_by_mail_address():
+        # If user is not allowed to login by mail address, logout then redirect to top page
+        osf_logout()
+        return redirect(web_url_for('index', login_not_available='true'))
+
     return _profile_view(user, is_profile=True)
 
 

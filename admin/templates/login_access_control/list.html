@@ -1,0 +1,384 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load render_bundle from webpack_loader %}
+{% load spam_extras %}
+{% load static %}
+
+{% block top_includes %}
+    <link rel="stylesheet" type="text/css" href="/static/css/institutions.css"/>
+    <style type="text/css">
+        .flex-container {
+            display: flex;
+        }
+
+        .flex-container .flex-item {
+            flex: 1;
+        }
+
+        .max-w-600 {
+            max-width: 600px;
+        }
+
+        .max-w-850 {
+            max-width: 850px;
+        }
+
+        .w-label {
+            min-width: 160px;
+            max-width: 200px;
+        }
+
+        .xs-flex-container {
+            display: flex;
+        }
+
+        .xs-flex-container .xs-flex-item {
+            flex: 1;
+        }
+
+        p {
+            margin-bottom: 0;
+        }
+
+        .gray-text {
+            margin-bottom: 30px;
+            color: gray;
+        }
+
+        .modal.middle {
+            text-align: center;
+            padding: 0 !important;
+        }
+
+        .modal.middle:before {
+            content: '';
+            display: inline-block;
+            height: 100%;
+            vertical-align: middle;
+            margin-right: -4px; /* Adjusts for spacing */
+        }
+
+        .modal.middle .modal-dialog {
+            display: inline-block;
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        .wrap-cell {
+            word-wrap: break-word;
+            white-space: normal !important;
+        }
+
+        .remove-button {
+            float: left;
+            margin-left: 8px;
+            margin-top: 4px;
+            color: red;
+            opacity: 0.5;
+        }
+
+        .remove-button:hover {
+            color: red;
+            opacity: 1;
+        }
+
+        .remove-button.disabled{
+            color: gray;
+            opacity: 0.25;
+            cursor: not-allowed;
+        }
+    </style>
+{% endblock %}
+
+{% block title %}
+    <title>{% trans 'Login Access Control' %}</title>
+{% endblock title %}
+
+{% block content %}
+    <!-- Institution and login availability default input block -->
+    <form class="form-horizontal">
+        <div class="form-group xs-flex-container">
+            <label for="institution_id" class="col-sm-2 control-label xs-flex-item w-label">{% trans 'Institutions' %}</label>
+            <div class="col-sm-9 max-w-600">
+                <select id="institution_id" name="institution_id" class="form-control" {% if is_admin %}disabled="disabled"{% endif %} onchange="changeInstitution()">
+                    {% for institution in institutions %}
+                        <option value="{{ institution.id }}" {% if selected_institution.id == institution.id %}selected="selected"{% endif %}>{{ institution.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group xs-flex-container">
+            <label for="loginAvailability" class="col-sm-2 control-label xs-flex-item w-label" style="padding-left: 10px;">{% trans 'Login availability default' %}</label>
+            <div class="col-sm-9 max-w-600">
+                <input id="loginAvailability" type="checkbox" name="loginAvailability" {% if selected_institution.login_availability_default %} checked="checked" {% endif %} value="on"
+                       onchange="{$('#toggleLoginAvailabilityDefaultModal').modal('show')}"
+                       data-target="#toggleLoginAvailabilityDefault" data-toggle="modal" data-onstyle="success" class="btn apple-switch {% if selected_institution.login_availability_default %}checked{% endif %}">
+            </div>
+        </div>
+    </form>
+
+    <div class="input-group form-check gray-text">
+        <p>{% trans '※ Set the default settings for whether users can log in to the target institution.' %}</p>
+        <p>{% trans '・If "Default login permission" is set to "Allow", users who meet the conditions of "Login access control by authentication attributes" or "Login access control by email address" will not be able to login.' %}</p>
+        <p>{% trans '・If "Default login permission" is set to "No", users who meet the conditions of "Login access control by authentication attributes" or "Login access control by email address" will be able to login.' %}</p>
+    </div>
+
+    <!-- Authentication attribute input block -->
+    <h2>{% trans 'Login access control by authentication attribute' %}</h2>
+    <h5 class="gray-text">{% trans '※The authentication attributes configured in the IdP are available.' %}</h5>
+
+    <form id="authenticationAttributesForm" class="form-horizontal">
+        {% csrf_token %}
+        <div class="form-group xs-flex-container max-w-850">
+            <label for="attributes_block" class="col-sm-2 control-label xs-flex-item w-label">{% trans 'Authentication attribute' %}</label>
+            <div class="form-inline col-sm-9" id="attributes_block" style="max-height: 250px; overflow-y: auto">
+                <div class="clearfix flex-container" style="margin-bottom: 15px;">
+                    <div class="input-group flex-item">
+                        <select name="attribute_name" class="form-control" style="width: 220px; margin-right: 20px;"
+                                required onchange="setCustomValidity('')">
+                            <option value=""></option>
+                            {% for attribute in attributes %}
+                                <option value="{{ attribute }}">{{ attribute }}</option>
+                            {% endfor %}
+                        </select>
+                        <input type="text" name="attribute_value_input" class="form-control" style="width: 330px"
+                               minlength="1" maxlength="255" oninput="setCustomValidity('')" required>
+                        <button name="remove_authentication_attribute_button" type="button" class="close remove-button disabled"
+                                onclick="removeAuthenticationAttributeRow(this)" disabled="disabled">x</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="form-group xs-flex-container">
+            <div class="col-sm-2 control-label xs-flex-item w-label"></div>
+            <div class="col-sm-9 max-w-600">
+                <button type="button" class="btn btn-default" onclick="addNewAuthenticationAttributeElement()">{% trans 'Add input field' %}</button>
+                <button type="submit" class="btn btn-primary" style="width: 90px;">{% trans 'Save' %}</button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Authentication attribute table -->
+    {% include "login_access_control/pagination.html" with institution_id=selected_institution.id items=login_control_authentication_attribute_page other_items=login_control_mail_address_page current_page_query_param='attribute_page_number' other_page_query_param='mail_address_page_number' %}
+    {% if login_control_authentication_attribute_list|length %}
+        {% regroup login_control_authentication_attribute_list by attribute_name as attribute_grouped_list %}
+        <table class="table table-striped table-hover table-responsive">
+            <thead>
+                <tr>
+                    <th class="text-center wrap-cell" style="min-width: 150px; max-width: 200px;">{% trans 'Authentication attribute' %}</th>
+                    <th class="text-center wrap-cell" style="max-width: 100px;">{% trans 'Index number' %}</th>
+                    <th class="text-center wrap-cell" style="min-width: 400px; max-width: 40%">{% trans 'Value' %}</th>
+                    <th class="text-center wrap-cell" style="width: 130px;">{% trans 'Action' %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for attribute_name, grouped_list in attribute_grouped_list %}
+                    {% for item in grouped_list %}
+                        <tr>
+                            {% ifchanged attribute_name %}
+                                <td rowspan="{{ grouped_list|length }}" class="wrap-cell" style="background-color: #f9f9f9">{{ attribute_name }}</td>
+                            {% endifchanged %}
+                            <td class="text-center wrap-cell" style="vertical-align: middle">{{ item.id }}</td>
+                            <td class="wrap-cell" style="vertical-align: middle">{{ item.attribute_value }}</td>
+                            <td class="xs-flex-container pull-right">
+                                <input type="checkbox"
+                                       {% if item.is_availability %} checked="checked" {% endif %}
+                                       class="btn apple-switch {% if item.is_availability %}checked{% endif %}"
+                                       id="toggle_authentication_attribute_{{ item.id }}"
+                                       name="toggleAuthenticationAttribute"
+                                       data-toggle="toggle" data-onstyle="success">
+                                <a class="btn btn-primary" style="margin-left: 10px"
+                                   id="delete_authentication_attribute_{{ item.id }}" name="deleteAuthenticationAttribute">
+                                    {% trans 'Delete' %}
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <h3>{% trans "No results found" %}</h3>
+    {% endif %}
+
+    <!-- Logical condition for attributes block -->
+    <form id="logicConditionForm" class="form-horizontal" style="margin-top: 40px;">
+        {% csrf_token %}
+        <div class="form-group xs-flex-container form-row align-items-center">
+            <label for="expression_block" class="col-sm-2 control-label xs-flex-item w-label">{% trans 'Logic condition of authentication attribute' %}</label>
+            <div class="form-inline flex-item col-sm-9" id="expression_block">
+                <input type="text" id="loginLogicCondition" class="form-control" value="{{ selected_institution.login_logic_condition|default_if_none:'' }}">
+                <button type="submit" class="btn btn-primary" style="width: 90px; margin-left: 20px">{% trans 'Save' %}</button>
+            </div>
+        </div>
+    </form>
+
+    <h5 class="gray-text" style="margin-bottom: 60px; margin-left: 42px;">{% trans '※Please set logical conditions such as "1", "1&&2", or "1||(2&&3)".' %}</h5>
+
+    <!-- Mail address input block -->
+    <h2 >{% trans 'Login access control by mail address' %}</h2>
+    <h5 class="gray-text">{% trans "※Login access will be controlled based on whether the last part of the email address matches the user's email address." %}</h5>
+    <form id="mailAddressForm" class="form-horizontal" style="margin-bottom: 30px;">
+        {% csrf_token %}
+        <div class="form-group xs-flex-container max-w-850">
+            <label for="mail_addresses_block" class="col-sm-2 control-label xs-flex-item w-label">{% trans 'Mail address' %}</label>
+            <div class="form-inline flex-item col-sm-9 max-w-600" id="mail_addresses_block" style="max-height: 250px; overflow-y: auto">
+                <div class="clearfix flex-container" style="margin-bottom: 15px;">
+                    <div class="input-group flex-item">
+                        <input type="text" name="mail_address_input" class="form-control"
+                               oninput="setCustomValidity('')"
+                               style="width: calc(100% - 20px)"
+                               minlength="1" maxlength="320" required>
+                        <button name="remove_mail_address_button" type="button" class="close remove-button disabled"
+                                onclick="removeMailAddressRow(this)" disabled="disabled">x</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="form-group xs-flex-container">
+            <div class="col-sm-2 control-label xs-flex-item w-label"></div>
+            <div class="col-sm-9 max-w-600">
+                <button type="button" class="btn btn-default" onclick="addNewMailAddressElement()">{% trans 'Add input field' %}</button>
+                <button type="submit" class="btn btn-primary" style="width: 90px;">{% trans 'Save' %}</button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Mail address table block -->
+    {% include "login_access_control/pagination.html" with institution_id=selected_institution.id items=login_control_mail_address_page other_items=login_control_authentication_attribute_page current_page_query_param='mail_address_page_number' other_page_query_param='attribute_page_number' %}
+    {% if login_control_mail_address_list|length %}
+        <table class="table table-striped table-hover table-responsive">
+            <thead>
+                <tr>
+                    <th class="text-center wrap-cell">{% trans 'Mail address' %}</th>
+                    <th class="text-center wrap-cell" style="width: 130px">{% trans 'Action' %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in login_control_mail_address_list %}
+                    <tr>
+                        <td>{{ item.mail_address }}</td>
+                        <td class="xs-flex-container pull-right">
+                            <input type="checkbox"
+                                   {% if item.is_availability %} checked="checked" {% endif %}
+                                   class="btn apple-switch {% if item.is_availability %}checked{% endif %}"
+                                   id="toggle_mail_address_{{ item.id }}"
+                                   name="toggleMailAddress"
+                                   data-toggle="toggle" data-onstyle="success">
+                            <a class="btn btn-primary" style="margin-left: 10px"
+                               id="delete_mail_address_{{ item.id }} " name="deleteMailAddress">
+                                {% trans 'Delete' %}
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <h3>{% trans "No results found" %}</h3>
+    {% endif %}
+
+    <!-- Modals -->
+    <div class="modal middle fade" id="toggleLoginAvailabilityDefaultModal" tabindex="-1" aria-labelledby="toggleLoginAvailabilityDefaultLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <form id="loginAvailabilityDefaultForm">
+                {% csrf_token %}
+                <div class="modal-content">
+                    <div class="modal-body text-left" id="bodyToggleLoginAvailabilityDefault">
+                        <p>{% trans 'Do you want to change setting of the login availability default for the target institution?' %}</p>
+                        <br/>
+                        <p>{% trans 'Please note that changing the above default settings may change the login availability of users who meet the conditions set for "login access control by authentication attributes" or "login access control by email address".' %}</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button"
+                                class="btn btn-secondary cancel_modal"
+                                data-dismiss="modal">{% trans "Close" %}</button>
+                        <button type="submit" id="updateLoginAvailabilityDefaultButton"
+                                class="btn btn-primary">{% trans "Update" %}</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+{% endblock content %}
+
+{% block bottom_js %}
+    {% render_bundle 'login-access-control' %}
+    <script type="text/javascript">
+        window.contextVars = $.extend(true, {}, window.contextVars, {
+            'institution_id': {{ selected_institution.id }},
+        });
+
+        function changeInstitution() {
+            window.location = window.location.origin + "{% url 'login_access_control:list' %}" + '?institution_id=' + document.getElementById("institution_id").value;
+        }
+
+        function addNewAuthenticationAttributeElement() {
+            let attributesHtml = `
+                <div class="clearfix flex-container" style="margin-bottom: 15px;">
+                    <div class="input-group flex-item">
+                        <select name="attribute_name" class="form-control" style="width: 220px; margin-right: 20px;"
+                                required onchange="setCustomValidity('')">
+                            <option value=""></option>
+                            {% for attribute in attributes %}
+                                <option value="{{ attribute }}">{{ attribute }}</option>
+                            {% endfor %}
+                        </select>
+                        <input type="text" name="attribute_value_input" class="form-control" style="width: 330px"
+                               minlength="1" maxlength="255" oninput="setCustomValidity('')" required>
+                        <button name="remove_authentication_attribute_button" type="button" class="close remove-button"
+                               onclick="removeAuthenticationAttributeRow(this)">x</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('attributes_block').append(new DOMParser().parseFromString(attributesHtml, 'text/html').body.childNodes[0]);
+            let elements = document.getElementsByName('remove_authentication_attribute_button');
+            if (elements.length > 1) {
+                elements[0].removeAttribute('disabled');
+                elements[0].classList.remove('disabled');
+            }
+        }
+
+        function addNewMailAddressElement() {
+            let mailAddressHtml = `
+                <div class="clearfix flex-container" style="margin-bottom: 15px;">
+                    <div class="input-group flex-item">
+                        <input type="text" name="mail_address_input" class="form-control"
+                               oninput="setCustomValidity('')"
+                               style="width: calc(100% - 20px)"
+                               minlength="1" maxlength="320" required>
+                        <button name="remove_mail_address_button" type="button" class="close remove-button" onclick="removeMailAddressRow(this)">x</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('mail_addresses_block').append(new DOMParser().parseFromString(mailAddressHtml, 'text/html').body.childNodes[0]);
+            let elements = document.getElementsByName('remove_mail_address_button');
+            if (elements.length > 1) {
+                elements[0].removeAttribute('disabled');
+                elements[0].classList.remove('disabled');
+            }
+        }
+
+        function removeAuthenticationAttributeRow(element) {
+            let attributeGroupElement = element.parentElement.parentElement;
+            attributeGroupElement.remove();
+            let elements = document.getElementsByName('remove_authentication_attribute_button');
+            if (elements.length <= 1) {
+                elements[0].setAttribute('disabled', 'disabled');
+                elements[0].classList.add('disabled');
+            }
+        }
+
+        function removeMailAddressRow(element) {
+            let mailAddressGroupElement = element.parentElement.parentElement;
+            mailAddressGroupElement.remove();
+            let elements = document.getElementsByName('remove_mail_address_button');
+            if (elements.length <= 1) {
+                elements[0].setAttribute('disabled', 'disabled');
+                elements[0].classList.add('disabled');
+            }
+        }
+    </script>
+{% endblock %}
