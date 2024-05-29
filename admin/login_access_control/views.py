@@ -57,7 +57,7 @@ class LoginAccessControlListView(RdmPermissionMixin, UserPassesTestMixin, ListVi
         return super(LoginAccessControlListView, self).get(request, args, kwargs)
 
     def get_context_data(self, **kwargs):
-        institution_id = int(self.request.GET.get('institution_id'))
+        institution_id = self.request.GET.get('institution_id')
         user = self.request.user
         # Get institution list
         institutions = Institution.objects.filter(is_deleted=False).order_by('name')
