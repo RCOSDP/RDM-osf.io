@@ -15,7 +15,7 @@ class AddonAppConfig(BaseAddonAppConfig):
     name = 'addons.{}'.format(SHORT_NAME)
     label = 'addons_{}'.format(SHORT_NAME)
 
-    full_name = 'Onlyoffice'
+    full_name = 'ONLYOFFICE'
 
     owners = ['node']
 
