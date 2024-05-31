@@ -20,7 +20,7 @@ ProofKeyValidationInput = namedtuple('ProofKeyValidationInput',
                                      ('access_token', 'timestamp', 'url', 'proof', 'proof_old'))
 
 DELTASEC = (datetime(1970, 1, 1, tzinfo=timezone.utc) - datetime(1, 1, 1, tzinfo=timezone.utc)).total_seconds()
-TS_THRESHOLD = 20 * 60      # 20 min 
+TS_THRESHOLD = 20 * 60      # 20 min
 
 # Proof key Timestamp verification.
 def verify_timestamp(timestamp):
@@ -91,7 +91,7 @@ class ProofKeyHelper(object):
             self.current_key = generate_key(discovery_data.modulus, discovery_data.exponent)
             self.old_key = generate_key(discovery_data.oldmodulus, discovery_data.oldexponent)
             self.key_registered = True
-        logger.info("proof key helper initialized.")
+        logger.info('proof key helper initialized.')
 
     def setKey(self, discovery_data):
         self.current_key = generate_key(discovery_data.modulus, discovery_data.exponent)
@@ -100,7 +100,7 @@ class ProofKeyHelper(object):
 
     def hasKey(self):
         return self.key_registered
- 
+
     def validate(self, proof_key_validation_input):
         # get the signed proof and proof_old values
         proof = proof_key_validation_input.proof

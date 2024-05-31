@@ -120,7 +120,7 @@ def get_proof_key(server):
         logger.error('The retrieved discovery.xml file is not a valid XML file')
         return None
 
-    result = parsed.xpath(f"/wopi-discovery/proof-key")
+    result = parsed.xpath(f'/wopi-discovery/proof-key')
     for res in result:
         val = res.get(f'value')
         oval = res.get(f'oldvalue')
