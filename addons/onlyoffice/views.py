@@ -117,7 +117,7 @@ def onlyoffice_file_content_view(**kwargs):
     #logger.info('                             URL =             {}'.format(url))
 
     check_data = pfkey.ProofKeyValidationInput(access_token, timeStamp, url, proof, proofOld)
-    if pkhelper.validate(check_data) == True and pfkey.verify_timestamp(timeStamp) == True:
+    if pkhelper.validate(check_data) is True and pfkey.verify_timestamp(timeStamp) is True:
         logger.info('proof key check passed.')
     else:
         logger.info('proof key check return False.')
@@ -220,7 +220,7 @@ def onlyoffice_edit_by_onlyoffice(**kwargs):
 
     # logger.info('edit_by_online.index_view wopi_url = {}'.format(wopi_url))
 
-    if pkhelper.hasKey() == False:
+    if pkhelper.hasKey() is False:
         proof_key = onlyoffice_util.get_proof_key(wopi_client_host)
         if proof_key is not None:
             pkhelper.setKey(proof_key)

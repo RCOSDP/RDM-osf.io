@@ -83,11 +83,11 @@ def try_verification(expected_proof, signed_proof_b64, public_key):
 
 
 class ProofKeyHelper(object):
-    def __init__(self, discovery_data = None):
+    def __init__(self, discovery_data=None):
         self.current_key = None
         self.old_key = None
         self.key_registered = False
-        if discovery_data is not None :
+        if discovery_data is not None:
             self.current_key = generate_key(discovery_data.modulus, discovery_data.exponent)
             self.old_key = generate_key(discovery_data.oldmodulus, discovery_data.oldexponent)
             self.key_registered = True

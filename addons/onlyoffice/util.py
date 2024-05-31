@@ -129,7 +129,7 @@ def get_proof_key(server):
         exponent = res.get(f'exponent')
         oexponent = res.get(f'oldexponent')
 
-    discovery = pfkey.ProofKeyDiscoveryData (
+    discovery = pfkey.ProofKeyDiscoveryData(
         value=val,
         modulus=modulus,
         exponent=exponent,
