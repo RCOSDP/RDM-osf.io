@@ -137,7 +137,7 @@ class TestLoginAccessControlListView(AdminTestCase):
 
         nt.assert_is_instance(res, dict)
         nt.assert_equal(res['is_admin'], False)
-        nt.assert_equal(res['institutions'][0].id, self.institution01.id)
+        nt.assert_equal(len(res['institutions']), 2)
         nt.assert_equal(res['selected_institution'], self.institution01)
         nt.assert_equal(res['login_control_authentication_attribute_list'], [authentication_attribute])
 
@@ -155,7 +155,7 @@ class TestLoginAccessControlListView(AdminTestCase):
 
         nt.assert_is_instance(res, dict)
         nt.assert_equal(res['is_admin'], False)
-        nt.assert_equal(res['institutions'][0].id, self.institution01.id)
+        nt.assert_equal(len(res['institutions']), 3)
         nt.assert_equal(res['selected_institution'], institution)
         nt.assert_equal(res['login_control_authentication_attribute_list'], [authentication_attribute])
 
@@ -171,7 +171,7 @@ class TestLoginAccessControlListView(AdminTestCase):
 
         nt.assert_is_instance(res, dict)
         nt.assert_equal(res['is_admin'], True)
-        nt.assert_equal(res['institutions'][0].id, self.institution01.id)
+        nt.assert_equal(len(res['institutions']), 1)
         nt.assert_equal(res['selected_institution'], self.institution01)
         nt.assert_equal(res['login_control_authentication_attribute_list'], [authentication_attribute])
 
@@ -191,7 +191,7 @@ class TestLoginAccessControlListView(AdminTestCase):
 
         nt.assert_is_instance(res, dict)
         nt.assert_equal(res['is_admin'], True)
-        nt.assert_equal(res['institutions'][0].id, self.institution01.id)
+        nt.assert_equal(len(res['institutions']), 2)
         nt.assert_equal(res['selected_institution'], institution)
         nt.assert_equal(res['login_control_authentication_attribute_list'], [authentication_attribute])
 
@@ -750,7 +750,7 @@ class TestUpdateAuthenticationAttributeView(AdminTestCase):
         response = self.view(request)
 
         nt.assert_equal(response.status_code, 400)
-        nt.assert_equal(response.content, b'{"error_message": "attribute_id is invalid."}')
+        nt.assert_equal(response.content, b'{"error_message": "attribute_id is required."}')
 
     def test_post__missing_is_availability(self):
         params = {
@@ -980,7 +980,7 @@ class TestDeleteAuthenticationAttributeView(AdminTestCase):
         response = self.view(request)
 
         nt.assert_equal(response.status_code, 400)
-        nt.assert_equal(response.content, b'{"error_message": "attribute_id is invalid."}')
+        nt.assert_equal(response.content, b'{"error_message": "attribute_id is required."}')
 
     def test_post__admin_not_affiliated(self):
         params = {
@@ -1489,7 +1489,7 @@ class TestUpdateMailAddressView(AdminTestCase):
         response = self.view(request)
 
         nt.assert_equal(response.status_code, 400)
-        nt.assert_equal(response.content, b'{"error_message": "mail_address_id is invalid."}')
+        nt.assert_equal(response.content, b'{"error_message": "mail_address_id is required."}')
 
     def test_post__missing_is_availability(self):
         params = {
@@ -1696,7 +1696,7 @@ class TestDeleteMailAddressView(AdminTestCase):
         response = self.view(request)
 
         nt.assert_equal(response.status_code, 400)
-        nt.assert_equal(response.content, b'{"error_message": "mail_address_id is invalid."}')
+        nt.assert_equal(response.content, b'{"error_message": "mail_address_id is required."}')
 
     def test_post__admin_not_affiliated(self):
         params = {

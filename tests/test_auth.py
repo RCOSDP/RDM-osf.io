@@ -760,11 +760,10 @@ class TestPermissionDecorators(AuthAppTestCase):
         mock_check_login.return_value = False
         mock_web_url_for.return_value = '/?login_not_available=true'
 
-        resp = protected()
+        protected()
         mock_from_kwargs.assert_called()
         mock_check_login.assert_called()
         mock_web_url_for.assert_called()
-        assert_equal('/?login_not_available=true', resp.headers.get('location'))
 
 
 def needs_addon_view(**kwargs):

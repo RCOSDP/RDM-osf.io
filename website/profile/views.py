@@ -115,6 +115,7 @@ def update_user(auth):
     ##########
     # Emails #
     ##########
+    check_login_availability = False
 
     if 'emails' in data:
 
@@ -219,6 +220,8 @@ def update_user(auth):
 
         # make sure the new username has already been confirmed
         if username and username != user.username and user.emails.filter(address=username).exists():
+            # If primary_email is changed then check login availability by mail address later
+            check_login_availability = True
 
             mails.send_mail(
                 user.username,
@@ -258,10 +261,11 @@ def update_user(auth):
             mailchimp_utils.subscribe_mailchimp(list_name, user._id)
 
     # check user's login availability by user's mail address
-    if not user.check_login_availability_by_mail_address():
-        # If user is not allowed to login by mail address, logout then redirect to top page
-        osf_logout()
-        return redirect(web_url_for('index', login_not_available='true'))
+    if check_login_availability and not user.check_login_availability_by_mail_address():
+        # If user is not allowed to log in by mail address, logout then redirect to top page
+        top_page_url = web_url_for('index', login_not_available='true', _absolute=True)
+        logout_url = web_url_for('auth_logout', redirect_url=top_page_url)
+        raise HTTPError(http_status.HTTP_401_UNAUTHORIZED, data=dict(redirect_url=logout_url))
 
     return _profile_view(user, is_profile=True)
 

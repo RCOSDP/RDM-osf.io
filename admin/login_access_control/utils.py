@@ -3,7 +3,7 @@ from osf.models import Institution
 
 def validate_integer(value, name):
     """ Check if value is an integer """
-    if value is None:
+    if not value:
         return f'{name} is required.'
     if not isinstance(value, int):
         return f'{name} is invalid.'

@@ -19,7 +19,7 @@ $.ajaxSetup({
     }
 });
 
-function postAJAX(url, params) {
+function postAJAX(url, params, callback) {
     $.ajax({
         url: url,
         type: 'POST',
@@ -27,7 +27,11 @@ function postAJAX(url, params) {
         contentType: 'application/json; charset=utf-8',
         timeout: 120000,
         success: function (data) {
-            window.location.reload();
+            if (callback) {
+                callback();
+            } else {
+                window.location.reload();
+            }
         },
         error: function (jqXHR) {
             if (jqXHR.status === 500) {
@@ -46,22 +50,11 @@ function getNumberId(id, prefix) {
     return parseInt(id.replace(prefix, ''));
 }
 
-$('#loginAvailabilityDefaultForm').on('submit', function(event) {
-    event.preventDefault();
-    $('#toggleLoginAvailabilityDefaultModal').modal('hide');
-    var params = {
-        'institution_id': window.contextVars.institution_id,
-        'login_availability_default': document.getElementById('loginAvailability').checked,
-    };
-    var url = './login_availability_default';
-    postAJAX(url, params);
-});
-
-$('select[name="attribute_name"]').on('invalid', function(event) {
+function setInvalidMessageForAttributeName(event) {
     event.target.setCustomValidity(_('Attribute name is required.'));
-});
+}
 
-$('input[name="attribute_value_input"]').on('invalid', function(event) {
+function setInvalidMessageForAttributeValue(event) {
     var element = event.target;
     element.setCustomValidity('');
     if (!!element.validity.valueMissing) {
@@ -69,9 +62,9 @@ $('input[name="attribute_value_input"]').on('invalid', function(event) {
     } else if (!!element.validity.tooLong) {
         element.setCustomValidity(_('Length of attribute value > 255 characters.'));
     }
-});
+}
 
-$('input[name="mail_address_input"]').on('invalid', function(event) {
+function setInvalidMessageForMailAddress(event) {
     var element = event.target;
     element.setCustomValidity('');
     if (!!element.validity.valueMissing) {
@@ -81,6 +74,23 @@ $('input[name="mail_address_input"]').on('invalid', function(event) {
     } else if (!!element.validity.patternMismatch) {
         element.setCustomValidity(_('Mail address format is invalid.'));
     }
+}
+
+$(document).ready(function() {
+    $('select[name="attribute_name"]').on('invalid', setInvalidMessageForAttributeName);
+    $('input[name="attribute_value_input"]').on('invalid', setInvalidMessageForAttributeValue);
+    $('input[name="mail_address_input"]').on('invalid', setInvalidMessageForMailAddress);
+})
+
+$('#loginAvailabilityDefaultForm').on('submit', function(event) {
+    event.preventDefault();
+    $('#toggleLoginAvailabilityDefaultModal').modal('hide');
+    var params = {
+        'institution_id': window.contextVars.institution_id,
+        'login_availability_default': document.getElementById('loginAvailability').checked,
+    };
+    var url = './login_availability_default';
+    postAJAX(url, params);
 });
 
 $('#authenticationAttributesForm').on('submit', function(event) {
@@ -122,7 +132,20 @@ $('a[name="deleteAuthenticationAttribute"]').on('click', function(event) {
         'attribute_id': getNumberId(event.target.id, 'delete_authentication_attribute_'),
     };
     var url = './authentication_attribute/delete';
-    postAJAX(url, params);
+    postAJAX(url, params, function() {
+        if (!!window.contextVars.attribute_length && window.contextVars.attribute_length <= 1) {
+            var redirectUrl = '/login_access_control?institution_id=' + window.contextVars.institution_id;
+            if (!!window.contextVars.authentication_attribute_page && window.contextVars.authentication_attribute_page > 1) {
+                redirectUrl += '&attribute_page_number=' + (window.contextVars.authentication_attribute_page - 1);
+                if (!!window.contextVars.mail_address_page) {
+                    redirectUrl += '&mail_address_page_number=' + window.contextVars.mail_address_page;
+                }
+                window.location.href = redirectUrl;
+                return;
+            }
+        }
+        window.location.reload();
+    });
 });
 
 $('#logicConditionForm').on('submit', function(event) {
@@ -167,5 +190,27 @@ $('a[name="deleteMailAddress"]').on('click', function(event) {
         'mail_address_id': getNumberId(event.target.id, 'delete_mail_address_'),
     };
     var url = './mail_address/delete';
-    postAJAX(url, params);
+    postAJAX(url, params, function() {
+        if (!!window.contextVars.mail_address_length && window.contextVars.mail_address_length <= 1) {
+            var redirectUrl = '/login_access_control?institution_id=' + window.contextVars.institution_id;
+            if (!!window.contextVars.mail_address_page && window.contextVars.mail_address_page > 1) {
+                if (!!window.contextVars.authentication_attribute_page) {
+                    redirectUrl += '&attribute_page_number=' + window.contextVars.authentication_attribute_page;
+                }
+                redirectUrl += '&mail_address_page_number=' + (window.contextVars.mail_address_page - 1);
+                window.location.href = redirectUrl;
+                return;
+            }
+        }
+        window.location.reload();
+    });
+});
+
+$('#attributes_block').on('attribute_created', function() {
+    $('select[name="attribute_name"]').on('invalid', setInvalidMessageForAttributeName);
+    $('input[name="attribute_value_input"]').on('invalid', setInvalidMessageForAttributeValue);
+});
+
+$('#mail_addresses_block').on('mail_address_created', function() {
+    $('input[name="mail_address_input"]').on('invalid', setInvalidMessageForMailAddress);
 });

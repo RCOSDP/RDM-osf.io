@@ -8,7 +8,6 @@ from flask import request
 
 from framework.auth import cas
 from framework.auth import signing
-from framework.auth import logout as osf_logout
 from framework.flask import redirect
 from framework.exceptions import HTTPError
 from .core import Auth
@@ -135,6 +134,7 @@ def _must_be_logged_in_factory(login=True, email=True, use_mapcore=True):
         @functools.wraps(func)
         def wrapped(*args, **kwargs):
             from osf.models import UserExtendedData
+            from framework.auth.views import auth_logout
 
             auth = Auth.from_kwargs(request.args.to_dict(), kwargs)
             if login:  # require auth
@@ -159,8 +159,7 @@ def _must_be_logged_in_factory(login=True, email=True, use_mapcore=True):
                             login_availability = extended_data.data.get('idp_attr', {}).get('login_availability')
                             if login_availability == UserExtendedData.CHECK_MAIL_ADDRESS and not auth.user.check_login_availability_by_mail_address():
                                 # If user is not allowed to log in by mail address, logout then redirect to top page
-                                osf_logout()
-                                return redirect(web_url_for('index', login_not_available='true'))
+                                return auth_logout(redirect_url=web_url_for('index', login_not_available='true', _absolute=True))
 
                         return response or func(*args, **kwargs)
                     else:

@@ -2087,8 +2087,8 @@ class TestUserProfile(OsfTestCase):
 
         res = self.app.put_json(url, header, auth=user1.auth,
                                 expect_errors=True)
-        assert_equal(res.status_code, http_status.HTTP_302_FOUND)
-        assert_true('?login_not_available=true' in res.headers.get('location'))
+        assert_equal(res.status_code, http_status.HTTP_401_UNAUTHORIZED)
+        assert_is_not_none(res.json_body['redirect_url'])
 
     def test_profile_view_has_temp_user(self):
         user1 = AuthUserFactory(fullname='fullname_1')
