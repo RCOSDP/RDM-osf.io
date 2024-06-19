@@ -7,7 +7,7 @@ import mock
 from nose import SkipTest
 from nose.tools import *  # noqa:
 
-from api.entitlements.views import LoginAvailability
+from api.institutions.views import LoginAvailability
 from tests.base import ApiTestCase
 from osf_tests import factories
 from osf.utils.permissions import READ, WRITE

@@ -38,6 +38,7 @@ var config = Object.assign({}, common, {
         'admin-registration-edit-page': staticAdminPath('js/pages/admin-registration-edit-page.js'),
         'dashboard': staticAdminPath('js/sales_analytics/dashboard.js'),
         'metrics-page': staticAdminPath('js/pages/metrics-page.js'),
+        'login-access-control': staticAdminPath('js/login_access_control/login-access-control.js'),
         'banners': staticAdminPath('js/banners/banners.js'),
         'brands': staticAdminPath('js/brands/brands.js'),
         'maintenance': staticAdminPath('js/maintenance/maintenance.js'),

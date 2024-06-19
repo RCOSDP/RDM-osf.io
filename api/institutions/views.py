@@ -1,15 +1,19 @@
+import re
+
 from django.db.models import F
 from rest_framework import generics
 from rest_framework import permissions as drf_permissions
 from rest_framework import exceptions
 from rest_framework import status
+from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
+from rest_framework.views import APIView
 
 from framework.auth.oauth_scopes import CoreScopes
 
 from osf.metrics import InstitutionProjectCounts
-from osf.models import OSFUser, Node, Institution, Registration
+from osf.models import OSFUser, Node, Institution, Registration, LoginControlAuthenticationAttribute, UserExtendedData
 from osf.metrics import UserInstitutionProjectCounts
 from osf.utils import permissions as osf_permissions
 
@@ -520,3 +524,76 @@ class InstitutionUserMetricsList(InstitutionImpactList):
         institution = self.get_institution()
         search = UserInstitutionProjectCounts.get_current_user_metrics(institution)
         return self._make_elasticsearch_results_filterable(search, id=institution._id, department=DEFAULT_ES_NULL_VALUE)
+
+
+class LoginAvailability(APIView):
+    """ API that returns institution's login availability status """
+    view_category = 'institutions'
+    view_name = 'login_availability'
+    parser_classes = (JSONParser,)
+    permission_classes = (base_permissions.TokenHasScope,)
+
+    def get_serializer_class(self):
+        return None
+
+    def _get_embed_partial(self):
+        return None
+
+    def post(self, request, *args, **kwargs):
+        data = request.data
+        institution_guid = data.get('institution_id')
+        institution = Institution.load(institution_guid)
+        if institution is None or institution.is_deleted is True:
+            # If institution GUID does not exist or institution is deleted, return HTTP 403 response
+            return Response({}, status=status.HTTP_403_FORBIDDEN)
+        logic_condition = institution.login_logic_condition
+        if not logic_condition:
+            # If institution's login logic condition is not set, return check mail address response
+            return Response({'login_availability': UserExtendedData.CHECK_MAIL_ADDRESS}, status=status.HTTP_200_OK)
+
+        # Get attribute id list from login logic condition
+        logic_condition_attribute_id_list = map(int, re.findall('\\d+', logic_condition))
+        logic_condition_attribute_unique_id_list = set(logic_condition_attribute_id_list)
+        for logic_condition_id in logic_condition_attribute_unique_id_list:
+            # Get login control authentication attribute by ID
+            login_attribute = LoginControlAuthenticationAttribute.objects.filter(id=logic_condition_id, is_deleted=False).first()
+            if login_attribute:
+                # Replace attribute id in logic condition to True or False
+                request_attribute_values = data.get(login_attribute.attribute_name)
+                if not request_attribute_values:
+                    # If attribute is not found in request, replace it to False
+                    logic_condition = re.sub(r'\b' + str(logic_condition_id) + r'\b', 'False', logic_condition)
+                if isinstance(request_attribute_values, str) and login_attribute.attribute_value == request_attribute_values:
+                    # If attribute value in request is a string and it has a record in DB, replace it to True
+                    logic_condition = re.sub(r'\b' + str(logic_condition_id) + r'\b', 'True', logic_condition)
+                elif isinstance(request_attribute_values, list) and login_attribute.attribute_value in request_attribute_values:
+                    # If attribute value in request is a list and one of it has a record in DB, replace it to True
+                    logic_condition = re.sub(r'\b' + str(logic_condition_id) + r'\b', 'True', logic_condition)
+                else:
+                    # Otherwise, replace it to False (not match)
+                    logic_condition = re.sub(r'\b' + str(logic_condition_id) + r'\b', 'False', logic_condition)
+
+        # Convert operator characters into their respective readable counterpart
+        expression = logic_condition. \
+            replace('&&', ' and '). \
+            replace('||', ' or '). \
+            replace('!', ' not ')
+
+        try:
+            # Evaluate the converted expression
+            expression = eval(expression)
+
+            # Check if expression is evaluated to be true
+            if type(expression) == bool and expression is True:
+                if institution.login_availability_default is True:
+                    # If institution's login availability default is True, return forbidden response
+                    return Response({}, status=status.HTTP_403_FORBIDDEN)
+                else:
+                    # If institution's login availability default is False, return can login response
+                    return Response({'login_availability': UserExtendedData.CAN_LOGIN}, status=status.HTTP_200_OK)
+        except (SyntaxError, NameError):
+            # Cannot evaluate the logic condition, do nothing here to return check mail address response below
+            pass
+
+        # If expression cannot be evaluated or expression is evaluated to be false, return check mail address response
+        return Response({'login_availability': UserExtendedData.CHECK_MAIL_ADDRESS}, status=status.HTTP_200_OK)

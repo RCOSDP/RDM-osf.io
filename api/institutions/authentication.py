@@ -164,6 +164,8 @@ class InstitutionAuthentication(BaseAuthentication):
         organization_name_ja = get_next(p_user, 'jao', 'jaOrganizationName')
         # affiliation: 'jaou' is friendlyName
         organizational_unit_ja = get_next(p_user, 'jaou', 'jaOrganizationalUnitName')
+        # login_availability
+        login_availability = p_user.get('login_availability')
 
         # Use given name and family name to build full name if it is not provided
         if given_name and family_name and not fullname:
@@ -394,6 +396,7 @@ class InstitutionAuthentication(BaseAuthentication):
                 'organizational_unit': organizational_unit,
                 'organization_name_ja': organization_name_ja,
                 'organizational_unit_ja': organizational_unit_ja,
+                'login_availability': login_availability,
             },
         )
 

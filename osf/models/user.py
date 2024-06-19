@@ -44,6 +44,7 @@ from osf.exceptions import reraise_django_validation_errors, MaxRetriesError, Us
 from osf.models.base import BaseModel, GuidMixin, GuidMixinQuerySet
 from osf.models.contributor import Contributor, RecentlyAddedContributor
 from osf.models.institution import Institution
+from osf.models.login_control import LoginControlMailAddress
 from osf.models.mixins import AddonModelMixin
 from osf.models.nodelog import NodeLog
 from osf.models.spam import SpamMixin
@@ -131,6 +132,9 @@ class CGGroup(BaseModel):
 
 
 class UserExtendedData(BaseModel):
+    CAN_LOGIN = 'can login'
+    CHECK_MAIL_ADDRESS = 'check mail address'
+
     user = models.OneToOneField('OSFUser', related_name='ext',
                                 on_delete=models.CASCADE)
 
@@ -146,6 +150,7 @@ class UserExtendedData(BaseModel):
     #      'organization_name_ja': <jao>,
     #      'organizational_unit': <ou>,
     #      'organizational_unit_ja': <jaou>,
+    #      'login_availability':  <login_availability>,
     #   },
     # }
 
@@ -2139,6 +2144,36 @@ class OSFUser(DirtyFieldsMixin, GuidMixin, BaseModel, AbstractBaseUser, Permissi
         preprints = Preprint.objects.filter(_contributors=self, ever_public=True, deleted__isnull=True).exists()
 
         return groups or nodes or quickfiles or preprints
+
+    def check_login_availability_by_mail_address(self):
+        """ Check user login availability by login control mail address """
+        institution = self.affiliated_institutions.filter(is_deleted=False).first()
+        if not institution:
+            # If user does not have any affiliated institutions, return True
+            return True
+
+        # Get login control mail address by user's username
+        has_login_control_mail_address = LoginControlMailAddress.objects.filter(
+            institution=institution, is_availability=True, is_deleted=False
+        ).annotate(
+            mail_address_domain=models.Value(self.username, output_field=models.CharField())
+        ).filter(
+            mail_address_domain__endswith=models.F('mail_address')
+        ).exists()
+
+        # If user has a login control mail address record in DB and institution's login_availability_default is True
+        # or user does not have a login control mail address record in DB and institution's login_availability_default is False
+        # then return False
+        if has_login_control_mail_address == institution.login_availability_default:
+            return False
+
+        # Get user extended data or create if not have
+        extended_data, _ = UserExtendedData.objects.get_or_create(user=self)
+        # Update user extended data's login availability status
+        idp_attr = extended_data.data.get('idp_attr', {})
+        extended_data.set_idp_attr({**idp_attr, 'login_availability': UserExtendedData.CAN_LOGIN})
+
+        return True
 
     class Meta:
         # custom permissions for use in the GakuNin RDM Admin App

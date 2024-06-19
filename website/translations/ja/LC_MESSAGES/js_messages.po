@@ -8726,3 +8726,88 @@ msgstr "このエクスポート プロセスをアボートできません。"
 
 msgid "Cannot be restored because export data does not exist"
 msgstr "エクスポートデータが存在しないため、復元できません。"
+
+msgid "A server error occurred. Please contact the administrator."
+msgstr "サーバーエラーが発生しました。 管理者にお問い合わせください。"
+
+# admin/static/js/login_access_control/login-access-control.js
+msgid "institution_id is required."
+msgstr "institution_id が必須です。"
+
+msgid "institution_id is invalid."
+msgstr "institution_id が不正です。"
+
+msgid "is_availability is required."
+msgstr "is_availability が必須です。"
+
+msgid "is_availability is invalid."
+msgstr "is_availability が不正です。"
+
+msgid "attribute_id is required."
+msgstr "attribute_id が必須です。"
+
+msgid "attribute_id is invalid."
+msgstr "attribute_id が不正です。"
+
+msgid "mail_address_id is required."
+msgstr "mail_address_id が必須です。"
+
+msgid "mail_address_id is invalid."
+msgstr "mail_address_id が不正です。"
+
+msgid "login_availability_default is required."
+msgstr "login_availability_default が必須です。"
+
+msgid "login_availability_default is invalid."
+msgstr "login_availability_default が不正です。"
+
+msgid "Attribute name is not exist in config."
+msgstr "属性名が設定に存在しません。"
+
+msgid "Attribute name is required."
+msgstr "属性名が必須です。"
+
+msgid "Attribute value is required."
+msgstr "属性値が必須です。"
+
+msgid "Length of attribute value > 255 characters."
+msgstr "属性値の長さが 255 文字を超えています。"
+
+msgid "Group (attribute name, attribute value) MUST be unique."
+msgstr "(属性名、属性値) の組み合わせは一意である必要があります。"
+
+msgid "Logic condition is invalid."
+msgstr "論理条件が不正です。"
+
+msgid "Index number does not exist."
+msgstr "インデックス番号が存在しません。"
+
+msgid "Length of mail address > 320 characters."
+msgstr "メールアドレスの長さが 320 文字を超えています。"
+
+msgid "Mail address format is invalid."
+msgstr "メールアドレスの形式が不正です。"
+
+msgid "Mail address is required."
+msgstr "メールアドレスが必須です。"
+
+msgid "Mail address MUST be unique."
+msgstr "メールアドレスは一意である必要があります。"
+
+msgid "Can not setting login access control of the institution into the other institution."
+msgstr "機関のログインアクセス制御を他機関に設定することができません。"
+
+msgid "Can not switch toggle the attribute element due to it is using in the logic condition."
+msgstr "論理条件で使用されているため、認証属性の要素のトグルを切り替えることができません。"
+
+msgid "Can not delete the attribute element due to it is using in the logic condition."
+msgstr "論理条件で使用されているため、認証属性の要素のトグルを削除ことができません。"
+
+msgid "You do not have permission to setting login access control of the other institution."
+msgstr "他機関のログインアクセス制御を設定する権限がありません。"
+
+msgid "You do not have permission to get login access control of the other institution."
+msgstr "他機関のログインアクセス制御を取得する権限がありません。"
+
+msgid "Login availability is not available."
+msgstr "ログインできません。"

@@ -11,7 +11,7 @@ from api.base.settings.defaults import API_BASE
 from framework.auth import signals, Auth
 from framework.auth.views import send_confirm_email
 
-from osf.models import OSFUser
+from osf.models import OSFUser, UserExtendedData
 from osf_tests.factories import InstitutionFactory, ProjectFactory, UserFactory
 
 from tests.base import capture_signals
@@ -36,6 +36,7 @@ def make_payload(
         jaOrganizationalUnitName='',
         organizationalUnit='',
         organizationName='',
+        login_availability='',
 ):
 
     data = {
@@ -58,6 +59,7 @@ def make_payload(
                 'jaOrganizationalUnitName': jaOrganizationalUnitName,
                 'organizationalUnitName': organizationalUnit,
                 'organizationName': organizationName,
+                'login_availability': login_availability,
             }
         }
     }
@@ -521,3 +523,29 @@ class TestInstitutionAuth:
         user = OSFUser.objects.filter(username='tmp_eppn_' + username).first()
         assert user
         assert user.jobs[0]['department'] == organizationnameunit
+
+    def test_authenticate__check_user_extended_data(self, app, institution, url_auth_institution):
+        username, fullname, password = 'user_active@user.edu', 'Foo Bar', 'FuAsKeEr'
+        user = make_user(username, fullname)
+        user.set_password(password)
+        user.save()
+
+        with capture_signals() as mock_signals:
+            res = app.post(
+                url_auth_institution,
+                make_payload(
+                    institution,
+                    username,
+                    family_name='User',
+                    given_name='Fake',
+                    fullname='Fake User',
+                    department='Fake Department',
+                    login_availability='can login',
+                )
+            )
+        assert res.status_code == 204
+        assert not mock_signals.signals_sent()
+
+        # confirm login availability extended data
+        extended_data = UserExtendedData.objects.get(user=user)
+        assert extended_data.data.get('idp_attr', {}).get('login_availability') == 'can login'

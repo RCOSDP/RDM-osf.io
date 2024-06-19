@@ -22,7 +22,7 @@ from osf_tests.factories import (
 
 from framework.auth import Auth
 from framework.auth.decorators import must_be_logged_in
-from osf.models import OSFUser, Session
+from osf.models import OSFUser, Session, UserExtendedData
 from osf.utils import permissions
 from website import mails
 from website import settings
@@ -749,6 +749,21 @@ class TestPermissionDecorators(AuthAppTestCase):
         with assert_raises(HTTPError) as ctx:
             thriller(node=project)
         assert_equal(ctx.exception.code, http_status.HTTP_401_UNAUTHORIZED)
+
+    @mock.patch('framework.auth.decorators.web_url_for')
+    @mock.patch('osf.models.user.OSFUser.check_login_availability_by_mail_address')
+    @mock.patch('framework.auth.decorators.Auth.from_kwargs')
+    def test_must_be_logged_in_decorator_login_not_available(self, mock_from_kwargs, mock_check_login, mock_web_url_for):
+        user = UserFactory()
+        UserExtendedData.objects.get_or_create(user=user, data={'idp_attr': {'login_availability': 'check mail address'}})
+        mock_from_kwargs.return_value = Auth(user=user)
+        mock_check_login.return_value = False
+        mock_web_url_for.return_value = '/?login_not_available=true'
+
+        protected()
+        mock_from_kwargs.assert_called()
+        mock_check_login.assert_called()
+        mock_web_url_for.assert_called()
 
 
 def needs_addon_view(**kwargs):

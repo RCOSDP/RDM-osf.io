@@ -719,6 +719,7 @@ def unconfirmed_email_add(auth=None):
     """
     user = auth.user
     json_body = request.get_json()
+    user_have_email = user.have_email
     try:
         token = json_body['token']
     except KeyError:
@@ -740,6 +741,14 @@ def unconfirmed_email_add(auth=None):
         })
 
     user.save()
+
+    # If user register new email for the first time, check user's login availability by user's mail address
+    if not user_have_email and not user.check_login_availability_by_mail_address():
+        # If user is not allowed to log in by mail address, logout then redirect to top page
+        top_page_url = web_url_for('index', login_not_available='true', _absolute=True)
+        logout_url = web_url_for('auth_logout', redirect_url=top_page_url)
+        raise HTTPError(http_status.HTTP_401_UNAUTHORIZED, data=dict(redirect_url=logout_url))
+
     return {
         'status': 'success',
         'removed_email': json_body['address']

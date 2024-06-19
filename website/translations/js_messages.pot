@@ -7426,3 +7426,87 @@ msgstr ""
 msgid "Cannot be restored because export data does not exist"
 msgstr ""
 
+msgid "A server error occurred. Please contact the administrator."
+msgstr ""
+
+# admin/static/js/login_access_control/login-access-control.js
+msgid "institution_id is required."
+msgstr ""
+
+msgid "institution_id is invalid."
+msgstr ""
+
+msgid "is_availability is required."
+msgstr ""
+
+msgid "is_availability is invalid."
+msgstr ""
+
+msgid "attribute_id is required."
+msgstr ""
+
+msgid "attribute_id is invalid."
+msgstr ""
+
+msgid "mail_address_id is required."
+msgstr ""
+
+msgid "mail_address_id is invalid."
+msgstr ""
+
+msgid "login_availability_default is required."
+msgstr ""
+
+msgid "login_availability_default is invalid."
+msgstr ""
+
+msgid "Attribute name is not exist in config."
+msgstr ""
+
+msgid "Attribute name is required."
+msgstr ""
+
+msgid "Attribute value is required."
+msgstr ""
+
+msgid "Length of attribute value > 255 characters."
+msgstr ""
+
+msgid "Group (attribute name, attribute value) MUST be unique."
+msgstr ""
+
+msgid "Logic condition is invalid."
+msgstr ""
+
+msgid "Index number does not exist."
+msgstr ""
+
+msgid "Length of mail address > 320 characters."
+msgstr ""
+
+msgid "Mail address format is invalid."
+msgstr ""
+
+msgid "Mail address is required."
+msgstr ""
+
+msgid "Mail address MUST be unique."
+msgstr ""
+
+msgid "Can not setting login access control of the institution into the other institution."
+msgstr ""
+
+msgid "Can not switch toggle the attribute element due to it is using in the logic condition."
+msgstr ""
+
+msgid "Can not delete the attribute element due to it is using in the logic condition."
+msgstr ""
+
+msgid "You do not have permission to setting login access control of the other institution."
+msgstr ""
+
+msgid "You do not have permission to get login access control of the other institution."
+msgstr ""
+
+msgid "Login availability is not available."
+msgstr ""

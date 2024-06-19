@@ -232,7 +232,7 @@ msgid "Schedule a banner"
 msgstr "バナーをスケジュールする"
 
 #: admin/templates/banners/create.html:29
-#: admin/templates/entitlements/list.html:91
+#: admin/templates/login_access_control/list.html:91
 #: admin/templates/institutions/create.html:24
 #: admin/templates/rdm_addons/addons/dataverse_credentials_modal.html:57
 #: admin/templates/rdm_addons/addons/iqbrims_institution_settings.html:24
@@ -322,8 +322,8 @@ msgstr "メニュー"
 
 # text of menuitem on left-side menu
 #: admin/templates/base.html:110
-msgid "Login Availability Control"
-msgstr "ログイン可否設定"
+msgid "Login Access Control"
+msgstr "ログインアクセス制御"
 
 #: admin/templates/base.html:116 admin/templates/base.html:121
 msgid "RDM Nodes"
@@ -729,60 +729,83 @@ msgstr "ありがとうございます。"
 msgid "-GakuNin RDM Admin"
 msgstr "-GakuNin RDM 管理者"
 
-# page title
-#: admin/templates/entitlements/list.html:40
-msgid "List of Entitlements"
-msgstr "eduPersonEntitlement の一覧"
-
-# label for eduPersonEntitlement input box
-#: admin/templates/entitlements/list.html:44
-#: admin/templates/entitlements/list.html:71
-msgid "Entitlements"
-msgstr "eduPersonEntitlement"
-
-#: admin/templates/entitlements/list.html:60
+#: admin/templates/login_access_control/list.html:92
 msgid "Institutions"
 msgstr "機関"
 
-# hint text of eduPersonEntitlement input box
-#: admin/templates/entitlements/list.html:75
-#: admin/templates/entitlements/list.html:145
-msgid "Enter new entitlement"
-msgstr "新しい eduPersonEntitlement"
-
 # label for checkboxes
-#: admin/templates/entitlements/list.html:82
-#: admin/templates/entitlements/list.html:149
-msgid "login availability"
-msgstr "ログイン可否"
+#: admin/templates/login_access_control/list.html:103
+#: admin/templates/login_access_control/list.html:149
+msgid "Login availability default"
+msgstr "ログイン可否のデフォルト"
 
-# text for button to add another eduPersonEntitlement input box
-#: admin/templates/entitlements/list.html:90
-msgid "New entitlement"
+#: admin/templates/login_access_control/list.html:113
+msgid "※ Set the default settings for whether users can log in to the target institution."
+msgstr "※ 対象機関に対するユーザのログイン可否のデフォルトを設定します。"
+
+#: admin/templates/login_access_control/list.html:114
+msgid "・If "Default login permission" is set to "Allow", users who meet the conditions of "Login access control by authentication attributes" or "Login access control by email address" will not be able to login."
+msgstr "・「デフォルトのログイン可否」を「可」に設定した場合、「認証属性によるログインアクセス制御」、もしくは、「メールアドレスによるログインアクセス制御」の条件を満たしたユーザがログイン不可となります。"
+
+#: admin/templates/login_access_control/list.html:115
+msgid "・If "Default login permission" is set to "No", users who meet the conditions of "Login access control by authentication attributes" or "Login access control by email address" will be able to login."
+msgstr "・「デフォルトのログイン可否」を「否」に設定した場合、「認証属性によるログインアクセス制御」、もしくは、「メールアドレスによるログインアクセス制御」の条件を満たしたユーザがログイン可となります。"
+
+#: admin/templates/login_access_control/list.html:119
+msgid "Login access control by authentication attribute"
+msgstr "認証属性によるログインアクセス制御"
+
+#: admin/templates/login_access_control/list.html:120
+msgid "※The authentication attributes configured in the IdP are available."
+msgstr "※ IdP にて設定した認証属性が利用可能です。"
+
+#: admin/templates/login_access_control/list.html:127
+msgid "Authentication attribute"
+msgstr "認証属性"
+
+# text for button to add another input box
+#: admin/templates/login_access_control/list.html:144
+#: admin/templates/login_access_control/list.html:226
+msgid "Add input field"
 msgstr "入力欄を追加"
 
-#: admin/templates/entitlements/list.html:115
+#: admin/templates/login_access_control/list.html:156
+msgid "Index number"
+msgstr "項目"
+
+#: admin/templates/login_access_control/list.html:196
+msgid "Logic condition of authentication attribute"
+msgstr "認証属性の論理条件"
+
+#: admin/templates/login_access_control/list.html:204
+msgid "※Please set logical conditions such as "1", "1&&2", or "1||(2&&3)"."
+msgstr "※「1」や「1&&2」や「1||(2&&3)」などの論理条件を設定してください。"
+
+#: admin/templates/login_access_control/list.html:207
+msgid "Login access control by mail address"
+msgstr "メールアドレスによるログインアクセス制御"
+
+#: admin/templates/login_access_control/list.html:208
+msgid "※Login access will be controlled based on whether the last part of the email address matches the user's email address."
+msgstr "※ユーザのメールアドレスと後方一致するか否かでログインアクセス制御を実施します。"
+
+#: admin/templates/login_access_control/list.html:212
+#: admin/templates/login_access_control/list.html:237
+msgid "Mail address"
+msgstr "メールアドレス"
+
+#: admin/templates/login_access_control/list.html:275
+msgid "Do you want to change setting of the login availability default for the target institution?"
+msgstr "対象機関に対するユーザのログイン可否のデフォルト設定を変更しますか？"
+
+#: admin/templates/login_access_control/list.html:276
+msgid "Please note that changing the above default settings may change the login availability of users who meet the conditions set for "login access control by authentication attributes" or "login access control by email address"."
+msgstr "上記のデフォルト設定の変更により、「認証属性によるログインアクセス制御」、もしくは、「メールアドレスによるログインアクセス制御」に設定した条件を満たすユーザのログイン可否が変わる可能性があるので、注意してください。"
+
+#: admin/templates/login_access_control/list.html:115
 msgid "Delete"
 msgstr "削除"
 
-#: admin/templates/entitlements/list.html:165
-msgid "Entitlement must be not empty"
-msgstr "eduPersonEntitlement を入力してください。"
-
-#: admin/templates/entitlements/list.html:169
-#: admin/templates/entitlements/list.html:173
-msgid "Entitlement '"
-msgstr "eduPersonEntitlement '"
-
-#: admin/templates/entitlements/list.html:169
-msgid "' already exists"
-msgstr "'は既に存在します。"
-
-#: admin/templates/entitlements/list.html:173
-msgid "' have been inputted"
-msgstr "'は重複しています。"
-
-#: admin/templates/entitlements/pagination.html:25
 #: admin/templates/util/pagination.html:25
 #, python-format
 msgid "Page %(itemsNumber)s of %(paginatorNumPage)s"
@@ -2922,7 +2945,7 @@ msgstr ""
 
 #: admin/templates/rdm_metadata/erad.html:23
 msgid "Update"
-msgstr ""
+msgstr "変更"
 
 #: admin/templates/rdm_statistics/crawl.html:14
 #: admin/templates/rdm_statistics/index.html:14

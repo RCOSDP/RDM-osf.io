@@ -353,3 +353,28 @@ TEMPORARY_PATH = '/tmp/'
 
 # Time out for calling copy API in Export/Restore processes
 EACH_FILE_EXPORT_RESTORE_TIME_OUT = 1800
+
+# Login access authentication attribute list
+ATTRIBUTE_NAME_LIST = [
+    'mail',
+    'sn',
+    'o',
+    'ou',
+    'givenName',
+    'displayName',
+    'eduPersonAffiliation',
+    'eduPersonPrincipalName',
+    'eduPersonEntitlement',
+    'eduPersonScopedAffiliation',
+    'eduPersonTargetedID',
+    'eduPersonAssurance',
+    'eduPersonUniqueId',
+    'eduPersonOrcid',
+    'isMemberOf',
+    'jasn',
+    'jaGivenName',
+    'jaDisplayName',
+    'jao',
+    'jaou',
+    'gakuninScopedPersonalUniqueCode',
+]

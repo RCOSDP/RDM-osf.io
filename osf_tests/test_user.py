@@ -40,6 +40,7 @@ from osf.models import (
     PreprintContributor,
     DraftRegistrationContributor,
     Institution,
+    UserExtendedData,
 )
 from addons.github.tests.factories import GitHubAccountFactory
 from addons.osfstorage.models import Region
@@ -71,6 +72,7 @@ from .factories import (
     PreprintFactory,
     ExportDataLocationFactory,
     RegionFactory,
+    LoginControlMailAddressFactory,
 )
 from tests.base import OsfTestCase
 from tests.utils import run_celery_tasks
@@ -2852,3 +2854,70 @@ class TestUserSpam:
         with mock.patch('osf.models.OSFUser._get_spam_content', mock.Mock(return_value='some content!')):
             user.check_spam(saved_fields={'schools': ['one']}, request_headers=None)
             assert mock_do_check_spam.call_count == 1
+
+
+class TestUserLoginAvailability:
+    @pytest.fixture
+    def user(self):
+        return AuthUserFactory()
+
+    def test_check_login_availability_by_mail_address__no_affiliated_institution(self, user):
+        is_valid = user.check_login_availability_by_mail_address()
+        assert is_valid is True
+
+    def test_check_login_availability_by_mail_address__has_record_and_default(self, user):
+        institution = InstitutionFactory(login_availability_default=True)
+        user.affiliated_institutions.add(institution)
+        user.save()
+        LoginControlMailAddressFactory(institution=institution, mail_address=user.username)
+        is_valid = user.check_login_availability_by_mail_address()
+        assert is_valid is False
+
+        extended_data = UserExtendedData.objects.filter(user=user).first()
+        assert extended_data is None
+
+    def test_check_login_availability_by_mail_address__has_record_and_not_default(self, user):
+        institution = InstitutionFactory(login_availability_default=False)
+        user.affiliated_institutions.add(institution)
+        user.save()
+        LoginControlMailAddressFactory(institution=institution, mail_address=user.username)
+        is_valid = user.check_login_availability_by_mail_address()
+        assert is_valid is True
+
+        extended_data = UserExtendedData.objects.filter(user=user).first()
+        assert extended_data is not None
+        assert extended_data.data.get('idp_attr', {}).get('login_availability') == 'can login'
+
+    def test_check_login_availability_by_mail_address__has_record_and_update_idp_attr(self, user):
+        institution = InstitutionFactory(login_availability_default=False)
+        user.affiliated_institutions.add(institution)
+        user.save()
+        UserExtendedData.objects.get_or_create(user=user, data={'idp_attr': {'login_availability': 'check mail address'}})
+        LoginControlMailAddressFactory(institution=institution, mail_address=user.username)
+        is_valid = user.check_login_availability_by_mail_address()
+        assert is_valid is True
+
+        extended_data = UserExtendedData.objects.filter(user=user).first()
+        assert extended_data is not None
+        assert extended_data.data.get('idp_attr', {}).get('login_availability') == 'can login'
+
+    def test_check_login_availability_by_mail_address__no_record_and_default(self, user):
+        institution = InstitutionFactory(login_availability_default=True)
+        user.affiliated_institutions.add(institution)
+        user.save()
+        is_valid = user.check_login_availability_by_mail_address()
+        assert is_valid is True
+
+        extended_data = UserExtendedData.objects.filter(user=user).first()
+        assert extended_data is not None
+        assert extended_data.data.get('idp_attr', {}).get('login_availability') == 'can login'
+
+    def test_check_login_availability_by_mail_address__no_record_and_not_default(self, user):
+        institution = InstitutionFactory(login_availability_default=False)
+        user.affiliated_institutions.add(institution)
+        user.save()
+        is_valid = user.check_login_availability_by_mail_address()
+        assert is_valid is False
+
+        extended_data = UserExtendedData.objects.filter(user=user).first()
+        assert extended_data is None

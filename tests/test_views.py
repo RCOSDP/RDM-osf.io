@@ -2064,6 +2064,32 @@ class TestUserProfile(OsfTestCase):
                                 expect_errors=True)
         assert_equal(res.status_code, http_status.HTTP_403_FORBIDDEN)
 
+    def test_user_update_email_redirect_to_top_page(self):
+        user1 = AuthUserFactory(fullname='fullname_1')
+        inst = InstitutionFactory(login_availability_default=False)
+        user1.affiliated_institutions.add(inst)
+        user1.save()
+        email_1 = 'andy@cos.vn'
+        email_2 = 'wis@csp.com'
+        user1.emails.create(address=email_1)
+        user1.emails.create(address=email_2)
+
+        url = api_url_for('update_user', user1._id)
+
+        header = {
+            'id': user1._id,
+            'emails': [
+                {'address': email_1, 'confirmed': True, 'primary': True},
+                {'address': email_2},
+                {'address': user1.username},
+            ]
+        }
+
+        res = self.app.put_json(url, header, auth=user1.auth,
+                                expect_errors=True)
+        assert_equal(res.status_code, http_status.HTTP_401_UNAUTHORIZED)
+        assert_is_not_none(res.json_body['redirect_url'])
+
     def test_profile_view_has_temp_user(self):
         user1 = AuthUserFactory(fullname='fullname_1')
         user2 = AuthUserFactory(fullname='fullname_2')

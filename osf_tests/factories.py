@@ -18,6 +18,7 @@ from django.db.utils import IntegrityError
 from faker import Factory
 from waffle.models import Flag, Sample, Switch
 
+from admin.base.settings import ATTRIBUTE_NAME_LIST
 from website.notifications.constants import NOTIFICATION_TYPES
 from osf.utils import permissions
 from website.archiver import ARCHIVER_SUCCESS
@@ -264,20 +265,18 @@ class InstitutionFactory(DjangoModelFactory):
         model = models.Institution
 
 
-class InstitutionEntitlementFactory(DjangoModelFactory):
-    entitlement = factory.Faker('name')
+class LoginControlAuthenticationAttributeFactory(DjangoModelFactory):
+    attribute_name = FuzzyChoice(choices=ATTRIBUTE_NAME_LIST)
+    attribute_value = factory.Faker('name')
 
     class Meta:
-        model = models.InstitutionEntitlement
+        model = models.LoginControlAuthenticationAttribute
 
     @classmethod
-    def _create(cls, target_class, institution=None, login_availability=None, modifier=None, *args, **kwargs):
+    def _create(cls, target_class, institution=None, *args, **kwargs):
         institution = institution or models.Institution.objects.first() or InstitutionFactory()
-        login_availability = login_availability or False
-        modifier = modifier or models.OSFUser.objects.first() or UserFactory()
 
-        return super(InstitutionEntitlementFactory, cls)._create(target_class, institution=institution, login_availability=login_availability,
-                                                                 modifier=modifier, *args, **kwargs)
+        return super(LoginControlAuthenticationAttributeFactory, cls)._create(target_class, institution=institution, *args, **kwargs)
 
 
 class NodeLicenseRecordFactory(DjangoModelFactory):
@@ -1224,3 +1223,8 @@ class BaseFileVersionsThroughFactory(DjangoModelFactory):
 class RdmFileTimestamptokenVerifyResultFactory(DjangoModelFactory):
     class Meta:
         model = models.RdmFileTimestamptokenVerifyResult
+
+
+class LoginControlMailAddressFactory(DjangoModelFactory):
+    class Meta:
+        model = models.LoginControlMailAddress
