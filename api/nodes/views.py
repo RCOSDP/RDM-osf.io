@@ -8,7 +8,7 @@ from django.contrib.contenttypes.models import ContentType
 from rest_framework import generics, permissions as drf_permissions
 from rest_framework.exceptions import PermissionDenied, ValidationError, NotFound, MethodNotAllowed, NotAuthenticated
 from rest_framework.response import Response
-from rest_framework.status import HTTP_204_NO_CONTENT, HTTP_200_OK
+from rest_framework.status import HTTP_204_NO_CONTENT, HTTP_200_OK, HTTP_400_BAD_REQUEST
 
 from addons.base.exceptions import InvalidAuthError
 from addons.osfstorage.models import OsfStorageFolder
@@ -333,6 +333,13 @@ class NodeList(JSONAPIBaseView, bulk_views.BulkUpdateJSONAPIView, bulk_views.Bul
             if group_key:
                 node.map_group_key = group_key
                 node.save()
+
+    def create(self, request, *args, **kwargs):
+        if not request.user.can_create_new_project:
+            # If user is not allowed to create new project, return HTTP 400 with type 1 in response
+            # Type 1: Show project number met limit error message
+            return Response({'errors': [{'type': 1, 'status': HTTP_400_BAD_REQUEST}]}, status=HTTP_400_BAD_REQUEST)
+        return super(NodeList, self).create(request, *args, **kwargs)
 
     # overrides BulkDestroyJSONAPIView
     def allow_bulk_destroy_resources(self, user, resource_list):

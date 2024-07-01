@@ -105,8 +105,16 @@ function ViewModel(url, nodeIsPublic, table) {
                     data: JSON.stringify(dataToSend)
                 }).done(function() {
                     self.privateLinks.remove(data);
-                }).fail(function() {
-                    $osf.growl('Error:',_('Failed to delete the private link.'));
+                }).fail(function(xhr) {
+                    if (xhr.status === 403) {
+                        var continueHandle = $osf.handleErrorResponse(xhr);
+                        if (continueHandle === false) {
+                            return;
+                        }
+                        $osf.growl('Error:', _('You do not have permission to operate a project.'));
+                    } else {
+                        $osf.growl('Error:',_('Failed to delete the private link.'));
+                    }
                 });
                 }
             },

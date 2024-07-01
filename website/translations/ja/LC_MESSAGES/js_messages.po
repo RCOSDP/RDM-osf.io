@@ -3744,6 +3744,14 @@ msgstr "新規プロジェクト作成"
 msgid "There was an unknown error. Please try again later."
 msgstr "不明なエラーがありました。 後でもう一度やり直してください。"
 
+#: website/static/js/addProjectPlugin.js:58
+msgid "You do not have permission to operate a project."
+msgstr "プロジェクトに対する操作権限がありません。"
+
+#: website/static/js/addProjectPlugin.js:59
+msgid "The new project cannot be created due to the created project number is greater than or equal the project number can create."
+msgstr "作成したプロジェクト数が作成可能なプロジェクトの数以上であるために、新規プロジェクトを作成できません。"
+
 #: website/static/js/addProjectPlugin.js:184 website/static/js/conference.js:19
 msgid "Title"
 msgstr "タイトル"
@@ -8726,3 +8734,13 @@ msgstr "このエクスポート プロセスをアボートできません。"
 
 msgid "Cannot be restored because export data does not exist"
 msgstr "エクスポートデータが存在しないため、復元できません。"
+
+# message in admin/static/js/service_access_control_setting/service-access-control-setting.js
+msgid "Not a JSON file."
+msgstr "JSONファイルではありません。"
+
+msgid "JSON file is invalid."
+msgstr "JSONァイルが無効です。"
+
+msgid "Config data is invalid."
+msgstr "Configデータが無効です。"

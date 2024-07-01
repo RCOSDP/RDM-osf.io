@@ -55,6 +55,7 @@ var config = Object.assign({}, common, {
         'rdm-keymanagement-page': staticAdminPath('js/rdm_keymanagement/rdm-keymanagement-page.js'),
         'rdm-institutional-storage-page': staticAdminPath('js/rdm_custom_storage_location/rdm-institutional-storage-page.js'),
         'rdm-metadata-page': staticAdminPath('js/rdm_metadata/rdm-metadata-page.js'),
+        'service-access-control-setting': staticAdminPath('js/service_access_control_setting/service-access-control-setting.js'),
     },
     plugins: plugins,
     devtool: 'source-map',

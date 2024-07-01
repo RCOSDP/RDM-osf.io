@@ -22,15 +22,19 @@ from framework.celery_tasks.handlers import (
     celery_after_request,
     celery_teardown_request,
 )
+from framework.function_control.handlers import (
+    check_api_service_access,
+)
 from .api_globals import api_globals
 from api.base import settings as api_settings
 from waffle.middleware import WaffleMiddleware
 from waffle.models import Flag
 
-from website.settings import DOMAIN
+from website.settings import DOMAIN, COOKIE_NAME
 from osf.models import (
     Preprint,
     PreprintProvider,
+    OSFUser,
 )
 from typing import Optional
 
@@ -410,3 +414,14 @@ class SloanOverrideWaffleMiddleware(WaffleMiddleware):
         # Browsers won't allow use to use these cookie attributes unless you're sending the data over https.
         resp.cookies[name]['secure'] = True
         resp.cookies[name]['samesite'] = 'None'
+
+
+class ServiceAccessControlMiddleware(MiddlewareMixin):
+    """Service access control middleware."""
+    def process_request(self, request):
+        # Get user information from request
+        cookie_value = request.COOKIES.get(COOKIE_NAME)
+        user = OSFUser.from_cookie(cookie_value)
+        # Check user's API permission
+        error_response = check_api_service_access(request.path, request.method, user)
+        return error_response

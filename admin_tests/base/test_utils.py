@@ -1,3 +1,4 @@
+import jsonschema
 from nose.tools import *  # noqa: F403
 import datetime as datetime
 import pytest
@@ -10,7 +11,8 @@ from django.contrib.admin.sites import AdminSite
 from django.forms.models import model_to_dict
 from django.http import QueryDict
 
-from admin.base.schemas.utils import from_json
+from admin.base.schemas.utils import from_json, validate_json_schema, validate_config_schema
+from admin.service_access_control_setting.views import SERVICE_ACCESS_CONTROL_SCHEMA_FILE_NAME, CONFIG_SCHEMA_FILE_NAME
 from tests.base import AdminTestCase
 
 from osf_tests.factories import SubjectFactory, UserFactory, RegistrationFactory, PreprintFactory
@@ -255,3 +257,154 @@ class TestSchemaUtils:
     def test_from_json__file_not_found(self):
         with pytest.raises(Exception):
             from_json('file-info-schema2.json')
+
+    def test_validate_json_schema(self):
+        test_dict = {
+            'data': [
+                {
+                    'institution_id': 'test',
+                    'domain': 'test.com',
+                    'is_ial2_or_aal2': True,
+                    'user_domain': '@test.com',
+                    'project_limit_number': 10,
+                    'is_whitelist': False,
+                    'function_codes': ['function_001']
+                }
+            ]
+        }
+        res = validate_json_schema(test_dict, SERVICE_ACCESS_CONTROL_SCHEMA_FILE_NAME)
+        assert res is None
+
+    def test_validate_json_schema__error(self):
+        # Schema file not found error
+        test_dict = {
+            'data': [
+                {
+                    'institution_id': 'test',
+                    'domain': 'test.com',
+                    'is_ial2_or_aal2': True,
+                    'user_domain': '@test.com',
+                    'project_limit_number': 10,
+                    'is_whitelist': False,
+                    'function_codes': ['function_001']
+                }
+            ]
+        }
+        with assert_raises(FileNotFoundError):
+            validate_json_schema(test_dict, 'not-found.json')
+
+        # JSON schema validation error
+        test_dict = {
+            'data': [{}]
+        }
+        with assert_raises(jsonschema.ValidationError):
+            validate_json_schema(test_dict, SERVICE_ACCESS_CONTROL_SCHEMA_FILE_NAME)
+
+    def test_validate_config_schema(self):
+        test_dict = {
+            'function_001': {
+                'function_name': 'test',
+                'api_group': [
+                    {
+                        'api': r'^/v2/nodes/?$',
+                        'method': 'GET',
+                    }
+                ]
+            }
+        }
+        res = validate_config_schema(test_dict, CONFIG_SCHEMA_FILE_NAME)
+        assert res is None
+
+    def test_validate_config_schema__validate_error(self):
+        # Schema file not found error
+        test_dict = {
+            'function_001': {
+                'function_name': 'test',
+                'api_group': [
+                    {
+                        'api': r'^/v2/nodes/?$',
+                        'method': 'GET',
+                    }
+                ]
+            }
+        }
+        with assert_raises(FileNotFoundError):
+            validate_config_schema(test_dict, 'not-found.json')
+
+        # JSON schema validation error
+        test_dict = {
+            'function_001': {
+                'function_name': '',
+                'api_group': [{}]
+            }
+        }
+        with assert_raises(jsonschema.ValidationError):
+            validate_config_schema(test_dict, CONFIG_SCHEMA_FILE_NAME)
+
+    def test_validate_config_schema__function_name_not_unique(self):
+        test_dict = {
+            'function_001': {
+                'function_name': 'test',
+                'api_group': [
+                    {
+                        'api': r'^/v2/nodes/?$',
+                        'method': 'GET',
+                    }
+                ]
+            },
+            'function_002': {
+                'function_name': 'test',
+                'api_group': [
+                    {
+                        'api': r'^/v2/nodes/?$',
+                        'method': 'POST',
+                    }
+                ]
+            }
+        }
+        with assert_raises(jsonschema.ValidationError):
+            validate_config_schema(test_dict, CONFIG_SCHEMA_FILE_NAME)
+
+    def test_validate_config_schema__api_group_not_unique(self):
+        # Duplicate api_group in the same function code
+        test_dict = {
+            'function_001': {
+                'function_name': 'test',
+                'api_group': [
+                    {
+                        'api': r'^/v2/nodes/?$',
+                        'method': 'GET',
+                    },
+                    {
+                        'api': r'^/v2/nodes/?$',
+                        'method': 'GET',
+                    }
+                ]
+            }
+        }
+        with assert_raises(jsonschema.ValidationError):
+            validate_config_schema(test_dict, CONFIG_SCHEMA_FILE_NAME)
+
+        # Duplicate api_group in different function code
+        test_dict = {
+            'function_001': {
+                'function_name': 'test',
+                'api_group': [
+                    {
+                        'api': r'^/v2/nodes/?$',
+                        'method': 'GET',
+                    }
+                ]
+            },
+            'function_002': {
+                'function_name': 'test_2',
+                'api_group': [
+                    {
+                        'api': r'^/v2/nodes/?$',
+                        'method': 'GET',
+                    }
+                ]
+            }
+        }
+        with assert_raises(jsonschema.ValidationError):
+            validate_config_schema(test_dict, CONFIG_SCHEMA_FILE_NAME)

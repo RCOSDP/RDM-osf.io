@@ -23,6 +23,7 @@ from django.conf import settings
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import PermissionsMixin
+from django.contrib.postgres.aggregates import ArrayAgg
 from django.dispatch import receiver
 from django.db import models
 from django.db.models import Count
@@ -471,6 +472,10 @@ class OSFUser(DirtyFieldsMixin, GuidMixin, BaseModel, AbstractBaseUser, Permissi
                                        related_name='osf_user')
     mapcore_api_locked = models.BooleanField(default=False)
     mapcore_refresh_locked = models.BooleanField(default=False)
+
+    # @R2022-48 eduPersonAssurance(ial),AuthnContextClass(aal) from Shibboleth
+    ial = models.CharField(blank=True, max_length=255, null=True)
+    aal = models.CharField(blank=True, max_length=255, null=True)
 
     def __repr__(self):
         return '<OSFUser({0!r}) with guid {1!r}>'.format(self.username, self._id)
@@ -1880,6 +1885,79 @@ class OSFUser(DirtyFieldsMixin, GuidMixin, BaseModel, AbstractBaseUser, Permissi
     def is_allowed_to_use_institution(self, institution):
         """Return if this user is supper or is admin affiliated with ``institution``."""
         return self.is_super_admin or (self.is_admin and self.is_affiliated_with_institution(institution))
+
+    def _get_match_service_access_control_setting_queryset(self):
+        """Get user's best match service access control setting queryset"""
+        from osf.models import ServiceAccessControlSetting
+        # Get user's institution GUID
+        affiliated_institution = self.representative_affiliated_institution
+        affiliated_institution_guid = affiliated_institution.guid if affiliated_institution is not None else None
+
+        # Get user's domain from eppn
+        domain = None
+        if self.eppn:
+            eppn_string_split = self.eppn.split('@', 1)
+            if len(eppn_string_split) > 1:
+                domain = eppn_string_split[1]
+
+        # Get user's is_ial2_or_aal2 status
+        user_is_ial2_or_aal2 = not (self.ial is None and self.aal is None)
+        # Create common queryset to get best match service access control setting for current user
+        query_set = ServiceAccessControlSetting.objects.filter(
+            institution_id=affiliated_institution_guid,
+            domain__in=[domain, 'default'],
+            is_ial2_or_aal2=user_is_ial2_or_aal2,
+            is_deleted=False,
+        ).annotate(
+            email_domain=models.Value(self.username, output_field=models.CharField())
+        ).filter(
+            models.Q(email_domain__endswith=models.F('user_domain')) | models.Q(user_domain='default')
+        ).annotate(
+            domain_order=models.Case(
+                models.When(domain='default', then=models.Value(2)),
+                default=models.Value(1),
+                output_field=models.IntegerField(),
+            ),
+            user_domain_order=models.Case(
+                models.When(user_domain='default', then=models.Value(2)),
+                default=models.Value(1),
+                output_field=models.IntegerField(),
+            ),
+        ).order_by('domain_order', 'user_domain_order')
+        return query_set
+
+    @property
+    def can_create_new_project(self):
+        """Check and return boolean if this user is allowed to create a new project"""
+        from osf.models import Node
+        # Get project limit number from the best match service access control setting if have
+        query_set = self._get_match_service_access_control_setting_queryset()
+        project_limit_number = query_set.values_list('project_limit_number', flat=True).first()
+        # Set default permission value to True
+        can_create_new_project = True
+        if project_limit_number is not None:
+            # If there is project limit number for current user, compare it to number of created project by current user
+            project_created_number = Node.objects.filter(creator=self, is_deleted=False).count()
+            can_create_new_project = project_created_number < project_limit_number
+        return can_create_new_project
+
+    def is_allowed_to_access_api(self, function_code):
+        """Check and return boolean if this user is allowed to access api in function code"""
+        if not function_code:
+            # Invalid function code, return True
+            return True
+        # Get is_whitelist and function_codes from the best match service access control setting if have
+        query_set = self._get_match_service_access_control_setting_queryset()
+        match_setting = query_set.annotate(function_codes=ArrayAgg('functions__function_code')).values('is_whitelist', 'function_codes').first()
+        # Set default permission value to True
+        is_allowed_to_access_api = True
+        if match_setting is not None:
+            is_whitelist = match_setting.get('is_whitelist')
+            # Check if provided function_code in the function codes list
+            is_function_code_in_list = function_code in match_setting.get('function_codes', [])
+            # User is allowed to access API if both is_whitelist and is_function_code_in_list are True or False
+            is_allowed_to_access_api = is_whitelist == is_function_code_in_list
+        return is_allowed_to_access_api
 
     def update_affiliated_institutions_by_email_domain(self):
         """

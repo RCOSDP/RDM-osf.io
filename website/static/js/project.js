@@ -83,7 +83,15 @@ NodeActions.forkNode = function() {
                 isCors: true,
                 data: payload
             }
-        );
+        ).fail(function(xhr) {
+            if (xhr.status === 403) {
+                var continueHandle = $osf.handleErrorResponse(xhr);
+                if (continueHandle === false) {
+                    return;
+                }
+                $osf.growl('Error', _('You do not have permission to operate a project.'));
+            }
+        });
         $osf.growl('Fork status', _('Your fork is being created. You\'ll receive an email when it is complete.'), 'info');
     });
 };
@@ -168,7 +176,15 @@ NodeActions.useAsTemplate = function() {
             window.location = response.url;
         }).fail(function(response) {
             $osf.unblock();
-            $osf.handleJSONError(response);
+            if (response.status === 403) {
+                var continueHandle = $osf.handleErrorResponse(response);
+                if (continueHandle === false) {
+                    return;
+                }
+                $osf.growl('Error', _('You do not have permission to operate a project.'));
+            } else {
+                $osf.handleJSONError(response);
+            }
         });
     });
 };
@@ -194,9 +210,17 @@ NodeActions.removePointer = function(pointerId, pointerElm) {
         dataType: 'json'
     }).done(function() {
         pointerElm.remove();
-    }).fail(
-        $osf.handleJSONError
-    );
+    }).fail(function(xhr) {
+        if (xhr.status === 403) {
+            var continueHandle = $osf.handleErrorResponse(xhr);
+            if (continueHandle === false) {
+                return;
+            }
+            $osf.growl('Error', _('You do not have permission to operate a project.'));
+        } else {
+            $osf.handleJSONError(xhr);
+        }
+    });
 };
 
 // TODO: remove this

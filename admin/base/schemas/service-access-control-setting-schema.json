@@ -1,0 +1,55 @@
+{
+  "type": "object",
+  "properties": {
+    "data": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "institution_id": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "domain": {
+            "type": "string",
+            "maxLength": 255,
+            "pattern": "^(default)$|^(?!\\d+\\.)+(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z0-9]{0,62}[a-z0-9]$"
+          },
+          "is_ial2_or_aal2": {
+            "type": "boolean"
+          },
+          "user_domain": {
+            "type": "string",
+            "maxLength": 255,
+            "pattern": "^(default)$|^(@|\\.|)(?!\\d+\\.)+(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z0-9]{0,62}[a-z0-9]$"
+          },
+          "project_limit_number": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "is_whitelist": {
+            "type": "boolean"
+          },
+          "function_codes": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "institution_id",
+          "domain",
+          "is_ial2_or_aal2",
+          "user_domain",
+          "is_whitelist",
+          "function_codes"
+        ]
+      }
+    }
+  },
+  "required": ["data"]
+}

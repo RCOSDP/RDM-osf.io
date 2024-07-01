@@ -350,6 +350,10 @@ msgstr ""
 msgid "RDM Users"
 msgstr ""
 
+#: admin/templates/base.html:186
+msgid "Service Access Control"
+msgstr ""
+
 #: admin/templates/base.html:163
 #: admin/templates/user_emails/user_emails.html:112
 msgid "User Emails"
@@ -2971,6 +2975,37 @@ msgstr ""
 #: admin/templates/rdm_timestampsettings/list.html:22
 #: admin/templates/rdm_timestampsettings/node_list.html:43
 msgid "Select Timestamp Function"
+msgstr ""
+
+#: admin/templates/service_access_control_setting/list.html
+msgid "Service Access Control Setting Management"
+msgstr ""
+
+msgid "No data found"
+msgstr ""
+
+msgid "Create setting"
+msgstr ""
+
+msgid "IAL2/AAL2 User"
+msgstr ""
+
+msgid "Non IAL2/AAL2 User"
+msgstr ""
+
+msgid "Default"
+msgstr ""
+
+msgid "Project Limit Number"
+msgstr ""
+
+msgid "No limit"
+msgstr ""
+
+msgid "O"
+msgstr ""
+
+msgid "X"
 msgstr ""
 
 #: admin/templates/spam/detail.html:7

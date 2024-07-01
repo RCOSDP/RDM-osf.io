@@ -40,6 +40,7 @@ from osf.models import (
     PreprintContributor,
     DraftRegistrationContributor,
     Institution,
+    ServiceAccessControlSetting,
 )
 from addons.github.tests.factories import GitHubAccountFactory
 from addons.osfstorage.models import Region
@@ -71,6 +72,8 @@ from .factories import (
     PreprintFactory,
     ExportDataLocationFactory,
     RegionFactory,
+    ServiceAccessControlSettingFactory,
+    FunctionFactory,
 )
 from tests.base import OsfTestCase
 from tests.utils import run_celery_tasks
@@ -2852,3 +2855,79 @@ class TestUserSpam:
         with mock.patch('osf.models.OSFUser._get_spam_content', mock.Mock(return_value='some content!')):
             user.check_spam(saved_fields={'schools': ['one']}, request_headers=None)
             assert mock_do_check_spam.call_count == 1
+
+
+class TestUserServiceAccessControlPermission:
+    @pytest.fixture
+    def user(self):
+        institution = InstitutionFactory()
+        user = AuthUserFactory()
+        user.affiliated_institutions.add(institution)
+        user.eppn = 'test@test.com'
+        user.save()
+        return user
+
+    @pytest.fixture
+    def service_access_control_setting(self, user):
+        return ServiceAccessControlSettingFactory(
+            institution_id=user.representative_affiliated_institution.guid,
+            domain='default',
+            user_domain='default',
+            is_whitelist=True
+        )
+
+    @pytest.fixture
+    def function(self, service_access_control_setting):
+        return FunctionFactory(function_code='test_001', service_access_control_setting=service_access_control_setting)
+
+    def test__get_match_service_access_control_setting_queryset(self, user, service_access_control_setting, function):
+        queryset = user._get_match_service_access_control_setting_queryset()
+        assert queryset.exists()
+
+    def test_can_create_new_project__no_record(self, user):
+        with mock.patch('osf.models.user.OSFUser._get_match_service_access_control_setting_queryset') as mock_queryset:
+            mock_queryset.return_value = ServiceAccessControlSetting.objects.none()
+            assert_equal(user.can_create_new_project, True)
+            mock_queryset.assert_called()
+
+    def test_can_create_new_project__true(self, user, service_access_control_setting):
+        service_access_control_setting.project_limit_number = 100
+        service_access_control_setting.save()
+
+        with mock.patch('osf.models.user.OSFUser._get_match_service_access_control_setting_queryset') as mock_queryset:
+            mock_queryset.return_value = ServiceAccessControlSetting.objects.filter(id=service_access_control_setting.id)
+            assert_equal(user.can_create_new_project, True)
+            mock_queryset.assert_called()
+
+    def test_can_create_new_project__false(self, user, service_access_control_setting):
+        service_access_control_setting.project_limit_number = 0
+        service_access_control_setting.save()
+
+        with mock.patch('osf.models.user.OSFUser._get_match_service_access_control_setting_queryset') as mock_queryset:
+            mock_queryset.return_value = ServiceAccessControlSetting.objects.filter(id=service_access_control_setting.id)
+            assert_equal(user.can_create_new_project, False)
+            mock_queryset.assert_called()
+
+    def test_is_allowed_to_access_api__no_function_code(self, user, service_access_control_setting, function):
+        with mock.patch('osf.models.user.OSFUser._get_match_service_access_control_setting_queryset') as mock_queryset:
+            mock_queryset.return_value = ServiceAccessControlSetting.objects.filter(id=service_access_control_setting.id)
+            assert_equal(user.is_allowed_to_access_api(None), True)
+            mock_queryset.assert_not_called()
+
+    def test_is_allowed_to_access_api__no_record(self, user, service_access_control_setting, function):
+        with mock.patch('osf.models.user.OSFUser._get_match_service_access_control_setting_queryset') as mock_queryset:
+            mock_queryset.return_value = ServiceAccessControlSetting.objects.none()
+            assert_equal(user.is_allowed_to_access_api('test_001'), True)
+            mock_queryset.assert_called()
+
+    def test_is_allowed_to_access_api__true(self, user, service_access_control_setting, function):
+        with mock.patch('osf.models.user.OSFUser._get_match_service_access_control_setting_queryset') as mock_queryset:
+            mock_queryset.return_value = ServiceAccessControlSetting.objects.filter(id=service_access_control_setting.id)
+            assert_equal(user.is_allowed_to_access_api('test_001'), True)
+            mock_queryset.assert_called()
+
+    def test_is_allowed_to_access_api__false(self, user, service_access_control_setting, function):
+        with mock.patch('osf.models.user.OSFUser._get_match_service_access_control_setting_queryset') as mock_queryset:
+            mock_queryset.return_value = ServiceAccessControlSetting.objects.filter(id=service_access_control_setting.id)
+            assert_equal(user.is_allowed_to_access_api('test_002'), False)
+            mock_queryset.assert_called()

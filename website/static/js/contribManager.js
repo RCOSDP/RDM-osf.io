@@ -428,9 +428,17 @@ var ContributorsViewModel = function(contributors, adminContributors, user, isRe
                         }
                     }).fail(function(xhr) {
                         var response = xhr.responseJSON;
-                        $osf.growl('Error:',
-                            _('Submission failed: ') + response.message_long
-                        );
+                        if (xhr.status === 403) {
+                            var continueHandle = $osf.handleErrorResponse(xhr);
+                            if (continueHandle === false) {
+                                return;
+                            }
+                            $osf.growl('Error:', _('You do not have permission to operate a project.'));
+                        } else {
+                            $osf.growl('Error:',
+                                _('Submission failed: ') + response.message_long
+                            );
+                        }
                         self.forceSubmit(false);
                     });
                 }

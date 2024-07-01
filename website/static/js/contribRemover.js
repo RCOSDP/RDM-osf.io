@@ -229,14 +229,22 @@ var RemoveContributorViewModel = oop.extend(Paginator, {
             } else {
                 window.location.reload();
             }        }).fail(function(xhr, status, error) {
-            $osf.growl('Error', _('Unable to delete Contributor'));
+            if (xhr.status === 403) {
+                var continueHandle = $osf.handleErrorResponse(xhr);
+                if (continueHandle === false) {
+                    return;
+                }
+                $osf.growl('Error', _('You do not have permission to operate a project.'));
+            } else {
+                $osf.growl('Error', _('Unable to delete Contributor'));
+            }
             Raven.captureMessage(_('Could not DELETE Contributor.') + error, {
                 extra: {
                     url: window.contextVars.node.urls.api + 'contributor/remove/', status: status, error: error
                 }
             });
             self.clear();
-            window.location.reload();
+            $('.modal').modal('hide');
         });
     },
     deleteAllNodes: function() {

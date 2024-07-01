@@ -1224,3 +1224,22 @@ class BaseFileVersionsThroughFactory(DjangoModelFactory):
 class RdmFileTimestamptokenVerifyResultFactory(DjangoModelFactory):
     class Meta:
         model = models.RdmFileTimestamptokenVerifyResult
+
+
+class ServiceAccessControlSettingFactory(DjangoModelFactory):
+    institution_id = factory.Faker('text')
+    domain = factory.Faker('text')
+    is_ial2_or_aal2 = False
+    user_domain = factory.Faker('text')
+    is_whitelist = False
+
+    class Meta:
+        model = models.ServiceAccessControlSetting
+
+
+class FunctionFactory(DjangoModelFactory):
+    function_code = factory.Faker('text')
+    service_access_control_setting = factory.SubFactory(ServiceAccessControlSettingFactory)
+
+    class Meta:
+        model = models.Function

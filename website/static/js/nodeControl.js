@@ -91,7 +91,18 @@ var ProjectViewModel = function(data, options) {
             success: function () {
                 document.location.reload(true);
             },
-            error: $osf.handleEditableError,
+            error: function (xhr) {
+                if (xhr.status === 403) {
+                    var continueHandle = $osf.handleErrorResponse(xhr);
+                    if (continueHandle === false) {
+                        return;
+                    }
+                    Raven.captureMessage(_('Unexpected error occurred in an editable input'));
+                    return _('You do not have permission to operate a project.');
+                } else {
+                    $osf.handleEditableError(xhr);
+                }
+            },
             placement: 'bottom'
         };
 
@@ -157,7 +168,15 @@ var ProjectViewModel = function(data, options) {
         $osf.postJSON('/api/v1/pointer/', jsonData)
             .fail(function(data) {
                 self.inDashboard(false);
-                $osf.handleJSONError(data);
+                if (data.status === 403) {
+                    var continueHandle = $osf.handleErrorResponse(data);
+                    if (continueHandle === false) {
+                        return;
+                    }
+                    $osf.growl('Error', _('You do not have permission to operate a project.'));
+                } else {
+                    $osf.handleJSONError(data);
+                }
         });
     };
     /**
@@ -170,9 +189,17 @@ var ProjectViewModel = function(data, options) {
         $osf.ajaxJSON('DELETE', deleteUrl, {
             'data': {'data': [{'type':'linked_nodes', 'id': self._id}]},
             'isCors': true
-        }).fail(function() {
+        }).fail(function(xhr) {
             self.inDashboard(true);
-            $osf.growl('Error', _('The project could not be removed'), 'danger');
+            if (xhr.status === 403) {
+                var continueHandle = $osf.handleErrorResponse(xhr);
+                if (continueHandle === false) {
+                    return;
+                }
+                $osf.growl('Error', _('You do not have permission to operate a project.'));
+            } else {
+                $osf.growl('Error', _('The project could not be removed'), 'danger');
+            }
         });
     };
 

@@ -362,6 +362,16 @@ def make_url_map(app):
         ),
     ])
 
+    # HTTP error page
+    process_rules(app, [
+        Rule(
+            '/403',
+            ['get'],
+            HTTPError(http_status.HTTP_403_FORBIDDEN),
+            notemplate
+        ),
+    ])
+
     ### GUID ###
     process_rules(app, [
 

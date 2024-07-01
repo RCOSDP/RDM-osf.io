@@ -11,7 +11,10 @@ var changeAddonSettingsSuccess = function () {
     location.reload();
 };
 
-var changeAddonSettingsFailure = function () {
+var changeAddonSettingsFailure = function (xhr) {
+    if ($osf.handleErrorResponse(xhr) === false) {
+        return;
+    }
     var msg = _('Sorry, we had trouble saving your settings. If this persists please contact ') + '<a href="mailto: rdm_support@nii.ac.jp">rdm_support@nii.ac.jp</a>';
     $osf.growl('Failure', msg, 'danger');
 };

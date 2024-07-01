@@ -114,7 +114,15 @@ var PrivateLinkViewModel = function(url) {
         ).done(function() {
             window.location.reload();
         }).fail(function(response) {
-            self.changeMessage(response.responseJSON.message_long, 'text-danger');
+            if (response.status === 403) {
+                var continueHandle = $osf.handleErrorResponse(response);
+                if (continueHandle === false) {
+                    return;
+                }
+                self.changeMessage(_('You do not have permission to operate a project.'), 'text-danger');
+            } else {
+                self.changeMessage(response.responseJSON.message_long, 'text-danger');
+            }
             self.disableSubmit(false);
             self.submitText('Create');
         });

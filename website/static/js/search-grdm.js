@@ -620,6 +620,9 @@ var ViewModel = function(params) {
             self.searching(false);
 
         }).fail(function(response){
+            if ($osf.handleErrorResponse(response) === false) {
+                return;
+            }
             self.totalResults(0);
             self.currentPage(0);
             self.results([]);

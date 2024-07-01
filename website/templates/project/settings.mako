@@ -131,7 +131,7 @@
                     % endif
                            <button data-bind="click: cancelAll"
                             class="btn btn-default">${_("Cancel")}</button>
-                            <button data-bind="click: updateAll"
+                            <button data-bind="click: updateAll, disable: !dirty()"
                             class="btn btn-success">${_("Save changes")}</button>
                         <div class="help-block">
                             <span data-bind="css: messageClass, html: message"></span>

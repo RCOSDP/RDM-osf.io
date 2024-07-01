@@ -934,3 +934,22 @@ class UserEmailsDetail(JSONAPIBaseView, generics.RetrieveUpdateDestroyAPIView, U
         else:
             user.remove_unconfirmed_email(email)
             user.save()
+
+
+class UserCreateProjectPermission(JSONAPIBaseView, generics.RetrieveAPIView, UserMixin):
+    """ API view that return can_create_new_project mainly used for ember-osf-web """
+    permission_classes = (
+        drf_permissions.IsAuthenticatedOrReadOnly,
+        base_permissions.TokenHasScope,
+        CurrentUser,
+    )
+
+    required_read_scopes = [CoreScopes.USER_SETTINGS_READ]
+    required_write_scopes = [CoreScopes.NULL]
+
+    view_category = 'users'
+    view_name = 'user-create-project-permission'
+
+    def get(self, request, *args, **kwargs):
+        """Return if user's create new project permission"""
+        return Response({'can_create_new_project': self.get_user().can_create_new_project}, status=status.HTTP_200_OK)

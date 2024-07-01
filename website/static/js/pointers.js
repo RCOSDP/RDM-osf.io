@@ -225,7 +225,15 @@ var AddPointerViewModel = oop.extend(Paginator, {
             self.dirty = true;
         });
         request.fail(function(xhr, status, error){
-            self.logErrors(addUrl, status, error, 'Unable to link project');
+            if (xhr.status === 403) {
+                var continueHandle = $osf.handleErrorResponse(xhr);
+                if (continueHandle === false) {
+                    return;
+                }
+                self.logErrors(addUrl, status, error, _('You do not have permission to operate a project.'));
+            } else {
+                self.logErrors(addUrl, status, error, 'Unable to link project');
+            }
             self.processing(false);
         });
     },

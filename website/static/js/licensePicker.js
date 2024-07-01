@@ -192,7 +192,15 @@ var LicensePicker = oop.extend(ChangeMessageMixin, {
     onSaveFail: function(xhr, status, error) {
         var self = this;
 
-        self.changeMessage(_('There was a problem updating your license. Please try again.'), 'text-danger', 2500);
+        if (xhr.status === 403) {
+            var continueHandle = $osf.handleErrorResponse(xhr);
+            if (continueHandle === false) {
+                return;
+            }
+            self.changeMessage(_('You do not have permission to operate a project.'), 'text-danger', 2500);
+        } else {
+            self.changeMessage(_('There was a problem updating your license. Please try again.'), 'text-danger', 2500);
+        }
 
         Raven.captureMessage(_('Error fetching user profile'), {
             extra: {

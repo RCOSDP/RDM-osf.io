@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% load render_bundle from webpack_loader %}
+
+{% block top_includes %}
+    <link rel="stylesheet" type="text/css" href="/static/css/institutions.css"/>
+{% endblock %}
+
+{% block title %}
+    <title>{% trans "Service Access Control Setting Management" %}</title>
+{% endblock title %}
+
+{% block content %}
+    <h2>{% trans "Service Access Control Setting Management" %}</h2>
+    {% if user.is_superuser %}
+        <!-- Create Setting button -->
+        <div class="row">
+            <div class="col-md-12">
+                {% csrf_token %}
+                <input type="file" id="file-upload" name="file" style="display:none" accept="application/json"/>
+                <button id="upload-button" type="button" class="btn btn-primary pull-right" style="width: 140px;">{% trans "Create setting" %}</button>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Pagination -->
+    {% include "util/pagination.html" with items=page status=status %}
+
+    {% if row_data|length > 0 and column_data|length > 0 %}
+        <!-- Display service access control setting table -->
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered">
+                <!-- The table header row -->
+                <thead>
+                    <tr>
+                        <th colspan="4" class="text-center col-xs-6">{% trans "Institution" %}</th>
+                        <th class="text-center">
+                            {% trans "Project Limit Number" %}
+                        </th>
+                        {% for function_code, function_name in column_data.items %}
+                            <th class="text-center fixed-table-cell">{{ function_name }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <!-- The table body row -->
+                <tbody>
+                    <!-- For each row -->
+                    {% for item in row_data %}
+                        <tr>
+                            <!-- ifchanged tag: https://docs.djangoproject.com/en/1.11/ref/templates/builtins/#ifchanged -->
+                            <!-- The institution_name header column with rowspan attribute -->
+                            {% ifchanged item.institution_id %}
+                                <th class="table-header-cell" rowspan="{% get_rowspan institution_id_rowspan_info item.institution_id %}">
+                                    {{ item.institution_name }}
+                                </th>
+                            {% endifchanged %}
+                            <!-- The domain header column with rowspan attribute -->
+                            {% ifchanged item.institution_id item.domain %}
+                                <th class="table-header-cell" rowspan="{% get_rowspan domain_rowspan_info item.institution_id|add:'__'|add:item.domain %}">
+                                    {% if item.domain == 'default' %}
+                                        {% trans "Default" %}
+                                    {% else %}
+                                        {{ item.domain }}
+                                    {% endif %}
+                                </th>
+                            {% endifchanged %}
+                            <!-- The is_ial2_or_aal2 header column with rowspan attribute -->
+                            {% ifchanged item.institution_id item.domain item.is_ial2_or_aal2 %}
+                                {% with is_ial2_or_aal2_key=item.is_ial2_or_aal2|yesno:'True,False' %}
+                                    <th class="table-header-cell"
+                                        rowspan="{% get_rowspan ial2_aal2_rowspan_info item.institution_id|add:'__'|add:item.domain|add:'__'|add:is_ial2_or_aal2_key %}">
+                                        {% if item.is_ial2_or_aal2 %}
+                                            {% trans "IAL2/AAL2 User" %}
+                                        {% else %}
+                                            {% trans "Non IAL2/AAL2 User" %}
+                                        {% endif %}
+                                    </th>
+                                {% endwith %}
+                            {% endifchanged %}
+                            <!-- The user_domain header column -->
+                            <th class="table-header-cell">
+                                {% if item.user_domain == 'default' %}
+                                    {% trans "Default" %}
+                                {% else %}
+                                    {{ item.user_domain }}
+                                {% endif %}
+                            </th>
+                            <!-- The project_limit_number column -->
+                            <td class="text-center fixed-table-cell">
+                                {% if item.project_limit_number is not None %}
+                                    {{ item.project_limit_number }}
+                                {% else %}
+                                    {% trans "No limit" %}
+                                {% endif %}
+                            </td>
+                            <!-- The following function code columns -->
+                            {% for function_code, function_name in column_data.items %}
+                                <td class="text-center fixed-table-cell">
+                                    {% if item.is_whitelist and function_code in item.function_codes %}
+                                        {% trans "O" %}
+                                    {% elif not item.is_whitelist and function_code not in item.function_codes  %}
+                                        {% trans "O" %}
+                                    {% else %}
+                                        {% trans "X" %}
+                                    {% endif %}
+                                </td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <h3>{% trans "No data found" %}</h3>
+    {% endif %}
+
+{% endblock content %}
+
+{% block bottom_js %}
+    {% render_bundle 'service-access-control-setting' %}
+{% endblock %}

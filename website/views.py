@@ -201,6 +201,7 @@ def my_projects(auth):
             'dashboard_id': my_projects_id,
             'storage_regions': region_list,
             'storage_flag_is_active': storage_i18n_flag_active(),
+            'can_create_new_project': user.can_create_new_project,
             }
 
 

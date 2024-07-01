@@ -357,6 +357,10 @@ msgstr "削除のリクエスト"
 msgid "RDM Users"
 msgstr "ユーザ管理"
 
+#: admin/templates/base.html:186
+msgid "Service Access Control"
+msgstr "サービスアクセス制御管理"
+
 #: admin/templates/base.html:163
 #: admin/templates/user_emails/user_emails.html:112
 msgid "User Emails"
@@ -3028,6 +3032,37 @@ msgstr "タイムスタンプの検証"
 #: admin/templates/rdm_timestampsettings/node_list.html:43
 msgid "Select Timestamp Function"
 msgstr "タイムスタンプ機能を選択"
+
+#: admin/templates/service_access_control_setting/list.html
+msgid "Service Access Control Setting Management"
+msgstr "サービスアクセス制御管理"
+
+msgid "No data found"
+msgstr "データがありません。"
+
+msgid "Create setting"
+msgstr "設定作成"
+
+msgid "IAL2/AAL2 User"
+msgstr "IAL2/AAL2ユーザ"
+
+msgid "Non IAL2/AAL2 User"
+msgstr "IAL2/AAL2ユーザ以外"
+
+msgid "Default"
+msgstr "デフォルト"
+
+msgid "Project Limit Number"
+msgstr "プロジェクト作成可能数"
+
+msgid "No limit"
+msgstr "制限無し"
+
+msgid "O"
+msgstr "〇"
+
+msgid "X"
+msgstr "✕"
 
 #: admin/templates/spam/detail.html:7
 msgid "Comment"

@@ -53,7 +53,14 @@ var ProjectSettings = oop.extend(
         updateError: function(xhr, status, error) {
             var self = this;
             var errorMessage;
-            if (error === 'BAD REQUEST') {
+            if (xhr.status === 403) {
+                var continueHandle = $osf.handleErrorResponse(xhr);
+                if (continueHandle === false) {
+                    return;
+                }
+                self.changeMessage(_('You do not have permission to operate a project.'), 'text-danger');
+                errorMessage = _('You do not have permission to operate a project.');
+            } else if (error === 'BAD REQUEST') {
                 self.changeMessage(language.updateErrorMessage400, 'text-danger');
                 errorMessage = language.updateErrorMessage400;
             }
@@ -184,7 +191,17 @@ var getConfirmationCode = function(nodeType, isSupplementalProject) {
                 // Redirect to either the parent project or the dashboard
                 window.location.href = response.url;
             });
-            request.fail($osf.handleJSONError);
+            request.fail(function(xhr) {
+                if (xhr.status === 403) {
+                    var continueHandle = $osf.handleErrorResponse(xhr);
+                    if (continueHandle === false) {
+                        return;
+                    }
+                    $osf.growl('Error:', _('You do not have permission to operate a project.'));
+                } else {
+                    $osf.handleJSONError(xhr);
+                }
+            });
         },
         buttons: {
             success: {

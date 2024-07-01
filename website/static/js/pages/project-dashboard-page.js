@@ -669,6 +669,13 @@ $(document).ready(function () {
 
             request.fail(function(xhr, textStatus, error) {
                 window.contextVars.node.tags.splice(window.contextVars.node.tags.indexOf(tag),1);
+                if (xhr.status === 403) {
+                    if ($osf.handleErrorResponse(xhr) === false) {
+                        return;
+                    }
+                    $osf.growl('Error', _('You do not have permission to operate a project.'));
+                }
+                $('#node-tags').importTags(window.contextVars.node.tags.join(','));
                 Raven.captureMessage(_('Failed to add tag'), {
                     extra: {
                         tag: tag, url: tagsApiUrl, textStatus: textStatus, error: error
@@ -680,13 +687,13 @@ $(document).ready(function () {
             if (!tag) {
                 return false;
             }
-            window.contextVars.node.tags.splice(window.contextVars.node.tags.indexOf(tag),1);
+            var newTags = $.extend(true, [], window.contextVars.node.tags);
             var payload = {
                 data: {
                     type: nodeType,
                     id: window.contextVars.node.id,
                     attributes: {
-                        tags: window.contextVars.node.tags
+                        tags: newTags.splice(newTags.indexOf(tag),1)
                     }
                 }
             };
@@ -698,13 +705,22 @@ $(document).ready(function () {
                     data: payload,
                     isCors: true
                 }
-            );
+            ).done(function (){
+                window.contextVars.node.tags.splice(window.contextVars.node.tags.indexOf(tag),1);
+            });
 
             request.fail(function(xhr, textStatus, error) {
-                window.contextVars.node.tags.push(tag);
                 // Suppress "tag not found" errors, as the end result is what the user wanted (tag is gone)- eg could be because two people were working at same time
                 if (xhr.status !== 409) {
-                    $osf.growl('Error', _('Could not remove tag'));
+                    if (xhr.status === 403) {
+                        if ($osf.handleErrorResponse(xhr) === false) {
+                            return;
+                        }
+                        $osf.growl('Error', _('You do not have permission to operate a project.'));
+                    } else {
+                        $osf.growl('Error', _('Could not remove tag'));
+                    }
+                    $('#node-tags').importTags(window.contextVars.node.tags.join(','));
                     Raven.captureMessage(_('Failed to remove tag'), {
                         extra: {
                             tag: tag, url: tagsApiUrl, textStatus: textStatus, error: error

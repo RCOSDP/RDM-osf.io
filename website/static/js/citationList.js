@@ -109,9 +109,18 @@ var ViewModel = oop.defclass({
             if (!self.customCitation()) {
 		        self.fetch();
 		    }
-        }).fail(function() {
-            $osf.growl('Error', _('Your custom citation not updated. Please refresh the page and try ') +
-            sprintf(_('again or contact %1$s') , $osf.osfSupportLink()) + _(' if the problem persists.'), 'danger');
+        }).fail(function(xhr) {
+            self.customCitation(self.initialCustomCitation());
+            if (xhr.status === 403) {
+                var continueHandle = $osf.handleErrorResponse(xhr);
+                if (continueHandle === false) {
+                    return;
+                }
+                $osf.growl('Error', _('You do not have permission to operate a project.'));
+            } else {
+                $osf.growl('Error', _('Your custom citation not updated. Please refresh the page and try ') +
+                sprintf(_('again or contact %1$s') , $osf.osfSupportLink()) + _(' if the problem persists.'), 'danger');
+            }
         }).always(function() {
             self.loading(false);
         });

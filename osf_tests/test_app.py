@@ -25,6 +25,7 @@ def test_attach_handlers():
         framework.sessions.prepare_private_key,
         framework.sessions.before_request,
         framework.csrf.handlers.before_request,
+        framework.function_control.handlers.function_control_before_request,
     }
 
     assert_after_funcs = {

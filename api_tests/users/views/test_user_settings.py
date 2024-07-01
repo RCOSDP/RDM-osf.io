@@ -601,3 +601,26 @@ class TestUserEmailDetail:
         res = app.get(url, auth=user_one.auth)
         assert mock_send_confirm_email.call_count == call_count
         assert res.status_code == 200
+
+
+@pytest.mark.django_db
+class TestUserCreateProjectPermission:
+    @pytest.fixture()
+    def url(self, user_one):
+        return '/{}users/{}/settings/create-project-permission/'.format(API_BASE, user_one._id)
+
+    def test_get_true(self, app, url, user_one):
+        with mock.patch('osf.models.user.OSFUser.can_create_new_project', new_callable=mock.PropertyMock) as mock_can_create_new_project:
+            mock_can_create_new_project.return_value = True
+            res = app.get(url, auth=user_one.auth)
+            assert mock_can_create_new_project.called
+            assert res.status_code == 200
+            assert res.json.get('can_create_new_project') is True
+
+    def test_get_false(self, app, url, user_one):
+        with mock.patch('osf.models.user.OSFUser.can_create_new_project', new_callable=mock.PropertyMock) as mock_can_create_new_project:
+            mock_can_create_new_project.return_value = False
+            res = app.get(url, auth=user_one.auth)
+            assert mock_can_create_new_project.called
+            assert res.status_code == 200
+            assert res.json.get('can_create_new_project') is False

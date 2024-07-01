@@ -181,6 +181,13 @@
               </div>
           {% endif %}
           {% if user.is_superuser or user.is_staff %}
+              <li>
+                  <a href="{% url 'service_access_control_setting:list' %}">
+                      <i class='fa fa-link'></i> <span> {% trans "Service Access Control" %}</span>
+                  </a>
+              </li>
+          {% endif %}
+          {% if user.is_superuser or user.is_staff %}
               <li class="{% if request.resolver_match.url_name == 'search' %}active{% endif %}">
                   <a href="{% url 'user-emails:search' %}">
                       <i class='fa fa-link'></i> <span> {% trans "RDM" %} {% trans "User Emails" %}</span>

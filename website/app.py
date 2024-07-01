@@ -21,6 +21,7 @@ from framework.logging import logger as root_logger  # noqa
 from framework.postcommit_tasks import handlers as postcommit_handlers
 from framework.sentry import sentry
 from framework.transactions import handlers as transaction_handlers
+from framework.function_control import handlers as function_control_handlers
 # Imports necessary to connect signals
 from website.archiver import listeners  # noqa
 from website.mails import listeners  # noqa
@@ -69,6 +70,9 @@ def attach_handlers(app, settings):
     # prepare_private_key, else view-only links won't work
     add_handlers(app, {'before_request': framework.sessions.before_request,
                        'after_request': framework.sessions.after_request})
+
+    # Attach handler for checking URL access for user
+    add_handlers(app, function_control_handlers.handlers)
 
     return app
 

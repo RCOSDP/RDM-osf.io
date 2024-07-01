@@ -78,10 +78,16 @@ QuickDeleteViewModel.prototype.confirmChanges = function () {
     });
     request.fail( function (xhr, status, error) {
         var errorMessage = sprintf(_('Unable to delete %1$s') , self.nodeType);
-        if (xhr.responseJSON && xhr.responseJSON.errors) {
+        if (xhr.status === 403) {
+            var continueHandle = $osf.handleErrorResponse(xhr);
+            if (continueHandle === false) {
+                return;
+            }
+            errorMessage = _('You do not have permission to operate a project.');
+        } else if (xhr.responseJSON && xhr.responseJSON.errors) {
             errorMessage = xhr.responseJSON.errors[0].detail;
         }
-        $osf.growl(sprintf(_('Problem deleting %1$s') , self.nodeType, errorMessage));
+        $osf.growl(sprintf(_('Problem deleting %1$s') , self.nodeType), errorMessage);
         Raven.captureMessage(sprintf(_('Could not delete %$1s') , self.nodeType), {
             extra: {
                 url: self.nodeApiUrl, status: status, error: error
@@ -338,7 +344,9 @@ function batchNodesDelete(nodes) {
         }, function (xhr) {
             $osf.unblock();
             var errorMessage = sprintf(_('Unable to delete %1$s') , self.nodeType);
-            if (xhr.responseJSON && xhr.responseJSON.errors) {
+            if (xhr.status === 403) {
+                errorMessage = _('You do not have permission to operate a project.');
+            } else if (xhr.responseJSON && xhr.responseJSON.errors) {
                 errorMessage = xhr.responseJSON.errors[0].detail;
             }
             $osf.growl(sprintf(_('Problem deleting %1$s') , self.nodeType), errorMessage);

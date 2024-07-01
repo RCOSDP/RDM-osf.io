@@ -1,3 +1,4 @@
+import mock
 import pytest
 from nose.tools import *  # noqa:
 
@@ -1828,6 +1829,17 @@ class TestNodeCreate:
         )
         assert res.status_code == 400
         assert res.json['errors'][0]['detail'] == 'Region {} is invalid.'.format(bad_region_id)
+
+    def test_create_project__user_cannot_create_new_project(self, app, user_one, region, private_project, url):
+        with mock.patch('osf.models.user.OSFUser.can_create_new_project', new_callable=mock.PropertyMock) as mock_can_create_new_project:
+            mock_can_create_new_project.return_value = False
+            res = app.post_json_api(
+                url, private_project, auth=user_one.auth,
+                expect_errors=True
+            )
+            assert mock_can_create_new_project.called
+            assert res.status_code == 400
+            assert res.json['errors'][0]['type'] == 1
 
     def test_create_project_errors(
             self, app, user_one, title, description, category, url):

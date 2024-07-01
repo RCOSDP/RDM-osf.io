@@ -54,7 +54,9 @@ var AddProject = {
         self.saveResult = m.prop({});
         self.errorMessageType = m.prop('unknown');
         self.errorMessage = {
-            'unknown' : _('There was an unknown error. Please try again later.')
+            'unknown' : _('There was an unknown error. Please try again later.'),
+            'forbidden' : _('You do not have permission to operate a project.'),
+            'create_project_limited' : _('The new project cannot be created due to the created project number is greater than or equal the project number can create.')
         };
         self.userProjects =  m.prop([]); // User nodes
 
@@ -121,6 +123,21 @@ var AddProject = {
                 self.isAdding(false);
             };
             var error = function _error (result) {
+                self.errorMessageType('unknown');
+                var errors = result.errors;
+                if (errors && errors.length > 0) {
+                    var status_code = errors[0].status;
+                    var type = errors[0].type;
+                    if (status_code && status_code === 403) {
+                        if (type === 0) {
+                            window.location.href = '/403';
+                            return;
+                        }
+                        self.errorMessageType('forbidden');
+                    } else if (status_code && status_code === 400 && type === 1) {
+                        self.errorMessageType('create_project_limited');
+                    }
+                }
                 self.viewState('error');
                 self.isAdding(false);
             };

@@ -99,6 +99,9 @@ function NodeSettings() {
         callback();
       }
     }).fail(function(xhr, status, error) {
+      if (osfHelpers.handleErrorResponse(xhr) === false) {
+        return;
+      }
       Raven.captureMessage('Error while retrieving addon info', {
         extra: {
           url: url,

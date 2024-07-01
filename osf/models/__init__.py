@@ -67,3 +67,5 @@ from osf.models.institution_entitlement import InstitutionEntitlement  # noqa
 from osf.models.export_data_location import ExportDataLocation  # noqa
 from osf.models.export_data import ExportData  # noqa
 from osf.models.export_data_restore import ExportDataRestore  # noqa
+from osf.models.function import Function  # noqa
+from osf.models.service_access_control_setting import ServiceAccessControlSetting  # noqa

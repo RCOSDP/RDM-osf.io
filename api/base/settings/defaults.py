@@ -244,6 +244,8 @@ MIDDLEWARE = (
     'django.middleware.security.SecurityMiddleware',
     # 'waffle.middleware.WaffleMiddleware',
     'api.base.middleware.SloanOverrideWaffleMiddleware',  # Delete this and uncomment WaffleMiddleware to revert Sloan
+    # Middleware for checking API v2 access for user
+    'api.base.middleware.ServiceAccessControlMiddleware',
 )
 
 TEMPLATES = [
@@ -498,3 +500,87 @@ WARNING_THRESHOLD = 0.9
 BASE_FOR_METRIC_PREFIX = 1000
 SIZE_UNIT_GB = BASE_FOR_METRIC_PREFIX ** 3
 NII_STORAGE_REGION_ID = 1
+
+# List of API that will return error message if user is denied by ServiceAccessControlSetting
+ERROR_MESSAGE_API_LIST = [
+    {
+        'api': r'^/v2/nodes/?$',
+        'method': 'POST',
+    },
+    {
+        'api': r'^/api/v1/project/[a-z0-9A-Z]+/?$',
+        'method': 'PUT',
+    },
+    {
+        'api': r'^/api/v1/project/[a-z0-9A-Z]+/?$',
+        'method': 'DELETE',
+    },
+    {
+        'api': r'^/api/v1/project/[a-z0-9A-Z]+/edit/?$',
+        'method': 'POST',
+    },
+    {
+        'api': r'^/v2/nodes/[a-z0-9A-Z]+/children/?$',
+        'method': 'POST',
+    },
+    {
+        'api': r'^/v2/nodes/[a-z0-9A-Z]+/forks/?$',
+        'method': 'POST',
+    },
+    {
+        'api': r'^/api/v1/project/new/[a-z0-9A-Z]+/?$',
+        'method': 'POST',
+    },
+    {
+        'api': r'^/v2/nodes/[a-z0-9A-Z]+/node_links/?$',
+        'method': 'POST',
+    },
+    {
+        'api': r'^/api/v1/project/[a-z0-9A-Z]+/pointer/?$',
+        'method': 'DELETE',
+    },
+    {
+        'api': r'^/v2/nodes/[a-z0-9A-Z]+/?$',
+        'method': 'PATCH',
+    },
+    {
+        'api': r'^/api/v1/pointer/?$',
+        'method': 'POST',
+    },
+    {
+        'api': r'^/v2/collections/[a-z0-9A-Z]+/relationships/linked_nodes/?$',
+        'method': 'DELETE',
+    },
+    {
+        'api': r'^/v2/nodes/?$',
+        'method': 'PATCH',
+    },
+    {
+        'api': r'^/api/v1/project/[a-z0-9A-Z]+/invite_contributor/?$',
+        'method': 'POST',
+    },
+    {
+        'api': r'^/api/v1/project/[a-z0-9A-Z]+/contributors/?$',
+        'method': 'POST',
+    },
+    {
+        'api': r'^/api/v1/project/[a-z0-9A-Z]+/contributor/remove/?$',
+        'method': 'POST',
+    },
+    {
+        'api': r'^/api/v1/project/[a-z0-9A-Z]+/contributors/manage/?$',
+        'method': 'POST',
+    },
+    {
+        'api': r'^/api/v1/project/[a-z0-9A-Z]+/private_link/?$',
+        'method': 'POST',
+    },
+    {
+        'api': r'^/api/v1/project/[a-z0-9A-Z]+/private_link/?$',
+        'method': 'DELETE',
+    },
+    {
+        'api': r'^/v2/nodes/?$',
+        'method': 'DELETE',
+    },
+]

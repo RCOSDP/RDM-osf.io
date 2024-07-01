@@ -2491,6 +2491,14 @@ msgstr ""
 msgid "There was an unknown error. Please try again later."
 msgstr ""
 
+#: website/static/js/addProjectPlugin.js:58
+msgid "You do not have permission to operate a project."
+msgstr ""
+
+#: website/static/js/addProjectPlugin.js:59
+msgid "The new project cannot be created due to the created project number is greater than or equal the project number can create."
+msgstr ""
+
 #: website/static/js/addProjectPlugin.js:184 website/static/js/conference.js:19
 msgid "Title"
 msgstr ""
@@ -7426,3 +7434,12 @@ msgstr ""
 msgid "Cannot be restored because export data does not exist"
 msgstr ""
 
+# message in admin/static/js/service_access_control_setting/service-access-control-setting.js
+msgid "Not a JSON file."
+msgstr ""
+
+msgid "JSON file is invalid."
+msgstr ""
+
+msgid "Config data is invalid."
+msgstr ""

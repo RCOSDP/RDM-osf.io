@@ -255,7 +255,13 @@ NodesPrivacyViewModel.prototype.confirmChanges =  function() {
         }).fail(function (xhr) {
             $osf.unblock();
             var errorMessage = _('Unable to update project privacy');
-            if (xhr.responseJSON && xhr.responseJSON.errors) {
+            if (xhr.status === 403) {
+                var continueHandle = $osf.handleErrorResponse(xhr);
+                if (continueHandle === false) {
+                    return;
+                }
+                errorMessage = _('You do not have permission to operate a project.');
+            } else if (xhr.responseJSON && xhr.responseJSON.errors) {
                 errorMessage = xhr.responseJSON.errors[0].detail;
             }
             $osf.growl(_('Problem changing privacy'), errorMessage);
