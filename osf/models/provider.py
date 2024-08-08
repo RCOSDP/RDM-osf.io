@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.apps import apps
 from django.contrib.postgres import fields
+from django.core.exceptions import ValidationError
 from typedmodels.models import TypedModel
 from api.taxonomies.utils import optimize_subject_query
 from django.db import models
@@ -28,6 +29,12 @@ class AbstractProvider(TypedModel, TypedObjectIDMixin, ReviewProviderMixin, Dirt
     class Meta:
         unique_together = ('_id', 'type')
         permissions = REVIEW_PERMISSIONS
+
+    default__id = 'osf'
+
+    @classmethod
+    def get_default(cls):
+        return cls.objects.get(_id=cls.default__id)
 
     primary_collection = models.ForeignKey('Collection', related_name='+',
                                            null=True, blank=True, on_delete=models.SET_NULL)
@@ -133,11 +140,16 @@ class CollectionProvider(AbstractProvider):
 
 
 class RegistrationProvider(AbstractProvider):
+
     class Meta:
         permissions = (
             # custom permissions for use in the OSF Admin App
             ('view_registrationprovider', 'Can view registration provider details'),
         )
+
+    @property
+    def is_default(self):
+        return self._id == self.default__id
 
     @property
     def readable_type(self):
@@ -150,6 +162,11 @@ class RegistrationProvider(AbstractProvider):
     def absolute_api_v2_url(self):
         path = '/providers/registrations/{}/'.format(self._id)
         return api_v2_url(path)
+
+    def validate_schema(self, schema):
+        if not self.schemas.filter(id=schema.id).exists():
+            raise ValidationError('Invalid schema for provider.')
+
 
 class PreprintProvider(AbstractProvider):
     PUSH_SHARE_TYPE_CHOICES = (('Preprint', 'Preprint'),
