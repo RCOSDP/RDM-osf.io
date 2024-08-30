@@ -182,7 +182,8 @@ class NodeSettings(InstitutionsNodeSettings, InstitutionsStorageAddon):
             'secret_key': self.provider.password,
         }
 
-    def serialize_waterbutler_settings(self):
+    def serialize_waterbutler_settings(self, auth=None):
+        self.auth = auth
         return {
             'nid': self.owner._id,
             'bucket': self.bucket,

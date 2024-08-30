@@ -43,14 +43,52 @@ class InstitutionsNodeSettings(BaseNodeSettings):
         RdmAddonOption, null=True, blank=True, on_delete=models.CASCADE,
         related_name='%(app_label)s_node_settings')
 
+    auth = None
+
+    @property
+    def _institutions_disabled(self, auth=None):
+        if not self.config.for_institutions:
+            raise ValueError('_institutions_disabled is only valid for institutional storage addons')
+
+        data_provider, region_provider_set, institution_id = get_region_provider(self.owner, self.auth)
+
+        if (self.short_name == 'osfstorage'
+                and (data_provider[self.id]['region_disabled'] or not data_provider[self.id]['is_allowed'])):
+            return True
+        if self.config.for_institutions:
+            if self.config.short_name not in region_provider_set:
+                return True
+            if institution_id is not None:
+                if self.short_name != 'osfstorage':
+                    region = Region.objects.filter(id=self.region.id).first()
+                else:
+                    region = Region.objects.filter(
+                        _id=institution_id,
+                        waterbutler_settings__storage__provider=self.short_name).first()
+                if region is not None and self.auth is not None:
+                    region.is_allowed = check_authentication_attribute(
+                        self.auth.user,
+                        region.allow_expression,
+                        region.is_allowed
+                    )
+                    if not region.is_allowed:
+                        return True
+
+        return False
+
     class Meta:
         abstract = True
+
+    def setting_auth(self, auth):
+        self.auth = auth
 
     ###
     ### common methods:
     ###
     @property
     def complete(self):
+        if self._institutions_disabled:
+            return False
         return self.has_auth and self.folder_id
 
     @property
@@ -76,13 +114,15 @@ class InstitutionsNodeSettings(BaseNodeSettings):
         self.addon_option = None
         self.save()
 
-    def serialize_waterbutler_credentials(self):
+    def serialize_waterbutler_credentials(self, auth = None):
+        self.setting_auth(auth)
         if not self.has_auth:
             raise exceptions.AddonError('{} is not authorized'.format(
                 self.FULL_NAME))
         return self.serialize_waterbutler_credentials_impl()
 
-    def serialize_waterbutler_settings(self):
+    def serialize_waterbutler_settings(self, auth = None):
+        self.setting_auth(auth)
         if not self.folder_id:
             raise exceptions.AddonError('{} is not configured'.format(
                 self.FULL_NAME))
@@ -565,3 +605,40 @@ def celery_sync_all(self, institution_id, target_addons=None):
 
 def sync_all(institution_id, target_addons=None):
     celery_sync_all.delay(institution_id, target_addons=target_addons)
+
+# get region_provider information ... in_institutions, region_disabled, region_provider
+def get_region_provider(node, auth=None):
+    # GRDM-37149: Display only configured institutional providers
+    from addons.base import institutions_utils
+    from website.util.rubeus import check_authentication_attribute
+    region_disabled = False
+    region_provider = None
+    region_provider_set = set()
+    osf_addons = node.get_osfstorage_addons()
+    data = {}
+    institution_id = None
+    for osf_addon in osf_addons:
+        region = osf_addon.region
+        institution_id = region._id
+        if region and region.waterbutler_settings:
+            region_disabled = region.waterbutler_settings.get(
+                'disabled', False)
+            storage = region.waterbutler_settings.get('storage', None)
+            if storage:
+                region_provider = storage.get('provider', None)
+                region_provider_set.add(region_provider)
+
+        if auth is not None:
+            region.is_allowed = check_authentication_attribute(
+                auth.user,
+                region.allow_expression,
+                region.is_allowed
+            )
+
+        data[osf_addon.id] = {
+            'region_disabled': region_disabled,
+            'region_provider': region_provider,
+            'is_allowed': region.is_allowed,
+        }
+
+    return data, region_provider_set, institution_id

@@ -298,14 +298,14 @@ class NodeSettings(BaseNodeSettings, BaseStorageAddon):
     #     pass
 
     # Required
-    def serialize_waterbutler_credentials(self):
+    def serialize_waterbutler_credentials(self, auth=None):
         if not self.has_auth:
             logger.info('Addon is not authorized: node={}'.format(self.owner._id))
             return None
         return {'token': self.fileaccess_token}
 
     # Required
-    def serialize_waterbutler_settings(self):
+    def serialize_waterbutler_settings(self, auth=None):
         if not self.configured:
             logger.info('Addon is not configured: node={}'.format(self.owner._id))
             return None
@@ -346,10 +346,12 @@ class NodeSettings(BaseNodeSettings, BaseStorageAddon):
 
     @property
     def complete(self):
+        if self._institutions_disabled:
+            return False
         return self.has_auth and self.group_id and self.team_folder_id
 
-    @property
-    def configured(self):
+    def configured(self, auth=None):
+        self.auth = auth
         return self.complete
 
     @property

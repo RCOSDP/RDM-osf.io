@@ -595,9 +595,42 @@ class UserSettings(BaseUserSettings):
 
 
 class NodeSettings(BaseNodeSettings, BaseStorageAddon):
-    # Required overrides
-    complete = True
-    has_auth = True
+    auth = None
+
+    @property
+    def has_auth(self):
+        # GRDM-37149: Hide osfstorage for institutional provider
+        from addons.base import institutions_utils
+
+        data_provider, region_provider_set, institution_id = institutions_utils.get_region_provider(self.owner, self.auth)
+        if (self.short_name == 'osfstorage'
+                and (data_provider[self.id]['region_disabled'] or not data_provider[self.id]['is_allowed'])):
+            return False
+        if self.config.for_institutions:
+            if self.config.short_name not in region_provider_set:
+                return False
+            if institution_id is not None:
+                if self.short_name != 'osfstorage':
+                    region = Region.objects.filter(id=self.region.id).first()
+                else:
+                    region = Region.objects.filter(
+                        _id=institution_id,
+                        waterbutler_settings__storage__provider=self.short_name).first()
+                if region is not None:
+                    region.is_allowed = check_authentication_attribute(
+                        self.auth.user,
+                        region.allow_expression,
+                        region.is_allowed
+                    )
+                    if not region.is_allowed:
+                        return False
+
+        return True
+
+    @property
+    def complete(self):
+        # GRDM-37149: Hide osfstorage for institutional provider
+        return self.has_auth
 
     root_node = models.ForeignKey(OsfStorageFolder, null=True, blank=True, on_delete=models.CASCADE)
 
@@ -609,6 +642,9 @@ class NodeSettings(BaseNodeSettings, BaseStorageAddon):
     @property
     def folder_name(self):
         return self.root_node.name
+
+    def setting_auth(self, auth):
+        self.auth = auth
 
     def get_root(self):
         return self.root_node
@@ -659,7 +695,13 @@ class NodeSettings(BaseNodeSettings, BaseStorageAddon):
 
         return clone, None
 
-    def serialize_waterbutler_settings(self):
+    def serialize_waterbutler_settings(self, auth=None):
+        #GRDM-37149: Hide osfstorage for institutional provider
+        self.node_auth = auth
+        if not self.has_auth:
+            raise AddonError('{} is not configured'.format(
+                self.config.short_name))
+
         return dict(Region.objects.get(id=self.region_id).waterbutler_settings, **{
             'nid': self.owner._id,
             'rootId': self.root_node._id,
@@ -671,7 +713,13 @@ class NodeSettings(BaseNodeSettings, BaseStorageAddon):
             ),
         })
 
-    def serialize_waterbutler_credentials(self):
+    def serialize_waterbutler_credentials(self, auth=None):
+        # GRDM-37149: Hide osfstorage for institutional provider
+        self.node_auth = auth
+        if not self.has_auth:
+            raise AddonError('{} is not configured'.format(
+                self.config.short_name))
+
         return Region.objects.get(id=self.region_id).waterbutler_credentials
 
     def create_waterbutler_log(self, auth, action, metadata):

@@ -446,13 +446,15 @@ def get_auth(auth, **kwargs):
         if isinstance(node, AbstractNode):
             credentials = node.serialize_waterbutler_credentials(
                 provider_name,
-                root_id=file_node_root_id)
+                root_id=file_node_root_id,
+                auth=auth)
             waterbutler_settings = node.serialize_waterbutler_settings(
                 provider_name,
-                root_id=file_node_root_id)
+                root_id=file_node_root_id,
+                auth=auth)
         else:
-            credentials = node.serialize_waterbutler_credentials(provider_name)
-            waterbutler_settings = node.serialize_waterbutler_settings(provider_name)
+            credentials = node.serialize_waterbutler_credentials(provider_name, auth=auth)
+            waterbutler_settings = node.serialize_waterbutler_settings(provider_name, auth=auth)
 
     if isinstance(credentials.get('token'), bytes):
         credentials['token'] = credentials.get('token').decode()

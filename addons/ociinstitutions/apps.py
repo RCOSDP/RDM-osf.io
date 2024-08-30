@@ -18,6 +18,11 @@ TEMPLATE_PATH = os.path.join(
 def ociinstitutions_root(addon_config, node_settings, auth, **kwargs):
     from addons.osfstorage.models import Region
 
+    # GRDM-37149: Hide deactivated institutional storage
+    node_settings.setting_auth(auth)
+    if not node_settings.complete:
+        return None
+
     node = node_settings.owner
     institution = node_settings.addon_option.institution
     if Region.objects.filter(_id=institution._id).exists():

@@ -363,6 +363,47 @@ class BaseNodeSettings(BaseAddonSettings):
     class Meta:
         abstract = True
 
+    auth = None
+
+    @property
+    def _institutions_disabled(self):
+        if not self.config.for_institutions:
+            raise ValueError('_institutions_disabled is only valid for institutional storage addons')
+
+        from addons.base import institutions_utils
+        
+        data_provider, region_provider_set, institution_id = institutions_utils.get_region_provider(self.owner, self.auth)
+
+        if (self.short_name == 'osfstorage'
+                and (data_provider[self.id]['region_disabled'] or not data_provider[self.id]['is_allowed'])):
+            return True
+        if self.config.for_institutions:
+            if self.config.short_name not in region_provider_set:
+                return True
+            if institution_id is not None:
+                from addons.osfstorage.models import Region
+                if self.short_name != 'osfstorage':
+                    region = Region.objects.filter(id=self.region.id).first()
+                else:
+                    region = Region.objects.filter(
+                        _id=institution_id,
+                        waterbutler_settings__storage__provider=self.short_name).first()
+                if region is not None and self.auth is not None:
+                    from website.util.rubeus import check_authentication_attribute
+                    region.is_allowed = check_authentication_attribute(
+                        self.auth.user,
+                        region.allow_expression,
+                        region.is_allowed
+                    )
+                    if not region.is_allowed:
+                        return True
+
+        return False
+
+    def setting_auth(self, auth=None):
+        self.auth = auth
+        return True
+
     @property
     def complete(self):
         """Whether or not this addon is properly configured
@@ -370,11 +411,11 @@ class BaseNodeSettings(BaseAddonSettings):
         """
         raise NotImplementedError()
 
-    @property
-    def configured(self):
+    def configured(self, auth=None):
         """Whether or not this addon has had a folder connected.
         :rtype bool:
         """
+        self.auth = auth
         return self.complete
 
     @property
@@ -689,8 +730,8 @@ class BaseOAuthNodeSettings(BaseNodeSettings):
             )
         )
 
-    @property
-    def configured(self):
+    def configured(self, auth=None):
+        self.auth = auth
         return bool(
             self.complete and
             (self.folder_id or self.folder_name or self.folder_path)

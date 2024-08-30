@@ -1393,6 +1393,15 @@ class NodeStorageProviderSerializer(JSONAPISerializer):
     name = ser.CharField(read_only=True)
     path = ser.CharField(read_only=True)
     node = ser.CharField(source='node_id', read_only=True)
+    # GRDM-37149: Attribute value indicating whether it is an institutional storage
+    for_institutions = ser.SerializerMethodField(read_only=True, help_text='Whether the addon is institutional storage')
+
+    def get_for_institutions(self, obj):
+        # GRDM-37149: Attribute value indicating whether it is an institutional storage
+        if obj.provider not in website_settings.ADDONS_AVAILABLE_DICT:
+            return False
+        return website_settings.ADDONS_AVAILABLE_DICT[obj.provider].for_institutions
+
     provider = ser.CharField(read_only=True)
     files = NodeFileHyperLinkField(
         related_view='nodes:node-files',

@@ -1521,7 +1521,7 @@ class NodeStorageProvidersList(JSONAPIBaseView, generics.ListAPIView, NodeMixin)
             for addon
             in self.get_node().get_addons()
             if addon.config.has_hgrid_files
-            and addon.configured
+            and addon.configured(self.request)
         ]
 
 class NodeStorageProviderDetail(JSONAPIBaseView, generics.RetrieveAPIView, NodeMixin):

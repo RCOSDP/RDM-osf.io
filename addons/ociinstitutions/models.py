@@ -172,14 +172,14 @@ class NodeSettings(InstitutionsNodeSettings, InstitutionsStorageAddon):
     def root_prefix(self):
         return self.folder_name
 
-    def serialize_waterbutler_credentials_impl(self):
+    def serialize_waterbutler_credentials_impl(self, auth=None):
         return {
             'host': self.provider.host,
             'access_key': self.provider.username,
             'secret_key': self.provider.password,
         }
 
-    def serialize_waterbutler_settings(self):
+    def serialize_waterbutler_settings(self, auth=None):
         return {
             'nid': self.owner._id,
             'bucket': self.bucket,

@@ -293,58 +293,8 @@ class NodeFileCollector(object):
     def _collect_addons(self, node):
         from addons.osfstorage.models import Region
         rv = []
-        region_disabled = False
-        region_provider = None
-        region_provider_set = set()
-        osf_addons = node.get_osfstorage_addons()
-        data = {}
-        institution_id = None
-        for osf_addon in osf_addons:
-            region = osf_addon.region
-            institution_id = region._id
-            if region and region.waterbutler_settings:
-                region_disabled = region.waterbutler_settings.get(
-                    'disabled', False)
-                storage = region.waterbutler_settings.get('storage', None)
-                if storage:
-                    region_provider = storage.get('provider', None)
-                    region_provider_set.add(region_provider)
-            region.is_allowed = check_authentication_attribute(
-                self.auth.user,
-                region.allow_expression,
-                region.is_allowed
-            )
-            data[osf_addon.id] = {
-                'region_disabled': region_disabled,
-                'region_provider': region_provider,
-                'is_allowed': region.is_allowed,
-            }
         for addon in node.get_addons():
             if addon.config.has_hgrid_files:
-                # skip storage
-                if (addon.short_name == 'osfstorage'
-                        and (data[addon.id]['region_disabled'] or not data[addon.id]['is_allowed'])):
-                    continue  # skip (hide osfstorage)
-                if addon.config.for_institutions:
-                    if addon.config.short_name not in region_provider_set:
-                        continue  # skip (hide this *institutions)
-                    if institution_id is not None:
-                        if addon.short_name != 'osfstorage':
-                            region = Region.objects.filter(id=addon.region.id).first()
-                        else:
-                            region = Region.objects.filter(
-                                _id=institution_id,
-                                waterbutler_settings__storage__provider=addon.short_name).first()
-                        if region is not None:
-                            region.is_allowed = check_authentication_attribute(
-                                self.auth.user,
-                                region.allow_expression,
-                                region.is_allowed
-                            )
-                            if not region.is_allowed:
-                                continue
-
-                # WARNING: get_hgrid_data can return None if the addon is added but has no credentials.
                 try:
                     temp = addon.config.get_hgrid_data(addon, self.auth, **self.extra)
                 except Exception as e:

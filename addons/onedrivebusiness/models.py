@@ -138,6 +138,8 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
 
     @property
     def complete(self):
+        if self._institutions_disabled:
+            return False
         return self.has_auth and self.folder_id is not None
 
     @property
@@ -171,12 +173,12 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
         region_provider = self.oauth_provider(region_external_account.external_account)
         return region_provider.fetch_access_token()
 
-    def serialize_waterbutler_credentials(self):
+    def serialize_waterbutler_credentials(self, auth=None):
         if not self.has_auth:
             raise exceptions.AddonError('Addon is not authorized')
         return {'token': self.fetch_access_token()}
 
-    def serialize_waterbutler_settings(self):
+    def serialize_waterbutler_settings(self, auth=None):
         if not self.folder_id:
             raise exceptions.AddonError('Cannot serialize settings for {} addon'.format(FULL_NAME))
         return {

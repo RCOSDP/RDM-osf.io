@@ -315,14 +315,14 @@ class NodeSettings(InstitutionsNodeSettings, InstitutionsStorageAddon):
         if first_exception:
             raise first_exception
 
-    def serialize_waterbutler_credentials_impl(self):
+    def serialize_waterbutler_credentials_impl(self, auth=None):
         return {
             'host': self.provider.host,
             'username': self.provider.username,
             'password': self.provider.password
         }
 
-    def serialize_waterbutler_settings_impl(self):
+    def serialize_waterbutler_settings_impl(self, auth=None):
         return {
             'nid': self.owner._id,
             'folder': self.root_folder_fullpath,

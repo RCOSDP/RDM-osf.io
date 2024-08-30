@@ -13,6 +13,26 @@ TEMPLATE_PATH = os.path.join(
 )
 
 
+def onedrivebusiness_root_folder(node_settings, auth, **kwargs):
+    """Return the Rubeus/HGrid-formatted response for the root folder only."""
+    # GRDM-37149: Hide deactivated institutional storage
+    from website.util import rubeus
+    
+    node_settings.setting_auth(auth)
+    if not node_settings.complete:
+        return None
+    node = node_settings.owner
+    root = rubeus.build_addon_root(
+        node_settings=node_settings,
+        name=node_settings.fetch_folder_name(),
+        permissions=auth,
+        user=auth.user,
+        nodeUrl=node.url,
+        nodeApiUrl=node.api_url,
+        private_key=kwargs.get('view_only', None),
+    )
+    return [root]
+
 class OneDriveBusinessAddonAppConfig(BaseAddonAppConfig):
 
     name = 'addons.{}'.format(SHORT_NAME)
