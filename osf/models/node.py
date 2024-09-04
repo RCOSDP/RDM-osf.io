@@ -2364,11 +2364,11 @@ class AbstractNode(DirtyFieldsMixin, TypedModel, AddonModelMixin, IdentifierMixi
     def is_registration_of(self, other):
         return self.is_derived_from(other, 'registered_from')
 
-    def serialize_waterbutler_credentials(self, provider_name, root_id=None):
-        return self.get_addon(provider_name, root_id=root_id).serialize_waterbutler_credentials()
+    def serialize_waterbutler_credentials(self, provider_name, root_id=None, auth=None):
+        return self.get_addon(provider_name, root_id=root_id).serialize_waterbutler_credentials(auth=auth)
 
-    def serialize_waterbutler_settings(self, provider_name, root_id=None):
-        return self.get_addon(provider_name, root_id=root_id).serialize_waterbutler_settings()
+    def serialize_waterbutler_settings(self, provider_name, root_id=None, auth=None):
+        return self.get_addon(provider_name, root_id=root_id).serialize_waterbutler_settings(auth=auth)
 
     def create_waterbutler_log(self, auth, action, payload):
         try:
