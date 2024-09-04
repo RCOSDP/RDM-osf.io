@@ -291,7 +291,6 @@ class NodeFileCollector(object):
         return self._serialize_node(node, children=data)
 
     def _collect_addons(self, node):
-        from addons.osfstorage.models import Region
         rv = []
         for addon in node.get_addons():
             if addon.config.has_hgrid_files:

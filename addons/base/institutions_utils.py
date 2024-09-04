@@ -114,14 +114,14 @@ class InstitutionsNodeSettings(BaseNodeSettings):
         self.addon_option = None
         self.save()
 
-    def serialize_waterbutler_credentials(self, auth = None):
+    def serialize_waterbutler_credentials(self, auth=None):
         self.setting_auth(auth)
         if not self.has_auth:
             raise exceptions.AddonError('{} is not authorized'.format(
                 self.FULL_NAME))
         return self.serialize_waterbutler_credentials_impl()
 
-    def serialize_waterbutler_settings(self, auth = None):
+    def serialize_waterbutler_settings(self, auth=None):
         self.setting_auth(auth)
         if not self.folder_id:
             raise exceptions.AddonError('{} is not configured'.format(
@@ -609,7 +609,6 @@ def sync_all(institution_id, target_addons=None):
 # get region_provider information ... in_institutions, region_disabled, region_provider
 def get_region_provider(node, auth=None):
     # GRDM-37149: Display only configured institutional providers
-    from addons.base import institutions_utils
     from website.util.rubeus import check_authentication_attribute
     region_disabled = False
     region_provider = None

@@ -1397,6 +1397,7 @@ class NodeStorageProviderSerializer(JSONAPISerializer):
     for_institutions = ser.SerializerMethodField(read_only=True, help_text='Whether the addon is institutional storage')
 
     def get_for_institutions(self, obj):
+        from website import settings as website_settings
         # GRDM-37149: Attribute value indicating whether it is an institutional storage
         if obj.provider not in website_settings.ADDONS_AVAILABLE_DICT:
             return False

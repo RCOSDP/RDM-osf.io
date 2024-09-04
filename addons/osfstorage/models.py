@@ -28,6 +28,7 @@ from website.util import api_url_for
 from website import settings as website_settings
 from addons.osfstorage.settings import DEFAULT_REGION_ID
 from website.util import api_v2_url
+from addons.base.exceptions import AddonError
 
 settings = apps.get_app_config('addons_osfstorage')
 
@@ -617,7 +618,7 @@ class NodeSettings(BaseNodeSettings, BaseStorageAddon):
                         _id=institution_id,
                         waterbutler_settings__storage__provider=self.short_name).first()
                 if region is not None:
-                    region.is_allowed = check_authentication_attribute(
+                    region.is_allowed = self.check_authentication_attribute(
                         self.auth.user,
                         region.allow_expression,
                         region.is_allowed
