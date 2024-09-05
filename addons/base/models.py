@@ -371,7 +371,7 @@ class BaseNodeSettings(BaseAddonSettings):
             raise ValueError('_institutions_disabled is only valid for institutional storage addons')
 
         from addons.base import institutions_utils
-        
+
         data_provider, region_provider_set, institution_id = institutions_utils.get_region_provider(self.owner, self.auth)
 
         if (self.short_name == 'osfstorage'

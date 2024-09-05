@@ -148,7 +148,7 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
 
         self.clear_auth()
 
-    def serialize_waterbutler_credentials(self):
+    def serialize_waterbutler_credentials(self, auth=None):
         if not self.has_auth:
             raise exceptions.AddonError('Addon is not authorized')
         try:
@@ -157,7 +157,7 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
         except Exception as error:  # TODO: specific exception
             raise HTTPError(error.status_code, data={'message_long': error.message})
 
-    def serialize_waterbutler_settings(self):
+    def serialize_waterbutler_settings(self, auth=None):
         if not self.folder_path or not self.folder_id:
             raise exceptions.AddonError('Folder is not configured')
         return {

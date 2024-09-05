@@ -253,12 +253,12 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
 
         return ret
 
-    def serialize_waterbutler_credentials(self):
+    def serialize_waterbutler_credentials(self, auth=None):
         if not self.complete or not self.repo:
             raise exceptions.AddonError('Addon is not authorized')
         return {'token': self.api.fetch_access_token()}
 
-    def serialize_waterbutler_settings(self):
+    def serialize_waterbutler_settings(self, auth=None):
         if not self.complete:
             raise exceptions.AddonError('Repo is not configured')
         return {

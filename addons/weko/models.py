@@ -113,7 +113,7 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
                 auth=auth,
             )
 
-    def serialize_waterbutler_credentials(self):
+    def serialize_waterbutler_credentials(self, auth=None):
         if not self.has_auth:
             raise exceptions.AddonError('Addon is not authorized')
         provider = WEKOProvider(self.external_account)
@@ -124,7 +124,7 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
             return {'password': provider.password,
                     'user_id': provider.userid}
 
-    def serialize_waterbutler_settings(self):
+    def serialize_waterbutler_settings(self, auth=None):
         if not self.folder_id:
             raise exceptions.AddonError('WEKO is not configured')
         provider = WEKOProvider(self.external_account)

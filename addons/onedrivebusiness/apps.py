@@ -17,7 +17,7 @@ def onedrivebusiness_root_folder(node_settings, auth, **kwargs):
     """Return the Rubeus/HGrid-formatted response for the root folder only."""
     # GRDM-37149: Hide deactivated institutional storage
     from website.util import rubeus
-    
+
     node_settings.setting_auth(auth)
     if not node_settings.complete:
         return None

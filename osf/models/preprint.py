@@ -914,7 +914,7 @@ class Preprint(DirtyFieldsMixin, GuidMixin, IdentifierMixin, ReviewableMixin, Ba
             logger.exception(e)
             log_exception()
 
-    def serialize_waterbutler_settings(self, provider_name=None):
+    def serialize_waterbutler_settings(self, provider_name=None, auth=None):
         """
         Since preprints don't have addons, this method has been pulled over from the
         OSFStorage addon
@@ -930,7 +930,7 @@ class Preprint(DirtyFieldsMixin, GuidMixin, IdentifierMixin, ReviewableMixin, Ba
             )
         })
 
-    def serialize_waterbutler_credentials(self, provider_name=None):
+    def serialize_waterbutler_credentials(self, provider_name=None, auth=None):
         """
         Since preprints don't have addons, this method has been pulled over from the
         OSFStorage addon

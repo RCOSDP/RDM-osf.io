@@ -126,7 +126,7 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
         self.deauthorize(log=False)
         super(NodeSettings, self).delete(save=save)
 
-    def serialize_waterbutler_credentials(self):
+    def serialize_waterbutler_credentials(self, auth=None):
         if not self.has_auth:
             raise exceptions.AddonError('Cannot serialize credentials for S3 addon')
         return {
@@ -134,7 +134,7 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
             'secret_key': self.external_account.oauth_secret,
         }
 
-    def serialize_waterbutler_settings(self):
+    def serialize_waterbutler_settings(self, auth=None):
         if not self.folder_id:
             raise exceptions.AddonError('Cannot serialize settings for S3 addon')
         return {

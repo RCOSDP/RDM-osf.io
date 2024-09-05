@@ -181,12 +181,12 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
                 auth=auth,
             )
 
-    def serialize_waterbutler_credentials(self):
+    def serialize_waterbutler_credentials(self, auth=None):
         if not self.has_auth:
             raise exceptions.AddonError('Addon is not authorized')
         return {'token': self.external_account.oauth_secret}
 
-    def serialize_waterbutler_settings(self):
+    def serialize_waterbutler_settings(self, auth=None):
         if not self.folder_id:
             raise exceptions.AddonError('Dataverse is not configured')
         return {
