@@ -30,6 +30,7 @@ pytestmark = pytest.mark.django_db
 class DropboxBusinessAccountFactory(ExternalAccountFactory):
     provider = 'dropboxbusiness'
 
+SHORT_NAME = 'dropboxbusiness'
 FILEACCESS_NAME = 'dropboxbusiness'
 MANAGEMENT_NAME = 'dropboxbusiness_manage'
 DBXBIZ = 'addons.dropboxbusiness'
@@ -83,6 +84,19 @@ class TestDropboxBusiness(unittest.TestCase):
             node_filter.first.return_value = node
             mock7.return_value = node_filter
             self.project = ProjectFactory(creator=self.user)
+            self.osfstorage = self.project.get_addon('osfstorage')
+            new_region = RegionFactory(
+                _id=self.institution._id,
+                name='Institutional Storage',
+                waterbutler_settings={
+                    'storage': {
+                        'provider': SHORT_NAME,
+                    },
+                }
+            )
+            self.osfstorage.region = new_region
+            self.osfstorage.save()
+            self.project.save()
 
     def _allowed(self):
         self.f_option.is_allowed = True

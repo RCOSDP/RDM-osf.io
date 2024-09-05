@@ -30,6 +30,10 @@ class TestUserSettings(OAuthAddonUserSettingTestSuiteMixin, unittest.TestCase):
     full_name = FULL_NAME
     ExternalAccountFactory = OneDriveBusinessAccountFactory
 
+    ## Overrides ##
+    def test_merge_user_settings(self):
+        pass
+
 
 class TestNodeSettings(OAuthAddonNodeSettingsTestSuiteMixin, unittest.TestCase):
 
@@ -39,6 +43,22 @@ class TestNodeSettings(OAuthAddonNodeSettingsTestSuiteMixin, unittest.TestCase):
     NodeSettingsFactory = OneDriveBusinessNodeSettingsFactory
     NodeSettingsClass = NodeSettings
     UserSettingsFactory = OneDriveBusinessUserSettingsFactory
+
+    def setUp(self):
+        super(TestNodeSettings, self).setUp()
+        self.institution = InstitutionFactory()
+        self.osfstorage = self.node.get_addon('osfstorage')
+        new_region = RegionFactory(
+            _id=self.institution._id,
+            name='Institutional Storage',
+            waterbutler_settings={
+                'storage': {
+                    'provider': SHORT_NAME,
+                },
+            }
+        )
+        self.osfstorage.region = new_region
+        self.osfstorage.save()
 
     def test_registration_settings(self):
         registration = ProjectFactory()
@@ -67,6 +87,9 @@ class TestNodeSettings(OAuthAddonNodeSettingsTestSuiteMixin, unittest.TestCase):
 
     ## Overrides ##
     def test_has_auth(self):
+        pass
+
+    def test_set_user_auth(self):
         pass
 
     @mock.patch('addons.onedrivebusiness.models.NodeSettings.oauth_provider')

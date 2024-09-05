@@ -22,7 +22,7 @@ from osf_tests.factories import (
     ProjectFactory,
     RegionFactory
 )
-from addons.s3compatinstitutions.apps import s3compatinstitutions_root
+from addons.s3compatinstitutions.apps import s3compatinstitutions_root, SHORT_NAME
 from addons.s3compatinstitutions.models import NodeSettings
 from tests.base import OsfTestCase
 
@@ -89,6 +89,18 @@ class TestS3Compatinstitutions(unittest.TestCase):
                 self.project = ProjectFactory(creator=self.user)
         else:
             self.project = ProjectFactory(creator=self.user)
+        self.osfstorage = self.project.get_addon('osfstorage')
+        new_region = RegionFactory(
+            _id=self.institution._id,
+            name='Institutional Storage',
+            waterbutler_settings={
+                'storage': {
+                    'provider': SHORT_NAME,
+                },
+            }
+        )
+        self.osfstorage.region = new_region
+        self.osfstorage.save()
 
     def _allow(self, save=True):
         self.option.is_allowed = True

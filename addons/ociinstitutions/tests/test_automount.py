@@ -22,7 +22,7 @@ from osf_tests.factories import (
     ProjectFactory,
     RegionFactory
 )
-from addons.ociinstitutions.apps import ociinstitutions_root
+from addons.ociinstitutions.apps import ociinstitutions_root, SHORT_NAME
 from addons.ociinstitutions.models import NodeSettings
 from tests.base import OsfTestCase
 
@@ -88,6 +88,18 @@ class TestOCIinstitutions(unittest.TestCase):
                 self.project = ProjectFactory(creator=self.user)
         else:
             self.project = ProjectFactory(creator=self.user)
+        self.osfstorage = self.project.get_addon('osfstorage')
+        new_region = RegionFactory(
+            _id=self.institution._id,
+            name='Institutional Storage',
+            waterbutler_settings={
+                'storage': {
+                    'provider': SHORT_NAME,
+                },
+            }
+        )
+        self.osfstorage.region = new_region
+        self.osfstorage.save()
 
     def _allow(self, save=True):
         self.option.is_allowed = True
