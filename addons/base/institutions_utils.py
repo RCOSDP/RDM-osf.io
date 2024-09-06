@@ -55,6 +55,8 @@ class InstitutionsNodeSettings(BaseNodeSettings):
         if (self.short_name == 'osfstorage'
                 and (data_provider[self.id]['region_disabled'] or not data_provider[self.id]['is_allowed'])):
             return True
+        if self.region is None:
+            return True
         if self.config.for_institutions:
             if self.config.short_name not in region_provider_set:
                 return True

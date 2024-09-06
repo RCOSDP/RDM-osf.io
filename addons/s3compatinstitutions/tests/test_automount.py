@@ -89,6 +89,7 @@ class TestS3Compatinstitutions(unittest.TestCase):
                 self.project = ProjectFactory(creator=self.user)
         else:
             self.project = ProjectFactory(creator=self.user)
+        self.project.add_addon('osfstorage', auth=Auth(user=self.user))
         self.osfstorage = self.project.get_addon('osfstorage')
         new_region = RegionFactory(
             _id=self.institution._id,
@@ -173,10 +174,8 @@ class TestAppS3CompatInstitutions(OsfTestCase):
         self.auth = Auth(user=self.user)
 
         self.project = ProjectFactory(creator=self.user)
-        self.project.add_addon('s3compatinstitutions', auth=self.auth)
-
-        self.node_settings = self.project.get_addon('s3compatinstitutions')
-        self.node_settings.save()
+        self.node_settings = MagicMock()
+        self.node_settings.complete = True
 
     def test_s3compat_institutions_root(self):
         institution = InstitutionFactory(_id=123456)

@@ -5032,7 +5032,7 @@ class TestFileViews(OsfTestCase):
         data = res.json['data']
         assert_equal(len(data), len(expected))
         assert_equal(data[0]['children'][0]['iconUrl'], '/static/addons/osfstorage/comicon.png')
-        assert_equal(data[0]['children'][0]['addonFullname'], data[0]['children'][0]['nodeRegion'])
+        assert_equal(data[0]['children'][0]['addonFullname'], 'NII Storage')
 
 
 class TestTagViews(OsfTestCase):

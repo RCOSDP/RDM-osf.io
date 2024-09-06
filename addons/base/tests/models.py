@@ -578,11 +578,8 @@ class OAuthCitationsNodeSettingsTestSuiteMixin(
     def test_set_folder(self):
         folder_id = 'fake-folder-id'
         folder_name = 'fake-folder-name'
-
         self.node_settings.clear_settings()
         self.node_settings.save()
-        self.node_settings = MagicMock()
-        self.node_settings.complete = True
         assert_is_none(self.node_settings.list_id)
 
         provider = self.ProviderClass()
