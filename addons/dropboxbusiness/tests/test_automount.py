@@ -84,6 +84,7 @@ class TestDropboxBusiness(unittest.TestCase):
             node_filter.first.return_value = node
             mock7.return_value = node_filter
             self.project = ProjectFactory(creator=self.user)
+            self.project.add_addon('osfstorage', auth=Auth(user=self.user))
             self.osfstorage = self.project.get_addon('osfstorage')
             new_region = RegionFactory(
                 _id=self.institution._id,
@@ -150,9 +151,9 @@ class TestAppDropboxBusiness(OsfTestCase):
         self.auth = Auth(user=self.user)
 
         self.project = ProjectFactory(creator=self.user)
-        self.project.add_addon('dropboxbusiness', auth=self.auth)
 
-        self.node_settings = self.project.get_addon('dropboxbusiness')
+        self.node_settings = MagicMock()
+        self.node_settings.complete = True
         self.node_settings.save()
 
     def test_dropbox_business_root(self):

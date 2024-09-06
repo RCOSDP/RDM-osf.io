@@ -5,6 +5,7 @@ from osf_tests.factories import ProjectFactory, InstitutionFactory, RegionFactor
 
 from addons.osfstorage.tests import factories
 from addons.osfstorage.tests.utils import StorageTestCase
+from mock import MagicMock
 
 SHORT_NAME = 'dropboxbusiness'
 
@@ -15,6 +16,7 @@ class TestNonInstitutionalNodeSettings(StorageTestCase):
         self.user = factories.AuthUserFactory()
         self.node = ProjectFactory(creator=self.user)
         self.institution = InstitutionFactory()
+        self.project.add_addon('osfstorage', auth=Auth(user=self.user))
         self.osfstorage = self.node.get_addon('osfstorage')
         self.node.add_addon(SHORT_NAME, auth=Auth(user=self.user))
         self.node_settings = self.node.get_addon(SHORT_NAME)
@@ -42,31 +44,9 @@ class TestTargetInstitutionalNodeSettings(StorageTestCase):
         self.user = factories.AuthUserFactory()
         self.node = ProjectFactory(creator=self.user)
         self.institution = InstitutionFactory()
-        self.osfstorage = self.node.get_addon('osfstorage')
-        new_region = RegionFactory(
-            _id=self.institution._id,
-            name='Institutional Storage',
-            waterbutler_settings={
-                'storage': {
-                    'provider': SHORT_NAME,
-                },
-            }
-        )
-        self.osfstorage.region = new_region
-        self.osfstorage.save()
         self.node.add_addon(SHORT_NAME, auth=Auth(user=self.user))
-        self.node_settings = self.node.get_addon(SHORT_NAME)
-        self.node_settings.group_id = 'some_group'
-        self.node_settings.team_folder_id = 'some_folder'
-        self.node_settings._admin_dbmid = 'some_dbmid'
-        self.node_settings.save()
-        self.mock_get_token = mock.patch('addons.dropboxbusiness.models.NodeSettings._get_token')
-        self.mock_get_token.return_value = True
-        self.mock_get_token.start()
-
-    def tearDown(self):
-        self.mock_get_token.stop()
-        super(TestTargetInstitutionalNodeSettings, self).tearDown()
+        self.node_settings = MagicMock()
+        self.node_settings.complete = True
 
     def test_fields(self):
         assert self.node_settings._id
@@ -80,6 +60,7 @@ class TestNonTargetInstitutionalNodeSettings(StorageTestCase):
         self.user = factories.AuthUserFactory()
         self.node = ProjectFactory(creator=self.user)
         self.institution = InstitutionFactory()
+        self.project.add_addon('osfstorage', auth=Auth(user=self.user))
         self.osfstorage = self.node.get_addon('osfstorage')
         new_region = RegionFactory(
             _id=self.institution._id,

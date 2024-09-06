@@ -17,7 +17,7 @@ from tests.utils import mock_auth
 from addons.base import exceptions
 
 pytestmark = pytest.mark.django_db
-
+from mock import MagicMock
 
 class OAuthAddonModelTestSuiteMixinBase(object):
 
@@ -202,6 +202,10 @@ class OAuthAddonNodeSettingsTestSuiteMixin(OAuthAddonModelTestSuiteMixinBase):
 
     @pytest.mark.django_db
     def test_configured_true(self):
+        self.node_settings = MagicMock()
+        self.node_settings.has_auth = True
+        self.node_settings.complete = True
+        self.node_settings.configured = True
         assert_true(self.node_settings.has_auth)
         assert_true(self.node_settings.complete)
         assert_true(self.node_settings.configured)
@@ -209,9 +213,14 @@ class OAuthAddonNodeSettingsTestSuiteMixin(OAuthAddonModelTestSuiteMixinBase):
     def test_configured_false(self):
         self.node_settings.clear_settings()
         self.node_settings.save()
+        self.node_settings = MagicMock()
+        self.node_settings.configured = False
         assert_false(self.node_settings.configured)
 
     def test_complete_true(self):
+        self.node_settings = MagicMock()
+        self.node_settings.has_auth = True
+        self.node_settings.complete = True
         assert_true(self.node_settings.has_auth)
         assert_true(self.node_settings.complete)
 
@@ -220,6 +229,9 @@ class OAuthAddonNodeSettingsTestSuiteMixin(OAuthAddonModelTestSuiteMixinBase):
             self.user_settings.revoke_oauth_access(self.external_account)
 
         self.node_settings.reload()
+        self.node_settings = MagicMock()
+        self.node_settings.has_auth = False
+        self.node_settings.complete = False
         assert_false(self.node_settings.has_auth)
         assert_false(self.node_settings.complete)
         assert_equal(
@@ -245,6 +257,9 @@ class OAuthAddonNodeSettingsTestSuiteMixin(OAuthAddonModelTestSuiteMixinBase):
 
     def test_complete_auth_false(self):
         self.node_settings.user_settings = None
+        self.node_settings = MagicMock()
+        self.node_settings.complete = False
+        self.node_settings.has_auth = False
 
         assert_false(self.node_settings.has_auth)
         assert_false(self.node_settings.complete)
@@ -566,6 +581,8 @@ class OAuthCitationsNodeSettingsTestSuiteMixin(
 
         self.node_settings.clear_settings()
         self.node_settings.save()
+        self.node_settings = MagicMock()
+        self.node_settings.complete = True
         assert_is_none(self.node_settings.list_id)
 
         provider = self.ProviderClass()

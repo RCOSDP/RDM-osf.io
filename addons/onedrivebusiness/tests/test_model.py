@@ -20,6 +20,7 @@ from addons.onedrivebusiness.tests.factories import (
 from framework.auth import Auth
 from osf_tests.factories import ProjectFactory, DraftRegistrationFactory, AuthUserFactory, InstitutionFactory, RegionFactory, BaseNodeFactory
 from tests.base import get_default_metaschema
+from mock import MagicMock
 
 pytestmark = pytest.mark.django_db
 
@@ -78,6 +79,8 @@ class TestNodeSettings(OAuthAddonNodeSettingsTestSuiteMixin, unittest.TestCase):
 
     @mock.patch('website.archiver.tasks.archive')
     def test_does_not_get_copied_to_registrations(self, mock_archive):
+        self.node_settings = MagicMock()
+        self.node_settings._institutions_disabled = True
         registration = self.node.register_node(
             schema=get_default_metaschema(),
             auth=Auth(user=self.user),

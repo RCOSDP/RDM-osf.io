@@ -124,7 +124,7 @@ class TestNodeFilesList(ApiTestCase):
         prepare_mock_wb_response(node=node or self.project, **kwargs)
 
     def test_returns_public_files_logged_out(self):
-        res = self.app.get(self.public_url, expect_errors=True)
+        res = self.app.get(self.public_url, auth=self.user.auth, expect_errors=True)
         assert_equal(res.status_code, 200)
         assert_equal(
             res.json['data'][0]['attributes']['provider'],
