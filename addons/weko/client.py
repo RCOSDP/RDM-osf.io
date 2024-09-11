@@ -1,6 +1,7 @@
 import logging
 import requests
 from requests.exceptions import HTTPError
+from .settings import DEFAULT_TIMEOUT
 
 
 logger = logging.getLogger(__name__)
@@ -119,7 +120,10 @@ class Client(object):
                 else self.token
             )
             headers['Authorization'] = 'Bearer ' + token
-            return {'headers': headers}
+            return {
+                'headers': headers,
+                'timeout': DEFAULT_TIMEOUT,
+            }
         elif headers is not None:
             return {
                 'auth': (self.username, self.password),

@@ -6,9 +6,9 @@
 
 ## Setting up JAIRO Cloud Add-on
 
-An administrator of an institution can enable the JAIRO Cloud add-on from the admin panel and set up the OAuth2 client information for JAIRO Cloud. The members of the institution can link their JAIRO Cloud account with their OSF account.
+An administrator of an institution can enable the WEKO add-on from the admin panel and set up the OAuth2 client information for WEKO. The members of the institution can link their WEKO account with their OSF account.
 
-If the JAIRO Cloud is non-HTTPS sites, you should set the `OAUTHLIB_INSECURE_TRANSPORT` environment variable for osf.io:
+If the WEKO is non-HTTPS sites, you should set the `OAUTHLIB_INSECURE_TRANSPORT` environment variable for osf.io:
 
 ```
 OAUTHLIB_INSECURE_TRANSPORT=1

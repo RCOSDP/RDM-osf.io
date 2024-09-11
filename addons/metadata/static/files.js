@@ -1859,13 +1859,20 @@ function MetadataButtons() {
                       m.component(base, {treebeard : tb, mode : mode,
                                   item : item }),
                     ].concat(buttons);
-                    if (item.kind === 'folder') {
-                      const importDatasetButton = new ImportDatasetButton(tb, item, {
-                        assign: function() {
-                          return tempIdCounterForDataset ++;
+                    if (item.kind === 'folder' && !item.data.addonFullname) {
+                      const importDatasetButton = new ImportDatasetButton(
+                        tb,
+                        item,
+                        self.contexts,
+                        {
+                          assign: function() {
+                            return tempIdCounterForDataset ++;
+                          }
                         }
-                      });
-                      viewButtons.push(importDatasetButton.createButton());
+                      );
+                      if (importDatasetButton.isAvailable()) {
+                        viewButtons.push(importDatasetButton.createButton());
+                      }
                     }
                     return m('span', viewButtons);
                   }

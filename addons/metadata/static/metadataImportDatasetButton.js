@@ -10,10 +10,11 @@ const logPrefix = '[metadata] ';
 const _ = require('js/rdmGettext')._;
 
 
-function ImportDatasetButton(treebeard, item, tempIdProvider) {
+function ImportDatasetButton(treebeard, item, contexts, tempIdProvider) {
   const self = this;
   self.treebeard = treebeard;
   self.item = item;
+  self.contexts = contexts;
   self.progressApiUrl = null;
   self.progressItems = null;
   self.tempIdProvider = tempIdProvider;
@@ -219,6 +220,32 @@ function ImportDatasetButton(treebeard, item, tempIdProvider) {
         }
       });
     });
+  };
+
+  self.isAvailable = function() {
+    if (!self.item.data) {
+      return false;
+    }
+    if (!self.item.data.permissions) {
+      return false;
+    }
+    if (!self.item.data.permissions.edit) {
+      return false;
+    }
+    // weko does not support importing dataset
+    if (self.item.data.provider === 'weko') {
+      return false;
+    }
+    const context = self.contexts && self.contexts[self.item.data.nodeId];
+    if (!context) {
+      return false;
+    }
+    const projectMetadata = context.projectMetadata || {};
+    const features = projectMetadata.features || {};
+    if (features.dataset_importing === false) {
+      return false;
+    }
+    return true;
   };
 
   self.createButton = function() {
