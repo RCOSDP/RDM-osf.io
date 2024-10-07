@@ -371,7 +371,9 @@ class BaseFileNode(TypedModel, CommentableMixin, OptionalGuidMixin, Taggable, Ob
         if resp.status_code != 200:
             logger.warning('Unable to find {} got status code {}'.format(self, resp.status_code))
             return None
-        return self.update(revision, resp.json()['data']['attributes'])
+        res_json = resp.json()['data']
+        res_value = res_json['attributes'] if isinstance(res_json, dict) else res_json
+        return self.update(revision, res_value)
         # TODO Switch back to head requests
         # return self.update(revision, json.loads(resp.headers['x-waterbutler-metadata']))
 
@@ -512,6 +514,10 @@ class File(models.Model):
         :param dict data: Metadata received from waterbutler
         :returns: FileVersion
         """
+        if isinstance(data, list):
+            if len(data) == 0:
+                return
+            data = data[0]
         self.name = data['name']
         self.materialized_path = data['materialized']
 
@@ -615,6 +621,10 @@ class Folder(models.Model):
         dataverse and django
         See dataversefile.update
         """
+        if isinstance(data, list):
+            if len(data) == 0:
+                return
+            data = data[0]
         self.name = data['name']
         self.materialized_path = data['materialized']
         self.last_touched = timezone.now()

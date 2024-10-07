@@ -1122,7 +1122,7 @@ def addon_view_file(auth, node, file_node, version):
         'size': version.size if version.size is not None else 9966699,
         'private': getattr(node.get_addon(file_node.provider), 'is_private', False),
         'file_tags': list(file_node.tags.filter(system=False).values_list('name', flat=True)) if not file_node._state.adding else [],  # Only access ManyRelatedManager if saved
-        'file_guid': file_node.get_guid()._id,
+        'file_guid': file_node.get_guid(create=True)._id,
         'file_id': file_node._id,
         'allow_comments': file_node.provider in settings.ADDONS_COMMENTABLE,
         'checkout_user': file_node.checkout._id if file_node.checkout else None,

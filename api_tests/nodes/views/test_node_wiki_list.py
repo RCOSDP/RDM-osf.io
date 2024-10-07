@@ -1,5 +1,6 @@
 import mock
 import pytest
+import uuid
 
 from rest_framework import exceptions
 
@@ -332,7 +333,7 @@ class TestNodeWikiCreate(WikiCRUDTestCase):
         return '/{}registrations/{}/wikis/'.format(API_BASE, wiki_registration_private.node._id)
 
     def test_create_public_wiki_page(self, app, user_write_contributor, url_node_public):
-        page_name = fake.word()
+        page_name = str(uuid.uuid4()).replace('-', '')
         res = app.post_json_api(url_node_public, create_wiki_payload(page_name), auth=user_write_contributor.auth)
         assert res.status_code == 201
         assert res.json['data']['attributes']['name'] == page_name
