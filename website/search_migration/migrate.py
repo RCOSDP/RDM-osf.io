@@ -381,7 +381,7 @@ def set_up_index(idx):
         search.create_index(index=index)
         logger.info('Reindexing {0} to {1}_v1'.format(idx, idx))
         es_client().indices.create(index=idx, ignore=[400])  # HTTP 400 if index already exists
-        helpers.reindex(es_client(), idx, index)
+        # helpers.reindex(es_client(), idx, index) TODO: 調査のためコメントアウト
         logger.info('Deleting {} index'.format(idx))
         es_client().indices.delete(index=idx)
         es_client().indices.put_alias(index=index, name=idx)
