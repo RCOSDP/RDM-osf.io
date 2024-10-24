@@ -305,9 +305,24 @@ def migrate_collected_metadata(index, delete):
         collection__deleted__isnull=True,
         collection__is_bookmark_collection=False)
 
-    docs = helpers.scan(es_client(), query={
-        'query': {'match': {'_type': 'collectionSubmission'}}
-    }, index=index)
+    # scroll API を使ってドキュメントを取得
+    response = es_client().search(
+        index=index,
+        body={
+            'query': {'match': {'_type': 'collectionSubmission'}}
+        },
+        scroll='5m',
+        size=1000
+    )
+
+    scroll_id = response['_scroll_id']
+    docs = response['hits']['hits']
+
+    # スクロールを使って全ての結果を取得
+    while len(response['hits']['hits']):
+        response = es_client().scroll(scroll_id=scroll_id, scroll='5m')
+        scroll_id = response['_scroll_id']
+        docs.extend(response['hits']['hits'])
 
     actions = ({
         '_op_type': 'delete',
@@ -316,7 +331,7 @@ def migrate_collected_metadata(index, delete):
         '_type': 'collectionSubmission',
         'doc': doc['_source'],
         'doc_as_upsert': True,
-    } for doc in list(docs))
+    } for doc in docs)
 
     bulk_update_cgm(None, actions=actions, op='delete', index=index)
 
