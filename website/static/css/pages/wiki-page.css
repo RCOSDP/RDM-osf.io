@@ -345,3 +345,95 @@ select.form-control {
     display: inherit;
     overflow-y: hidden;
 }
+
+.menuItem {
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #4B5563;
+}
+
+.wiki-radio-group {
+    display:flex;
+}
+
+.wiki-radio-item {
+    margin-right: 10px;
+}
+
+.menuItem:hover{
+    background: #d1d5db;
+}
+
+.table-dropdown-item {
+  padding: 2px 8px 2px 4px;
+}
+
+.milkdown .editor img.emoji {
+    width: 1em;
+    height: 1em;
+}
+
+.mFrame {
+    overflow: auto;
+    height: 400px;
+}
+
+.wikiEditorModalLabel {
+    argin-bottom: 0;
+    width: 120px;
+    display: inline-block;
+    text-align: left;
+}
+
+.wikiEditorModalInput {
+    width: calc(100% - 136px);
+    display: inline-block;
+}
+
+#mMenuBar {
+    border-bottom: 1px solid;
+    border-bottom-color: #d1d5db;
+}
+
+#tableMenu {
+    border: 1px solid #aaa;
+    padding: 2px;
+    font-size: 90%;
+    background: white;
+    z-index: 15;
+    white-space: nowrap;
+    position: absolute;
+}
+
+.table-dropdown-item:hover {
+    background-color: #337AB7;
+}
+
+.heading-dropdown-item:hover {
+    background-color: #337AB7;
+}
+
+.milkdown .editor table {
+    width: 80%;
+}
+
+.milkdown .editor ul li {
+    list-style-type: none;
+}
+
+.milkdown .editor ul li:has(>p >a) {
+    list-style-type: disc;
+}
+
+.sort-item {
+    padding: 5px;
+}
+
+.ko_container li {
+    list-style: none;
+}
+
+.sort-children:empty {
+    min-height: 7px;
+  }
