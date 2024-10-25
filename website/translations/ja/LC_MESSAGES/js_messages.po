@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  0.6.0\n"
 "Report-Msgid-Bugs-To: rocs-office@nii.ac.jp\n"
-"POT-Creation-Date: 2023-05-17 11:25+0900\n"
+"POT-Creation-Date: 2023-06-17 00:33+0000\n"
 "PO-Revision-Date: 2020-11-23 09:30+0900\n"
 "Last-Translator: Hidetoshi Yoshimoto\n"
 "Language: ja\n"
@@ -16,208 +16,209 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.7.0\n"
+"Generated-By: Babel 2.5.1\n"
 
 #: addons/jupyterhub/static/files.js:96
 msgid "Launch"
 msgstr "起動"
 
-#: addons/metadata/static/files.js:339
+#: addons/metadata/static/files.js:331
 msgid "Metadata Schema:"
 msgstr "メタデータ様式:"
 
-#: addons/metadata/static/files.js:498
+#: addons/metadata/static/files.js:528
 msgid "Paste from Clipboard"
 msgstr "クリップボードから貼り付け"
 
-#: addons/metadata/static/files.js:587 addons/metadata/static/files.js:601
-#: website/static/js/fangorn.js:1794
+#: addons/metadata/static/files.js:637 addons/metadata/static/files.js:651
+#: website/static/js/fangorn.js:1853
 msgid "Could not copy text"
 msgstr "テキストをコピーできませんでした"
 
-#: addons/metadata/static/files.js:599 website/static/js/clipboard.js:27
-#: website/static/js/fangorn.js:1788 website/static/js/fangorn.js:1792
+#: addons/metadata/static/files.js:649 website/static/js/clipboard.js:27
+#: website/static/js/fangorn.js:1847 website/static/js/fangorn.js:1851
 msgid "Copied!"
 msgstr "コピーされました！"
 
-#: addons/metadata/static/files.js:625 addons/metadata/static/files.js:640
+#: addons/metadata/static/files.js:675 addons/metadata/static/files.js:690
 msgid "Could not paste text"
 msgstr "テキストを貼り付けできませんでした"
 
-#: addons/metadata/static/files.js:690 addons/metadata/static/files.js:704
-#: addons/metadata/static/files.js:1054
+#: addons/metadata/static/files.js:740 addons/metadata/static/files.js:754
+#: addons/metadata/static/files.js:1095
 msgid "Loading..."
 msgstr "読み込み中..."
 
-#: addons/metadata/static/files.js:702
+#: addons/metadata/static/files.js:752
 msgid "Select the destination of the file metadata."
 msgstr "ファイルメタデータの移動先を選択してください。"
 
-#: addons/metadata/static/files.js:707
+#: addons/metadata/static/files.js:757
 msgid "Current Metadata:"
 msgstr "現在のメタデータ:"
 
-#: addons/metadata/static/files.js:763
+#: addons/metadata/static/files.js:813
 msgid "Delete metadata"
 msgstr "メタデータを削除"
 
-#: addons/metadata/static/files.js:766
+#: addons/metadata/static/files.js:816
 msgid "Could not list hashes"
 msgstr "ハッシュ情報の一覧を取得できませんでした"
 
-#: addons/metadata/static/files.js:774
-#: addons/metadata/static/metadata-fields.js:521
-#: addons/metadata/static/metadata-fields.js:526
+#: addons/metadata/static/files.js:824
+#: addons/metadata/static/metadata-fields.js:1041
 msgid "Could not list files"
 msgstr "ファイルの一覧を取得できませんでした"
 
-#: addons/metadata/static/files.js:863 addons/metadata/static/files.js:870
+#: addons/metadata/static/files.js:913 addons/metadata/static/files.js:920
 msgid "No name"
 msgstr "名称未設定"
 
-#: addons/metadata/static/files.js:930
+#: addons/metadata/static/files.js:1005
 msgid ""
 "There is no draft project metadata compliant with the schema. Create new "
 "draft project metadata from the Metadata tab:"
 msgstr "スキーマに対応するプロジェクトメタデータの下書きがありません。メタデータ タブから新規プロジェクトメタデータを作成してください:"
 
-#: addons/metadata/static/files.js:932 addons/metadata/static/files.js:1100
+#: addons/metadata/static/files.js:1007 addons/metadata/static/files.js:1175
+#: addons/metadata/static/files.js:1189
 msgid "Open"
 msgstr "開く"
 
-#: addons/metadata/static/files.js:1031
+#: addons/metadata/static/files.js:1070
 msgid "There are errors in some fields."
 msgstr "いくつかのフィールドにエラーがあります。"
 
-#: addons/metadata/static/files.js:1065 addons/metadata/static/files.js:1987
-#: addons/metadata/static/files.js:2013 website/static/js/folderpicker.js:105
+#: addons/metadata/static/files.js:1106 addons/metadata/static/files.js:2149
+#: addons/metadata/static/files.js:2175 website/static/js/folderpicker.js:105
 msgid "Select"
 msgstr "選択"
 
-#: addons/metadata/static/files.js:1069
+#: addons/metadata/static/files.js:1110
 msgid "Select the destination for the file metadata."
 msgstr "ファイルメタデータの登録先を選択してください。"
 
-#: addons/metadata/static/files.js:1090
+#: addons/metadata/static/files.js:1161
 msgid "Registering..."
 msgstr "登録中..."
 
-#: addons/metadata/static/files.js:1090
+#: addons/metadata/static/files.js:1161
 msgid "Deleting..."
 msgstr "削除中..."
 
-#: addons/metadata/static/files.js:1133 addons/metadata/static/files.js:1835
-#: addons/metadata/static/files.js:1910 addons/metadata/static/files.js:1957
-#: addons/metadata/static/files.js:1985 addons/metadata/static/files.js:2011
-#: addons/metadata/static/files.js:2067
-#: website/static/js/accountSettings.js:267 website/static/js/fangorn.js:2654
+#: addons/metadata/static/files.js:1255 addons/metadata/static/files.js:1994
+#: addons/metadata/static/files.js:2072 addons/metadata/static/files.js:2119
+#: addons/metadata/static/files.js:2147 addons/metadata/static/files.js:2173
+#: addons/metadata/static/files.js:2229
+#: addons/metadata/static/metadataImportDatasetButton.js:23
+#: website/static/js/accountSettings.js:267 website/static/js/fangorn.js:2777
 #: website/static/js/folderPickerNodeConfig.js:591
 #: website/static/js/pages/profile-settings-addons-page.js:72
 #: website/static/js/pages/project-settings-page.js:118
 msgid "Close"
 msgstr "閉じる"
 
-#: addons/metadata/static/files.js:1186
+#: addons/metadata/static/files.js:1321
 msgid "View Metadata"
 msgstr "メタデータ確認"
 
-#: addons/metadata/static/files.js:1196
+#: addons/metadata/static/files.js:1332
 msgid "Edit Metadata"
 msgstr "メタデータ編集"
 
-#: addons/metadata/static/files.js:1205
+#: addons/metadata/static/files.js:1343
 msgid "Register Metadata"
 msgstr "メタデータ登録"
 
-#: addons/metadata/static/files.js:1213
+#: addons/metadata/static/files.js:1353
 msgid "Delete Metadata"
 msgstr "メタデータ削除"
 
-#: addons/metadata/static/files.js:1261
+#: addons/metadata/static/files.js:1407
 msgid "Edit Multiple Metadata"
 msgstr "メタデータ複数編集"
 
-#: addons/metadata/static/files.js:1271
+#: addons/metadata/static/files.js:1417
 msgid "Loading Metadata"
 msgstr "メタデータ読み込み中"
 
-#: addons/metadata/static/files.js:1407
+#: addons/metadata/static/files.js:1556
 msgid "Metadata is defined"
 msgstr "メタデータが定義されています"
 
-#: addons/metadata/static/files.js:1416
+#: addons/metadata/static/files.js:1565
 msgid "Some of the children have metadata."
 msgstr "いくつかの子ファイルにメタデータが定義されています。"
 
-#: addons/metadata/static/files.js:1426
+#: addons/metadata/static/files.js:1575
 msgid "File not found: "
 msgstr "ファイルが見つかりません:"
 
-#: addons/metadata/static/files.js:1839 addons/metadata/static/files.js:1912
+#: addons/metadata/static/files.js:1998 addons/metadata/static/files.js:2074
 #: website/static/js/contribManager.js:440
 #: website/static/js/filepage/editor.js:180
 msgid "Save"
 msgstr "保存"
 
-#: addons/metadata/static/files.js:1851 addons/metadata/static/files.js:2033
+#: addons/metadata/static/files.js:2010 addons/metadata/static/files.js:2195
 msgid "Copy to clipboard"
 msgstr "クリップボードにコピー"
 
-#: addons/metadata/static/files.js:1866
+#: addons/metadata/static/files.js:2026
 msgid ""
 "Renaming, moving the file/directory, or changing the directory hierarchy "
 "can break the association of the metadata you have added."
 msgstr "ファイルのリネーム、ファイルやディレクトリの移動、ディレクトリ階層の変更を行うと、入力したメタデータの関連付けが解除される場合があります。"
 
-#: addons/metadata/static/files.js:1872
+#: addons/metadata/static/files.js:2032
 msgid "Edit File Metadata"
 msgstr "ファイルメタデータの編集"
 
-#: addons/metadata/static/files.js:1872
+#: addons/metadata/static/files.js:2032
 msgid "View File Metadata"
 msgstr "ファイルメタデータの参照"
 
-#: addons/metadata/static/files.js:1892 addons/metadata/static/files.js:1944
+#: addons/metadata/static/files.js:2053 addons/metadata/static/files.js:2106
 #: website/static/js/saveManager.js:24
 msgid "You have unsaved changes."
 msgstr "未保存の変更があります。"
 
-#: addons/metadata/static/files.js:1927
+#: addons/metadata/static/files.js:2089
 msgid "Edit Multiple File Metadata"
 msgstr "ファイルメタデータの複数編集"
 
-#: addons/metadata/static/files.js:1959 website/static/js/fangorn.js:1492
-#: website/static/js/fangorn.js:1515 website/static/js/fangorn.js:2377
-#: website/static/js/fangorn.js:2413 website/static/js/filepage/index.js:204
-#: website/static/js/filepage/index.js:517 website/static/js/myProjects.js:1637
+#: addons/metadata/static/files.js:2121 website/static/js/fangorn.js:1551
+#: website/static/js/fangorn.js:1574 website/static/js/fangorn.js:2469
+#: website/static/js/fangorn.js:2505 website/static/js/filepage/index.js:204
+#: website/static/js/filepage/index.js:519 website/static/js/myProjects.js:1637
 msgid "Delete"
 msgstr "削除"
 
-#: addons/metadata/static/files.js:1972
+#: addons/metadata/static/files.js:2134
 msgid "Delete File Metadata"
 msgstr "ファイルメタデータの削除"
 
-#: addons/metadata/static/files.js:1977
+#: addons/metadata/static/files.js:2139
 msgid "Do you want to delete metadata? This operation cannot be undone."
 msgstr "メタデータを削除してよろしいですか？この操作は元に戻せません。"
 
-#: addons/metadata/static/files.js:1994
+#: addons/metadata/static/files.js:2156
 msgid "Select a destination for file metadata registration"
 msgstr "ファイルメタデータ登録先の選択"
 
-#: addons/metadata/static/files.js:2043
+#: addons/metadata/static/files.js:2205
 msgid "Fix file metadata"
 msgstr "ファイルメタデータの修正"
 
-#: addons/metadata/static/files.js:2072
+#: addons/metadata/static/files.js:2234
 msgid "Paste Metadata"
 msgstr "メタデータ貼り付け"
 
-#: addons/metadata/static/files.js:2077
+#: addons/metadata/static/files.js:2239
 msgid "Press Ctrl-V (Command-V) to paste."
 msgstr "クリップボードから貼り付けるために Ctrl-V (Command-V) を押してください。"
 
-#: addons/metadata/static/files.js:2079
+#: addons/metadata/static/files.js:2241
 msgid ""
 "[Why is this needed?] In this browser, retrieving clipboard values with "
 "button operations is prohibited. Therefore, you must explicitly indicate "
@@ -227,18 +228,16 @@ msgstr ""
 "[この操作が必要な理由] "
 "このブラウザでは、ボタン操作でのクリップボードの値取得が禁止されています。そのため、ショートカットキーまたはブラウザメニューの貼り付けにより明示的にクリップボード操作を指示する必要があります。"
 
-#: addons/metadata/static/metadata-fields.js:55
+#: addons/metadata/static/metadata-fields.js:896
 #, python-format
 msgid "One of this field or \"%s\" field must be filled."
 msgstr "このフィールドか「%s」フィールドのいずれかを入力する必要があります。"
 
-#: addons/metadata/static/metadata-fields.js:59
-#: addons/metadata/static/metadata-fields.js:250
+#: addons/metadata/static/metadata-fields.js:911
 msgid "This field can't be blank."
 msgstr "このフィールドは必須項目です。"
 
-#: addons/metadata/static/metadata-fields.js:206
-#: addons/metadata/static/metadata-fields.js:253
+#: addons/metadata/static/metadata-fields.js:875
 msgid "Please enter the correct value. "
 msgstr "正しい値を入力してください。 "
 
@@ -248,24 +247,24 @@ msgid ""
 "organization name, address and phone number."
 msgstr "データ管理者は必須項目です。メールアドレスを入力するか、所属機関名・連絡先住所・連絡先電話番号を入力してください。"
 
-#: addons/metadata/static/metadata-fields.js:261
+#: addons/metadata/static/metadata-fields.js:577
 msgid "(Not Modified)"
 msgstr "(変更なし)"
 
-#: addons/metadata/static/metadata-fields.js:264
+#: addons/metadata/static/metadata-fields.js:580
 msgid "Choose..."
 msgstr "選択..."
 
-#: addons/metadata/static/metadata-fields.js:350
+#: addons/metadata/static/metadata-fields.js:213
 msgid "Clear"
 msgstr "クリア"
 
-#: addons/metadata/static/metadata-fields.js:408
-#: addons/metadata/static/metadata-fields.js:417
+#: addons/metadata/static/metadata-fields.js:235
+#: addons/metadata/static/metadata-fields.js:244
 msgid "Show example"
 msgstr "サンプル表示"
 
-#: addons/metadata/static/metadata-fields.js:421
+#: addons/metadata/static/metadata-fields.js:248
 msgid "Hide example"
 msgstr "サンプル非表示"
 
@@ -297,14 +296,63 @@ msgstr "名前 (日本語)"
 msgid "Name (English)"
 msgstr ""
 
-#: addons/metadata/static/metadata-fields.js:728
+#: addons/metadata/static/metadata-fields.js:656
+msgid "No data"
+msgstr "データはありません"
+
+#: addons/metadata/static/metadata-fields.js:667
 #: website/static/js/myProjects.js:1565
 msgid "Add"
 msgstr "追加"
 
+#: addons/metadata/static/metadata-fields.js:1027
+msgid "Overwrite already entered value?"
+msgstr "すでに入力されている値を上書きしますか？"
+
+#: addons/metadata/static/metadataImportDatasetButton.js:25
+#: addons/metadata/static/metadataImportDatasetButton.js:56
+#: addons/metadata/static/metadataImportDatasetButton.js:234
+msgid "Import Dataset"
+msgstr "データセットのインポート"
+
+#: addons/metadata/static/metadataImportDatasetButton.js:41
+msgid "Enter URL to import dataset"
+msgstr "インポートするデータセットのURLを入力してください"
+
+#: addons/metadata/static/metadataImportDatasetButton.js:44
+msgid "Importing..."
+msgstr "インポート中..."
+
+#: addons/metadata/static/metadataImportDatasetButton.js:48
+#: addons/metadata/static/metadataImportDatasetButton.js:164
+#: addons/metadata/static/metadataImportDatasetButton.js:189
+msgid "Error importing dataset: "
+msgstr "データセットのインポート中にエラーが発生しました: "
+
+#: addons/metadata/static/metadataImportDatasetButton.js:58
+msgid "Enter the URL of the dataset you would like to import."
+msgstr "インポートしたいデータセットのURLを入力してください。"
+
+#: addons/metadata/static/metadataImportDatasetButton.js:126
+msgid "Downloaded!"
+msgstr "ダウンロードされました！"
+
+#: addons/metadata/static/metadataNodeConfig.js:112
+msgid "Could not GET metadata settings"
+msgstr "メタデータ設定を取得できませんでした"
+
+#: addons/metadata/static/metadataNodeConfig.js:155
+msgid "Add-on settings configured."
+msgstr "アドオンが設定されました。"
+
+#: addons/metadata/static/metadataNodeConfig.js:161
+msgid "Failed to configure add-on settings."
+msgstr "アドオンの設定に失敗しました。"
+
 #: addons/twofactor/static/twoFactorUserConfig.js:148
 #: addons/twofactor/static/twoFactorUserConfig.js:190
-#: admin/static/js/rdm_addons/rdm-addons-page.js:71
+#: addons/weko/static/wekoFangornConfig.js:611
+#: admin/static/js/rdm_addons/rdm-addons-page.js:80
 #: website/static/js/accountSettings.js:249
 #: website/static/js/accountSettings.js:327
 #: website/static/js/accountSettings.js:392
@@ -364,6 +412,207 @@ msgstr ""
 #: addons/twofactor/static/twoFactorUserConfig.js:187
 msgid "Enable"
 msgstr "有効にする"
+
+#: addons/weko/static/wekoFangornConfig.js:42
+#: addons/weko/static/wekoFangornConfig.js:62 website/static/js/fangorn.js:2367
+#: website/static/js/fangorn.js:2459 website/static/js/filepage/index.js:542
+#: website/static/js/filepage/index.js:544
+msgid "View"
+msgstr "プレビュー"
+
+#: addons/weko/static/wekoFangornConfig.js:86
+#: addons/weko/static/wekoFangornConfig.js:788
+msgid "Deposit"
+msgstr "登録"
+
+#: addons/weko/static/wekoFangornConfig.js:255
+#: addons/weko/static/wekoFangornConfig.js:276
+#: addons/weko/static/wekoFangornConfig.js:316
+msgid "Error occurred: "
+msgstr "エラーが発生しました: "
+
+#: addons/weko/static/wekoFangornConfig.js:289
+msgid "Deposit was successful."
+msgstr "登録が成功しました。"
+
+#: addons/weko/static/wekoFangornConfig.js:550
+msgid "Error occurred while "
+msgstr "エラーが発生しました: "
+
+#: addons/weko/static/wekoFangornConfig.js:574
+msgid "Schema"
+msgstr "メタデータ様式"
+
+#: addons/weko/static/wekoFangornConfig.js:577
+msgid "Select a schema for the file."
+msgstr "送信するファイルメタデータのメタデータ様式を選択してください。"
+
+#: addons/weko/static/wekoFangornConfig.js:579
+msgid "Project Metadata"
+msgstr "プロジェクトメタデータ"
+
+msgid "No file metadata is defined for the schema available for depositting to WEKO."
+msgstr "WEKOに登録可能なスキーマに関するファイルメタデータが定義されていません。"
+
+#: addons/weko/static/wekoFangornConfig.js:583
+msgid "Select a registration for the file. You can also select a draft registration."
+msgstr "送信するプロジェクトメタデータを選択してください。下書きも指定可能です。"
+
+#: addons/weko/static/wekoFangornConfig.js:607
+msgid ""
+"Do you want to deposit the file/folder \"%1$s\" to WEKO? This operation "
+"is irreversible."
+msgstr "ファイル(フォルダ) \"%1$s\" をWEKOに登録しますか？この操作は元に戻せません。"
+
+#: addons/weko/static/wekoFangornConfig.js:617
+msgid "OK"
+msgstr "OK"
+
+#: addons/weko/static/wekoFangornConfig.js:631
+msgid "Deposit files"
+msgstr "ファイルの登録"
+
+#: addons/weko/static/wekoFangornConfig.js:880
+msgid "Save and Deposit to WEKO"
+msgstr "保存してWEKOに登録"
+
+#: addons/weko/static/wekoNodeConfig.js:86
+#: addons/weko/static/wekoNodeConfig.js:115
+#: website/static/js/folderPickerNodeConfig.js:116
+msgid ""
+"Could not retrieve %1$s settings at this time. Please refresh the page. "
+"If the problem persists, email %2$s."
+msgstr "現在、%1$sの設定を取得できませんでした。 ページを更新してください。 問題が解決しない場合は、%2$sにお問い合わせください。"
+
+#: addons/weko/static/wekoNodeConfig.js:90
+#: website/static/js/folderPickerNodeConfig.js:142
+msgid "Are you sure you want to remove this %1$s account?"
+msgstr "この%1$sアカウントを切断してもよろしいですか？"
+
+#: addons/weko/static/wekoNodeConfig.js:93
+#: website/static/js/folderPickerNodeConfig.js:145
+msgid "Are you sure you want to link your %1$s account with this project?"
+msgstr "%1$sアカウントをこのプロジェクトに接続してもよろしいですか？"
+
+#: addons/weko/static/wekoNodeConfig.js:96
+#: website/static/js/folderPickerNodeConfig.js:122
+msgid "Disconnected %1$s."
+msgstr "%1$sを切断しました。"
+
+#: addons/weko/static/wekoNodeConfig.js:99
+#: website/static/js/folderPickerNodeConfig.js:125
+msgid ""
+"Could not disconnect %1$s account because of an error. Please try again "
+"later."
+msgstr "エラーのため、%1$sアカウントを切断できませんでした。 後でもう一度やり直してください。"
+
+#: addons/weko/static/wekoNodeConfig.js:102
+#: addons/weko/static/wekoNodeConfig.js:112
+#: website/static/js/folderPickerNodeConfig.js:151
+msgid "Error occurred while importing %1$s account."
+msgstr "%1$sアカウントのインポート中にエラーが発生しました。"
+
+#: addons/weko/static/wekoNodeConfig.js:105
+msgid ""
+"Sorry, but there was a problem connecting to that instance of %1$s.If you"
+" have any questions, please contact %2$s."
+msgstr "申し訳ありませんが、%1$sのインスタンスに接続する際に問題が発生しました。この問題に関する質問は、%2$sにお問い合わせください。"
+
+#: addons/weko/static/wekoNodeConfig.js:109
+#: website/static/js/folderPickerNodeConfig.js:148
+msgid "Successfully imported %1$s account from profile."
+msgstr "プロファイルから%1$sアカウントを正常にインポートしました。"
+
+#: addons/weko/static/wekoNodeConfig.js:120
+msgid ""
+"Successfully linked index \"%1$s\". Go to the <a href=\"%2$s\">Files "
+"page</a> to view your content."
+msgstr ""
+"インデックス\"%1$s\"のリンクに成功しました。コンテンツを表示するには<a "
+"href=\"%2$s\">ファイルページ</a>に移動してください。"
+
+#: addons/weko/static/wekoNodeConfig.js:124
+msgid ""
+"Could not connect to this index. Please refresh the page or contact %1$s "
+"if the problem persists."
+msgstr "このインデックスに接続できませんでした。 問題が解決しない場合は、ページを更新するか、%1$sにお問い合わせください。"
+
+#: addons/weko/static/wekoNodeConfig.js:270
+msgid "Please select WEKO repository."
+msgstr "WEKOリポジトリを選択してください。"
+
+#: addons/weko/static/wekoNodeConfig.js:373
+#: website/static/js/citationsNodeConfig.js:147
+msgid "Choose %1$s Access Token to Import"
+msgstr "インポートする%1$s アクセストークンを選択してください"
+
+#: addons/weko/static/wekoNodeConfig.js:392
+#: addons/weko/static/wekoNodeConfig.js:407
+#: website/static/js/citationsNodeConfig.js:166
+#: website/static/js/citationsNodeConfig.js:184
+#: website/static/js/folderPickerNodeConfig.js:507
+#: website/static/js/oauthAddonNodeConfig.js:153
+#: website/static/js/oauthAddonNodeConfig.js:171
+msgid "Import"
+msgstr "接続"
+
+#: addons/weko/static/wekoNodeConfig.js:398
+#: website/static/js/folderPickerNodeConfig.js:497
+#: website/static/js/oauthAddonNodeConfig.js:162
+msgid "Import %1$s Account?"
+msgstr "%1$sアカウントに接続しますか？"
+
+#: addons/weko/static/wekoNodeConfig.js:449
+#: website/static/js/folderPickerNodeConfig.js:552
+msgid "Disconnect %1$s Account?"
+msgstr "%1$sアカウントを切断しますか？"
+
+#: addons/weko/static/wekoNodeConfig.js:458
+#: addons/weko/static/wekoUserConfig.js:113
+#: admin/static/js/rdm_addons/dataverse/dataverseRdmConfig.js:155
+#: admin/static/js/rdm_addons/figshare/rdm-cfg.js:34
+#: admin/static/js/rdm_addons/s3/s3RdmConfig.js:124
+#: admin/static/js/rdm_addons/weko/wekoRdmConfig.js:116
+#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:469
+#: website/static/js/addonSettings.js:130
+#: website/static/js/folderPickerNodeConfig.js:562
+msgid "Disconnect"
+msgstr "切断"
+
+#: addons/weko/static/wekoUserConfig.js:63
+#: website/static/js/addonSettings.js:106
+msgid ""
+"Add-on successfully authorized. To link this add-on to an GakuNin RDM "
+"project, go to the settings page of the project, enable %1$s, and choose "
+"content to connect."
+msgstr ""
+"アドオンが正常に認証されました。 このアドオンをGakuNin "
+"RDMプロジェクトにリンクするには、プロジェクトの設定ページに移動し、%1$sを有効にして、接続するコンテンツを選択します。"
+
+#: addons/weko/static/wekoUserConfig.js:65
+#: website/static/js/addonSettings.js:109
+msgid ""
+"Error while authorizing add-on. Please log in to your %1$s account and "
+"grant access to the GakuNin RDM to enable this add-on."
+msgstr ""
+"アドオンの認証中にエラーが発生しました。 このアドオンを有効にするには、%1$sアカウントにログインし、GakuNin "
+"RDMへのアクセスを許可してください。"
+
+#: addons/weko/static/wekoUserConfig.js:101
+#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:449
+#: website/static/js/addonSettings.js:118
+msgid "Disconnect Account?"
+msgstr "アカウントを切断しますか？"
+
+#: addons/weko/static/wekoUserConfig.js:103
+#: website/static/js/addonSettings.js:120
+msgid ""
+"Are you sure you want to disconnect the %1$s account "
+"<strong>%2$s</strong>? This will revoke access to %1$s for all projects "
+"you have authorized."
+msgstr ""
+"%1$sアカウント<strong>%2$s</strong>を切断してもよろしいですか？ "
+"これにより、認証したすべてのプロジェクトの%1$sへのアクセスが取り消されます。"
 
 #: addons/wiki/static/WikiEditor.js:86
 msgid "Live editing mode"
@@ -565,17 +814,9 @@ msgstr ""
 "<strong>%1$s</ strong>のDataverseアカウントを切断してもよろしいですか？ "
 "これにより、このアカウントに関連付けられているすべてのプロジェクトのDataverseへのアクセスが取り消されます。"
 
-#: admin/static/js/rdm_addons/dataverse/dataverseRdmConfig.js:155
-#: admin/static/js/rdm_addons/figshare/rdm-cfg.js:34
-#: admin/static/js/rdm_addons/s3/s3RdmConfig.js:124
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:469
-#: website/static/js/addonSettings.js:130
-#: website/static/js/folderPickerNodeConfig.js:562
-msgid "Disconnect"
-msgstr "切断"
-
 #: admin/static/js/rdm_addons/dataverse/dataverseRdmConfig.js:173
 #: admin/static/js/rdm_addons/s3/s3RdmConfig.js:142
+#: admin/static/js/rdm_addons/weko/wekoRdmConfig.js:134
 #: website/static/js/addonSettings.js:150
 msgid "Error while removing addon authorization for %1$s"
 msgstr "%1$sのアドオン認証を削除中にエラーが発生しました"
@@ -725,6 +966,27 @@ msgstr ""
 "S3アカウント<strong>%1$s</ "
 "strong>を切断してもよろしいですか？これにより、このアカウントに関連付けられているすべてのプロジェクトのS3へのアクセスが取り消されます。"
 
+#: admin/static/js/rdm_addons/weko/wekoRdmConfig.js:68
+msgid "Error while retrieving addon account"
+msgstr "アドオン情報の取得に失敗しました"
+
+#: admin/static/js/rdm_addons/weko/wekoRdmConfig.js:89
+msgid "Could not set accounts for WEKO"
+msgstr "WEKOのアカウント設定に失敗しました"
+
+#: admin/static/js/rdm_addons/weko/wekoRdmConfig.js:105
+msgid "Delete WEKO Application?"
+msgstr "WEKOアプリケーションを削除しますか？"
+
+#: admin/static/js/rdm_addons/weko/wekoRdmConfig.js:107
+msgid ""
+"Are you sure you want to delete the WEKO application "
+"<strong>%1$s</strong>? WEKO add-on connections already set up for "
+"the projects will be preserved."
+msgstr ""
+"本当にWEKOアプリケーション <strong>%1$s</strong> "
+"を削除してもよろしいですか？すでにプロジェクトに設定されているWEKOアドオンの接続は維持されます。"
+
 #: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:84
 msgid "Are you sure you want to change institutional storage?"
 msgstr "機関のストレージを変更してもよろしいですか？"
@@ -755,11 +1017,6 @@ msgstr "いくつかのエラーが発生しました"
 #: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:369
 msgid "Institutional Storage set successfully"
 msgstr "機関ストレージが正常に設定されました"
-
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:449
-#: website/static/js/addonSettings.js:118
-msgid "Disconnect Account?"
-msgstr "アカウントを切断しますか？"
 
 #: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:451
 msgid ""
@@ -1767,7 +2024,7 @@ msgstr ""
 "            </tr>\n"
 "            <tr class=\"warning\">\n"
 "                <td>ログ</td>\n"
-"                <td>GakuNin RDMは、Gaku Nin "
+"                <td>GakuNin RDMは、GakuNin "
 "RDMからownCloudのコンテンツに行った変更を追跡しますが、ownCloudを使って直接行った変更については追跡しません。</td>\n"
 "            </tr>\n"
 "            <tr class=\"warning\">\n"
@@ -2253,7 +2510,7 @@ msgstr ""
 "            </tr>\n"
 "            <tr class=\"success\">\n"
 "                <td>ログ</td>\n"
-"                <td>GakuNin RDMは、Gaku Nin "
+"                <td>GakuNin RDMは、GakuNin "
 "RDMからBitbucketのコンテンツに行った変更を追跡しますが、Bitbucketを使って直接行った変更については追跡しません。</td>\n"
 "            </tr>\n"
 "            <tr class=\"warning\">\n"
@@ -2375,7 +2632,7 @@ msgstr ""
 "            </tr>\n"
 "            <tr class=\"warning\">\n"
 "                <td>ログ</td>\n"
-"                <td>GakuNin RDMは、Gaku Nin RDMからAzure Blob "
+"                <td>GakuNin RDMは、GakuNin RDMからAzure Blob "
 "Storageのコンテナに行った変更を追跡しますが、Azure Blob Storageを使って直接行った変更については追跡しません。</td>"
 "\n"
 "            </tr>\n"
@@ -2499,7 +2756,7 @@ msgstr ""
 "            </tr>\n"
 "            <tr class=\"warning\">\n"
 "                <td>ログ</td>\n"
-"                <td>GakuNin RDMは、Gaku Nin "
+"                <td>GakuNin RDMは、GakuNin "
 "RDMからNextcloudのコンテンツに行った変更を追跡しますが、Nextcloudを使って直接行った変更については追跡しません。</td>\n"
 "            </tr>\n"
 "            <tr class=\"warning\">\n"
@@ -2617,7 +2874,7 @@ msgstr ""
 "            </tr>\n"
 "            <tr class=\"warning\">\n"
 "                <td>ログ</td>\n"
-"                <td>GakuNin RDMは、Gaku Nin "
+"                <td>GakuNin RDMは、GakuNin "
 "RDMからSwiftのコンテナに行った変更を追跡しますが、Swiftを使って直接行った変更については追跡しません。</td>\n"
 "            </tr>\n"
 "            <tr class=\"warning\">\n"
@@ -2741,7 +2998,7 @@ msgstr ""
 "            </tr>\n"
 "            <tr class=\"warning\">\n"
 "                <td>ログ</td>\n"
-"                <td>GakuNin RDMは、Gaku Nin RDMからS3 Compatible "
+"                <td>GakuNin RDMは、GakuNin RDMからS3 Compatible "
 "Storageのバケットに行った変更を追跡しますが、S3 Compatible "
 "Storageを使って直接行った変更については追跡しません。</td>\n"
 "            </tr>\n"
@@ -2869,7 +3126,7 @@ msgstr ""
 "            </tr>\n"
 "            <tr class=\"warning\">\n"
 "                <td>ログ</td>\n"
-"                <td>GakuNin RDMは、Gaku Nin RDMからOracle Cloud "
+"                <td>GakuNin RDMは、GakuNin RDMからOracle Cloud "
 "Infrastructure のバケットに行った変更を追跡しますが、Oracle Cloud Infrastructure "
 "を使って直接行った変更については追跡しません。</td>\n"
 "            </tr>\n"
@@ -2910,13 +3167,8 @@ msgid ""
 "    <tbody>\n"
 "            <tr class=\"warning\">\n"
 "                <td>Add / update files</td>\n"
-"                <td>Adding/updating indices/items in the project via "
-"GakuNin RDM will be reflected in WEKO.</td>\n"
-"            </tr>\n"
-"            <tr class=\"warning\">\n"
-"                <td>Delete files</td>\n"
-"                <td>Items deleted via GakuNin RDM will be deleted in "
-"WEKO.</td>\n"
+"                <td>Deposit files to the index in the project via GakuNin"
+" RDM will be reflected in WEKO.</td>\n"
 "            </tr>\n"
 "            <tr class=\"warning\">\n"
 "                <td>Logs</td>\n"
@@ -2960,16 +3212,12 @@ msgstr ""
 "    <tbody>\n"
 "            <tr class=\"warning\">\n"
 "                <td>ファイルの追加/更新</td>\n"
-"                <td>GakuNin RDMからプロジェクトのインデックス / アイテムを追加 / "
-"更新すると、WEKOに反映されます。</td>\n"
-"            </tr>\n"
-"            <tr class=\"warning\">\n"
-"                <td>ファイルの削除</td>\n"
-"                <td>GakuNin RDMから削除されたアイテムは、WEKOで削除されます。</td>\n"
+"                <td>GakuNin "
+"RDMからファイルをプロジェクトのインデックスに登録すると、WEKOに反映されます。</td>\n"
 "            </tr>\n"
 "            <tr class=\"warning\">\n"
 "                <td>ログ</td>\n"
-"                <td>GakuNin RDMは、Gaku Nin "
+"                <td>GakuNin RDMは、GakuNin "
 "RDMからWEKOのインデックスに行った変更を追跡しますが、WEKOを使って直接行った変更については追跡しません。</td>\n"
 "            </tr>\n"
 "            <tr class=\"warning\">\n"
@@ -3205,13 +3453,13 @@ msgstr ""
 "            </tr>\n"
 "            <tr class=\"warning\">\n"
 "                <td>ログ</td>\n"
-"                <td>GakuNin RDMは、Gaku Nin RDMからGoogle "
+"                <td>GakuNin RDMは、GakuNin RDMからGoogle "
 "Driveのコンテンツに行った変更を追跡しますが、Google Driveを使って直接行った変更については追跡しません。</td>\n"
 "            </tr>\n"
 "            <tr class=\"warning\">\n"
 "                <td>フォーク</td>\n"
-"                <td>プロジェクトやコンポーネントのフォーク時、Google Drive"
-"の認証はコピーされません。ただし、プロジェクトをフォークするユーザーが、フォーク元のプロジェクトでIQB-"
+"                <td>プロジェクトやコンポーネントのフォーク時、Google "
+"Driveの認証はコピーされません。ただし、プロジェクトをフォークするユーザーが、フォーク元のプロジェクトでIQB-"
 "RIMSアドオンを承認したユーザーと同一である場合はコピーされます。</td>\n"
 "            </tr>\n"
 "    </tbody>\n"
@@ -3964,32 +4212,6 @@ msgstr ""
 "for School or Business(login.microsoftonline.com)からログアウトします。 "
 "これにより、ブラウザに保存されている認証情報がクリアされます。"
 
-#: website/static/js/addonSettings.js:106
-msgid ""
-"Add-on successfully authorized. To link this add-on to an GakuNin RDM "
-"project, go to the settings page of the project, enable %1$s, and choose "
-"content to connect."
-msgstr ""
-"アドオンが正常に認証されました。 このアドオンをGakuNin "
-"RDMプロジェクトにリンクするには、プロジェクトの設定ページに移動し、%1$sを有効にして、接続するコンテンツを選択します。"
-
-#: website/static/js/addonSettings.js:109
-msgid ""
-"Error while authorizing add-on. Please log in to your %1$s account and "
-"grant access to the GakuNin RDM to enable this add-on."
-msgstr ""
-"アドオンの認証中にエラーが発生しました。 このアドオンを有効にするには、%1$sアカウントにログインし、GakuNin "
-"RDMへのアクセスを許可してください。"
-
-#: website/static/js/addonSettings.js:120
-msgid ""
-"Are you sure you want to disconnect the %1$s account "
-"<strong>%2$s</strong>? This will revoke access to %1$s for all projects "
-"you have authorized."
-msgstr ""
-"%1$sアカウント<strong>%2$s</strong>を切断してもよろしいですか？ "
-"これにより、認証したすべてのプロジェクトの%1$sへのアクセスが取り消されます。"
-
 #: website/static/js/alertsManager.js:42
 msgid "Could not dismiss alert. Please refresh page and try again."
 msgstr "アラートを却下できませんでした。 ページを更新してもう一度お試しください。"
@@ -4183,18 +4405,6 @@ msgstr "次に、上記のリンクするフォルダーを選択します。"
 #: website/static/js/oauthAddonNodeConfig.js:209
 msgid "Could not GET %1$s accounts for user"
 msgstr "ユーザーの%1$sアカウントを取得できませんでした"
-
-#: website/static/js/citationsNodeConfig.js:147
-msgid "Choose %1$s Access Token to Import"
-msgstr "インポートする%1$s アクセストークンを選択してください"
-
-#: website/static/js/citationsNodeConfig.js:166
-#: website/static/js/citationsNodeConfig.js:184
-#: website/static/js/folderPickerNodeConfig.js:507
-#: website/static/js/oauthAddonNodeConfig.js:153
-#: website/static/js/oauthAddonNodeConfig.js:171
-msgid "Import"
-msgstr "接続"
 
 #: website/static/js/citationsNodeConfig.js:175
 msgid "Import %1$s access token"
@@ -4580,7 +4790,6 @@ msgstr "問題が解決しない場合は、%1$sにお問い合わせくださ�
 msgid "The folder that wants to upload is empty."
 msgstr "空のフォルダはアップロードできません。"
 
-# website/static/js/fangorn.js:1199
 #: website/static/js/fangorn.js:1204
 msgid "Not enough quota to upload. The total size of the folder %1$s."
 msgstr "アップロードするための空き容量が足りません。フォルダのサイズは%1$sです。"
@@ -4688,6 +4897,14 @@ msgstr "ファイルをチェックアウトできません。 これは、フ�
 msgid " by another user."
 msgstr "である可能性があります。"
 
+#: website/static/js/fangorn.js:1994
+msgid "%1$s is not configured"
+msgstr "%1$sが未設定です"
+
+#: website/static/js/fangorn.js:1997
+msgid " Restore Add-ons"
+msgstr " 設定"
+
 #: website/static/js/fangorn.js:2008 website/static/js/fileViewTreebeard.js:63
 #: website/static/js/filesWidget.js:34 website/static/js/meetings.js:18
 #: website/static/js/pages/project-dashboard-page.js:549
@@ -4734,6 +4951,10 @@ msgstr "アップロード"
 msgid "Create Folder"
 msgstr "新規フォルダ作成"
 
+#: website/static/js/fangorn.js:2406
+msgid "Create File"
+msgstr ""
+
 #: website/static/js/fangorn.js:2348
 msgid "Delete Folder"
 msgstr "フォルダを削除"
@@ -4742,10 +4963,6 @@ msgstr "フォルダを削除"
 #: website/static/js/filepage/revisions.js:111
 msgid "Download"
 msgstr "ダウンロード"
-
-#: website/static/js/fangorn.js:2367 website/static/js/filepage/index.js:542
-msgid "View"
-msgstr "プレビュー"
 
 #: website/static/js/fangorn.js:2383 website/static/js/filepage/index.js:216
 msgid "This would mean "
@@ -4966,27 +5183,11 @@ msgstr "現在、%1$sの設定を取得できませんでした。%1$sアドオ�
 msgid " Contact %1$s to verify."
 msgstr "確認するには%1$sにお問い合わせください。"
 
-#: website/static/js/folderPickerNodeConfig.js:116
-msgid ""
-"Could not retrieve %1$s settings at this time. Please refresh the page. "
-"If the problem persists, email %2$s."
-msgstr "現在、%1$sの設定を取得できませんでした。 ページを更新してください。 問題が解決しない場合は、%2$sにメールしてください。"
-
 #: website/static/js/folderPickerNodeConfig.js:119
 msgid ""
 "Could not retrieve %1$s account list at this time. Please refresh the "
 "page. If the problem persists, email %2$s."
 msgstr "現在、%1$sアカウントリストを取得できませんでした。 ページを更新してください。 問題が解決しない場合は、%2$sにメールしてください。"
-
-#: website/static/js/folderPickerNodeConfig.js:122
-msgid "Disconnected %1$s."
-msgstr "%1$sを切断しました。"
-
-#: website/static/js/folderPickerNodeConfig.js:125
-msgid ""
-"Could not disconnect %1$s account because of an error. Please try again "
-"later."
-msgstr "エラーのため、%1$sアカウントを切断できませんでした。 後でもう一度やり直してください。"
 
 #: website/static/js/folderPickerNodeConfig.js:128
 msgid "Successfully connected a %1$s account"
@@ -5003,22 +5204,6 @@ msgstr ""
 #: website/static/js/folderPickerNodeConfig.js:139
 msgid "Could not change %1$s settings. Please try again later."
 msgstr "%1$sの設定を変更できませんでした。 後でもう一度やり直してください。"
-
-#: website/static/js/folderPickerNodeConfig.js:142
-msgid "Are you sure you want to remove this %1$s account?"
-msgstr "この%1$sアカウントを切断してもよろしいですか？"
-
-#: website/static/js/folderPickerNodeConfig.js:145
-msgid "Are you sure you want to link your %1$s account with this project?"
-msgstr "%1$sアカウントをこのプロジェクトに接続してもよろしいですか？"
-
-#: website/static/js/folderPickerNodeConfig.js:148
-msgid "Successfully imported %1$s account from profile."
-msgstr "プロファイルから%1$sアカウントを正常にインポートしました。"
-
-#: website/static/js/folderPickerNodeConfig.js:151
-msgid "Error occurred while importing %1$s account."
-msgstr "%1$sアカウントのインポート中にエラーが発生しました。"
 
 #: website/static/js/folderPickerNodeConfig.js:154
 msgid "Error occurred while importing %1$s group libraries."
@@ -5045,18 +5230,9 @@ msgstr "%1$sアクセストークンのインポートに失敗しました。"
 msgid "Failed to import %1$s group libraries."
 msgstr "%1$sグループライブラリのインポートに失敗しました。"
 
-#: website/static/js/folderPickerNodeConfig.js:497
-#: website/static/js/oauthAddonNodeConfig.js:162
-msgid "Import %1$s Account?"
-msgstr "%1$sアカウントに接続しますか？"
-
 #: website/static/js/folderPickerNodeConfig.js:536
 msgid "Could not deauthorize %1$s account from node"
 msgstr "ノードから%1$sアカウントを認証解除できませんでした"
-
-#: website/static/js/folderPickerNodeConfig.js:552
-msgid "Disconnect %1$s Account?"
-msgstr "%1$sアカウントを切断しますか？"
 
 #: website/static/js/folderPickerNodeConfig.js:645
 #: website/static/js/folderPickerNodeConfig.js:656
@@ -5401,6 +5577,10 @@ msgstr "移動"
 #: website/static/js/js_messages.js:25
 msgid "renamed"
 msgstr "名前の変更"
+
+#: website/static/js/js_messages.js:25
+msgid "copied"
+msgstr "コピー"
 
 #: website/static/js/js_messages.js:27
 msgid "Skipped"
@@ -6592,39 +6772,39 @@ msgstr "${user}が${node}のSwiftアドオンの認証を解除しました"
 msgid "Swift addon for ${node} deauthorized"
 msgstr "${node}のSwiftアドオンの認証が解除されました"
 
-#: website/static/js/logActionsList_extract.js:251
-msgid "${user} added file ${filename} to WEKO index ${dataset} in ${node}"
-msgstr "${user}が${node}のWEKOインデックス(${dataset})にファイル(${filename})を追加しました"
+#: website/static/js/logActionsList_extract.js:229
+msgid "${user} added draft file ${filename} to WEKO index ${dataset} in ${node}"
+msgstr "${user}が${node}のWEKOインデックス(${dataset})にドラフトファイル(${filename})を追加しました"
 
-#: website/static/js/logActionsList_extract.js:252
-msgid "${user} removed file ${filename} from WEKO index ${dataset} in ${node}"
-msgstr "${user}が${node}のWEKOインデックス(${dataset})からファイル(${filename})を削除しました"
+#: website/static/js/logActionsList_extract.js:230
+msgid ""
+"${user} removed draft file ${filename} from WEKO index ${dataset} in "
+"${node}"
+msgstr "${user}が${node}のWEKOインデックス(${dataset})からドラフトファイル(${filename})を削除しました"
 
-#: website/static/js/logActionsList_extract.js:253
+#: website/static/js/logActionsList_extract.js:231
 msgid "${user} linked WEKO index ${dataset} to ${node}"
 msgstr "${user}がWEKOインデックス(${dataset})を${node}にリンクしました"
 
-#: website/static/js/logActionsList_extract.js:254
-msgid "${user} created an index ${filename} on ${node}"
-msgstr "${user}が${node}にインデックス(${filename})を作成しました"
+#: website/static/js/logActionsList_extract.js:232
+msgid ""
+"${user} created draft folder ${filename} in WEKO index ${dataset} in "
+"${node}"
+msgstr "${user}が${node}のWEKOインデックス(${dataset})にドラフトフォルダ(${filename})を作成しました"
 
-#: website/static/js/logActionsList_extract.js:255
-msgid "${user} created an item ${filename} on ${node}"
-msgstr "${user}が${node}にアイテム(${filename})を作成しました"
+#: website/static/js/logActionsList_extract.js:233
+msgid "${user} deposit item ${path} in WEKO index ${dataset} in ${node}"
+msgstr "${user}が${node}のWEKOインデックス(${dataset})にアイテムを登録しました"
 
-#: website/static/js/logActionsList_extract.js:256
-msgid "${user} created folder ${filename} in WEKO index ${dataset} in ${node}"
-msgstr "${user}が${node}のWEKOインデックス(${dataset})にフォルダ(${filename})を作成しました"
-
-#: website/static/js/logActionsList_extract.js:257
+#: website/static/js/logActionsList_extract.js:234
 msgid "${user} authorized the WEKO addon for ${node}"
 msgstr "${user}が${node}のWEKOアドオンを承認しました"
 
-#: website/static/js/logActionsList_extract.js:258
+#: website/static/js/logActionsList_extract.js:235
 msgid "${user} deauthorized the WEKO addon for ${node}"
 msgstr "${user}が${node}のWEKOアドオンの認証を解除しました"
 
-#: website/static/js/logActionsList_extract.js:259
+#: website/static/js/logActionsList_extract.js:236
 msgid "WEKO addon for ${node} deauthorized"
 msgstr "${node}のWEKOアドオンの認証が解除されました"
 
