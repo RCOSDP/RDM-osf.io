@@ -292,7 +292,7 @@ def get_server_annotation(**kwargs):
             node=kwargs['node'] or kwargs['project'],
         )
         return {
-            "data": [annot.make_resource_object() for annot in annotations]
+            'data': [annot.make_resource_object() for annot in annotations]
         }
     except KeyError:
         raise HTTPError(http_status.HTTP_400_BAD_REQUEST)
@@ -312,7 +312,7 @@ def create_server_annotation(**kwargs):
         ).exists():
             raise HTTPError(
                 http_status.HTTP_409_CONFLICT,
-                message=f"Required server annotation entry already exists."
+                message=f'Required server annotation entry already exists.'
             )
         annot = ServerAnnotation(
             user=kwargs['auth'].user,
@@ -342,12 +342,12 @@ def patch_server_annotation(**kwargs):
     except ObjectDoesNotExist:
         raise HTTPError(
             http_status.HTTP_404_NOT_FOUND,
-            message=f"ServerAnnotation with id={kwargs['aid']} not found."
+            message=f'ServerAnnotation with id={kwargs['aid']} not found.'
         )
     except MultipleObjectsReturned:
         raise HTTPError(
             http_status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message=f"Multiple ServerAnnotations have id={kwargs['aid']}."
+            message=f'Multiple ServerAnnotations have id={kwargs['aid']}.'
         )
 
 @must_be_valid_project
@@ -359,12 +359,12 @@ def delete_server_annotation(**kwargs):
     except ObjectDoesNotExist:
         raise HTTPError(
             http_status.HTTP_404_NOT_FOUND,
-            message=f"ServerAnnotation with id={kwargs['aid']} not found."
+            message=f'ServerAnnotation with id={kwargs['aid']} not found.'
         )
     except MultipleObjectsReturned:
         raise HTTPError(
             http_status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message=f"Multiple ServerAnnotations have id={kwargs['aid']}."
+            message=f'Multiple ServerAnnotations have id={kwargs['aid']}.'
         )
     else:
         return {
