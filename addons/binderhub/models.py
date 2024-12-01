@@ -125,14 +125,14 @@ class ServerAnnotation(BaseModel):
 
     def make_resource_object(self):
         return {
-            "type": "server-annotation",
-            "id": self.id,
-            "attributes": {
-                "binderhubUrl": self.binderhub_url,
-                "jupyterhubUrl": self.jupyterhub_url,
-                "serverUrl": self.server_url,
-                "name": self.name,
-                "memotext": self.memotext
+            'type': 'server-annotation',
+            'id': self.id,
+            'attributes': {
+                'binderhubUrl': self.binderhub_url,
+                'jupyterhubUrl': self.jupyterhub_url,
+                'serverUrl': self.server_url,
+                'name': self.name,
+                'memotext': self.memotext
             }
         }
 
