@@ -306,22 +306,22 @@ def create_server_annotation(**kwargs):
         if ServerAnnotation.objects.filter(
             user=kwargs['auth'].user,
             node=kwargs['node'] or kwargs['project'],
-            binderhub_url = attrs['binderhubUrl'],
-            jupyterhub_url = attrs['jupyterhubUrl'],
-            server_url = attrs['serverUrl'],
+            binderhub_url=attrs['binderhubUrl'],
+            jupyterhub_url=attrs['jupyterhubUrl'],
+            server_url=attrs['serverUrl'],
         ).exists():
             raise HTTPError(
                 http_status.HTTP_409_CONFLICT,
-                message = f"Required server annotation entry already exists."
+                message=f"Required server annotation entry already exists."
             )
         annot = ServerAnnotation(
-            user = kwargs['auth'].user,
+            user=kwargs['auth'].user,
             node=kwargs['node'] or kwargs['project'],
-            binderhub_url = attrs['binderhubUrl'],
-            jupyterhub_url = attrs['jupyterhubUrl'],
-            server_url = attrs['serverUrl'],
-            name = attrs['name'],
-            memotext = '',
+            binderhub_url=attrs['binderhubUrl'],
+            jupyterhub_url=attrs['jupyterhubUrl'],
+            server_url=attrs['serverUrl'],
+            name=attrs['name'],
+            memotext='',
         )
         annot.save()
         return {'data': annot.make_resource_object()}
@@ -342,12 +342,12 @@ def patch_server_annotation(**kwargs):
     except ObjectDoesNotExist:
         raise HTTPError(
             http_status.HTTP_404_NOT_FOUND,
-            message = f"ServerAnnotation with id={kwargs['aid']} not found."
+            message=f"ServerAnnotation with id={kwargs['aid']} not found."
         )
     except MultipleObjectsReturned:
         raise HTTPError(
             http_status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message = f"Multiple ServerAnnotations have id={kwargs['aid']}."
+            message=f"Multiple ServerAnnotations have id={kwargs['aid']}."
         )
 
 @must_be_valid_project
@@ -359,16 +359,16 @@ def delete_server_annotation(**kwargs):
     except ObjectDoesNotExist:
         raise HTTPError(
             http_status.HTTP_404_NOT_FOUND,
-            message = f"ServerAnnotation with id={kwargs['aid']} not found."
+            message=f"ServerAnnotation with id={kwargs['aid']} not found."
         )
     except MultipleObjectsReturned:
         raise HTTPError(
             http_status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message = f"Multiple ServerAnnotations have id={kwargs['aid']}."
+            message=f"Multiple ServerAnnotations have id={kwargs['aid']}."
         )
     else:
         return {
-            'data':{
+            'data': {
                 'type': 'server-annotation',
                 'id': kwargs['aid'],
             }
