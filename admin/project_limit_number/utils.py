@@ -146,9 +146,9 @@ def check_logic_condition(user, setting_attribute_list):
             )
 
         if not user_extended_data_attribute:
-            user_extended_data_attribute = UserExtendedData.objects.filter(user_id = user.get('id')).first()
+            user_extended_data_attribute = UserExtendedData.objects.filter(user_id=user.get('id')).first()
             if user_extended_data_attribute:
-                user_extended_data_attribute = getattr(user_extended_data_attribute,'data', {}).get('idp_attr', {})
+                user_extended_data_attribute = getattr(user_extended_data_attribute, 'data', {}).get('idp_attr', {})
 
         if attribute_name == EDU_PERSON_PRINCIPAL_NAME:
             if use_left_suffix_match:

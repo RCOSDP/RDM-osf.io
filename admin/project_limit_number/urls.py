@@ -1,5 +1,4 @@
 from django.conf.urls import include, url
-from admin.project_limit_number.settings import views
 
 app_name = 'admin'
 

@@ -22,6 +22,7 @@ SETTING_TYPE_FREE_VALUE_LIST = [1, 2]
 SETTING_TYPE_REQUIRED_VALUE_LIST = [3, 4, 5, 6]
 PAGE_SIZE_LIST = [10, 25, 50]
 
+
 class BadRequestException(Exception):
     def __init__(self, message):
         # Initialize with a custom message

@@ -1,6 +1,6 @@
 from http import HTTPStatus
 import json
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 from django.http import Http404, HttpRequest
 from django.test import TestCase
 from admin.base.settings.defaults import ATTRIBUTE_NAME_LIST, SETTING_TYPE
@@ -15,6 +15,7 @@ from django.contrib.auth.models import AnonymousUser
 from admin_tests.utilities import setup_user_view
 from nose import tools as nt
 import mock
+
 
 class TestProjectLimitNumberTemplatesList(TestCase):
 
@@ -306,7 +307,7 @@ class TestProjectLimitNumberTemplatesViewUpdate(TestCase):
 
 
 class TestProjectLimitNumberTemplatesSettingSaveAvailabilityView(TestCase):
-    
+
     def setUp(self):
         super(TestProjectLimitNumberTemplatesSettingSaveAvailabilityView, self).setUp()
         self.project_limit_number = ProjectLimitNumberTemplateFactory()
@@ -387,7 +388,7 @@ class TestProjectLimitNumberTemplatesSettingSaveAvailabilityView(TestCase):
                 is_availability=True
             )
         ]
-        
+
         data = {
             'data': [
                 {
@@ -401,8 +402,8 @@ class TestProjectLimitNumberTemplatesSettingSaveAvailabilityView(TestCase):
             ]
         }
 
-        request = RequestFactory().put('/project_limit_number/templates/update/', 
-                                        json.dumps(data), 
+        request = RequestFactory().put('/project_limit_number/templates/update/',
+                                        json.dumps(data),
                                         content_type='application/json')
         response = self.view.put(request)
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -422,7 +423,7 @@ class TestProjectLimitNumberTemplatesSettingSaveAvailabilityView(TestCase):
                 is_availability=True
             )
         ]
-        
+
         data = {
             'data': [
                 {
@@ -436,8 +437,8 @@ class TestProjectLimitNumberTemplatesSettingSaveAvailabilityView(TestCase):
             ]
         }
 
-        request = RequestFactory().put('/project_limit_number/templates/update/', 
-                                        json.dumps(data), 
+        request = RequestFactory().put('/project_limit_number/templates/update/',
+                                        json.dumps(data),
                                         content_type='application/json')
         response = self.view.put(request)
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -611,7 +612,7 @@ class TestUpdateProjectLimitNumberTemplatesSettingView(TestCase):
         self.assertEqual(response.status_code, HTTPStatus.INTERNAL_SERVER_ERROR)
         response_data = json.loads(response.content)
         self.assertEqual(response_data['error_message'], 'Internal server error')
-    
+
     @mock.patch('osf.models.ProjectLimitNumberTemplate.objects.filter')
     def test_put_data_id_is_invalid(self, mock_filter):
         mock_filter.return_value = [
@@ -625,7 +626,7 @@ class TestUpdateProjectLimitNumberTemplatesSettingView(TestCase):
                 is_availability=True
             )
         ]
-        
+
         data = {
             'template_name': 'New Template',
             'attribute_list': [
@@ -644,80 +645,13 @@ class TestUpdateProjectLimitNumberTemplatesSettingView(TestCase):
             ]
         }
 
-        request = RequestFactory().put('/project_limit_number/templates/update/', 
-                                        json.dumps(data), 
+        request = RequestFactory().put('/project_limit_number/templates/update/',
+                                        json.dumps(data),
                                         content_type='application/json')
         response = self.view.put(request)
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
         response_data = json.loads(response.content)
         self.assertEqual(response_data['error_message'], 'id is invalid.')
-
-    # @patch('osf.models.ProjectLimitNumberTemplate.objects.filter')
-    # def test_put_template_not_found(self, mock_filter):
-    #     # Mock the behavior of filter to return None (template not found)
-    #     mock_queryset = MagicMock()
-    #     mock_queryset.first.return_value = None  # Simulating no template found
-    #     mock_filter.return_value = mock_queryset
-
-    #     # Set up the request
-    #     template_id = 999  # ID of the template that doesn't exist
-    #     url = f'/project_limit_number/templates/{template_id}/update/'
-    #     self.user = AuthUserFactory()  # Replace with your actual user factory
-        
-    #     data = {
-    #         'template_name': 'New Template',
-    #         'attribute_list': [
-    #             {
-    #                 'attribute_name': 'os',
-    #                 'setting_type': 1,
-    #                 'attribute_value': 'Red'
-    #             }
-    #         ]
-    #     }
-
-    #     # Create the PUT request
-    #     self.request = RequestFactory().put(url, json.dumps(data), content_type='application/json')
-    #     self.request.method = 'PUT'
-    #     self.request.user = self.user  # Mock user if required
-    #     self.request.kwargs = {'template_id': template_id}  # Ensure the template_id is passed in kwargs
-
-    #     # Instantiate the view using as_view()
-
-    #     # view = views.UpdateProjectLimitNumberTemplatesSettingView.as_view()
-    #     view = setup_user_view(self.view, self.request, user=self.user)
-        
-
-    #     # Test that Http404 is raised when template is not found
-    #     with self.assertRaises(Http404):
-    #         view(self.request)  # Call the view with the request
-
-    # @patch('osf.models.ProjectLimitNumberTemplate.objects.filter')
-    # def test_put_template_not_found(self, mock_filter):
-    #     mock_queryset = MagicMock()
-    #     mock_queryset.first.return_value = None
-    #     mock_filter.return_value = mock_queryset
-
-    #     template_id = 999
-    #     url = f'/project_limit_number/templates/{template_id}/update/'
-    #     self.user = AuthUserFactory()
-    #     data = {
-    #         'template_name': 'New Template',
-    #         'attribute_list': [
-    #             {
-    #                 'attribute_name': 'os',
-    #                 'setting_type': 1,
-    #                 'attribute_value': 'Red'
-    #             }
-    #         ]
-    #     }
-
-    #     self.request = RequestFactory().put(url, json.dumps(data), content_type='application/json')
-    #     self.request.method = 'PUT'
-    #     self.request.user = self.user
-    #     self.request.kwargs = {'template_id': template_id}
-    #     view = setup_user_view(self.view, self.request, user=self.user)
-    #     with self.assertRaises(Http404):
-    #         view.put(self.request)
 
     @mock.patch('osf.models.ProjectLimitNumberTemplate.objects.filter')
     def test_put_data_template_is_used(self, mock_filter):
@@ -741,7 +675,7 @@ class TestUpdateProjectLimitNumberTemplatesSettingView(TestCase):
             }
         ]
         mock_filter.return_value = mock_queryset
-        
+
         data = {
             'template_name': 'New Template',
             'attribute_list': [
@@ -753,8 +687,8 @@ class TestUpdateProjectLimitNumberTemplatesSettingView(TestCase):
                 }
             ]
         }
-        request = RequestFactory().put('/project_limit_number/templates/update/', 
-                                        json.dumps(data), 
+        request = RequestFactory().put('/project_limit_number/templates/update/',
+                                        json.dumps(data),
                                         content_type='application/json')
         response = self.view.put(request)
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -783,7 +717,7 @@ class TestUpdateProjectLimitNumberTemplatesSettingView(TestCase):
             }
         ]
         mock_filter.return_value = mock_queryset
-        
+
         data = {
             'template_name': 'New Template',
             'attribute_list': [
@@ -796,8 +730,8 @@ class TestUpdateProjectLimitNumberTemplatesSettingView(TestCase):
             ]
         }
 
-        request = RequestFactory().put('/project_limit_number/templates/update/', 
-                                        json.dumps(data), 
+        request = RequestFactory().put('/project_limit_number/templates/update/',
+                                        json.dumps(data),
                                         content_type='application/json')
         response = self.view.put(request)
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -826,7 +760,7 @@ class TestUpdateProjectLimitNumberTemplatesSettingView(TestCase):
             }
         ]
         mock_filter.return_value = mock_queryset
-        
+
         data = {
             'template_name': 'Template',
             'attribute_list': [
@@ -839,8 +773,8 @@ class TestUpdateProjectLimitNumberTemplatesSettingView(TestCase):
             ]
         }
 
-        request = RequestFactory().put('/project_limit_number/templates/update/', 
-                                        json.dumps(data), 
+        request = RequestFactory().put('/project_limit_number/templates/update/',
+                                        json.dumps(data),
                                         content_type='application/json')
         response = self.view.put(request)
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -885,8 +819,8 @@ class TestUpdateProjectLimitNumberTemplatesSettingView(TestCase):
             ]
         }
 
-        request = RequestFactory().put('/project_limit_number/templates/update/', 
-                                        json.dumps(data), 
+        request = RequestFactory().put('/project_limit_number/templates/update/',
+                                        json.dumps(data),
                                         content_type='application/json')
         response = self.view.put(request)
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -931,8 +865,8 @@ class TestUpdateProjectLimitNumberTemplatesSettingView(TestCase):
             ]
         }
 
-        request = RequestFactory().put('/project_limit_number/templates/update/', 
-                                        json.dumps(data), 
+        request = RequestFactory().put('/project_limit_number/templates/update/',
+                                        json.dumps(data),
                                         content_type='application/json')
         response = self.view.put(request)
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -977,8 +911,8 @@ class TestUpdateProjectLimitNumberTemplatesSettingView(TestCase):
             ]
         }
 
-        request = RequestFactory().put('/project_limit_number/templates/update/', 
-                                        json.dumps(data), 
+        request = RequestFactory().put('/project_limit_number/templates/update/',
+                                        json.dumps(data),
                                         content_type='application/json')
         response = self.view.put(request)
         mock_response = mock.MagicMock()
@@ -1013,7 +947,7 @@ class TestDeleteProjectLimitNumberTemplatesSettingView(TestCase):
         permission_result = view.test_func()
         nt.assert_equal(permission_result, False)
         nt.assert_equal(view.raise_exception, True)
-    
+
     @mock.patch('osf.models.ProjectLimitNumberTemplate.objects.filter')
     def test_delete_data_template_not_found(self, mock_template_filter):
         mock_queryset = mock.MagicMock()
@@ -1021,7 +955,7 @@ class TestDeleteProjectLimitNumberTemplatesSettingView(TestCase):
         mock_template_filter.return_value = mock_queryset
 
         request = RequestFactory().delete('/project_limit_number/templates/delete/1/',
-                                        json.dumps("{'template_id': 1}"), 
+                                        json.dumps("{'template_id': 1}"),
                                         content_type='application/json')
         response = self.view.delete(request)
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
@@ -1043,7 +977,7 @@ class TestDeleteProjectLimitNumberTemplatesSettingView(TestCase):
         mock_template_filter.return_value = mock_queryset
 
         request = RequestFactory().delete('/project_limit_number/templates/delete/1/',
-                                        json.dumps("{'template_id': 1}"), 
+                                        json.dumps("{'template_id': 1}"),
                                         content_type='application/json')
         response = self.view.delete(request)
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -1054,7 +988,7 @@ class TestDeleteProjectLimitNumberTemplatesSettingView(TestCase):
     def test_delete_data_internal_server_error(self, mock_filter):
         mock_filter.return_value = Exception('Internal server error')
         request = RequestFactory().delete('/project_limit_number/templates/delete/1/',
-                                        json.dumps("{'template_id': 1}"), 
+                                        json.dumps("{'template_id': 1}"),
                                         content_type='application/json')
         response = self.view.delete(request)
         self.assertEqual(response.status_code, HTTPStatus.INTERNAL_SERVER_ERROR)
@@ -1088,19 +1022,7 @@ class TestDeleteProjectLimitNumberTemplatesSettingView(TestCase):
         ]
         mock_attribute_filter.return_value = mock_queryset_attribute
         request = RequestFactory().delete('/project_limit_number/templates/delete/1/',
-                                        json.dumps("{'template_id': 1}"), 
+                                        json.dumps("{'template_id': 1}"),
                                         content_type='application/json')
         response = self.view.delete(request)
         self.assertEqual(response.status_code, HTTPStatus.OK)
-
-
-
-
-
-
-
-
-
-
-
-
