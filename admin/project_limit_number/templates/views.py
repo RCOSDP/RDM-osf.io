@@ -30,8 +30,8 @@ class BadRequestException(Exception):
         super().__init__(self.message)
 
 class CustomStringAgg(Aggregate):
-    function = "STRING_AGG"
-    template = "%(function)s(%(expressions)s %(ordering)s)"
+    function = 'STRING_AGG'
+    template = '%(function)s(%(expressions)s %(ordering)s)'
     output_field = TextField()
 
     def __init__(self, expression, delimiter, **extra):

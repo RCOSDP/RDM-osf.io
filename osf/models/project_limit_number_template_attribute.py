@@ -11,7 +11,6 @@ class ProjectLimitNumberTemplateAttribute(BaseModel):
     setting_type = models.IntegerField(choices=settings.SETTING_TYPE)
     attribute_value = models.TextField(null=True, blank=True)
     is_deleted = models.BooleanField(default=False)
-    modified = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = 'osf_project_limit_number_template_attribute'

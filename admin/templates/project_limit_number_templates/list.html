@@ -38,29 +38,29 @@
                 <tr>
                     <td>
                         <input type="checkbox" name="is_availability" value="on" style="height: 28px;"
-                                   onchange="{this.classList.toggle('checked'); changeAvailability('{{ project_limit_number_template.id }}'); 
+                                   onchange="{this.classList.toggle('checked'); changeAvailability('{{ project_limit_number_template.id }}');
                                    this.value = this.classList.contains('checked') ? 'on' : 'off'; this.checked= true;}"
                                    data-toggle="toggle" data-onstyle="success" class="btn apple-switch {% if project_limit_number_template.is_availability %} checked {% endif %}"
                                    id="template_id_{{ project_limit_number_template.id }}"
                                    {% if project_limit_number_template.used_setting_number > 0 %} disabled {% endif %}>
                     </td>
-                    <td> 
+                    <td>
                         {{ project_limit_number_template.template_name|default_if_none:'' }}
                     </td>
-                    <td> 
+                    <td>
                         {{ project_limit_number_template.attribute_names }}
                     </td>
-                    <td> 
+                    <td>
                         {{ project_limit_number_template.created|date:'Y-m-d H:i:s' }}
                     </td>
-                    <td> 
+                    <td>
                         {{ project_limit_number_template.modified|date:'Y-m-d H:i:s' }}
                     </td>
                     <td class="col-md-12" style="
                             text-align: left;
                             padding-left: 0px;
                         ">
-                            <a class="btn btn-primary" style="margin-left: 10px" 
+                            <a class="btn btn-primary" style="margin-left: 10px"
                                 id="edit_authentication_attribute_1" name="editAuthenticationAttribute"
                                 {% if project_limit_number_template.used_setting_number > 0 %} disabled {% endif %}
                                 href="{% url 'project_limit_number:templates:detail-template' template_id=project_limit_number_template.id %}">
@@ -112,7 +112,7 @@
 
         function changeAvailability(id) {
             const index = list_id_availability.indexOf(id);
-  
+
             if (index !== -1) {
                 list_id_availability.splice(index, 1);
             } else {
@@ -154,7 +154,7 @@
                 var is_availability = checkbox.classList.contains('checked');
                 id = parseInt(id);
                 datas.push({
-                    id, 
+                    id,
                     is_availability
                 })
 
