@@ -133,10 +133,13 @@ class TestCheckUserCanCreateProject:
     def institution(self):
         return InstitutionFactory()
 
-    def test_user_without_institution_cannot_create(self, user):
-        assert not api_utils.check_user_can_create_project(user)
+    def test_without_user_cannot_create(self):
+        assert not api_utils.check_user_can_create_project(None)
 
-    def test_user_with_unlimited_projects(self, user, institution):
+    def test_user_without_institution_can_create(self, user):
+        assert api_utils.check_user_can_create_project(user)
+
+    def test_user_with_no_limit(self, user, institution):
         user.affiliated_institutions.add(institution)
 
         ProjectLimitNumberDefault.objects.create(
@@ -146,7 +149,7 @@ class TestCheckUserCanCreateProject:
 
         assert api_utils.check_user_can_create_project(user)
 
-    def test_user_under_limit_can_create(self, user, institution):
+    def test_user_under_limit(self, user, institution):
         user.affiliated_institutions.add(institution)
 
         ProjectLimitNumberDefault.objects.create(
@@ -158,7 +161,7 @@ class TestCheckUserCanCreateProject:
             mock_filter.return_value.count.return_value = 3
             assert api_utils.check_user_can_create_project(user)
 
-    def test_user_at_limit_cannot_create(self, user, institution):
+    def test_user_at_limit(self, user, institution):
         user.affiliated_institutions.add(institution)
 
         ProjectLimitNumberDefault.objects.create(
@@ -170,7 +173,7 @@ class TestCheckUserCanCreateProject:
             mock_filter.return_value.count.return_value = 5
             assert not api_utils.check_user_can_create_project(user)
 
-    def test_user_matches_setting_criteria(self, user, institution):
+    def test_user_matches_setting_condition(self, user, institution):
         user.affiliated_institutions.add(institution)
         template = ProjectLimitNumberTemplate.objects.create(template_name='Demo')
         template_attribute = ProjectLimitNumberTemplateAttribute.objects.create(
@@ -197,7 +200,7 @@ class TestCheckUserCanCreateProject:
                 mock_filter.return_value.count.return_value = 9
                 assert api_utils.check_user_can_create_project(user)
 
-    def test_user_no_matching_settings_uses_default(self, user, institution):
+    def test_user_no_matching_setting(self, user, institution):
         user.affiliated_institutions.add(institution)
 
         ProjectLimitNumberDefault.objects.create(

@@ -1917,6 +1917,7 @@ class TestNodeCreate:
                                 auth=user_one.auth, expect_errors=True)
         mock_user_can_not_create_project.assert_called_once()
         assert res.status_code == 403
+        assert res.json['errors'][0]['detail'] == 'The new project cannot be created due to the created project number is greater than or equal the project number can create.'
 
     def test_creates_project_from_template_at_limit_project_number(self, app, user_one, category, url, mock_user_can_not_create_project):
         template_from = ProjectFactory(creator=user_one, is_public=True)
@@ -1937,6 +1938,7 @@ class TestNodeCreate:
                                 auth=user_one.auth, expect_errors=True)
         mock_user_can_not_create_project.assert_called_once()
         assert res.status_code == 403
+        assert res.json['errors'][0]['detail'] == 'The new project cannot be created due to the created project number is greater than or equal the project number can create.'
 
     def test_create_component_at_limit_project_number(self, app, user_one, title, category, mock_user_can_not_create_project):
         parent_project = ProjectFactory(creator=user_one)
@@ -1953,6 +1955,7 @@ class TestNodeCreate:
         res = app.post_json_api(url, component_data, auth=user_one.auth, expect_errors=True)
         mock_user_can_not_create_project.assert_called_once()
         assert res.status_code == 403
+        assert res.json['errors'][0]['detail'] == 'The new project cannot be created due to the created project number is greater than or equal the project number can create.'
 
 
 @pytest.mark.django_db

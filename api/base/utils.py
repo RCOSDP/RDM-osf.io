@@ -261,6 +261,10 @@ def check_user_can_create_project(user):
     from osf.models import ProjectLimitNumberSetting, ProjectLimitNumberSettingAttribute, \
         AbstractNode, ProjectLimitNumberDefault
 
+    # If not user return false
+    if not user:
+        return False
+
     # if user has no affiliated institution return true
     institution = user.affiliated_institutions.first()
     if not institution:

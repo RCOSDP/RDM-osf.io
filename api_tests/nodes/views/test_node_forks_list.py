@@ -495,3 +495,4 @@ class TestNodeForkCreate:
             expect_errors=True)
         mock_user_can_not_create_project.assert_called_once()
         assert res.status_code == 403
+        assert res.json['errors'][0]['detail'] == 'The new project cannot be created due to the created project number is greater than or equal the project number can create.'

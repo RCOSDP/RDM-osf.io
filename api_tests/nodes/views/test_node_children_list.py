@@ -517,6 +517,7 @@ class TestNodeChildCreate:
             self, app, user, project, child, url, mock_user_can_not_create_project):
         res = app.post_json_api(url, child, auth=user.auth, expect_errors=True)
         assert res.status_code == 403
+        assert res.json['errors'][0]['detail'] == 'The new project cannot be created due to the created project number is greater than or equal the project number can create.'
         mock_user_can_not_create_project.assert_called_once()
 
 @pytest.mark.django_db
@@ -797,4 +798,5 @@ class TestNodeChildrenBulkCreate:
             {'data': [child_one, child_two]},
             auth=user.auth, bulk=True, expect_errors=True)
         assert res.status_code == 403
+        assert res.json['errors'][0]['detail'] == 'The new project cannot be created due to the created project number is greater than or equal the project number can create.'
         mock_user_can_not_create_project.assert_called()
