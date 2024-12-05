@@ -820,7 +820,7 @@ class UserListView(RdmPermissionMixin, UserPassesTestMixin, View):
             count = self.count_user_met_logic_condition(institution_id, logic_condition_query_string,
                                                         include_osf_user_query_string, logic_condition_params, include_osf_user_params)
             if count == 0:
-                return JsonResponse({'data': [], 'total': 0}, status=HTTPStatus.OK)
+                return JsonResponse({'user_list': [], 'total': 0}, status=HTTPStatus.OK)
 
             # Convert string to int
             if page == 'last':
@@ -832,7 +832,7 @@ class UserListView(RdmPermissionMixin, UserPassesTestMixin, View):
             user_list = self.get_user_list_met_logic_condition(institution_id, page, logic_condition_query_string,
                                                                include_osf_user_query_string, logic_condition_params, include_osf_user_params)
             if len(user_list) == 0:
-                return JsonResponse({'data': [], 'total': count}, status=HTTPStatus.OK)
+                return JsonResponse({'user_list': [], 'total': count}, status=HTTPStatus.OK)
 
             # Get the list setting for institution
             setting_list = ProjectLimitNumberSetting.objects.filter(
@@ -909,7 +909,7 @@ class UserListView(RdmPermissionMixin, UserPassesTestMixin, View):
             for user in user_list_response:
                 user['created_project_number'] = created_project_number_map.get(user.get('id'), 0)
 
-            return JsonResponse({'data': user_list_response, 'total': count}, status=HTTPStatus.OK)
+            return JsonResponse({'user_list': user_list_response, 'total': count}, status=HTTPStatus.OK)
         except json.JSONDecodeError:
             return JsonResponse(
                 {'error_message': 'The request body is invalid.'},

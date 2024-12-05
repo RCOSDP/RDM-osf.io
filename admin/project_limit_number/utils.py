@@ -134,8 +134,8 @@ def check_logic_condition(user, setting_attribute_list):
         setting_type = setting_attribute.get('setting_type')
         attribute_value = setting_attribute.get('attribute_value')
         if setting_type not in SETTING_TYPE_ID_LIST:
-            # If setting_type is not in SETTING_TYPE_ID_LIST, skip this setting
-            continue
+            # If setting_type is not in SETTING_TYPE_ID_LIST, return False
+            return False
         use_left_suffix_match = setting_type in LEFT_SUFFIX_MATCH_SETTING_TYPE_LIST
         if attribute_name == MAIL_GRDM:
             # Get query from osf_user table instead

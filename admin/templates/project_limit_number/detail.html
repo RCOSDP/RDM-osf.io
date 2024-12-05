@@ -270,7 +270,7 @@
                 contentType: "application/json",
                 success: function (response) {
                     $('#id_user_list').show();
-                    const responseData = response.data;
+                    const responseData = response.user_list;
                     if (!responseData) {
                         return;
                     }

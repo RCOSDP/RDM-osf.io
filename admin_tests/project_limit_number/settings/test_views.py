@@ -1,5 +1,4 @@
 import json
-import logging
 import time
 from http import HTTPStatus
 from unittest.mock import patch
@@ -41,13 +40,14 @@ class TestProjectLimitNumberSettingListView(TestCase):
         self.template_patcher = patch('admin.project_limit_number.settings.views.render_bad_request_response')
         self.mock_render = self.template_patcher.start()
         self.mock_render.return_value.status_code = HTTPStatus.BAD_REQUEST
-        self.factory = RequestFactory()
+        self.request_factory = RequestFactory()
 
         # Create institution
         self.institution = InstitutionFactory()
 
         # Create super admin user
         self.super_admin = AuthUserFactory()
+        self.super_admin.is_staff = True
         self.super_admin.is_superuser = True
         self.super_admin.save()
 
@@ -56,8 +56,8 @@ class TestProjectLimitNumberSettingListView(TestCase):
         self.institution_admin.is_staff = True
         self.institution_admin.save()
 
-        # Create regular user
-        self.regular_user = AuthUserFactory()
+        # Create user
+        self.user = AuthUserFactory()
 
         # Create template
         self.template = ProjectLimitNumberTemplate.objects.create(
@@ -73,7 +73,7 @@ class TestProjectLimitNumberSettingListView(TestCase):
 
     def test_permission_unauthenticated(self):
         """Test access with unauthenticated user"""
-        request = self.factory.get(self.base_url)
+        request = self.request_factory.get(self.base_url)
         request.user = AnonymousUser()
         self.view = setup_view(self.view, request)
 
@@ -82,7 +82,7 @@ class TestProjectLimitNumberSettingListView(TestCase):
 
     def test_permission_super_admin(self):
         """Test access with super admin"""
-        request = self.factory.get(self.base_url)
+        request = self.request_factory.get(self.base_url)
         request.user = self.super_admin
         self.view = setup_view(self.view, request)
 
@@ -91,7 +91,7 @@ class TestProjectLimitNumberSettingListView(TestCase):
     def test_permission_institution_admin(self):
         """Test access with institutional admin"""
         self.institution_admin.affiliated_institutions.add(self.institution)
-        request = self.factory.get(self.base_url)
+        request = self.request_factory.get(self.base_url)
         request.user = self.institution_admin
         self.view = setup_view(self.view, request)
 
@@ -99,8 +99,8 @@ class TestProjectLimitNumberSettingListView(TestCase):
 
     def test_permission_user(self):
         """Test access with user"""
-        request = self.factory.get(self.base_url)
-        request.user = self.regular_user
+        request = self.request_factory.get(self.base_url)
+        request.user = self.user
         self.view = setup_view(self.view, request)
 
         self.assertFalse(self.view.test_func())
@@ -115,7 +115,7 @@ class TestProjectLimitNumberSettingListView(TestCase):
             priority=1
         )
 
-        request = self.factory.get(self.base_url)
+        request = self.request_factory.get(self.base_url)
         request.user = self.super_admin
         self.view = setup_view(self.view, request)
 
@@ -125,7 +125,7 @@ class TestProjectLimitNumberSettingListView(TestCase):
 
     def test_get_context_data_super_admin(self):
         """Test context data for super admin"""
-        request = self.factory.get(self.base_url)
+        request = self.request_factory.get(self.base_url)
         request.user = self.super_admin
         self.view = setup_view(self.view, request)
         self.view.object_list = self.view.get_queryset()
@@ -137,7 +137,7 @@ class TestProjectLimitNumberSettingListView(TestCase):
     def test_get_context_data_institution_admin(self):
         """Test context data for institution admin"""
         self.institution_admin.affiliated_institutions.add(self.institution)
-        request = self.factory.get(self.base_url)
+        request = self.request_factory.get(self.base_url)
         request.user = self.institution_admin
         self.view = setup_view(self.view, request)
         self.view.object_list = self.view.get_queryset()
@@ -151,7 +151,7 @@ class TestProjectLimitNumberSettingListView(TestCase):
         other_institution = InstitutionFactory()
         self.institution_admin.affiliated_institutions.add(self.institution)
 
-        request = self.factory.get(f'{self.base_url}?institution_id={other_institution.id}')
+        request = self.request_factory.get(f'{self.base_url}?institution_id={other_institution.id}')
         request.user = self.institution_admin
         self.view.kwargs = {'institution_id': other_institution.id}
         self.view = setup_view(self.view, request)
@@ -171,7 +171,7 @@ class TestProjectLimitNumberSettingListView(TestCase):
                 is_deleted=False
             )
 
-        request = self.factory.get(f'{self.base_url}?page_size=10')
+        request = self.request_factory.get(f'{self.base_url}?page_size=10')
         request.user = self.super_admin
         self.view.kwargs = {'page_size': 10}
         self.view = setup_view(self.view, request)
@@ -187,7 +187,7 @@ class TestProjectLimitNumberSettingListView(TestCase):
             project_limit_number=5
         )
 
-        request = self.factory.get(self.base_url)
+        request = self.request_factory.get(self.base_url)
         request.user = self.super_admin
         self.view = setup_view(self.view, request)
         self.view.object_list = self.view.get_queryset()
@@ -197,7 +197,7 @@ class TestProjectLimitNumberSettingListView(TestCase):
 
     def test_get_invalid_institution_id_format(self):
         """Test with invalid institution_id format"""
-        request = self.factory.get(f'{self.base_url}?institution_id=invalid')
+        request = self.request_factory.get(f'{self.base_url}?institution_id=invalid')
         request.user = self.super_admin
         self.view.kwargs = {'institution_id': 'invalid'}
         self.view = setup_view(self.view, request)
@@ -211,9 +211,9 @@ class TestProjectLimitNumberSettingListView(TestCase):
 
     def test_get_nonexistent_institution(self):
         """Test with non-existent institution"""
-        request = self.factory.get(f'{self.base_url}?institution_id=99999')
+        request = self.request_factory.get(f'{self.base_url}?institution_id=-1')
         request.user = self.super_admin
-        self.view.kwargs = {'institution_id': 99999}
+        self.view.kwargs = {'institution_id': -1}
         self.view = setup_view(self.view, request)
 
         response = self.view.get(request)
@@ -225,7 +225,7 @@ class TestProjectLimitNumberSettingListView(TestCase):
 
     def test_get_invalid_page_size_format(self):
         """Test with invalid page_size format"""
-        request = self.factory.get(f'{self.base_url}?page_size=invalid')
+        request = self.request_factory.get(f'{self.base_url}?page_size=invalid')
         request.user = self.super_admin
         self.view.kwargs = {'page_size': 'invalid'}
         self.view = setup_view(self.view, request)
@@ -239,9 +239,9 @@ class TestProjectLimitNumberSettingListView(TestCase):
 
     def test_get_nonexistent_page_size(self):
         """Test with non-existent page_size"""
-        request = self.factory.get(f'{self.base_url}?page_size=99999')
+        request = self.request_factory.get(f'{self.base_url}?page_size=-1')
         request.user = self.super_admin
-        self.view.kwargs = {'page_size': 99999}
+        self.view.kwargs = {'page_size': -1}
         self.view = setup_view(self.view, request)
 
         response = self.view.get(request)
@@ -253,7 +253,7 @@ class TestProjectLimitNumberSettingListView(TestCase):
 
     def test_get_successful(self):
         """Test successful GET request"""
-        request = self.factory.get(self.base_url)
+        request = self.request_factory.get(self.base_url)
         request.user = self.super_admin
         self.view = setup_view(self.view, request)
 
@@ -265,13 +265,14 @@ class TestProjectLimitNumberSettingListView(TestCase):
 class TestSaveProjectLimitNumberDefaultView(TestCase):
     def setUp(self):
         """Set up test data for all test methods"""
-        self.factory = RequestFactory()
+        self.request_factory = RequestFactory()
 
         # Create institution
         self.institution = InstitutionFactory()
 
         # Create super admin user
         self.super_admin = AuthUserFactory()
+        self.super_admin.is_staff = True
         self.super_admin.is_superuser = True
         self.super_admin.save()
 
@@ -280,8 +281,8 @@ class TestSaveProjectLimitNumberDefaultView(TestCase):
         self.institution_admin.is_staff = True
         self.institution_admin.save()
 
-        # Create regular user
-        self.regular_user = AuthUserFactory()
+        # Create user
+        self.user = AuthUserFactory()
 
         # Create base URL
         self.base_url = '/project-limit-number/default/save/'
@@ -298,7 +299,7 @@ class TestSaveProjectLimitNumberDefaultView(TestCase):
 
     def test_permission_unauthenticated(self):
         """Test access with unauthenticated user"""
-        request = self.factory.put(
+        request = self.request_factory.put(
             self.base_url,
             data=json.dumps(self.valid_data),
             content_type='application/json'
@@ -320,7 +321,7 @@ class TestSaveProjectLimitNumberDefaultView(TestCase):
 
     def test_permission_super_admin(self):
         """Test access with super admin"""
-        request = self.factory.put(self.base_url)
+        request = self.request_factory.put(self.base_url)
         request.user = self.super_admin
         self.view = setup_view(self.view, request)
 
@@ -329,16 +330,16 @@ class TestSaveProjectLimitNumberDefaultView(TestCase):
     def test_permission_institution_admin(self):
         """Test access with institutional admin"""
         self.institution_admin.affiliated_institutions.add(self.institution)
-        request = self.factory.put(self.base_url)
+        request = self.request_factory.put(self.base_url)
         request.user = self.institution_admin
         self.view = setup_view(self.view, request)
 
         self.assertTrue(self.view.test_func())
 
     def test_permission_user(self):
-        """Test access with regular user"""
-        request = self.factory.put(self.base_url)
-        request.user = self.regular_user
+        """Test access with user"""
+        request = self.request_factory.put(self.base_url)
+        request.user = self.user
         self.view = setup_view(self.view, request)
 
         self.assertFalse(self.view.test_func())
@@ -349,7 +350,7 @@ class TestSaveProjectLimitNumberDefaultView(TestCase):
 
     def test_put_invalid_json_body(self):
         """Test with invalid JSON in request body"""
-        request = self.factory.put(
+        request = self.request_factory.put(
             self.base_url,
             data='invalid json',
             content_type='application/json'
@@ -369,7 +370,7 @@ class TestSaveProjectLimitNumberDefaultView(TestCase):
         data = self.valid_data.copy()
         data['invalid_field'] = 'invalid value'
 
-        request = self.factory.put(
+        request = self.request_factory.put(
             self.base_url,
             data=json.dumps(data),
             content_type='application/json'
@@ -389,7 +390,7 @@ class TestSaveProjectLimitNumberDefaultView(TestCase):
         data = self.valid_data.copy()
         data['project_limit_number'] = settings.PROJECT_LIMIT_NUMBER + 1
 
-        request = self.factory.put(
+        request = self.request_factory.put(
             self.base_url,
             data=json.dumps(data),
             content_type='application/json'
@@ -407,9 +408,9 @@ class TestSaveProjectLimitNumberDefaultView(TestCase):
     def test_put_nonexistent_institution(self):
         """Test with non-existent institution"""
         data = self.valid_data.copy()
-        data['institution_id'] = 99999
+        data['institution_id'] = -1
 
-        request = self.factory.put(
+        request = self.request_factory.put(
             self.base_url,
             data=json.dumps(data),
             content_type='application/json'
@@ -429,7 +430,7 @@ class TestSaveProjectLimitNumberDefaultView(TestCase):
         other_institution = InstitutionFactory()
         self.institution_admin.affiliated_institutions.add(other_institution)
 
-        request = self.factory.put(
+        request = self.request_factory.put(
             self.base_url,
             data=json.dumps(self.valid_data),
             content_type='application/json'
@@ -446,7 +447,7 @@ class TestSaveProjectLimitNumberDefaultView(TestCase):
 
     def test_put_create_new_default(self):
         """Test creating new project limit number default"""
-        request = self.factory.put(
+        request = self.request_factory.put(
             self.base_url,
             data=json.dumps(self.valid_data),
             content_type='application/json'
@@ -467,7 +468,7 @@ class TestSaveProjectLimitNumberDefaultView(TestCase):
             project_limit_number=3
         )
 
-        request = self.factory.put(
+        request = self.request_factory.put(
             self.base_url,
             data=json.dumps(self.valid_data),
             content_type='application/json'
@@ -485,13 +486,14 @@ class TestSaveProjectLimitNumberDefaultView(TestCase):
 class TestProjectLimitNumberSettingSaveAvailabilityView(TestCase):
     def setUp(self):
         """Set up test data for all test methods"""
-        self.factory = RequestFactory()
+        self.request_factory = RequestFactory()
 
         # Create institution
         self.institution = InstitutionFactory()
 
         # Create super admin user
         self.super_admin = AuthUserFactory()
+        self.super_admin.is_staff = True
         self.super_admin.is_superuser = True
         self.super_admin.save()
 
@@ -500,8 +502,8 @@ class TestProjectLimitNumberSettingSaveAvailabilityView(TestCase):
         self.institution_admin.is_staff = True
         self.institution_admin.save()
 
-        # Create regular user
-        self.regular_user = AuthUserFactory()
+        # Create user
+        self.user = AuthUserFactory()
 
         # Create template
         self.template = ProjectLimitNumberTemplate.objects.create(
@@ -550,7 +552,7 @@ class TestProjectLimitNumberSettingSaveAvailabilityView(TestCase):
 
     def test_permission_unauthenticated(self):
         """Test access with unauthenticated user"""
-        request = self.factory.put(self.base_url)
+        request = self.request_factory.put(self.base_url)
         request.user = AnonymousUser()
         self.view = setup_view(self.view, request)
 
@@ -568,7 +570,7 @@ class TestProjectLimitNumberSettingSaveAvailabilityView(TestCase):
 
     def test_permission_super_admin(self):
         """Test access with super admin"""
-        request = self.factory.put(self.base_url)
+        request = self.request_factory.put(self.base_url)
         request.user = self.super_admin
         self.view = setup_view(self.view, request)
 
@@ -577,7 +579,7 @@ class TestProjectLimitNumberSettingSaveAvailabilityView(TestCase):
     def test_permission_institution_admin(self):
         """Test access with institutional admin"""
         self.institution_admin.affiliated_institutions.add(self.institution)
-        request = self.factory.put(self.base_url)
+        request = self.request_factory.put(self.base_url)
         request.user = self.institution_admin
         self.view = setup_view(self.view, request)
 
@@ -585,8 +587,8 @@ class TestProjectLimitNumberSettingSaveAvailabilityView(TestCase):
 
     def test_permission_user(self):
         """Test access with user"""
-        request = self.factory.put(self.base_url)
-        request.user = self.regular_user
+        request = self.request_factory.put(self.base_url)
+        request.user = self.user
         self.view = setup_view(self.view, request)
 
         self.assertFalse(self.view.test_func())
@@ -597,7 +599,7 @@ class TestProjectLimitNumberSettingSaveAvailabilityView(TestCase):
 
     def test_put_invalid_json_body(self):
         """Test with invalid JSON in request body"""
-        request = self.factory.put(
+        request = self.request_factory.put(
             self.base_url,
             data='invalid json',
             content_type='application/json'
@@ -617,7 +619,7 @@ class TestProjectLimitNumberSettingSaveAvailabilityView(TestCase):
         data = self.valid_data.copy()
         data['invalid_field'] = 'invalid value'
 
-        request = self.factory.put(
+        request = self.request_factory.put(
             self.base_url,
             data=json.dumps(data),
             content_type='application/json'
@@ -648,7 +650,7 @@ class TestProjectLimitNumberSettingSaveAvailabilityView(TestCase):
             }
         ]
 
-        request = self.factory.put(
+        request = self.request_factory.put(
             self.base_url,
             data=json.dumps(data),
             content_type='application/json'
@@ -679,7 +681,7 @@ class TestProjectLimitNumberSettingSaveAvailabilityView(TestCase):
             }
         ]
 
-        request = self.factory.put(
+        request = self.request_factory.put(
             self.base_url,
             data=json.dumps(data),
             content_type='application/json'
@@ -697,9 +699,9 @@ class TestProjectLimitNumberSettingSaveAvailabilityView(TestCase):
     def test_put_nonexistent_institution(self):
         """Test with non-existent institution"""
         data = self.valid_data.copy()
-        data['institution_id'] = 99999
+        data['institution_id'] = -1
 
-        request = self.factory.put(
+        request = self.request_factory.put(
             self.base_url,
             data=json.dumps(data),
             content_type='application/json'
@@ -719,7 +721,7 @@ class TestProjectLimitNumberSettingSaveAvailabilityView(TestCase):
         other_institution = InstitutionFactory()
         self.institution_admin.affiliated_institutions.add(other_institution)
 
-        request = self.factory.put(
+        request = self.request_factory.put(
             self.base_url,
             data=json.dumps(self.valid_data),
             content_type='application/json'
@@ -739,13 +741,13 @@ class TestProjectLimitNumberSettingSaveAvailabilityView(TestCase):
         data = self.valid_data.copy()
         data['setting_list'].append(
             {
-                'id': 99999,
+                'id': -1,
                 'priority': 3,
                 'is_availability': False
             }
         )
 
-        request = self.factory.put(
+        request = self.request_factory.put(
             self.base_url,
             data=json.dumps(data),
             content_type='application/json'
@@ -762,7 +764,7 @@ class TestProjectLimitNumberSettingSaveAvailabilityView(TestCase):
 
     def test_put_successful_update(self):
         """Test successful update of settings"""
-        request = self.factory.put(
+        request = self.request_factory.put(
             self.base_url,
             data=json.dumps(self.valid_data),
             content_type='application/json'
@@ -787,7 +789,7 @@ class TestProjectLimitNumberSettingSaveAvailabilityView(TestCase):
         data = self.valid_data.copy()
         data['setting_list'][0]['priority'] = 99  # Invalid priority
 
-        request = self.factory.put(
+        request = self.request_factory.put(
             self.base_url,
             data=json.dumps(data),
             content_type='application/json'
@@ -811,6 +813,7 @@ class TestDeleteProjectLimitNumberSettingView(TestCase):
 
         # Create super admin user
         self.super_admin = AuthUserFactory()
+        self.super_admin.is_staff = True
         self.super_admin.is_superuser = True
         self.super_admin.save()
 
@@ -917,7 +920,7 @@ class TestDeleteProjectLimitNumberSettingView(TestCase):
         request = RequestFactory().delete(self.base_url)
         request.user = self.super_admin
         self.view = setup_view(self.view, request)
-        response = self.view.delete(request, setting_id=99999)
+        response = self.view.delete(request, setting_id=-1)
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
         self.assertEqual(
             json.loads(response.content),
@@ -1023,13 +1026,14 @@ class TestProjectLimitNumberSettingCreateView(TestCase):
         self.template_patcher = patch('admin.project_limit_number.settings.views.render_bad_request_response')
         self.mock_render = self.template_patcher.start()
         self.mock_render.return_value.status_code = HTTPStatus.BAD_REQUEST
-        self.factory = RequestFactory()
+        self.request_factory = RequestFactory()
 
         # Create institution
         self.institution = InstitutionFactory()
 
         # Create super admin user
         self.super_admin = AuthUserFactory()
+        self.super_admin.is_staff = True
         self.super_admin.is_superuser = True
         self.super_admin.save()
 
@@ -1038,8 +1042,8 @@ class TestProjectLimitNumberSettingCreateView(TestCase):
         self.institution_admin.is_staff = True
         self.institution_admin.save()
 
-        # Create regular user
-        self.regular_user = AuthUserFactory()
+        # Create user
+        self.user = AuthUserFactory()
 
         # Create template with attributes
         self.template = ProjectLimitNumberTemplate.objects.create(
@@ -1073,7 +1077,7 @@ class TestProjectLimitNumberSettingCreateView(TestCase):
 
     def test_permission_unauthenticated(self):
         """Test access with unauthenticated user"""
-        request = self.factory.get(self.base_url)
+        request = self.request_factory.get(self.base_url)
         request.user = AnonymousUser()
         self.view = setup_view(self.view, request)
 
@@ -1082,7 +1086,7 @@ class TestProjectLimitNumberSettingCreateView(TestCase):
 
     def test_permission_super_admin(self):
         """Test access with super admin"""
-        request = self.factory.get(self.base_url)
+        request = self.request_factory.get(self.base_url)
         request.user = self.super_admin
         self.view = setup_view(self.view, request)
 
@@ -1091,7 +1095,7 @@ class TestProjectLimitNumberSettingCreateView(TestCase):
     def test_permission_institution_admin(self):
         """Test access with institutional admin"""
         self.institution_admin.affiliated_institutions.add(self.institution)
-        request = self.factory.get(self.base_url)
+        request = self.request_factory.get(self.base_url)
         request.user = self.institution_admin
         self.view = setup_view(self.view, request)
 
@@ -1099,7 +1103,7 @@ class TestProjectLimitNumberSettingCreateView(TestCase):
 
     def test_get_missing_institution_id_super_admin(self):
         """Test super admin access without institution_id"""
-        request = self.factory.get(self.base_url)
+        request = self.request_factory.get(self.base_url)
         request.user = self.super_admin
         self.view = setup_view(self.view, request)
 
@@ -1112,7 +1116,7 @@ class TestProjectLimitNumberSettingCreateView(TestCase):
 
     def test_get_invalid_institution_id_format(self):
         """Test with invalid institution_id format"""
-        request = self.factory.get(f'{self.base_url}?institution_id=invalid')
+        request = self.request_factory.get(f'{self.base_url}?institution_id=invalid')
         request.user = self.super_admin
         self.view.kwargs = {'institution_id': 'invalid'}
         self.view = setup_view(self.view, request)
@@ -1126,9 +1130,9 @@ class TestProjectLimitNumberSettingCreateView(TestCase):
 
     def test_get_nonexistent_institution(self):
         """Test with non-existent institution"""
-        request = self.factory.get(f'{self.base_url}?institution_id=99999')
+        request = self.request_factory.get(f'{self.base_url}?institution_id=-1')
         request.user = self.super_admin
-        self.view.kwargs = {'institution_id': 99999}
+        self.view.kwargs = {'institution_id': -1}
         self.view = setup_view(self.view, request)
 
         response = self.view.get(request)
@@ -1140,7 +1144,7 @@ class TestProjectLimitNumberSettingCreateView(TestCase):
 
     def test_get_invalid_template_id_format(self):
         """Test with invalid template_id format"""
-        request = self.factory.get(
+        request = self.request_factory.get(
             f'{self.base_url}?institution_id={self.institution.id}&template_id=invalid'
         )
         request.user = self.super_admin
@@ -1156,11 +1160,11 @@ class TestProjectLimitNumberSettingCreateView(TestCase):
 
     def test_get_nonexistent_template(self):
         """Test with non-existent template"""
-        request = self.factory.get(
-            f'{self.base_url}?institution_id={self.institution.id}&template_id=99999'
+        request = self.request_factory.get(
+            f'{self.base_url}?institution_id={self.institution.id}&template_id=-1'
         )
         request.user = self.super_admin
-        self.view.kwargs = {'institution_id': self.institution.id, 'template_id': 99999}
+        self.view.kwargs = {'institution_id': self.institution.id, 'template_id': -1}
         self.view = setup_view(self.view, request)
 
         response = self.view.get(request)
@@ -1175,7 +1179,7 @@ class TestProjectLimitNumberSettingCreateView(TestCase):
         other_institution = InstitutionFactory()
         self.institution_admin.affiliated_institutions.add(other_institution)
 
-        request = self.factory.get(f'{self.base_url}?institution_id={self.institution.id}')
+        request = self.request_factory.get(f'{self.base_url}?institution_id={self.institution.id}')
         request.user = self.institution_admin
         self.view.kwargs = {'institution_id': self.institution.id}
         self.view = setup_view(self.view, request)
@@ -1185,7 +1189,7 @@ class TestProjectLimitNumberSettingCreateView(TestCase):
 
     def test_get_with_template_id(self):
         """Test successful GET request with template_id"""
-        request = self.factory.get(
+        request = self.request_factory.get(
             f'{self.base_url}?institution_id={self.institution.id}&template_id={self.template.id}'
         )
         request.user = self.super_admin
@@ -1208,7 +1212,7 @@ class TestProjectLimitNumberSettingCreateView(TestCase):
 
     def test_get_without_template_id(self):
         """Test successful GET request without template_id"""
-        request = self.factory.get(f'{self.base_url}?institution_id={self.institution.id}')
+        request = self.request_factory.get(f'{self.base_url}?institution_id={self.institution.id}')
         request.user = self.super_admin
         self.view.kwargs = {'institution_id': self.institution.id}
         self.view = setup_view(self.view, request)
@@ -1225,7 +1229,7 @@ class TestProjectLimitNumberSettingCreateView(TestCase):
         """Test successful GET request in case there are no available template in DB """
         self.template.is_deleted = True
         self.template.save()
-        request = self.factory.get(f'{self.base_url}?institution_id={self.institution.id}')
+        request = self.request_factory.get(f'{self.base_url}?institution_id={self.institution.id}')
         request.user = self.super_admin
         self.view.kwargs = {'institution_id': self.institution.id}
         self.view = setup_view(self.view, request)
@@ -1241,7 +1245,7 @@ class TestProjectLimitNumberSettingCreateView(TestCase):
     def test_get_institution_admin_affiliated_institution(self):
         """Test institution admin accessing affiliated institution"""
         self.institution_admin.affiliated_institutions.add(self.institution)
-        request = self.factory.get(f'{self.base_url}?institution_id={self.institution.id}')
+        request = self.request_factory.get(f'{self.base_url}?institution_id={self.institution.id}')
         request.user = self.institution_admin
         self.view.kwargs = {'institution_id': self.institution.id}
         self.view = setup_view(self.view, request)
@@ -1254,13 +1258,14 @@ class TestProjectLimitNumberSettingCreateView(TestCase):
 class TestCreateProjectLimitNumberSettingView(TestCase):
     def setUp(self):
         """Set up test data for all test methods"""
-        self.factory = RequestFactory()
+        self.request_factory = RequestFactory()
 
         # Create institution
         self.institution = InstitutionFactory()
 
         # Create super admin user
         self.super_admin = AuthUserFactory()
+        self.super_admin.is_staff = True
         self.super_admin.is_superuser = True
         self.super_admin.save()
 
@@ -1322,7 +1327,7 @@ class TestCreateProjectLimitNumberSettingView(TestCase):
     def test_permission_unauthenticated(self):
         """Test access with unauthenticated user"""
         data = self.valid_data.copy()
-        request = self.factory.post(
+        request = self.request_factory.post(
             self.base_url,
             data=json.dumps(data),
             content_type='application/json'
@@ -1345,7 +1350,7 @@ class TestCreateProjectLimitNumberSettingView(TestCase):
     def test_permission_super_admin(self):
         """Test access with super admin"""
         data = self.valid_data.copy()
-        request = self.factory.post(
+        request = self.request_factory.post(
             self.base_url,
             data=json.dumps(data),
             content_type='application/json'
@@ -1359,7 +1364,7 @@ class TestCreateProjectLimitNumberSettingView(TestCase):
         """Test access with institutional admin"""
         self.institution_admin.affiliated_institutions.add(self.institution)
         data = self.valid_data.copy()
-        request = self.factory.post(
+        request = self.request_factory.post(
             self.base_url,
             data=json.dumps(data),
             content_type='application/json'
@@ -1372,7 +1377,7 @@ class TestCreateProjectLimitNumberSettingView(TestCase):
     def test_permission_user(self):
         """Test access with user"""
         data = self.valid_data.copy()
-        request = self.factory.post(
+        request = self.request_factory.post(
             self.base_url,
             data=json.dumps(data),
             content_type='application/json'
@@ -1390,7 +1395,7 @@ class TestCreateProjectLimitNumberSettingView(TestCase):
         data = self.valid_data.copy()
         data['attribute_list'] = []  # Empty attribute list
 
-        request = self.factory.post(
+        request = self.request_factory.post(
             self.base_url,
             data=json.dumps(data),
             content_type='application/json'
@@ -1407,7 +1412,7 @@ class TestCreateProjectLimitNumberSettingView(TestCase):
 
     def test_post_invalid_json_body(self):
         """Test with invalid JSON in request body"""
-        request = self.factory.post(
+        request = self.request_factory.post(
             self.base_url,
             data='invalid json',
             content_type='application/json'
@@ -1427,7 +1432,7 @@ class TestCreateProjectLimitNumberSettingView(TestCase):
         data = self.valid_data.copy()
         data['project_limit_number'] = settings.PROJECT_LIMIT_NUMBER + 1
 
-        request = self.factory.post(
+        request = self.request_factory.post(
             self.base_url,
             data=json.dumps(data),
             content_type='application/json'
@@ -1456,7 +1461,7 @@ class TestCreateProjectLimitNumberSettingView(TestCase):
             }
         ]
 
-        request = self.factory.post(
+        request = self.request_factory.post(
             self.base_url,
             data=json.dumps(data),
             content_type='application/json'
@@ -1474,9 +1479,9 @@ class TestCreateProjectLimitNumberSettingView(TestCase):
     def test_post_nonexistent_institution(self):
         """Test with non-existent institution"""
         data = self.valid_data.copy()
-        data['institution_id'] = 99999
+        data['institution_id'] = -1
 
-        request = self.factory.post(
+        request = self.request_factory.post(
             self.base_url,
             data=json.dumps(data),
             content_type='application/json'
@@ -1496,7 +1501,7 @@ class TestCreateProjectLimitNumberSettingView(TestCase):
         other_institution = InstitutionFactory()
         self.institution_admin.affiliated_institutions.add(other_institution)
 
-        request = self.factory.post(
+        request = self.request_factory.post(
             self.base_url,
             data=json.dumps(self.valid_data),
             content_type='application/json'
@@ -1511,8 +1516,8 @@ class TestCreateProjectLimitNumberSettingView(TestCase):
             {'error_message': 'Forbidden'}
         )
 
-    def test_post_duplicate_setting_name(self):
-        """Test with duplicate setting name"""
+    def test_post_existed_setting_name(self):
+        """Test with existed setting name"""
         # Create existing setting
         ProjectLimitNumberSetting.objects.create(
             institution=self.institution,
@@ -1522,7 +1527,7 @@ class TestCreateProjectLimitNumberSettingView(TestCase):
             is_deleted=False
         )
 
-        request = self.factory.post(
+        request = self.request_factory.post(
             self.base_url,
             data=json.dumps(self.valid_data),
             content_type='application/json'
@@ -1540,9 +1545,9 @@ class TestCreateProjectLimitNumberSettingView(TestCase):
     def test_post_nonexistent_template(self):
         """Test with non-existent template"""
         data = self.valid_data.copy()
-        data['template_id'] = 99999
+        data['template_id'] = -1
 
-        request = self.factory.post(
+        request = self.request_factory.post(
             self.base_url,
             data=json.dumps(data),
             content_type='application/json'
@@ -1562,7 +1567,7 @@ class TestCreateProjectLimitNumberSettingView(TestCase):
         """Test schema validation failure"""
         mock_validate.return_value = (False, 'Schema validation error')
 
-        request = self.factory.post(
+        request = self.request_factory.post(
             self.base_url,
             data=json.dumps(self.valid_data),
             content_type='application/json'
@@ -1582,7 +1587,7 @@ class TestCreateProjectLimitNumberSettingView(TestCase):
         data = self.valid_data.copy()
         data['attribute_list'] = [data['attribute_list'][0]]  # Remove one attribute
 
-        request = self.factory.post(
+        request = self.request_factory.post(
             self.base_url,
             data=json.dumps(data),
             content_type='application/json'
@@ -1600,9 +1605,9 @@ class TestCreateProjectLimitNumberSettingView(TestCase):
     def test_post_nonexistent_attribute(self):
         """Test with non-existent attribute"""
         data = self.valid_data.copy()
-        data['attribute_list'][0]['attribute_id'] = 99999
+        data['attribute_list'][0]['attribute_id'] = -1
 
-        request = self.factory.post(
+        request = self.request_factory.post(
             self.base_url,
             data=json.dumps(data),
             content_type='application/json'
@@ -1622,7 +1627,7 @@ class TestCreateProjectLimitNumberSettingView(TestCase):
         data = self.valid_data.copy()
         data['attribute_list'][0]['attribute_value'] = 'wrong_value'
 
-        request = self.factory.post(
+        request = self.request_factory.post(
             self.base_url,
             data=json.dumps(data),
             content_type='application/json'
@@ -1642,7 +1647,7 @@ class TestCreateProjectLimitNumberSettingView(TestCase):
         data = self.valid_data.copy()
         data['attribute_list'][1]['attribute_value'] = 'invalid_value'
 
-        request = self.factory.post(
+        request = self.request_factory.post(
             self.base_url,
             data=json.dumps(data),
             content_type='application/json'
@@ -1659,7 +1664,7 @@ class TestCreateProjectLimitNumberSettingView(TestCase):
 
     def test_post_successful(self):
         """Test successful creation of setting"""
-        request = self.factory.post(
+        request = self.request_factory.post(
             self.base_url,
             data=json.dumps(self.valid_data),
             content_type='application/json'
@@ -1685,11 +1690,15 @@ class TestCreateProjectLimitNumberSettingView(TestCase):
         attributes = ProjectLimitNumberSettingAttribute.objects.filter(setting=setting)
         self.assertEqual(attributes.count(), 2)
 
+        # Verify template used_setting_number increased by 1
+        self.template.refresh_from_db()
+        self.assertEqual(self.template.used_setting_number, 1)
+
 
 class TestProjectLimitNumberSettingDetailView(TestCase):
     def setUp(self):
         """Set up test data for all test methods"""
-        self.factory = RequestFactory()
+        self.request_factory = RequestFactory()
 
         # Create users
         self.super_admin = AuthUserFactory()
@@ -1701,7 +1710,7 @@ class TestProjectLimitNumberSettingDetailView(TestCase):
         self.institution_admin.is_staff = True
         self.institution_admin.save()
 
-        self.regular_user = AuthUserFactory()
+        self.user = AuthUserFactory()
 
         # Create institution
         self.institution = InstitutionFactory()
@@ -1745,7 +1754,7 @@ class TestProjectLimitNumberSettingDetailView(TestCase):
 
     def test_permission_unauthenticated(self):
         """Test access with unauthenticated user"""
-        request = self.factory.get(self.base_url)
+        request = self.request_factory.get(self.base_url)
         request.user = AnonymousUser()
         self.view = setup_view(self.view, request)
 
@@ -1754,7 +1763,7 @@ class TestProjectLimitNumberSettingDetailView(TestCase):
 
     def test_permission_super_admin(self):
         """Test access with super admin"""
-        request = self.factory.get(self.base_url)
+        request = self.request_factory.get(self.base_url)
         request.user = self.super_admin
         self.view = setup_view(self.view, request)
 
@@ -1763,7 +1772,7 @@ class TestProjectLimitNumberSettingDetailView(TestCase):
     def test_permission_institution_admin(self):
         """Test access with institutional admin"""
         self.institution_admin.affiliated_institutions.add(self.institution)
-        request = self.factory.get(self.base_url)
+        request = self.request_factory.get(self.base_url)
         request.user = self.institution_admin
         self.view = setup_view(self.view, request)
 
@@ -1781,19 +1790,19 @@ class TestProjectLimitNumberSettingDetailView(TestCase):
 
     def test_get_nonexistent_setting(self):
         """Test getting non-existent setting"""
-        request = self.factory.get('/project-limit-number/settings/99999/')
+        request = self.request_factory.get('/project-limit-number/settings/-1/')
         request.user = self.super_admin
         self.view = setup_view(self.view, request)
 
         with self.assertRaises(Http404):
-            self.view.get(request, setting_id=99999)
+            self.view.get(request, setting_id=-1)
 
-    def test_institution_admin_wrong_institution(self):
+    def test_get_institution_admin_wrong_institution(self):
         """Test institution admin accessing wrong institution's setting"""
         other_institution = InstitutionFactory()
         self.institution_admin.affiliated_institutions.add(other_institution)
 
-        request = self.factory.get(self.base_url)
+        request = self.request_factory.get(self.base_url)
         request.user = self.institution_admin
         self.view = setup_view(self.view, request)
 
@@ -1802,7 +1811,7 @@ class TestProjectLimitNumberSettingDetailView(TestCase):
 
     def test_get_setting_with_list_value_type(self):
         """Test getting setting with list value type"""
-        request = self.factory.get(self.base_url)
+        request = self.request_factory.get(self.base_url)
         request.user = self.super_admin
         self.view = setup_view(self.view, request)
 
@@ -1817,7 +1826,7 @@ class TestProjectLimitNumberSettingDetailView(TestCase):
 
     def test_get_setting_context_data(self):
         """Test context data in get response"""
-        request = self.factory.get(self.base_url)
+        request = self.request_factory.get(self.base_url)
         request.user = self.super_admin
         self.view = setup_view(self.view, request)
 
@@ -1831,12 +1840,12 @@ class TestProjectLimitNumberSettingDetailView(TestCase):
         self.assertEqual(context['setting']['name'], self.setting.name)
         self.assertEqual(context['setting']['project_limit_number'], self.setting.project_limit_number)
 
-    def test_get_setting_with_deleted_flag(self):
-        """Test getting setting with deleted flag"""
+    def test_get_deleted_setting(self):
+        """Test getting deleted setting"""
         self.setting.is_deleted = True
         self.setting.save()
 
-        request = self.factory.get(self.base_url)
+        request = self.request_factory.get(self.base_url)
         request.user = self.super_admin
         self.view = setup_view(self.view, request)
 
@@ -1847,13 +1856,14 @@ class TestProjectLimitNumberSettingDetailView(TestCase):
 class TestUpdateProjectLimitNumberSettingView(TestCase):
     def setUp(self):
         """Set up test data for all test methods"""
-        self.factory = RequestFactory()
+        self.request_factory = RequestFactory()
 
         # Create institution
         self.institution = InstitutionFactory()
 
         # Create super admin user
         self.super_admin = AuthUserFactory()
+        self.super_admin.is_staff = True
         self.super_admin.is_superuser = True
         self.super_admin.save()
 
@@ -1938,7 +1948,7 @@ class TestUpdateProjectLimitNumberSettingView(TestCase):
 
     def test_permission_unauthenticated(self):
         """Test access with unauthenticated user"""
-        request = self.factory.put(self.base_url)
+        request = self.request_factory.put(self.base_url)
         request.user = AnonymousUser()
         self.view = setup_view(self.view, request)
 
@@ -1955,7 +1965,7 @@ class TestUpdateProjectLimitNumberSettingView(TestCase):
 
     def test_permission_super_admin(self):
         """Test access with super admin"""
-        request = self.factory.put(self.base_url)
+        request = self.request_factory.put(self.base_url)
         request.user = self.super_admin
         self.view = setup_view(self.view, request)
 
@@ -1964,15 +1974,15 @@ class TestUpdateProjectLimitNumberSettingView(TestCase):
     def test_permission_institution_admin(self):
         """Test access with institutional admin"""
         self.institution_admin.affiliated_institutions.add(self.institution)
-        request = self.factory.put(self.base_url)
+        request = self.request_factory.put(self.base_url)
         request.user = self.institution_admin
         self.view = setup_view(self.view, request)
 
         self.assertTrue(self.view.test_func())
 
     def test_permission_user(self):
-        """Test access with regular user"""
-        request = self.factory.put(self.base_url)
+        """Test access with user"""
+        request = self.request_factory.put(self.base_url)
         request.user = AuthUserFactory()
         self.view = setup_view(self.view, request)
 
@@ -1984,7 +1994,7 @@ class TestUpdateProjectLimitNumberSettingView(TestCase):
 
     def test_put_invalid_json_body(self):
         """Test with invalid JSON in request body"""
-        request = self.factory.put(
+        request = self.request_factory.put(
             self.base_url,
             data='invalid json',
             content_type='application/json'
@@ -2000,7 +2010,7 @@ class TestUpdateProjectLimitNumberSettingView(TestCase):
         data = self.valid_data.copy()
         data['project_limit_number'] = settings.PROJECT_LIMIT_NUMBER + 1
 
-        request = self.factory.put(
+        request = self.request_factory.put(
             self.base_url,
             data=json.dumps(data),
             content_type='application/json'
@@ -2029,7 +2039,7 @@ class TestUpdateProjectLimitNumberSettingView(TestCase):
             }
         ]
 
-        request = self.factory.put(
+        request = self.request_factory.put(
             self.base_url,
             data=json.dumps(data),
             content_type='application/json'
@@ -2046,8 +2056,8 @@ class TestUpdateProjectLimitNumberSettingView(TestCase):
 
     def test_put_nonexistent_setting(self):
         """Test updating non-existent setting"""
-        self.view.kwargs = {'setting_id': 99999}
-        request = self.factory.put(
+        self.view.kwargs = {'setting_id': -1}
+        request = self.request_factory.put(
             self.base_url,
             data=json.dumps(self.valid_data),
             content_type='application/json'
@@ -2055,7 +2065,7 @@ class TestUpdateProjectLimitNumberSettingView(TestCase):
         request.user = self.super_admin
         self.view = setup_view(self.view, request)
 
-        response = self.view.put(request, setting_id=99999)
+        response = self.view.put(request, setting_id=-1)
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
         self.assertEqual(
             json.loads(response.content),
@@ -2067,7 +2077,7 @@ class TestUpdateProjectLimitNumberSettingView(TestCase):
         other_institution = InstitutionFactory()
         self.institution_admin.affiliated_institutions.add(other_institution)
 
-        request = self.factory.put(
+        request = self.request_factory.put(
             self.base_url,
             data=json.dumps(self.valid_data),
             content_type='application/json'
@@ -2093,7 +2103,7 @@ class TestUpdateProjectLimitNumberSettingView(TestCase):
             is_deleted=False
         )
 
-        request = self.factory.put(
+        request = self.request_factory.put(
             self.base_url,
             data=json.dumps(self.valid_data),
             content_type='application/json'
@@ -2113,7 +2123,7 @@ class TestUpdateProjectLimitNumberSettingView(TestCase):
         data = self.valid_data.copy()
         data['attribute_list'] = []
 
-        request = self.factory.put(
+        request = self.request_factory.put(
             self.base_url,
             data=json.dumps(data),
             content_type='application/json'
@@ -2133,7 +2143,7 @@ class TestUpdateProjectLimitNumberSettingView(TestCase):
         """Test schema validation failure"""
         mock_validate.return_value = (False, 'Schema validation error')
 
-        request = self.factory.put(
+        request = self.request_factory.put(
             self.base_url,
             data=json.dumps(self.valid_data),
             content_type='application/json'
@@ -2155,11 +2165,11 @@ class TestUpdateProjectLimitNumberSettingView(TestCase):
             'id': self.setting_attribute.id,
             'attribute_value': 'value1'
         }, {
-            'id': 99999,
+            'id': -1,
             'attribute_value': 'value2'
         }]
 
-        request = self.factory.put(
+        request = self.request_factory.put(
             self.base_url,
             data=json.dumps(data),
             content_type='application/json'
@@ -2188,7 +2198,7 @@ class TestUpdateProjectLimitNumberSettingView(TestCase):
             }
         ]
 
-        request = self.factory.put(
+        request = self.request_factory.put(
             self.base_url,
             data=json.dumps(data),
             content_type='application/json'
@@ -2217,7 +2227,7 @@ class TestUpdateProjectLimitNumberSettingView(TestCase):
             }
         ]
 
-        request = self.factory.put(
+        request = self.request_factory.put(
             self.base_url,
             data=json.dumps(data),
             content_type='application/json'
@@ -2235,7 +2245,7 @@ class TestUpdateProjectLimitNumberSettingView(TestCase):
     def test_put_missing_setting_id(self):
         """Test with missing setting_id in kwargs"""
         self.view.kwargs = {}
-        request = self.factory.put(
+        request = self.request_factory.put(
             self.base_url,
             data=json.dumps(self.valid_data),
             content_type='application/json'
@@ -2256,7 +2266,7 @@ class TestUpdateProjectLimitNumberSettingView(TestCase):
         self.setting_attribute.is_deleted = True
         self.setting_attribute.save()
 
-        request = self.factory.put(
+        request = self.request_factory.put(
             self.base_url,
             data=json.dumps(self.valid_data),
             content_type='application/json'
@@ -2273,7 +2283,7 @@ class TestUpdateProjectLimitNumberSettingView(TestCase):
 
     def test_put_successful_update_with_multiple_attributes(self):
         """Test successful update with multiple attributes"""
-        request = self.factory.put(
+        request = self.request_factory.put(
             self.base_url,
             data=json.dumps(self.valid_data),
             content_type='application/json'
@@ -2309,7 +2319,7 @@ class TestUpdateProjectLimitNumberSettingView(TestCase):
         data = self.valid_data.copy()
         data['name'] = self.setting.name  # Use existing name
 
-        request = self.factory.put(
+        request = self.request_factory.put(
             self.base_url,
             data=json.dumps(data),
             content_type='application/json'
@@ -2322,11 +2332,11 @@ class TestUpdateProjectLimitNumberSettingView(TestCase):
 
         # Verify setting was updated
         self.setting.refresh_from_db()
-        self.assertEqual(self.setting.memo, data['memo'])
+        self.assertEqual(self.setting.name, data['name'])
 
     def test_put_successful_update(self):
         """Test successful update of setting"""
-        request = self.factory.put(
+        request = self.request_factory.put(
             self.base_url,
             data=json.dumps(self.valid_data),
             content_type='application/json'
@@ -2371,7 +2381,7 @@ class TestUpdateProjectLimitNumberSettingView(TestCase):
             'attribute_value': 'value4'  # Valid value from list
         })
 
-        request = self.factory.put(
+        request = self.request_factory.put(
             self.base_url,
             data=json.dumps(data),
             content_type='application/json'
@@ -2410,7 +2420,7 @@ class TestUpdateProjectLimitNumberSettingView(TestCase):
             'attribute_value': 'value 2'  # Valid value with space
         })
 
-        request = self.factory.put(
+        request = self.request_factory.put(
             self.base_url,
             data=json.dumps(data),
             content_type='application/json'
@@ -2434,7 +2444,7 @@ class TestUpdateProjectLimitNumberSettingView(TestCase):
         with patch('osf.models.ProjectLimitNumberSetting.save') as mock_save:
             mock_save.side_effect = Exception('Database error')
 
-            request = self.factory.put(
+            request = self.request_factory.put(
                 self.base_url,
                 data=json.dumps(self.valid_data),
                 content_type='application/json'
@@ -2462,7 +2472,7 @@ class TestUpdateProjectLimitNumberSettingView(TestCase):
         with patch('admin.project_limit_number.settings.views.bulk_update') as mock_bulk_update:
             mock_bulk_update.side_effect = Exception('Bulk update error')
 
-            request = self.factory.put(
+            request = self.request_factory.put(
                 self.base_url,
                 data=json.dumps(self.valid_data),
                 content_type='application/json'
@@ -2488,7 +2498,7 @@ class TestUpdateProjectLimitNumberSettingView(TestCase):
         # Ensure some time passes
         time.sleep(0.1)
 
-        request = self.factory.put(
+        request = self.request_factory.put(
             self.base_url,
             data=json.dumps(self.valid_data),
             content_type='application/json'
@@ -2537,7 +2547,7 @@ class TestUpdateProjectLimitNumberSettingView(TestCase):
             }
         ]
 
-        request = self.factory.put(
+        request = self.request_factory.put(
             self.base_url,
             data=json.dumps(data),
             content_type='application/json'
@@ -2560,13 +2570,14 @@ class TestUserListView(TestCase):
 
     def setUp(self):
         """Set up test data for all test methods"""
-        self.factory = RequestFactory()
+        self.request_factory = RequestFactory()
 
         # Create institution
         self.institution = InstitutionFactory()
 
         # Create super admin user
         self.super_admin = AuthUserFactory()
+        self.super_admin.is_staff = True
         self.super_admin.is_superuser = True
         self.super_admin.save()
 
@@ -2607,7 +2618,7 @@ class TestUserListView(TestCase):
             is_deleted=False
         )
 
-        # Create regular users
+        # Create users
         self.users = [AuthUserFactory(username=f'user{item}@test.com') for item in range(15)]  # Create 15 users for pagination testing
 
         self.projects = []
@@ -2617,7 +2628,8 @@ class TestUserListView(TestCase):
             data = {
                 'idp_attr': {
                     'fullname': f'displayName{i + 1}',
-                    'fullname_ja': f'jaDisplayName{i + 1}'
+                    'fullname_ja': f'jaDisplayName{i + 1}',
+                    'family_name': 'fixed_value'
                 }
             }
             UserExtendedData.objects.create(
@@ -2704,7 +2716,7 @@ class TestUserListView(TestCase):
 
     def test_permission_unauthenticated(self):
         """Test access with unauthenticated user"""
-        request = self.factory.get(self.base_url)
+        request = self.request_factory.get(self.base_url)
         request.user = AnonymousUser()
         self.view = setup_view(self.view, request)
 
@@ -2722,7 +2734,7 @@ class TestUserListView(TestCase):
 
     def test_permission_super_admin(self):
         """Test access with super admin"""
-        request = self.factory.get(self.base_url)
+        request = self.request_factory.get(self.base_url)
         request.user = self.super_admin
         self.view = setup_view(self.view, request)
 
@@ -2731,15 +2743,15 @@ class TestUserListView(TestCase):
     def test_permission_institution_admin(self):
         """Test access with institutional admin"""
         self.institution_admin.affiliated_institutions.add(self.institution)
-        request = self.factory.get(self.base_url)
+        request = self.request_factory.get(self.base_url)
         request.user = self.institution_admin
         self.view = setup_view(self.view, request)
 
         self.assertTrue(self.view.test_func())
 
     def test_permission_user(self):
-        """Test access with regular user"""
-        request = self.factory.get(self.base_url)
+        """Test access with user"""
+        request = self.request_factory.get(self.base_url)
         request.user = AuthUserFactory()
         self.view = setup_view(self.view, request)
 
@@ -2751,7 +2763,7 @@ class TestUserListView(TestCase):
 
     def test_post_invalid_json_body(self):
         """Test with invalid JSON in request body"""
-        request = self.factory.post(
+        request = self.request_factory.post(
             self.base_url,
             data='invalid json',
             content_type='application/json'
@@ -2767,7 +2779,7 @@ class TestUserListView(TestCase):
         """Test with invalid schema"""
         mock_validate.return_value = (False, 'Schema validation error')
 
-        request = self.factory.post(
+        request = self.request_factory.post(
             self.base_url,
             data=json.dumps(self.valid_data),
             content_type='application/json'
@@ -2785,9 +2797,9 @@ class TestUserListView(TestCase):
     def test_post_nonexistent_institution(self):
         """Test with non-existent institution"""
         data = self.valid_data.copy()
-        data['institution_id'] = 99999
+        data['institution_id'] = -1
 
-        request = self.factory.post(
+        request = self.request_factory.post(
             self.base_url,
             data=json.dumps(data),
             content_type='application/json'
@@ -2807,7 +2819,7 @@ class TestUserListView(TestCase):
         other_institution = InstitutionFactory()
         self.institution_admin.affiliated_institutions.add(other_institution)
 
-        request = self.factory.post(
+        request = self.request_factory.post(
             self.base_url,
             data=json.dumps(self.valid_data),
             content_type='application/json'
@@ -2831,7 +2843,7 @@ class TestUserListView(TestCase):
             'attribute_value': 'displayName1'
         }]
 
-        request = self.factory.post(
+        request = self.request_factory.post(
             self.base_url,
             data=json.dumps(data),
             content_type='application/json'
@@ -2858,7 +2870,7 @@ class TestUserListView(TestCase):
             'attribute_value': 'example1@test.com'
         }]
 
-        request = self.factory.post(
+        request = self.request_factory.post(
             self.base_url,
             data=json.dumps(data),
             content_type='application/json'
@@ -2881,7 +2893,7 @@ class TestUserListView(TestCase):
             'attribute_value': 'jaDisplayName1'
         }]
 
-        request = self.factory.post(
+        request = self.request_factory.post(
             self.base_url,
             data=json.dumps(data),
             content_type='application/json'
@@ -2900,7 +2912,7 @@ class TestUserListView(TestCase):
             'attribute_value': 'no_match_value'
         }]
 
-        request = self.factory.post(
+        request = self.request_factory.post(
             self.base_url,
             data=json.dumps(data),
             content_type='application/json'
@@ -2911,15 +2923,20 @@ class TestUserListView(TestCase):
         self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertEqual(
             json.loads(response.content),
-            {'data': [], 'total': 0}
+            {'user_list': [], 'total': 0}
         )
 
     def test_post_last_page(self):
         """Test requesting last page"""
         data = self.valid_data.copy()
         data['page'] = 'last'
+        data['attribute_list'] = [{
+            'attribute_name': 'sn',
+            'setting_type': 1,
+            'attribute_value': 'fixed_value'
+        }]
 
-        request = self.factory.post(
+        request = self.request_factory.post(
             self.base_url,
             data=json.dumps(data),
             content_type='application/json'
@@ -2929,15 +2946,15 @@ class TestUserListView(TestCase):
         response = self.view.post(request)
         self.assertEqual(response.status_code, HTTPStatus.OK)
         response_data = json.loads(response.content)
-        self.assertIn('data', response_data)
-        self.assertIn('total', response_data)
+        self.assertEqual(len(response_data['user_list']), 5)
+        self.assertEqual(response_data['total'], 15)
 
     def test_post_page_larger_than_last_page(self):
         """Test requesting page that has larger than the last page number"""
         data = self.valid_data.copy()
         data['page'] = '99999'
 
-        request = self.factory.post(
+        request = self.request_factory.post(
             self.base_url,
             data=json.dumps(data),
             content_type='application/json'
@@ -2947,12 +2964,11 @@ class TestUserListView(TestCase):
         response = self.view.post(request)
         self.assertEqual(response.status_code, HTTPStatus.OK)
         response_data = json.loads(response.content)
-        self.assertIn('data', response_data)
-        self.assertIn('total', response_data)
+        self.assertEqual(len(response_data['user_list']), 0)
 
     def test_post_response_with_settings(self):
         """Test successful response including project limit settings"""
-        request = self.factory.post(
+        request = self.request_factory.post(
             self.base_url,
             data=json.dumps(self.valid_data),
             content_type='application/json'
@@ -2962,11 +2978,11 @@ class TestUserListView(TestCase):
         response = self.view.post(request)
         self.assertEqual(response.status_code, HTTPStatus.OK)
         response_data = json.loads(response.content)
-        self.assertIn('data', response_data)
+        self.assertIn('user_list', response_data)
         self.assertIn('total', response_data)
 
-        if response_data['data']:
-            user_data = response_data['data'][0]
+        if response_data['user_list']:
+            user_data = response_data['user_list'][0]
             self.assertIn('guid', user_data)
             self.assertIn('username', user_data)
             self.assertIn('fullname', user_data)
@@ -2977,7 +2993,7 @@ class TestUserListView(TestCase):
         with patch('admin.project_limit_number.utils.check_logic_condition') as mock_check:
             mock_check.side_effect = [True, False]  # Meets first condition, not second
 
-            request = self.factory.post(
+            request = self.request_factory.post(
                 self.base_url,
                 data=json.dumps(self.valid_data),
                 content_type='application/json'
@@ -2989,17 +3005,16 @@ class TestUserListView(TestCase):
             self.assertEqual(response.status_code, HTTPStatus.OK)
 
             response_data = json.loads(response.content)
-            self.assertNotEqual(len(response_data['data']), 0)
-            for user_data in response_data['data']:
-                if user_data.get('project_limit_number') == 5:
-                    self.assertIn('created_project_number', user_data)
+            self.assertNotEqual(len(response_data['user_list']), 0)
+            for user_data in response_data['user_list']:
+                self.assertEqual(user_data.get('project_limit_number'), 5)
 
     def test_post_user_meets_second_condition(self):
         """Test when user meets second setting's condition"""
         with patch('admin.project_limit_number.utils.check_logic_condition') as mock_check:
             mock_check.side_effect = [False, True]  # Doesn't meet first, meets second
 
-            request = self.factory.post(
+            request = self.request_factory.post(
                 self.base_url,
                 data=json.dumps(self.valid_data),
                 content_type='application/json'
@@ -3011,17 +3026,16 @@ class TestUserListView(TestCase):
             self.assertEqual(response.status_code, HTTPStatus.OK)
 
             response_data = json.loads(response.content)
-            self.assertNotEqual(len(response_data['data']), 0)
-            for user_data in response_data['data']:
-                if user_data.get('project_limit_number') == 10:
-                    self.assertIn('created_project_number', user_data)
+            self.assertNotEqual(len(response_data['user_list']), 0)
+            for user_data in response_data['user_list']:
+                self.assertEqual(user_data.get('project_limit_number'), 10)
 
     def test_post_user_meets_no_conditions(self):
         """Test when user meets no conditions and gets default limit"""
         with patch('admin.project_limit_number.utils.check_logic_condition') as mock_check:
             mock_check.return_value = False  # Meets no conditions
 
-            request = self.factory.post(
+            request = self.request_factory.post(
                 self.base_url,
                 data=json.dumps(self.valid_data),
                 content_type='application/json'
@@ -3033,8 +3047,8 @@ class TestUserListView(TestCase):
             self.assertEqual(response.status_code, HTTPStatus.OK)
 
             response_data = json.loads(response.content)
-            self.assertNotEqual(len(response_data['data']), 0)
-            for user_data in response_data['data']:
+            self.assertNotEqual(len(response_data['user_list']), 0)
+            for user_data in response_data['user_list']:
                 self.assertEqual(user_data.get('project_limit_number'), 3)
 
     def test_post_no_default_limit_configured(self):
@@ -3045,7 +3059,7 @@ class TestUserListView(TestCase):
         with patch('admin.project_limit_number.utils.check_logic_condition') as mock_check:
             mock_check.return_value = False  # Meets no conditions
 
-            request = self.factory.post(
+            request = self.request_factory.post(
                 self.base_url,
                 data=json.dumps(self.valid_data),
                 content_type='application/json'
@@ -3057,13 +3071,13 @@ class TestUserListView(TestCase):
             self.assertEqual(response.status_code, HTTPStatus.OK)
 
             response_data = json.loads(response.content)
-            self.assertNotEqual(len(response_data['data']), 0)
-            for user_data in response_data['data']:
+            self.assertNotEqual(len(response_data['user_list']), 0)
+            for user_data in response_data['user_list']:
                 self.assertEqual(user_data.get('project_limit_number'), utils.NO_LIMIT)
 
     def test_post_project_count_calculation(self):
         """Test correct calculation of created project numbers"""
-        request = self.factory.post(
+        request = self.request_factory.post(
             self.base_url,
             data=json.dumps(self.valid_data),
             content_type='application/json'
@@ -3075,8 +3089,8 @@ class TestUserListView(TestCase):
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
         response_data = json.loads(response.content)
-        self.assertNotEqual(len(response_data['data']), 0)
-        for user_data in response_data['data']:
+        self.assertNotEqual(len(response_data['user_list']), 0)
+        for user_data in response_data['user_list']:
             user_projects = len([p for p in self.projects
                                  if p.creator_id == user_data['id']])
             self.assertEqual(user_data['created_project_number'], user_projects)
@@ -3094,7 +3108,7 @@ class TestUserListView(TestCase):
             is_deleted=False
         )
 
-        request = self.factory.post(
+        request = self.request_factory.post(
             self.base_url,
             data=json.dumps(self.valid_data),
             content_type='application/json'
@@ -3111,7 +3125,7 @@ class TestUserListView(TestCase):
         self.setting1_attribute1.is_deleted = True
         self.setting1_attribute1.save()
 
-        request = self.factory.post(
+        request = self.request_factory.post(
             self.base_url,
             data=json.dumps(self.valid_data),
             content_type='application/json'
@@ -3127,7 +3141,7 @@ class TestUserListView(TestCase):
         with patch('admin.project_limit_number.utils.check_logic_condition') as mock_check:
             mock_check.return_value = True  # Meets all conditions
 
-            request = self.factory.post(
+            request = self.request_factory.post(
                 self.base_url,
                 data=json.dumps(self.valid_data),
                 content_type='application/json'
@@ -3139,9 +3153,8 @@ class TestUserListView(TestCase):
             self.assertEqual(response.status_code, HTTPStatus.OK)
 
             response_data = json.loads(response.content)
-            self.assertNotEqual(len(response_data['data']), 0)
-            for user_data in response_data['data']:
-                logging.info(user_data)
+            self.assertNotEqual(len(response_data['user_list']), 0)
+            for user_data in response_data['user_list']:
                 self.assertEqual(user_data.get('project_limit_number'), 5)
 
     def test_count_users_no_conditions(self):
@@ -3204,10 +3217,11 @@ class TestUserListView(TestCase):
             []
         )
         self.assertEqual(len(user_list), 10)  # First page should have 10 users
-        self.assertIn('guid', user_list[0])
-        self.assertIn('username', user_list[0])
-        self.assertIn('fullname', user_list[0])
-        self.assertIn('eppn', user_list[0])
+        for user in user_list:
+            self.assertIn('guid', user)
+            self.assertIn('username', user)
+            self.assertIn('fullname', user)
+            self.assertIn('eppn', user)
 
     def test_get_user_list_second_page(self):
         """Test getting second page of users"""
@@ -3221,6 +3235,11 @@ class TestUserListView(TestCase):
         )
         # Second page should have 5 users (total 15 users)
         self.assertEqual(len(user_list), 5)
+        for user in user_list:
+            self.assertIn('guid', user)
+            self.assertIn('username', user)
+            self.assertIn('fullname', user)
+            self.assertIn('eppn', user)
 
     def test_get_user_list_with_logic_condition(self):
         """Test getting user list with logic condition"""
@@ -3247,6 +3266,19 @@ class TestUserListView(TestCase):
             [self.users[0].username]
         )
         self.assertEqual(len(user_list), 1)
+
+    def test_get_user_list_with_multiple_osf_query(self):
+        """Test getting user list with multiple OSF user queries"""
+        include_osf_query = f'u.username = %s AND u.username = %s'
+        user_list = self.view.get_user_list_met_logic_condition(
+            self.institution.id,
+            1,
+            '',
+            include_osf_query,
+            [],
+            [self.users[0].username, self.users[1].username]
+        )
+        self.assertEqual(len(user_list), 0)
 
     def test_get_user_list_with_both_conditions(self):
         """Test getting user list with both logic condition and OSF query"""

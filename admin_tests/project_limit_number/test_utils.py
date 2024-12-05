@@ -3,8 +3,15 @@ import jsonschema
 from django.test import TestCase
 from unittest.mock import patch
 
-from admin.project_limit_number.utils import ATTRIBUTE_STRING_QUERY_MAP, ATTRIBUTE_ARRAY_QUERY_MAP, check_logic_condition, MAIL_GRDM, EDU_PERSON_PRINCIPAL_NAME, \
-    validate_file_json, generate_logic_condition_from_attribute
+from admin.project_limit_number.utils import (
+    ATTRIBUTE_STRING_QUERY_MAP,
+    ATTRIBUTE_ARRAY_QUERY_MAP,
+    check_logic_condition,
+    MAIL_GRDM,
+    EDU_PERSON_PRINCIPAL_NAME,
+    validate_file_json,
+    generate_logic_condition_from_attribute
+)
 from osf.models import UserExtendedData
 from osf_tests.factories import AuthUserFactory
 
@@ -129,7 +136,7 @@ class TestGenerateLogicConditionFromAttribute(TestCase):
             'setting_type': 3
         }
 
-        expected = "data -> 'idp_attr' ->> 'email' = %s"
+        expected = 'data -> \'idp_attr\' ->> \'email\' = %s'
         query, params = generate_logic_condition_from_attribute(attribute)
         self.assertEqual(query, expected)
         self.assertEqual(params, ['test@example.com'])
@@ -142,7 +149,7 @@ class TestGenerateLogicConditionFromAttribute(TestCase):
             'setting_type': 4
         }
 
-        expected = "data -> 'idp_attr' ->> 'email' LIKE %s"
+        expected = 'data -> \'idp_attr\' ->> \'email\' LIKE %s'
         query, params = generate_logic_condition_from_attribute(attribute)
         self.assertEqual(query, expected)
         self.assertEqual(params, ['%@example.com'])
@@ -158,7 +165,7 @@ class TestGenerateLogicConditionFromAttribute(TestCase):
         expected = (
             'EXISTS ('
             '	SELECT 1 '
-            "	FROM unnest(string_to_array(data -> 'idp_attr' ->> 'edu_person_affiliation', ';')) AS element "
+            '	FROM unnest(string_to_array(data -> \'idp_attr\' ->> \'edu_person_affiliation\', \';\')) AS element '
             '	WHERE element = %s'
             '	)'
         )
@@ -177,7 +184,7 @@ class TestGenerateLogicConditionFromAttribute(TestCase):
         expected = (
             'EXISTS ('
             '	SELECT 1 '
-            "	FROM unnest(string_to_array(data -> 'idp_attr' ->> 'edu_person_affiliation', ';')) AS element "
+            '	FROM unnest(string_to_array(data -> \'idp_attr\' ->> \'edu_person_affiliation\', \';\')) AS element '
             '	WHERE element LIKE %s'
             '	)'
         )
@@ -194,8 +201,8 @@ class TestGenerateLogicConditionFromAttribute(TestCase):
         }
 
         expected = (
-            "data -> 'idp_attr' ->> 'eppn' = %s OR "
-            "data -> 'idp_attr' ->> 'username' = %s"
+            'data -> \'idp_attr\' ->> \'eppn\' = %s OR '
+            'data -> \'idp_attr\' ->> \'username\' = %s'
         )
         query, params = generate_logic_condition_from_attribute(attribute)
         self.assertEqual(query, expected)
@@ -210,8 +217,8 @@ class TestGenerateLogicConditionFromAttribute(TestCase):
         }
 
         expected = (
-            "data -> 'idp_attr' ->> 'eppn' LIKE %s OR "
-            "data -> 'idp_attr' ->> 'username' LIKE %s"
+            'data -> \'idp_attr\' ->> \'eppn\' LIKE %s OR '
+            'data -> \'idp_attr\' ->> \'username\' LIKE %s'
         )
         query, params = generate_logic_condition_from_attribute(attribute)
         self.assertEqual(query, expected)
@@ -257,14 +264,14 @@ class TestGenerateLogicConditionFromAttribute(TestCase):
         """Test handling of special characters in attribute values"""
         attribute = {
             'attribute_name': 'mail',
-            'attribute_value': "O'Connor@example.com",  # value with single quote
+            'attribute_value': 'O\'Connor@example.com',  # value with single quote
             'setting_type': 3
         }
 
-        expected = "data -> 'idp_attr' ->> 'email' = %s"
+        expected = 'data -> \'idp_attr\' ->> \'email\' = %s'
         query, params = generate_logic_condition_from_attribute(attribute)
         self.assertEqual(query, expected)
-        self.assertEqual(params, ["O'Connor@example.com"])
+        self.assertEqual(params, ['O\'Connor@example.com'])
 
     def test_empty_attribute_value(self):
         """Test with empty attribute value"""
@@ -274,7 +281,7 @@ class TestGenerateLogicConditionFromAttribute(TestCase):
             'setting_type': 3
         }
 
-        expected = "data -> 'idp_attr' ->> 'email' = %s"
+        expected = 'data -> \'idp_attr\' ->> \'email\' = %s'
         query, params = generate_logic_condition_from_attribute(attribute)
         self.assertEqual(query, expected)
         self.assertEqual(params, [''])
@@ -337,7 +344,7 @@ class TestCheckLogicCondition(TestCase):
         }]
 
         result = check_logic_condition(self.user_dict, setting_attribute_list)
-        self.assertTrue(result)
+        self.assertFalse(result)
 
     def test_string_attributes(self):
         """Test all string attributes from ATTRIBUTE_STRING_QUERY_MAP"""
