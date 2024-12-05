@@ -1104,10 +1104,10 @@ var MyProjects = {
         );
         ctrl.onLoadReset();
 
-        // If can not create project disable button        
-        var buttonState = '.btn.btn-success.btn-success-high-contrast.f-w-xl[data-toggle="modal"][data-target="#addProject"]"]'
+        // If can not create project disable button
+        var buttonState = '.btn.btn-success.btn-success-high-contrast.f-w-xl[data-toggle="modal"][data-target="#addProject"]"]';
         if (!window.contextVars.canCreateProject) {
-            buttonState = '.btn.btn-success.btn-success-high-contrast.f-w-xl[data-toggle="modal"][disabled]'
+            buttonState = '.btn.btn-success.btn-success-high-contrast.f-w-xl[data-toggle="modal"][disabled]';
         }
 
         return [

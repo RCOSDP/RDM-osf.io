@@ -270,25 +270,25 @@ def check_user_can_create_project(user):
     setting_list = ProjectLimitNumberSetting.objects.filter(
         institution_id=institution.id,
         is_availability=True,
-        is_deleted=False
+        is_deleted=False,
     ).order_by('priority').all()
     setting_id_list = [s.id for s in setting_list]
     # Get setting list attribute by setting
     all_setting_attribute_list = (ProjectLimitNumberSettingAttribute.objects.select_related(
-        'attribute'
+        'attribute',
     ).filter(
         setting_id__in=setting_id_list,
-        is_deleted=False
+        is_deleted=False,
     ).annotate(
         setting_type=F('attribute__setting_type'),
         attribute_name=F('attribute__attribute_name'),
-        setting_id=F('setting_id')
+        setting_id=F('setting_id'),
     ).order_by('id').values(
         'id',
         'attribute_name',
         'setting_type',
         'attribute_value',
-        'setting_id'
+        'setting_id',
     ))
     project_limit_number = None
     user_dict = user.__dict__
@@ -308,7 +308,7 @@ def check_user_can_create_project(user):
     # If no setting found, get default or use no limit (-1)
     if project_limit_number is None:
         project_limit_number = ProjectLimitNumberDefault.objects.filter(
-            institution_id=institution.id
+            institution_id=institution.id,
         ).values_list('project_limit_number', flat=True).first() or NO_LIMIT
 
     # Return if no limit
@@ -319,7 +319,7 @@ def check_user_can_create_project(user):
     created_project_number = AbstractNode.objects.filter(
         type='osf.node',
         creator_id=user.id,
-        is_deleted=False
+        is_deleted=False,
     ).count()
 
     return project_limit_number > created_project_number

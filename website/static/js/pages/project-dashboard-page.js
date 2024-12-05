@@ -29,7 +29,7 @@ var node = window.contextVars.node;
 var nodeApiUrl = ctx.node.urls.api;
 var nodeCategories = ctx.nodeCategories || [];
 var currentUserRequestState = ctx.currentUserRequestState;
-var canCreateProject = ctx.canCreateProject
+var canCreateProject = ctx.canCreateProject;
 
 var _ = require('js/rdmGettext')._;
 var sprintf = require('agh.sprintf').sprintf;
@@ -438,9 +438,9 @@ $(document).ready(function () {
     });
 
     // If can not create project disable button
-    var buttonState = '.btn.btn-sm.btn-default[data-toggle="modal"][data-target="#addSubComponent"]'
+    var buttonState = '.btn.btn-sm.btn-default[data-toggle="modal"][data-target="#addSubComponent"]';
     if (!canCreateProject) {
-        buttonState = '.btn.btn-sm.btn-default[data-toggle="modal"][disabled]'
+        buttonState = '.btn.btn-sm.btn-default[data-toggle="modal"][disabled]';
     }
 
     var AddComponentButton = m.component(AddProject, {

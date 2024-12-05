@@ -264,7 +264,7 @@ class TestNodeForkCreate:
     def mock_user_can_not_create_project(self):
         with mock.patch('api.nodes.views.check_user_can_create_project') as mock_user:
             mock_user.return_value = False
-            yield mock_user 
+            yield mock_user
 
     def test_create_fork_from_public_project_with_new_title(
             self, app, user, public_project, fork_data_with_title, public_project_url):

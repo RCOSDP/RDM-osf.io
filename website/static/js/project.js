@@ -88,9 +88,9 @@ NodeActions.forkNode = function() {
             $osf.growl('Fork status', _('Your fork is being created. You\'ll receive an email when it is complete.'), 'info');
         }).fail(function(response){
             // Check response has project limit number error
-            var error_detail = response.responseJSON.errors[0].detail
-              ? response.responseJSON && response.responseJSON.errors && response.responseJSON.errors.length > 0
-              : '';
+            var error_detail = response.responseJSON.errors[0].detail ?
+              response.responseJSON && response.responseJSON.errors && response.responseJSON.errors.length > 0 :
+              '';
             if (error_detail === LIMITED_ERROR){
                 $osf.growl('Error', _(error_detail), 'danger');
             } else {

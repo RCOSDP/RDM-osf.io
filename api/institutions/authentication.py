@@ -192,14 +192,20 @@ class InstitutionAuthentication(BaseAuthentication):
         # groups: 'isMemberOf' is friendlyName
         groups = get_next(p_user, 'groups', 'isMemberOf')
         # gakunin_scoped_personal_unique_code: 'gakuninScopedPersonalUniqueCode' is friendlyName
-        gakunin_scoped_personal_unique_code = get_next(p_user, 'gakunin_scoped_personal_unique_code',
-                                                       'gakuninScopedPersonalUniqueCode')
+        gakunin_scoped_personal_unique_code = get_next(
+            p_user, 'gakunin_scoped_personal_unique_code',
+            'gakuninScopedPersonalUniqueCode',
+        )
         # gakunin_identity_assurance_organization: 'gakuninIdentityAssuranceOrganization' is friendlyName
-        gakunin_identity_assurance_organization = get_next(p_user, 'gakunin_identity_assurance_organization',
-                                                           'gakuninIdentityAssuranceOrganization')
+        gakunin_identity_assurance_organization = get_next(
+            p_user, 'gakunin_identity_assurance_organization',
+            'gakuninIdentityAssuranceOrganization',
+        )
         # gakunin_identity_assurance_method_reference: 'gakuninIdentityAssuranceMethodReference' is friendlyName
-        gakunin_identity_assurance_method_reference = get_next(p_user, 'gakunin_identity_assurance_method_reference',
-                                                               'gakuninIdentityAssuranceMethodReference')
+        gakunin_identity_assurance_method_reference = get_next(
+            p_user, 'gakunin_identity_assurance_method_reference',
+            'gakuninIdentityAssuranceMethodReference',
+        )
 
         # Use given name and family name to build full name if it is not provided
         if given_name and family_name and not fullname:
@@ -443,7 +449,7 @@ class InstitutionAuthentication(BaseAuthentication):
                 'given_name_ja': given_name_ja,
                 'gakunin_scoped_personal_unique_code': gakunin_scoped_personal_unique_code,
                 'gakunin_identity_assurance_organization': gakunin_identity_assurance_organization,
-                'gakunin_identity_assurance_method_reference': gakunin_identity_assurance_method_reference
+                'gakunin_identity_assurance_method_reference': gakunin_identity_assurance_method_reference,
             },
         )
 
