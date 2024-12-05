@@ -36,6 +36,16 @@ def make_payload(
         jaOrganizationalUnitName='',
         organizationalUnit='',
         organizationName='',
+        edu_person_affiliation='',
+        edu_person_scoped_affiliation='',
+        edu_person_targeted_id='',
+        edu_person_assurance='',
+        edu_person_unique_id='',
+        edu_person_orcid='',
+        groups='',
+        gakunin_scoped_personal_unique_code='',
+        gakunin_identity_assurance_organization='',
+        gakunin_identity_assurance_method_reference='',
 ):
 
     data = {
@@ -58,6 +68,16 @@ def make_payload(
                 'jaOrganizationalUnitName': jaOrganizationalUnitName,
                 'organizationalUnitName': organizationalUnit,
                 'organizationName': organizationName,
+                'eduPersonAffiliation': edu_person_affiliation,
+                'eduPersonScopedAffiliation': edu_person_scoped_affiliation,
+                'eduPersonTargetedID': edu_person_targeted_id,
+                'eduPersonAssurance': edu_person_assurance,
+                'eduPersonUniqueId': edu_person_unique_id,
+                'eduPersonOrcid': edu_person_orcid,
+                'isMemberOf': groups,
+                'gakuninScopedPersonalUniqueCode': gakunin_scoped_personal_unique_code,
+                'gakuninIdentityAssuranceOrganization': gakunin_identity_assurance_organization,
+                'gakuninIdentityAssuranceMethodReference': gakunin_identity_assurance_method_reference,
             }
         }
     }
@@ -527,7 +547,6 @@ class TestInstitutionAuth:
         mock.return_value = True
         username = 'user@gmail.com'
         edu_person_affiliation = 'edu_person_affiliation'
-        edu_person_principal_name = 'edu_person_principal_name'
         edu_person_scoped_affiliation = 'edu_person_scoped_affiliation'
         edu_person_targeted_id = 'edu_person_targeted_id'
         edu_person_assurance = 'edu_person_assurance'
@@ -542,7 +561,6 @@ class TestInstitutionAuth:
             url_auth_institution,
             make_payload(institution, username,
                 edu_person_affiliation=edu_person_affiliation,
-                edu_person_principal_name=edu_person_principal_name,
                 edu_person_scoped_affiliation=edu_person_scoped_affiliation,
                 edu_person_targeted_id=edu_person_targeted_id,
                 edu_person_assurance=edu_person_assurance,
@@ -560,7 +578,6 @@ class TestInstitutionAuth:
 
         idp_attr = user.ext.data['idp_attr']
         assert idp_attr['edu_person_affiliation'] == edu_person_affiliation
-        assert idp_attr['eppn'] == edu_person_principal_name
         assert idp_attr['edu_person_scoped_affiliation'] == edu_person_scoped_affiliation
         assert idp_attr['edu_person_targeted_id'] == edu_person_targeted_id
         assert idp_attr['edu_person_assurance'] == edu_person_assurance
