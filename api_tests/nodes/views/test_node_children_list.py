@@ -1,3 +1,4 @@
+import mock
 import pytest
 
 from api.base.settings.defaults import API_BASE
@@ -325,6 +326,12 @@ class TestNodeChildCreate:
             }
         }
 
+    @pytest.fixture
+    def mock_user_can_not_create_project(self):
+        with mock.patch('api.nodes.views.check_user_can_create_project') as mock_user:
+            mock_user.return_value = False
+            yield mock_user 
+
     def test_creates_child(self, app, user, project, child, url):
 
         #   test_creates_child_logged_out_user
@@ -506,6 +513,11 @@ class TestNodeChildCreate:
         }, auth=user.auth, expect_errors=True)
         assert res.status_code == 404
 
+    def test_create_child_limit_project_number_error(
+            self, app, user, project, child, url, mock_user_can_not_create_project):
+        res = app.post_json_api(url, child, auth=user.auth, expect_errors=True)
+        assert res.status_code == 403
+        mock_user_can_not_create_project.assert_called_once()
 
 @pytest.mark.django_db
 class TestNodeChildrenBulkCreate:
@@ -539,6 +551,12 @@ class TestNodeChildrenBulkCreate:
                 'category': 'hypothesis'
             }
         }
+
+    @pytest.fixture
+    def mock_user_can_not_create_project(self):
+        with mock.patch('api.nodes.views.check_user_can_create_project') as mock_user:
+            mock_user.return_value = False
+            yield mock_user 
 
     def test_bulk_children_create_blank_request(self, app, user, url):
         res = app.post_json_api(
@@ -771,3 +789,12 @@ class TestNodeChildrenBulkCreate:
 
         project.reload()
         assert len(project.nodes) == 0
+
+    def test_bulk_creates_children_limit_project_number_error(
+            self, app, user, project, child_one, child_two, url, mock_user_can_not_create_project):
+        res = app.post_json_api(
+            url,
+            {'data': [child_one, child_two]},
+            auth=user.auth, bulk=True, expect_errors=True)
+        assert res.status_code == 403
+        mock_user_can_not_create_project.assert_called()
