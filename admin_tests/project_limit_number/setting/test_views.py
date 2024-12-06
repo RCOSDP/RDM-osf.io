@@ -13,7 +13,7 @@ from admin.base import settings
 from admin.project_limit_number import utils
 from admin_tests.utilities import setup_view
 from osf_tests.factories import AuthUserFactory, InstitutionFactory, ProjectFactory
-from admin.project_limit_number.settings.views import (
+from admin.project_limit_number.setting.views import (
     LIST_VALUE_SETTING_TYPE_LIST,
     ProjectLimitNumberSettingListView,
     ProjectLimitNumberSettingDetailView,
@@ -37,7 +37,7 @@ from osf.models import (
 class TestProjectLimitNumberSettingListView(TestCase):
     def setUp(self):
         """Set up test data for all test methods"""
-        self.template_patcher = patch('admin.project_limit_number.settings.views.render_bad_request_response')
+        self.template_patcher = patch('admin.project_limit_number.setting.views.render_bad_request_response')
         self.mock_render = self.template_patcher.start()
         self.mock_render.return_value.status_code = HTTPStatus.BAD_REQUEST
         self.request_factory = RequestFactory()
@@ -1023,7 +1023,7 @@ class TestDeleteProjectLimitNumberSettingView(TestCase):
 class TestProjectLimitNumberSettingCreateView(TestCase):
     def setUp(self):
         """Set up test data for all test methods"""
-        self.template_patcher = patch('admin.project_limit_number.settings.views.render_bad_request_response')
+        self.template_patcher = patch('admin.project_limit_number.setting.views.render_bad_request_response')
         self.mock_render = self.template_patcher.start()
         self.mock_render.return_value.status_code = HTTPStatus.BAD_REQUEST
         self.request_factory = RequestFactory()
@@ -2469,7 +2469,7 @@ class TestUpdateProjectLimitNumberSettingView(TestCase):
         original_memo = self.setting.memo
         original_attribute_value = self.setting_attribute.attribute_value
 
-        with patch('admin.project_limit_number.settings.views.bulk_update') as mock_bulk_update:
+        with patch('admin.project_limit_number.setting.views.bulk_update') as mock_bulk_update:
             mock_bulk_update.side_effect = Exception('Bulk update error')
 
             request = self.request_factory.put(

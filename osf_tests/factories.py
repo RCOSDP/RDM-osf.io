@@ -1238,6 +1238,7 @@ class RdmFileTimestamptokenVerifyResultFactory(DjangoModelFactory):
     class Meta:
         model = models.RdmFileTimestamptokenVerifyResult
 
+
 class ProjectLimitNumberTemplateFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.ProjectLimitNumberTemplate

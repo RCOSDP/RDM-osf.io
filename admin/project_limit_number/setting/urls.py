@@ -1,7 +1,5 @@
 from django.conf.urls import url
-from admin.project_limit_number.settings import views
-
-app_name = 'admin'
+from . import views
 
 urlpatterns = [
     url(r'^$', views.ProjectLimitNumberSettingListView.as_view(), name='list-setting'),

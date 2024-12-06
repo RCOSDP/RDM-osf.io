@@ -1,4 +1,7 @@
 from __future__ import unicode_literals
+
+import logging
+
 from django.utils import timezone
 import json
 from django.http import Http404, JsonResponse
@@ -14,10 +17,10 @@ from django_bulk_update.helper import bulk_update
 from http import HTTPStatus
 from django.db.models import TextField, Value
 from admin.project_limit_number import utils
-import logging
-logger = logging.getLogger(__name__)
+
 from django.db.models import Aggregate
 
+logger = logging.getLogger(__name__)
 SETTING_TYPE_FREE_VALUE_LIST = [1, 2]
 SETTING_TYPE_REQUIRED_VALUE_LIST = [3, 4, 5, 6]
 PAGE_SIZE_LIST = [10, 25, 50]
@@ -29,6 +32,7 @@ class BadRequestException(Exception):
         self.message = message
         super().__init__(self.message)
 
+
 class CustomStringAgg(Aggregate):
     function = 'STRING_AGG'
     template = '%(function)s(%(expressions)s %(ordering)s)'
@@ -39,7 +43,7 @@ class CustomStringAgg(Aggregate):
         super().__init__(expression, delimiter_expr, **extra)
 
 
-class ProjectLimitNumberTemplatesList(RdmPermissionMixin, UserPassesTestMixin, ListView):
+class ProjectLimitNumberTemplateListView(RdmPermissionMixin, UserPassesTestMixin, ListView):
     """ Project Limit Number Template List page """
     template_name = 'project_limit_number_templates/list.html'
     object_type = 'project_limit_number_templates'
@@ -89,7 +93,7 @@ class ProjectLimitNumberTemplatesList(RdmPermissionMixin, UserPassesTestMixin, L
             )
         kwargs.setdefault('project_limit_number_template_list', data)
         kwargs.setdefault('page', page)
-        return super(ProjectLimitNumberTemplatesList, self).get_context_data(**kwargs)
+        return super(ProjectLimitNumberTemplateListView, self).get_context_data(**kwargs)
 
     def get(self, request, *args, **kwargs):
         try:
@@ -354,11 +358,8 @@ class UpdateProjectLimitNumberTemplatesSettingView(RdmPermissionMixin, UserPasse
             request_body = json.loads(request.body)
             template_name = request_body.get('template_name')
             request_body['template_name'] = template_name.strip()
-            logger.info(f'request_body: {request_body}')
             # Validate request data
             is_request_valid, message = utils.validate_file_json(request_body, 'update-template-project-limit-number-setting-schema.json')
-            logger.info(f'is_request_valid: {is_request_valid}')
-            logger.info(f'message: {message}')
             if not is_request_valid:
                 return JsonResponse({'error_message': message}, status=HTTPStatus.BAD_REQUEST)
 
@@ -373,9 +374,9 @@ class UpdateProjectLimitNumberTemplatesSettingView(RdmPermissionMixin, UserPasse
                 is_deleted=False
             ).first()
 
-            # Check template is NULL
+            # Check template is None
             if not template:
-                raise Http404
+                return JsonResponse({'error_message': 'The template not exist.'}, status=HTTPStatus.NOT_FOUND)
 
             # Check template is using
             if template.used_setting_number > 0:
@@ -479,6 +480,7 @@ class UpdateProjectLimitNumberTemplatesSettingView(RdmPermissionMixin, UserPasse
 class DeleteProjectLimitNumberTemplatesSettingView(RdmPermissionMixin, UserPassesTestMixin, DeleteView):
     """ Project Limit Number Template Delete method """
     raise_exception = True
+
     def test_func(self):
         """check user permissions"""
         # login check
@@ -529,7 +531,7 @@ class DeleteProjectLimitNumberTemplatesSettingView(RdmPermissionMixin, UserPasse
                 ).update(is_deleted=True, modified=timezone.now())
 
         except Exception as e:
-            logger.error(f'Exception in DeleteProjectLimitNumberSettingView.delete: {e}')
+            logger.error(f'Exception: {e}')
             return JsonResponse(
                 {'error_message': 'Internal server error'},
                 status=HTTPStatus.INTERNAL_SERVER_ERROR
