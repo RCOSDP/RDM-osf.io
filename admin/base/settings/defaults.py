@@ -135,7 +135,6 @@ INSTALLED_APPS = (
     'addons.ociinstitutions',
     'addons.onedrivebusiness',
     'addons.metadata',
-    'addons.datasteward',
 )
 
 MIGRATION_MODULES = {
@@ -183,7 +182,6 @@ UNSUPPORTED_FORCE_TO_USE_ADDONS = [
     'gitlab',
     'onedrive',
     'iqbrims',
-    'datasteward',
 ]
 
 USE_TZ = True
