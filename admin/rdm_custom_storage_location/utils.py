@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import inspect  # noqa
-import logging
 import traceback
 
 from boxsdk import Client as BoxClient, OAuth2
@@ -34,10 +32,7 @@ from addons.s3compatinstitutions import settings as s3compatinstitutions_setting
 from addons.ociinstitutions.models import OCIInstitutionsProvider
 from addons.ociinstitutions import settings as ociinstitutions_settings
 from addons.onedrivebusiness.client import OneDriveBusinessClient
-from addons.base.institutions_utils import (KEYNAME_BASE_FOLDER,
-                                            KEYNAME_USERMAP,
-                                            KEYNAME_USERMAP_TMP,
-                                            sync_all)
+from addons.base.institutions_utils import KEYNAME_BASE_FOLDER, KEYNAME_USERMAP, KEYNAME_USERMAP_TMP, sync_all
 from framework.exceptions import HTTPError
 from website import settings as osf_settings
 from osf.models import Node, OSFUser, ProjectStorageType, UserQuota
@@ -61,29 +56,30 @@ enabled_providers_forinstitutions_list = [
 ]
 
 enabled_providers_list = [
-    's3', 'osfstorage',
-    'swift', 's3compat',
+    's3',
+    'osfstorage',
+    'swift',
+    's3compat',
 ]
 enabled_providers_list.extend(enabled_providers_forinstitutions_list)
 
 no_storage_name_providers = ['osfstorage', 'onedrivebusiness']
 
+
 def have_storage_name(provider_name):
     return provider_name not in no_storage_name_providers
 
 
-def get_providers(available_list=None):
+def get_providers():
     provider_list = []
     for provider in osf_settings.ADDONS_AVAILABLE:
         if 'storage' in provider.categories and provider.short_name in enabled_providers_list:
-            provider.icon_url_admin = \
-                '/custom_storage_location/icon/{}/comicon.png'.format(provider.short_name)
+            provider.icon_url_admin = '/custom_storage_location/icon/{}/comicon.png'.format(provider.short_name)
             provider.modal_path = get_modal_path(provider.short_name)
             provider_list.append(provider)
     provider_list.sort(key=lambda x: x.full_name.lower())
-    if isinstance(available_list, list):
-        return [addon for addon in provider_list if addon.short_name in available_list]
     return provider_list
+
 
 def get_addon_by_name(addon_short_name):
     """get Addon object from Short Name."""
@@ -91,18 +87,19 @@ def get_addon_by_name(addon_short_name):
         if addon.short_name == addon_short_name:
             return addon
 
+
 def get_modal_path(short_name):
     base_path = os.path.join('rdm_custom_storage_location', 'providers')
     return os.path.join(base_path, '{}_modal.html'.format(short_name))
+
 
 def get_oauth_info_notification(institution_id, provider_short_name):
     temp_external_account = ExternalAccountTemporary.objects.filter(
         _id=institution_id, provider=provider_short_name
     ).first()
-    if temp_external_account and \
-            temp_external_account.modified >= datetime.datetime.now(
-                temp_external_account.modified.tzinfo
-            ) - datetime.timedelta(seconds=60 * 30):
+    if temp_external_account and temp_external_account.modified >= datetime.datetime.now(
+        temp_external_account.modified.tzinfo
+    ) - datetime.timedelta(seconds=60 * 30):
         return {
             'display_name': temp_external_account.display_name,
             'oauth_key': temp_external_account.oauth_key,
@@ -111,6 +108,7 @@ def get_oauth_info_notification(institution_id, provider_short_name):
             'provider_name': temp_external_account.provider_name,
         }
 
+
 def set_allowed(institution, provider_name, is_allowed):
     addon_option = get_rdm_addon_option(institution.id, provider_name)
     addon_option.is_allowed = is_allowed
@@ -118,6 +116,7 @@ def set_allowed(institution, provider_name, is_allowed):
     # NOTE: ExternalAccounts is not cleared even if other storage is selected.
     # if not is_allowed:
     #     addon_option.external_accounts.clear()
+
 
 def change_allowed_for_institutions(institution, provider_name):
     if provider_name in enabled_providers_forinstitutions_list:
@@ -129,6 +128,7 @@ def change_allowed_for_institutions(institution, provider_name):
             continue  # skip this provider
         if p.for_institutions:
             set_allowed(institution, p.short_name, False)
+
 
 def set_default_storage(institution_id):
     default_region = Region.objects.first()
@@ -152,6 +152,7 @@ def set_default_storage(institution_id):
         )
     return region
 
+
 def update_storage(institution_id, storage_name, wb_credentials, wb_settings):
     try:
         region = Region.objects.get(_id=institution_id)
@@ -172,6 +173,7 @@ def update_storage(institution_id, storage_name, wb_credentials, wb_settings):
         region.save()
     return region
 
+
 def update_nodes_storage(institution):
     for node in Node.objects.filter(affiliated_institutions=institution.id):
         update_node_storage(node)
@@ -180,8 +182,11 @@ def update_nodes_storage(institution):
     for user in OSFUser.objects.filter(affiliated_institutions=institution.id):
         update_user_used_quota(user, storage_type=UserQuota.CUSTOM_STORAGE, is_recalculating_quota=True)
 
+
 def transfer_to_external_account(user, institution_id, provider_short_name):
-    temp_external_account = ExternalAccountTemporary.objects.filter(_id=institution_id, provider=provider_short_name).first()
+    temp_external_account = ExternalAccountTemporary.objects.filter(
+        _id=institution_id, provider=provider_short_name
+    ).first()
     account, _ = ExternalAccount.objects.get_or_create(
         provider=temp_external_account.provider,
         provider_id=temp_external_account.provider_id,
@@ -210,46 +215,49 @@ def transfer_to_external_account(user, institution_id, provider_short_name):
         user.save()
     return account
 
+
 def oauth_validation(provider, institution_id, folder_id):
     """Checks if the folder_id is not empty, and that a temporary external account exists
     in the database.
     """
     if not folder_id:
-        return ({
-            'message': 'Folder ID is missing.'
-        }, http_status.HTTP_400_BAD_REQUEST)
+        return ({'message': 'Folder ID is missing.'}, http_status.HTTP_400_BAD_REQUEST)
 
     if not ExternalAccountTemporary.objects.filter(_id=institution_id, provider=provider).exists():
-        return ({
-            'message': 'Oauth data was not found. Please reload the page and try again.'
-        }, http_status.HTTP_400_BAD_REQUEST)
+        return (
+            {'message': 'Oauth data was not found. Please reload the page and try again.'},
+            http_status.HTTP_400_BAD_REQUEST,
+        )
 
     return True
+
 
 def test_s3_connection(access_key, secret_key, bucket):
     """Verifies new external account credentials and adds to user's list"""
     if not (access_key and secret_key and bucket):
-        return ({
-            'message': 'All the fields above are required.'
-        }, http_status.HTTP_400_BAD_REQUEST)
+        return ({'message': 'All the fields above are required.'}, http_status.HTTP_400_BAD_REQUEST)
     user_info = s3_utils.get_user_info(access_key, secret_key)
     if not user_info:
-        return ({
-            'message': 'Unable to access account.\n'
-            'Check to make sure that the above credentials are valid,'
-            'and that they have permission to list buckets.'
-        }, http_status.HTTP_400_BAD_REQUEST)
+        return (
+            {
+                'message': 'Unable to access account.\n'
+                'Check to make sure that the above credentials are valid,'
+                'and that they have permission to list buckets.'
+            },
+            http_status.HTTP_400_BAD_REQUEST,
+        )
 
     if not s3_utils.can_list(access_key, secret_key):
-        return ({
-            'message': 'Unable to list buckets.\n'
-            'Listing buckets is required permission that can be changed via IAM'
-        }, http_status.HTTP_400_BAD_REQUEST)
+        return (
+            {
+                'message': 'Unable to list buckets.\n'
+                'Listing buckets is required permission that can be changed via IAM'
+            },
+            http_status.HTTP_400_BAD_REQUEST,
+        )
 
     if not s3_utils.bucket_exists(access_key, secret_key, bucket):
-        return ({
-            'message': 'Invalid bucket.'
-        }, http_status.HTTP_400_BAD_REQUEST)
+        return ({'message': 'Invalid bucket.'}, http_status.HTTP_400_BAD_REQUEST)
 
     s3_response = {
         'id': user_info.id,
@@ -257,17 +265,13 @@ def test_s3_connection(access_key, secret_key, bucket):
         'Owner': user_info.Owner,
     }
 
-    return ({
-        'message': 'Credentials are valid',
-        'data': s3_response
-    }, http_status.HTTP_200_OK)
+    return ({'message': 'Credentials are valid', 'data': s3_response}, http_status.HTTP_200_OK)
+
 
 def test_s3compat_connection(host_url, access_key, secret_key, bucket):
     host = host_url.rstrip('/').replace('https://', '').replace('http://', '')
     if not (host and access_key and secret_key and bucket):
-        return ({
-            'message': 'All the fields above are required.'
-        }, http_status.HTTP_400_BAD_REQUEST)
+        return ({'message': 'All the fields above are required.'}, http_status.HTTP_400_BAD_REQUEST)
 
     try:
         user_info = s3compat_utils.get_user_info(host, access_key, secret_key)
@@ -276,12 +280,15 @@ def test_s3compat_connection(host_url, access_key, secret_key, bucket):
         user_info = None
         e_message = traceback.format_exception_only(type(e), e)[0].rstrip('\n')
     if not user_info:
-        return ({
-            'message': 'Unable to access account.\n'
-            'Check to make sure that the above credentials are valid, '
-            'and that they have permission to list buckets.',
-            'e_message': e_message
-        }, http_status.HTTP_400_BAD_REQUEST)
+        return (
+            {
+                'message': 'Unable to access account.\n'
+                'Check to make sure that the above credentials are valid, '
+                'and that they have permission to list buckets.',
+                'e_message': e_message,
+            },
+            http_status.HTTP_400_BAD_REQUEST,
+        )
 
     try:
         res = s3compat_utils.can_list(host, access_key, secret_key)
@@ -290,11 +297,14 @@ def test_s3compat_connection(host_url, access_key, secret_key, bucket):
         res = False
         e_message = traceback.format_exception_only(type(e), e)[0].rstrip('\n')
     if not res:
-        return ({
-            'message': 'Unable to list buckets.\n'
-            'Listing buckets is required permission that can be changed via IAM',
-            'e_message': e_message
-        }, http_status.HTTP_400_BAD_REQUEST)
+        return (
+            {
+                'message': 'Unable to list buckets.\n'
+                'Listing buckets is required permission that can be changed via IAM',
+                'e_message': e_message,
+            },
+            http_status.HTTP_400_BAD_REQUEST,
+        )
 
     try:
         res = s3compat_utils.bucket_exists(host, access_key, secret_key, bucket)
@@ -303,25 +313,24 @@ def test_s3compat_connection(host_url, access_key, secret_key, bucket):
         res = False
         e_message = traceback.format_exception_only(type(e), e)[0].rstrip('\n')
     if not res:
-        return ({
-            'message': 'Invalid bucket.',
-            'e_message': e_message
-        }, http_status.HTTP_400_BAD_REQUEST)
+        return ({'message': 'Invalid bucket.', 'e_message': e_message}, http_status.HTTP_400_BAD_REQUEST)
 
-    return ({
-        'message': 'Credentials are valid',
-        'data': {
-            'id': user_info.id,
-            'display_name': user_info.display_name,
-        }
-    }, http_status.HTTP_200_OK)
+    return (
+        {
+            'message': 'Credentials are valid',
+            'data': {
+                'id': user_info.id,
+                'display_name': user_info.display_name,
+            },
+        },
+        http_status.HTTP_200_OK,
+    )
+
 
 def test_s3compatb3_connection(host_url, access_key, secret_key, bucket):
     host = host_url.rstrip('/').replace('https://', '').replace('http://', '')
     if not (host and access_key and secret_key and bucket):
-        return ({
-            'message': 'All the fields above are required.'
-        }, http_status.HTTP_400_BAD_REQUEST)
+        return ({'message': 'All the fields above are required.'}, http_status.HTTP_400_BAD_REQUEST)
 
     try:
         user_info = s3compatb3_utils.get_user_info(host, access_key, secret_key)
@@ -330,12 +339,15 @@ def test_s3compatb3_connection(host_url, access_key, secret_key, bucket):
         user_info = None
         e_message = traceback.format_exception_only(type(e), e)[0].rstrip('\n')
     if not user_info:
-        return ({
-            'message': 'Unable to access account.\n'
-            'Check to make sure that the above credentials are valid, '
-            'and that they have permission to list buckets.',
-            'e_message': e_message
-        }, http_status.HTTP_400_BAD_REQUEST)
+        return (
+            {
+                'message': 'Unable to access account.\n'
+                'Check to make sure that the above credentials are valid, '
+                'and that they have permission to list buckets.',
+                'e_message': e_message,
+            },
+            http_status.HTTP_400_BAD_REQUEST,
+        )
 
     try:
         res = s3compatb3_utils.can_list(host, access_key, secret_key)
@@ -344,11 +356,14 @@ def test_s3compatb3_connection(host_url, access_key, secret_key, bucket):
         res = False
         e_message = traceback.format_exception_only(type(e), e)[0].rstrip('\n')
     if not res:
-        return ({
-            'message': 'Unable to list buckets.\n'
-            'Listing buckets is required permission that can be changed via IAM',
-            'e_message': e_message
-        }, http_status.HTTP_400_BAD_REQUEST)
+        return (
+            {
+                'message': 'Unable to list buckets.\n'
+                'Listing buckets is required permission that can be changed via IAM',
+                'e_message': e_message,
+            },
+            http_status.HTTP_400_BAD_REQUEST,
+        )
 
     try:
         res = s3compatb3_utils.bucket_exists(host, access_key, secret_key, bucket)
@@ -357,68 +372,55 @@ def test_s3compatb3_connection(host_url, access_key, secret_key, bucket):
         res = False
         e_message = traceback.format_exception_only(type(e), e)[0].rstrip('\n')
     if not res:
-        return ({
-            'message': 'Invalid bucket.',
-            'e_message': e_message
-        }, http_status.HTTP_400_BAD_REQUEST)
+        return ({'message': 'Invalid bucket.', 'e_message': e_message}, http_status.HTTP_400_BAD_REQUEST)
 
-    return ({
-        'message': 'Credentials are valid',
-        'data': {
-            'id': 'user_info.id',
-            'display_name': 'user_info.display_name',
-        }
-    }, http_status.HTTP_200_OK)
+    return (
+        {
+            'message': 'Credentials are valid',
+            'data': {
+                'id': 'user_info.id',
+                'display_name': 'user_info.display_name',
+            },
+        },
+        http_status.HTTP_200_OK,
+    )
+
 
 def test_box_connection(institution_id, folder_id):
     validation_result = oauth_validation('box', institution_id, folder_id)
     if isinstance(validation_result, tuple):
         return validation_result
 
-    access_token = ExternalAccountTemporary.objects.get(
-        _id=institution_id, provider='box'
-    ).oauth_key
-    oauth = OAuth2(
-        client_id=box_settings.BOX_KEY,
-        client_secret=box_settings.BOX_SECRET,
-        access_token=access_token
-    )
+    access_token = ExternalAccountTemporary.objects.get(_id=institution_id, provider='box').oauth_key
+    oauth = OAuth2(client_id=box_settings.BOX_KEY, client_secret=box_settings.BOX_SECRET, access_token=access_token)
     client = BoxClient(oauth)
 
     try:
         client.folder(folder_id).get()
     except BoxAPIException:
-        return ({
-            'message': 'Invalid folder ID.'
-        }, http_status.HTTP_400_BAD_REQUEST)
+        return ({'message': 'Invalid folder ID.'}, http_status.HTTP_400_BAD_REQUEST)
 
-    return ({
-        'message': 'Credentials are valid'
-    }, http_status.HTTP_200_OK)
+    return ({'message': 'Credentials are valid'}, http_status.HTTP_200_OK)
+
 
 def test_googledrive_connection(institution_id, folder_id):
     validation_result = oauth_validation('googledrive', institution_id, folder_id)
     if isinstance(validation_result, tuple):
         return validation_result
 
-    access_token = ExternalAccountTemporary.objects.get(
-        _id=institution_id, provider='googledrive'
-    ).oauth_key
+    access_token = ExternalAccountTemporary.objects.get(_id=institution_id, provider='googledrive').oauth_key
     client = GoogleDriveClient(access_token)
 
     try:
         client.folders(folder_id)
     except HTTPError:
-        return ({
-            'message': 'Invalid folder ID.'
-        }, http_status.HTTP_400_BAD_REQUEST)
+        return ({'message': 'Invalid folder ID.'}, http_status.HTTP_400_BAD_REQUEST)
 
-    return ({
-        'message': 'Credentials are valid'
-    }, http_status.HTTP_200_OK)
+    return ({'message': 'Credentials are valid'}, http_status.HTTP_200_OK)
+
 
 def test_owncloud_connection(host_url, username, password, folder, provider):
-    """ This method is valid for both ownCloud and Nextcloud """
+    """This method is valid for both ownCloud and Nextcloud"""
     provider_name = None
     provider_setting = None
     if provider == 'owncloud':
@@ -437,111 +439,110 @@ def test_owncloud_connection(host_url, username, password, folder, provider):
         client = owncloud.Client(host.url, verify_certs=provider_setting.USE_SSL)
         client.login(username, password)
     except requests.exceptions.ConnectionError:
-        return ({
-            'message': 'Invalid {} server.'.format(provider_name) + host.url
-        }, http_status.HTTP_400_BAD_REQUEST)
+        return ({'message': 'Invalid {} server.'.format(provider_name) + host.url}, http_status.HTTP_400_BAD_REQUEST)
     except owncloud.owncloud.HTTPResponseError:
-        return ({
-            'message': '{} Login failed.'.format(provider_name)
-        }, http_status.HTTP_401_UNAUTHORIZED)
+        return ({'message': '{} Login failed.'.format(provider_name)}, http_status.HTTP_401_UNAUTHORIZED)
 
     try:
         client.list(folder)
     except owncloud.owncloud.HTTPResponseError:
         client.logout()
-        return ({
-            'message': 'Invalid folder.'
-        }, http_status.HTTP_400_BAD_REQUEST)
+        return ({'message': 'Invalid folder.'}, http_status.HTTP_400_BAD_REQUEST)
 
     client.logout()
 
-    return ({
-        'message': 'Credentials are valid'
-    }, http_status.HTTP_200_OK)
+    return ({'message': 'Credentials are valid'}, http_status.HTTP_200_OK)
 
-def test_swift_connection(auth_version, auth_url, access_key, secret_key, tenant_name,
-                          user_domain_name, project_domain_name, container):
+
+def test_swift_connection(
+    auth_version, auth_url, access_key, secret_key, tenant_name, user_domain_name, project_domain_name, container
+):
     """Verifies new external account credentials and adds to user's list"""
     if not (auth_version and auth_url and access_key and secret_key and tenant_name and container):
-        return ({
-            'message': 'All the fields above are required.'
-        }, http_status.HTTP_400_BAD_REQUEST)
+        return ({'message': 'All the fields above are required.'}, http_status.HTTP_400_BAD_REQUEST)
     if auth_version == '3' and not user_domain_name:
-        return ({
-            'message': 'The field `user_domain_name` is required when you choose identity V3.'
-        }, http_status.HTTP_400_BAD_REQUEST)
+        return (
+            {'message': 'The field `user_domain_name` is required when you choose identity V3.'},
+            http_status.HTTP_400_BAD_REQUEST,
+        )
     if auth_version == '3' and not project_domain_name:
-        return ({
-            'message': 'The field `project_domain_name` is required when you choose identity V3.'
-        }, http_status.HTTP_400_BAD_REQUEST)
+        return (
+            {'message': 'The field `project_domain_name` is required when you choose identity V3.'},
+            http_status.HTTP_400_BAD_REQUEST,
+        )
 
-    user_info = swift_utils.get_user_info(auth_version, auth_url, access_key,
-                                    user_domain_name, secret_key, tenant_name,
-                                    project_domain_name)
+    user_info = swift_utils.get_user_info(
+        auth_version, auth_url, access_key, user_domain_name, secret_key, tenant_name, project_domain_name
+    )
 
     if not user_info:
-        return ({
-            'message': 'Unable to access account.\n'
-            'Check to make sure that the above credentials are valid, '
-            'and that they have permission to list containers.'
-        }, http_status.HTTP_400_BAD_REQUEST)
+        return (
+            {
+                'message': 'Unable to access account.\n'
+                'Check to make sure that the above credentials are valid, '
+                'and that they have permission to list containers.'
+            },
+            http_status.HTTP_400_BAD_REQUEST,
+        )
 
     try:
         _, containers = swift_utils.connect_swift(
-            auth_version, auth_url, access_key, user_domain_name, secret_key, tenant_name,
-            timeout=swift_settings.TEST_TIMEOUT
+            auth_version,
+            auth_url,
+            access_key,
+            user_domain_name,
+            secret_key,
+            tenant_name,
+            timeout=swift_settings.TEST_TIMEOUT,
         ).get_account()
     except swift_exceptions.ClientException:
-        return ({
-            'message': 'Unable to list containers.\n'
-            'Listing containers is required permission.'
-        }, http_status.HTTP_400_BAD_REQUEST)
+        return (
+            {'message': 'Unable to list containers.\n' 'Listing containers is required permission.'},
+            http_status.HTTP_400_BAD_REQUEST,
+        )
 
     if container not in map(lambda c: c['name'], containers):
-        return ({
-            'message': 'Invalid container name.'
-        }, http_status.HTTP_400_BAD_REQUEST)
+        return ({'message': 'Invalid container name.'}, http_status.HTTP_400_BAD_REQUEST)
 
-    provider = SwiftProvider(account=None, auth_version=auth_version,
-                             auth_url=auth_url, tenant_name=tenant_name,
-                             project_domain_name=project_domain_name,
-                             username=access_key,
-                             user_domain_name=user_domain_name,
-                             password=secret_key)
+    provider = SwiftProvider(
+        account=None,
+        auth_version=auth_version,
+        auth_url=auth_url,
+        tenant_name=tenant_name,
+        project_domain_name=project_domain_name,
+        username=access_key,
+        user_domain_name=user_domain_name,
+        password=secret_key,
+    )
     swift_response = {
         'id': provider.account.id,
         'display_name': provider.account.display_name,
     }
-    return ({
-        'message': 'Credentials are valid',
-        'data': swift_response
-    }, http_status.HTTP_200_OK)
+    return ({'message': 'Credentials are valid', 'data': swift_response}, http_status.HTTP_200_OK)
+
 
 def test_dropboxbusiness_connection(institution):
-    fm = dropboxbusiness_utils.get_two_addon_options(institution.id,
-                                                     allowed_check=False)
+    fm = dropboxbusiness_utils.get_two_addon_options(institution.id, allowed_check=False)
     if fm is None:
-        return ({
-            'message': u'Invalid Institution ID.: {}'.format(institution.id)
-        }, http_status.HTTP_400_BAD_REQUEST)
+        return ({'message': u'Invalid Institution ID.: {}'.format(institution.id)}, http_status.HTTP_400_BAD_REQUEST)
 
     f_option, m_option = fm
     f_token = dropboxbusiness_utils.addon_option_to_token(f_option)
     m_token = dropboxbusiness_utils.addon_option_to_token(m_option)
     if f_token is None or m_token is None:
-        return ({
-            'message': 'No tokens.'
-        }, http_status.HTTP_400_BAD_REQUEST)
+        return ({'message': 'No tokens.'}, http_status.HTTP_400_BAD_REQUEST)
     try:
         # use two tokens and connect
         dropboxbusiness_utils.TeamInfo(f_token, m_token, connecttest=True)
-        return ({
-            'message': 'Credentials are valid',
-        }, http_status.HTTP_200_OK)
+        return (
+            {
+                'message': 'Credentials are valid',
+            },
+            http_status.HTTP_200_OK,
+        )
     except Exception:
-        return ({
-            'message': 'Invalid tokens.'
-        }, http_status.HTTP_400_BAD_REQUEST)
+        return ({'message': 'Invalid tokens.'}, http_status.HTTP_400_BAD_REQUEST)
+
 
 def get_onedrivebusiness_folder_id(client, folder_path, parent='root'):
     folder_path_parts = folder_path.rstrip('/').split('/', maxsplit=1)
@@ -555,9 +556,12 @@ def get_onedrivebusiness_folder_id(client, folder_path, parent='root'):
         raise HTTPError(http_status.HTTP_400_BAD_REQUEST)
     if len(folder_path_parts) == 1:
         return drive['id'] + '\t' + folders[0]['id']
-    return drive['id'] + '\t' + _get_onedrivebusiness_folder_id(
-        drive_client, folder_path_parts[1], parent=folders[0]['id']
+    return (
+        drive['id']
+        + '\t'
+        + _get_onedrivebusiness_folder_id(drive_client, folder_path_parts[1], parent=folders[0]['id'])
     )
+
 
 def _get_onedrivebusiness_folder_id(client, folder_path, parent='root'):
     folder_path_parts = folder_path.rstrip('/').split('/', maxsplit=1)
@@ -567,39 +571,31 @@ def _get_onedrivebusiness_folder_id(client, folder_path, parent='root'):
         raise HTTPError(http_status.HTTP_400_BAD_REQUEST)
     if len(folder_path_parts) == 1:
         return folders[0]['id']
-    return _get_onedrivebusiness_folder_id(
-        client, folder_path_parts[1], parent=folders[0]['id']
-    )
+    return _get_onedrivebusiness_folder_id(client, folder_path_parts[1], parent=folders[0]['id'])
+
 
 def validate_onedrivebusiness_connection(institution_id, folder_id_or_path):
     validation_result = oauth_validation('onedrivebusiness', institution_id, folder_id_or_path)
     if isinstance(validation_result, tuple):
         return validation_result, None
 
-    access_token = ExternalAccountTemporary.objects.get(
-        _id=institution_id, provider='onedrivebusiness'
-    ).oauth_key
+    access_token = ExternalAccountTemporary.objects.get(_id=institution_id, provider='onedrivebusiness').oauth_key
     client = OneDriveBusinessClient(access_token)
 
     if folder_id_or_path.startswith('/'):
         try:
             folder_id = get_onedrivebusiness_folder_id(client, folder_id_or_path[1:])
         except HTTPError:
-            return ({
-                'message': 'Invalid folder Path.'
-            }, http_status.HTTP_400_BAD_REQUEST), None
+            return ({'message': 'Invalid folder Path.'}, http_status.HTTP_400_BAD_REQUEST), None
     else:
         try:
             client.folders(folder_id_or_path)
             folder_id = folder_id_or_path
         except HTTPError:
-            return ({
-                'message': 'Invalid folder ID.'
-            }, http_status.HTTP_400_BAD_REQUEST), None
+            return ({'message': 'Invalid folder ID.'}, http_status.HTTP_400_BAD_REQUEST), None
 
-    return ({
-        'message': 'Credentials are valid'
-    }, http_status.HTTP_200_OK), folder_id
+    return ({'message': 'Credentials are valid'}, http_status.HTTP_200_OK), folder_id
+
 
 def save_s3_credentials(institution_id, storage_name, access_key, secret_key, bucket, server_side_encryption=False):
     test_connection_result = test_s3_connection(access_key, secret_key, bucket)
@@ -625,12 +621,12 @@ def save_s3_credentials(institution_id, storage_name, access_key, secret_key, bu
     region = update_storage(institution_id, storage_name, wb_credentials, wb_settings)
     external_util.remove_region_external_account(region)
 
-    return ({
-        'message': 'Saved credentials successfully!!'
-    }, http_status.HTTP_200_OK)
+    return ({'message': 'Saved credentials successfully!!'}, http_status.HTTP_200_OK)
 
-def save_s3compat_credentials(institution_id, storage_name, host_url, access_key, secret_key,
-                              bucket, server_side_encryption=False):
+
+def save_s3compat_credentials(
+    institution_id, storage_name, host_url, access_key, secret_key, bucket, server_side_encryption=False
+):
 
     test_connection_result = test_s3compat_connection(host_url, access_key, secret_key, bucket)
     if test_connection_result[1] != http_status.HTTP_200_OK:
@@ -658,12 +654,10 @@ def save_s3compat_credentials(institution_id, storage_name, host_url, access_key
     region = update_storage(institution_id, storage_name, wb_credentials, wb_settings)
     external_util.remove_region_external_account(region)
 
-    return ({
-        'message': 'Saved credentials successfully!!'
-    }, http_status.HTTP_200_OK)
+    return ({'message': 'Saved credentials successfully!!'}, http_status.HTTP_200_OK)
 
-def save_s3compatb3_credentials(institution_id, storage_name, host_url, access_key, secret_key,
-                              bucket):
+
+def save_s3compatb3_credentials(institution_id, storage_name, host_url, access_key, secret_key, bucket):
 
     test_connection_result = test_s3compatb3_connection(host_url, access_key, secret_key, bucket)
     if test_connection_result[1] != http_status.HTTP_200_OK:
@@ -692,9 +686,8 @@ def save_s3compatb3_credentials(institution_id, storage_name, host_url, access_k
     region = update_storage(institution_id, storage_name, wb_credentials, wb_settings)
     external_util.remove_region_external_account(region)
 
-    return ({
-        'message': 'Saved credentials successfully!!'
-    }, http_status.HTTP_200_OK)
+    return ({'message': 'Saved credentials successfully!!'}, http_status.HTTP_200_OK)
+
 
 def save_box_credentials(institution_id, user, storage_name, folder_id):
     test_connection_result = test_box_connection(institution_id, folder_id)
@@ -718,9 +711,8 @@ def save_box_credentials(institution_id, user, storage_name, folder_id):
     region = update_storage(institution_id, storage_name, wb_credentials, wb_settings)
     external_util.set_region_external_account(region, account)
 
-    return ({
-        'message': 'OAuth was set successfully'
-    }, http_status.HTTP_200_OK)
+    return ({'message': 'OAuth was set successfully'}, http_status.HTTP_200_OK)
+
 
 def save_googledrive_credentials(institution_id, user, storage_name, folder_id):
     test_connection_result = test_googledrive_connection(institution_id, folder_id)
@@ -736,9 +728,7 @@ def save_googledrive_credentials(institution_id, user, storage_name, folder_id):
     wb_settings = {
         'storage': {
             'bucket': '',
-            'folder': {
-                'id': folder_id
-            },
+            'folder': {'id': folder_id},
             'provider': 'googledrive',
             'type': Region.INSTITUTIONS,
         }
@@ -746,14 +736,11 @@ def save_googledrive_credentials(institution_id, user, storage_name, folder_id):
     region = update_storage(institution_id, storage_name, wb_credentials, wb_settings)
     external_util.set_region_external_account(region, account)
 
-    return ({
-        'message': 'OAuth was set successfully'
-    }, http_status.HTTP_200_OK)
+    return ({'message': 'OAuth was set successfully'}, http_status.HTTP_200_OK)
 
-def save_nextcloud_credentials(institution_id, storage_name, host_url, username, password,
-                              folder, provider):
-    test_connection_result = test_owncloud_connection(host_url, username, password, folder,
-                                                      provider)
+
+def save_nextcloud_credentials(institution_id, storage_name, host_url, username, password, folder, provider):
+    test_connection_result = test_owncloud_connection(host_url, username, password, folder, provider)
     if test_connection_result[1] != http_status.HTTP_200_OK:
         return test_connection_result
 
@@ -782,23 +769,31 @@ def save_nextcloud_credentials(institution_id, storage_name, host_url, username,
     region = update_storage(institution_id, storage_name, wb_credentials, wb_settings)
     external_util.remove_region_external_account(region)
 
-    return ({
-        'message': 'Saved credentials successfully!!'
-    }, http_status.HTTP_200_OK)
+    return ({'message': 'Saved credentials successfully!!'}, http_status.HTTP_200_OK)
+
 
 def save_osfstorage_credentials(institution_id):
     region = set_default_storage(institution_id)
     external_util.remove_region_external_account(region)
-    return ({
-        'message': 'NII storage was set successfully'
-    }, http_status.HTTP_200_OK)
+    return ({'message': 'NII storage was set successfully'}, http_status.HTTP_200_OK)
 
-def save_swift_credentials(institution_id, storage_name, auth_version, access_key, secret_key,
-                           tenant_name, user_domain_name, project_domain_name, auth_url,
-                           container):
 
-    test_connection_result = test_swift_connection(auth_version, auth_url, access_key, secret_key,
-        tenant_name, user_domain_name, project_domain_name, container)
+def save_swift_credentials(
+    institution_id,
+    storage_name,
+    auth_version,
+    access_key,
+    secret_key,
+    tenant_name,
+    user_domain_name,
+    project_domain_name,
+    auth_url,
+    container,
+):
+
+    test_connection_result = test_swift_connection(
+        auth_version, auth_url, access_key, secret_key, tenant_name, user_domain_name, project_domain_name, container
+    )
     if test_connection_result[1] != http_status.HTTP_200_OK:
         return test_connection_result
 
@@ -821,20 +816,16 @@ def save_swift_credentials(institution_id, storage_name, auth_version, access_ke
             'provider': 'swift',
             'type': Region.INSTITUTIONS,
         }
-
     }
 
     region = update_storage(institution_id, storage_name, wb_credentials, wb_settings)
     external_util.remove_region_external_account(region)
 
-    return ({
-        'message': 'Saved credentials successfully!!'
-    }, http_status.HTTP_200_OK)
+    return ({'message': 'Saved credentials successfully!!'}, http_status.HTTP_200_OK)
 
-def save_owncloud_credentials(institution_id, storage_name, host_url, username, password,
-                              folder, provider):
-    test_connection_result = test_owncloud_connection(host_url, username, password, folder,
-                                                      provider)
+
+def save_owncloud_credentials(institution_id, storage_name, host_url, username, password, folder, provider):
+    test_connection_result = test_owncloud_connection(host_url, username, password, folder, provider)
     if test_connection_result[1] != http_status.HTTP_200_OK:
         return test_connection_result
 
@@ -863,9 +854,8 @@ def save_owncloud_credentials(institution_id, storage_name, host_url, username, 
     region = update_storage(institution_id, storage_name, wb_credentials, wb_settings)
     external_util.remove_region_external_account(region)
 
-    return ({
-        'message': 'Saved credentials successfully!!'
-    }, http_status.HTTP_200_OK)
+    return ({'message': 'Saved credentials successfully!!'}, http_status.HTTP_200_OK)
+
 
 def save_onedrivebusiness_credentials(institution_id, user, storage_name, provider_name, folder_id_or_path):
     test_connection_result, folder_id = validate_onedrivebusiness_connection(institution_id, folder_id_or_path)
@@ -878,14 +868,12 @@ def save_onedrivebusiness_credentials(institution_id, user, storage_name, provid
     region = update_storage(institution_id, storage_name, wb_credentials, wb_settings)
     external_util.set_region_external_account(region, account)
 
-    return ({
-        'message': 'OAuth was set successfully'
-    }, http_status.HTTP_200_OK)
+    return ({'message': 'OAuth was set successfully'}, http_status.HTTP_200_OK)
+
 
 def wd_info_for_institutions(provider_name, server_side_encryption=False):
     wb_credentials = {
-        'storage': {
-        },
+        'storage': {},
     }
     wb_settings = {
         'disabled': True,  # used in rubeus.py
@@ -900,6 +888,7 @@ def wd_info_for_institutions(provider_name, server_side_encryption=False):
 
     return (wb_credentials, wb_settings)
 
+
 def use_https(url):
     # Ensure that NextCloud uses https
     host = furl()
@@ -907,25 +896,31 @@ def use_https(url):
     host.scheme = 'https'
     return host
 
+
 def save_dropboxbusiness_credentials(institution, storage_name, provider_name):
     test_connection_result = test_dropboxbusiness_connection(institution)
     if test_connection_result[1] != http_status.HTTP_200_OK:
         return test_connection_result
 
     wb_credentials, wb_settings = wd_info_for_institutions(provider_name)
-    region = update_storage(institution._id,  # not institution.id
-                            storage_name,
-                            wb_credentials, wb_settings)
+    region = update_storage(institution._id, storage_name, wb_credentials, wb_settings)  # not institution.id
     external_util.remove_region_external_account(region)
     ### sync_all() is not supported by Dropbox Business Addon
     # sync_all(institution._id, target_addons=[provider_name])
 
-    return ({
-        'message': 'Dropbox Business was set successfully!!'
-    }, http_status.HTTP_200_OK)
+    return ({'message': 'Dropbox Business was set successfully!!'}, http_status.HTTP_200_OK)
+
 
 def save_basic_storage_institutions_credentials_common(
-        institution, storage_name, folder, provider_name, provider, separator=':', extended_data=None, server_side_encryption=False):
+    institution,
+    storage_name,
+    folder,
+    provider_name,
+    provider,
+    separator=':',
+    extended_data=None,
+    server_side_encryption=False,
+):
     try:
         provider.account.save()
     except ValidationError:
@@ -934,8 +929,7 @@ def save_basic_storage_institutions_credentials_common(
         password = provider.password
         # ... or get the old one
         provider.account = ExternalAccount.objects.get(
-            provider=provider_name,
-            provider_id='{}{}{}'.format(host, separator, username)
+            provider=provider_name, provider_id='{}{}{}'.format(host, separator, username)
         )
         if provider.account.oauth_key != password:
             provider.account.oauth_key = password
@@ -953,74 +947,83 @@ def save_basic_storage_institutions_credentials_common(
     rdm_addon_option.save()
 
     wb_credentials, wb_settings = wd_info_for_institutions(provider_name, server_side_encryption)
-    region = update_storage(institution._id,  # not institution.id
-                            storage_name,
-                            wb_credentials, wb_settings)
+    region = update_storage(institution._id, storage_name, wb_credentials, wb_settings)  # not institution.id
     external_util.remove_region_external_account(region)
 
     save_usermap_from_tmp(provider_name, institution)
     sync_all(institution._id, target_addons=[provider_name])
 
-    return ({
-        'message': 'Saved credentials successfully!!'
-    }, http_status.HTTP_200_OK)
+    return ({'message': 'Saved credentials successfully!!'}, http_status.HTTP_200_OK)
+
 
 def save_nextcloudinstitutions_credentials(
-        institution, storage_name, host_url, username, password, folder, notification_secret, provider_name):
-    test_connection_result = test_owncloud_connection(
-        host_url, username, password, folder, provider_name)
+    institution, storage_name, host_url, username, password, folder, notification_secret, provider_name
+):
+    test_connection_result = test_owncloud_connection(host_url, username, password, folder, provider_name)
     if test_connection_result[1] != http_status.HTTP_200_OK:
         return test_connection_result
 
     host = use_https(host_url)
-    provider = NextcloudInstitutionsProvider(
-        account=None, host=host.url,
-        username=username, password=password)
+    provider = NextcloudInstitutionsProvider(account=None, host=host.url, username=username, password=password)
     extended_data = {}
     extended_data[KEYNAME_NOTIFICATION_SECRET] = notification_secret
     return save_basic_storage_institutions_credentials_common(
-        institution, storage_name, folder, provider_name, provider, extended_data=extended_data)
+        institution, storage_name, folder, provider_name, provider, extended_data=extended_data
+    )
 
-def save_s3compatinstitutions_credentials(institution, storage_name, host_url, access_key, secret_key, bucket, provider_name, server_side_encryption=False):
+
+def save_s3compatinstitutions_credentials(
+    institution, storage_name, host_url, access_key, secret_key, bucket, provider_name, server_side_encryption=False
+):
     host = host_url.rstrip('/').replace('https://', '').replace('http://', '')
-    test_connection_result = test_s3compat_connection(
-        host, access_key, secret_key, bucket)
+    test_connection_result = test_s3compat_connection(host, access_key, secret_key, bucket)
     if test_connection_result[1] != http_status.HTTP_200_OK:
         return test_connection_result
 
     separator = '\t'
     provider = S3CompatInstitutionsProvider(
-        account=None, host=host,
-        username=access_key, password=secret_key, separator=separator)
+        account=None, host=host, username=access_key, password=secret_key, separator=separator
+    )
 
     return save_basic_storage_institutions_credentials_common(
-        institution, storage_name, bucket, provider_name, provider, separator, server_side_encryption=server_side_encryption)
+        institution,
+        storage_name,
+        bucket,
+        provider_name,
+        provider,
+        separator,
+        server_side_encryption=server_side_encryption,
+    )
 
-def save_ociinstitutions_credentials(institution, storage_name, host_url, access_key, secret_key, bucket, provider_name):
+
+def save_ociinstitutions_credentials(
+    institution, storage_name, host_url, access_key, secret_key, bucket, provider_name
+):
     host = host_url.rstrip('/').replace('https://', '').replace('http://', '')
-    test_connection_result = test_s3compatb3_connection(
-        host, access_key, secret_key, bucket)
+    test_connection_result = test_s3compatb3_connection(host, access_key, secret_key, bucket)
     if test_connection_result[1] != http_status.HTTP_200_OK:
         return test_connection_result
 
     separator = '\t'
     provider = OCIInstitutionsProvider(
-        account=None, host=host,
-        username=access_key, password=secret_key, separator=separator)
+        account=None, host=host, username=access_key, password=secret_key, separator=separator
+    )
 
     return save_basic_storage_institutions_credentials_common(
-        institution, storage_name, bucket, provider_name, provider, separator)
+        institution, storage_name, bucket, provider_name, provider, separator
+    )
+
 
 def get_credentials_common(institution, provider_name):
     clear_usermap_tmp(provider_name, institution)
-    rdm_addon_option = get_rdm_addon_option(institution.id, provider_name,
-                                            create=False)
+    rdm_addon_option = get_rdm_addon_option(institution.id, provider_name, create=False)
     if not rdm_addon_option:
         return None
     exacc = rdm_addon_option.external_accounts.first()
     if not exacc:
         return None
     return rdm_addon_option, exacc
+
 
 def get_nextcloudinstitutions_credentials(institution):
     provider_name = 'nextcloudinstitutions'
@@ -1049,6 +1052,7 @@ def get_nextcloudinstitutions_credentials(institution):
     data[provider_name + '_folder'] = folder
     return data
 
+
 def get_s3compatinstitutions_credentials(institution):
     provider_name = 's3compatinstitutions'
     res = get_credentials_common(institution, provider_name)
@@ -1072,6 +1076,7 @@ def get_s3compatinstitutions_credentials(institution):
     data[provider_name + '_secret_key'] = secret_key
     data[provider_name + '_bucket'] = bucket
     return data
+
 
 def get_ociinstitutions_credentials(institution):
     provider_name = 'ociinstitutions'
@@ -1097,6 +1102,7 @@ def get_ociinstitutions_credentials(institution):
     data[provider_name + '_bucket'] = bucket
     return data
 
+
 def extuser_exists(provider_name, post_params, extuser):
     # return "error reason", None means existence
     if provider_name == 'nextcloudinstitutions':
@@ -1107,8 +1113,7 @@ def extuser_exists(provider_name, post_params, extuser):
         # folder = post_params.get(provider_name + '_folder')
         try:
             host = use_https(host_url)
-            client = owncloud.Client(host.url,
-                                     verify_certs=provider_setting.USE_SSL)
+            client = owncloud.Client(host.url, verify_certs=provider_setting.USE_SSL)
             client.login(username, password)
             if client.user_exists(extuser):
                 return None  # exist
@@ -1118,27 +1123,29 @@ def extuser_exists(provider_name, post_params, extuser):
     else:  # unsupported
         return None  # ok
 
+
 def get_usermap(provider_name, institution):
-    rdm_addon_option = get_rdm_addon_option(institution.id, provider_name,
-                                            create=False)
+    rdm_addon_option = get_rdm_addon_option(institution.id, provider_name, create=False)
     if not rdm_addon_option:
         return None
     return rdm_addon_option.extended.get(KEYNAME_USERMAP)
+
 
 def save_usermap_to_tmp(provider_name, institution, usermap):
     rdm_addon_option = get_rdm_addon_option(institution.id, provider_name)
     rdm_addon_option.extended[KEYNAME_USERMAP_TMP] = usermap
     rdm_addon_option.save()
 
+
 def clear_usermap_tmp(provider_name, institution):
-    rdm_addon_option = get_rdm_addon_option(institution.id, provider_name,
-                                            create=False)
+    rdm_addon_option = get_rdm_addon_option(institution.id, provider_name, create=False)
     if not rdm_addon_option:
         return
     new_usermap = rdm_addon_option.extended.get(KEYNAME_USERMAP_TMP)
     if new_usermap:
         del rdm_addon_option.extended[KEYNAME_USERMAP_TMP]
         rdm_addon_option.save()
+
 
 def save_usermap_from_tmp(provider_name, institution):
     rdm_addon_option = get_rdm_addon_option(institution.id, provider_name)

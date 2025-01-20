@@ -5,6 +5,7 @@ from future.moves.urllib.parse import urlunsplit, urlsplit, parse_qs, urlencode
 from distutils.version import StrictVersion
 from hashids import Hashids
 
+from django.utils.http import urlquote
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import QuerySet, F
 from rest_framework.exceptions import NotFound
@@ -206,9 +207,7 @@ def waterbutler_api_url_for(node_id, provider, path='/', _internal=False, base_u
         base_url = None
     url = furl.furl(website_settings.WATERBUTLER_INTERNAL_URL if _internal else (base_url or website_settings.WATERBUTLER_URL))
     segments = ['v1', 'resources', node_id, 'providers', provider] + path.split('/')[1:]
-    # furl auto encoding, so urlquote is not necessary as `[urlquote(x) for x in segments]`
-    # try to convert segment items to string for furl check
-    url.path.segments.extend([str(x) for x in segments])
+    url.path.segments.extend([urlquote(x) for x in segments])
     url.args.update(kwargs)
     return url.url
 

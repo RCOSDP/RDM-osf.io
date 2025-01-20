@@ -8,16 +8,9 @@ from osf_tests.factories import InstitutionFactory, RegionFactory, DraftRegistra
 
 from framework.auth import Auth
 from osf.models import RdmAddonOption
-from addons.base.tests.models import (
-    OAuthAddonNodeSettingsTestSuiteMixin,
-    OAuthAddonUserSettingTestSuiteMixin
-)
+from addons.base.tests.models import OAuthAddonNodeSettingsTestSuiteMixin, OAuthAddonUserSettingTestSuiteMixin
 from addons.weko.models import NodeSettings
-from addons.weko.tests.factories import (
-    WEKOUserSettingsFactory,
-    WEKONodeSettingsFactory,
-    WEKOAccountFactory
-)
+from addons.weko.tests.factories import WEKOUserSettingsFactory, WEKONodeSettingsFactory, WEKOAccountFactory
 from addons.weko import client
 from addons.weko.tests import utils
 
@@ -35,11 +28,13 @@ def mock_requests_get(url, **kwargs):
         return utils.MockResponse(utils.fake_weko_item, 200)
     return utils.mock_response_404
 
+
 class TestUserSettings(OAuthAddonUserSettingTestSuiteMixin, unittest.TestCase):
 
     short_name = 'weko'
     full_name = 'WEKO'
     ExternalAccountFactory = WEKOAccountFactory
+
 
 class TestNodeSettings(OAuthAddonNodeSettingsTestSuiteMixin, unittest.TestCase):
 
@@ -73,11 +68,7 @@ class TestNodeSettings(OAuthAddonNodeSettingsTestSuiteMixin, unittest.TestCase):
         super(TestNodeSettings, self).tearDown()
 
     def _node_settings_class_kwargs(self, node, user_settings):
-        return {
-            'user_settings': self.user_settings,
-            'index_id': '1234567890',
-            'owner': self.node
-        }
+        return {'user_settings': self.user_settings, 'index_id': '1234567890', 'owner': self.node}
 
     def test_before_register_no_settings(self):
         self.node_settings.user_settings = None
@@ -131,10 +122,7 @@ class TestNodeSettings(OAuthAddonNodeSettingsTestSuiteMixin, unittest.TestCase):
             self.node.logs.latest().action,
             '{0}_{1}'.format(self.short_name, action),
         )
-        assert_equal(
-            self.node.logs.latest().params['filename'],
-            path
-        )
+        assert_equal(self.node.logs.latest().params['filename'], path)
 
     def test_set_folder(self):
         index_id = '1234567890'
@@ -174,7 +162,7 @@ class TestNodeSettings(OAuthAddonNodeSettingsTestSuiteMixin, unittest.TestCase):
                     'provider': 's3compatinstitutions',
                 },
                 'disabled': True,
-            }
+            },
         )
         osfstorage.region = new_region
         osfstorage.save()

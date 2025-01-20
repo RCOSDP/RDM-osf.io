@@ -1,10 +1,8 @@
 import datetime
-import inspect  # noqa
 from rest_framework import status as http_status
 import os
 import uuid
 import markupsafe
-import pytz
 from future.moves.urllib.parse import quote
 from django.utils import timezone
 
@@ -42,22 +40,10 @@ from website import settings
 from addons.base import signals as file_signals
 from addons.base.utils import format_last_known_metadata, get_mfr_url
 from osf import features
-from osf.models import (
-    BaseFileNode,
-    TrashedFileNode,
-    BaseFileVersionsThrough,
-    OSFUser,
-    AbstractNode,
-    Preprint,
-    NodeLog,
-    DraftRegistration,
-    Guid,
-    FileVersionUserMetadata,
-    FileVersion,
-    ExportDataLocation,
-    ExportData,
-    ExportDataRestore
-)
+from osf.models import (BaseFileNode, TrashedFileNode, BaseFileVersionsThrough,
+                        OSFUser, AbstractNode, Preprint,
+                        NodeLog, DraftRegistration,
+                        Guid, FileVersionUserMetadata, FileVersion)
 from osf.metrics import PreprintView, PreprintDownload
 from osf.utils import permissions
 from website.profile.utils import get_profile_image_url
@@ -65,7 +51,8 @@ from website.project import decorators
 from website.project.decorators import must_be_contributor_or_public, must_be_valid_project, check_contributor_auth
 from website.ember_osf_web.decorators import ember_flag_is_active
 from website.project.utils import serialize_node
-from website.util import rubeus, timestamp, inspect_info  # noqa
+from website.util import rubeus, timestamp
+
 
 from osf.features import (
     SLOAN_COI_DISPLAY,
@@ -73,7 +60,6 @@ from osf.features import (
     SLOAN_PREREG_DISPLAY
 )
 
-utc = pytz.UTC
 SLOAN_FLAGS = (
     SLOAN_COI_DISPLAY,
     SLOAN_DATA_DISPLAY,
@@ -194,18 +180,6 @@ def check_access(node, auth, action, cas_resp):
     if permission is None:
         raise HTTPError(http_status.HTTP_400_BAD_REQUEST)
 
-    # Check user has task running when executing export/restore
-    if auth.user:
-        user_info = auth.user
-        export_data_running = ExportData.objects.filter(creator=user_info, status=ExportData.STATUS_RUNNING).first()
-        if not export_data_running:
-            export_data_running = ExportDataRestore.objects.filter(creator=user_info, status=ExportData.STATUS_RUNNING).first()
-
-        if export_data_running:
-            institution = node.creator.affiliated_institutions.get()
-            if user_info.is_allowed_to_use_institution(institution):
-                return True
-
     if cas_resp:
         if permission == permissions.READ:
             if node.can_view_files(auth=None):
@@ -284,7 +258,6 @@ def get_metric_class_for_action(action, from_mfr):
 
 @collect_auth
 def get_auth(auth, **kwargs):
-    logger.debug('----{}:{}::{} from {}:{}::{}'.format(*inspect_info(inspect.currentframe(), inspect.stack())))
     cas_resp = None
     if not auth.user:
         # Central Authentication Server OAuth Bearer Token
@@ -301,7 +274,6 @@ def get_auth(auth, **kwargs):
             if cas_resp.authenticated:
                 auth.user = OSFUser.load(cas_resp.user)
 
-    # get data payload
     try:
         data = jwt.decode(
             jwe.decrypt(request.args.get('payload', '').encode('utf-8'), WATERBUTLER_JWE_KEY),
@@ -313,69 +285,34 @@ def get_auth(auth, **kwargs):
         sentry.log_message(str(err))
         raise HTTPError(http_status.HTTP_403_FORBIDDEN)
 
-    cookie = data.get('cookie', '')
     if not auth.user:
-        auth.user = OSFUser.from_cookie(cookie)
+        auth.user = OSFUser.from_cookie(data.get('cookie', ''))
 
     try:
         action = data['action']
         node_id = data['nid']
         provider_name = data['provider']
-        # only has location_id
-        location_id = data.get('location_id')
     except KeyError:
         raise HTTPError(http_status.HTTP_400_BAD_REQUEST)
 
-    try:
-        metrics = data.get('metrics', {})
-        uri = metrics.get('uri', '')
-        from urllib.parse import urlparse
-        from urllib.parse import parse_qs
+    node = AbstractNode.load(node_id) or Preprint.load(node_id)
+    if node and node.is_deleted:
+        raise HTTPError(http_status.HTTP_410_GONE)
+    elif not node:
+        raise HTTPError(http_status.HTTP_404_NOT_FOUND)
 
-        parsed_url = urlparse(uri)
-        callback_log = parse_qs(parsed_url.query)['callback_log'][0]
-    except KeyError:
-        callback_log = data.get('callback_log', 'True') == 'True'
-
-    # as default callback_log is True
-    callback_log = False if isinstance(callback_log, str) and callback_log.lower() == 'false' else True
-
-    is_node_process = True
-    if node_id == ExportData.EXPORT_DATA_FAKE_NODE_ID:
-        is_node_process = False
-    if is_node_process:
-        node = AbstractNode.load(node_id) or Preprint.load(node_id)
-        if node and node.is_deleted:
-            raise HTTPError(http_status.HTTP_410_GONE)
-        elif not node:
-            raise HTTPError(http_status.HTTP_404_NOT_FOUND)
-
-        check_access(node, auth, action, cas_resp)
-        provider_settings = None
-        if hasattr(node, 'get_addon'):
-            provider_settings = node.get_addon(provider_name)
-            if not provider_settings:
-                raise HTTPError(http_status.HTTP_400_BAD_REQUEST)
-    else:
-        # check permission
-        # only location_id value
-        if not location_id:
-            logger.debug(f'Missing location_id')
+    check_access(node, auth, action, cas_resp)
+    provider_settings = None
+    if hasattr(node, 'get_addon'):
+        provider_settings = node.get_addon(provider_name)
+        if not provider_settings:
             raise HTTPError(http_status.HTTP_400_BAD_REQUEST)
-
-        if auth.user is None:
-            logger.debug(f'This user is not authenticated')
-            raise HTTPError(http_status.HTTP_401_UNAUTHORIZED)
-
-        if location_id and not auth.user.is_allowed_storage_location_id(location_id):
-            logger.debug(f'Authenticated user do not have permission on storage location id {location_id}')
-            raise HTTPError(http_status.HTTP_403_FORBIDDEN)
 
     path = data.get('path')
     credentials = None
     waterbutler_settings = None
     fileversion = None
-    if is_node_process and provider_name == 'osfstorage':
+    if provider_name == 'osfstorage':
         if path:
             file_id = path.strip('/')
             # check to see if this is a file or a folder
@@ -429,47 +366,26 @@ def get_auth(auth, **kwargs):
                 root_id=provider_settings.root_node._id,
             )
     # If they haven't been set by version region, use the NodeSettings or Preprint directly
-    if is_node_process and not (credentials and waterbutler_settings):
+    if not (credentials and waterbutler_settings):
         credentials = node.serialize_waterbutler_credentials(provider_name)
         waterbutler_settings = node.serialize_waterbutler_settings(provider_name)
-
-    if not is_node_process:
-        # for only location_id value
-        storage = ExportDataLocation.objects.get(pk=location_id)
-        credentials = storage.serialize_waterbutler_credentials(provider_name)
-        waterbutler_settings = storage.serialize_waterbutler_settings(provider_name)
 
     if isinstance(credentials.get('token'), bytes):
         credentials['token'] = credentials.get('token').decode()
 
-    payload_data = {
-        'auth': make_auth(auth.user),  # A waterbutler auth dict not an Auth object
-        'credentials': credentials,
-        'settings': waterbutler_settings,
-        'callback_url': '',
-    }
-
-    if callback_log and is_node_process:
-        payload_data['callback_url'] = node.api_url_for(
-            ('create_waterbutler_log' if not getattr(node, 'is_registration', False) else 'registration_callbacks'),
-            _absolute=True,
-            _internal=True
-        )
-
-    ret = {
-        'payload': jwe.encrypt(
-            jwt.encode(
-                {
-                    'exp': timezone.now() + datetime.timedelta(seconds=settings.WATERBUTLER_JWT_EXPIRATION),
-                    'data': payload_data
-                },
-                settings.WATERBUTLER_JWT_SECRET,
-                algorithm=settings.WATERBUTLER_JWT_ALGORITHM),
-            WATERBUTLER_JWE_KEY
-        ).decode()
-    }
-
-    return ret
+    return {'payload': jwe.encrypt(jwt.encode({
+        'exp': timezone.now() + datetime.timedelta(seconds=settings.WATERBUTLER_JWT_EXPIRATION),
+        'data': {
+            'auth': make_auth(auth.user),  # A waterbutler auth dict not an Auth object
+            'credentials': credentials,
+            'settings': waterbutler_settings,
+            'callback_url': node.api_url_for(
+                ('create_waterbutler_log' if not getattr(node, 'is_registration', False) else 'registration_callbacks'),
+                _absolute=True,
+                _internal=True
+            )
+        }
+    }, settings.WATERBUTLER_JWT_SECRET, algorithm=settings.WATERBUTLER_JWT_ALGORITHM), WATERBUTLER_JWE_KEY).decode()}
 
 
 LOG_ACTION_MAP = {
@@ -1061,6 +977,7 @@ def addon_view_or_download_quickfile(**kwargs):
 def addon_view_file(auth, node, file_node, version):
     # TODO: resolve circular import issue
     from addons.wiki import settings as wiki_settings
+    from addons.onlyoffice import settings as onlyoffice_settings
 
     if isinstance(version, tuple):
         version, error = version
@@ -1127,6 +1044,7 @@ def addon_view_file(auth, node, file_node, version):
         'allow_comments': file_node.provider in settings.ADDONS_COMMENTABLE,
         'checkout_user': file_node.checkout._id if file_node.checkout else None,
         'version_names': list(version_names),
+        'wopi_onlyoffice': onlyoffice_settings.WOPI_CLIENT_ONLYOFFICE,
     })
 
     ret.update(rubeus.collect_addon_assets(node))

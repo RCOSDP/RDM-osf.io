@@ -29,6 +29,7 @@ from .settings import (
 
 logger = logging.getLogger(__name__)
 
+
 @must_be_valid_project
 @must_have_addon(SHORT_NAME, 'node')
 @must_have_permission('write')
@@ -59,6 +60,7 @@ def metadata_import_dataset(auth, provider, filepath, **kwargs):
         'progress_api_url': progress_api_url,
     }
 
+
 @must_be_valid_project
 @must_have_addon(SHORT_NAME, 'node')
 @must_have_permission('write')
@@ -79,12 +81,14 @@ def metadata_get_importing_dataset(auth, task_id=None, **kwargs):
         'error': error,
     }
 
+
 def _remove_quotes(s):
     if s.startswith('"') and s.endswith('"'):
         return s[1:-1]
     if s.startswith("'") and s.endswith("'"):
         return s[1:-1]
     return s
+
 
 def _extract_filename(content_url, response):
     # get filename from Content-Disposition header if available
@@ -99,15 +103,19 @@ def _extract_filename(content_url, response):
             raise ValueError('Invalid filename encoding: {}'.format(filename_with_enc))
         return unquote(_remove_quotes(filename_with_enc[7:]))
 
+
 @celery_app.task(bind=True, max_retries=1)
 def import_dataset(self, user_id, node_id, dataset_url, provider, filepath):
     logger.info('Importing dataset from {} to {}/{} on {}'.format(dataset_url, provider, filepath, node_id))
-    self.update_state(state='downloading dataset', meta={
-        'progress': 0,
-        'user': user_id,
-        'node': node_id,
-        'filenames': None,
-    })
+    self.update_state(
+        state='downloading dataset',
+        meta={
+            'progress': 0,
+            'user': user_id,
+            'node': node_id,
+            'filenames': None,
+        },
+    )
     response = requests.get(
         dataset_url,
         stream=True,
@@ -132,12 +140,15 @@ def import_dataset(self, user_id, node_id, dataset_url, provider, filepath):
     html = BeautifulSoup(body, 'html.parser')
     logger.info('Downloaded dataset from {}'.format(dataset_url))
     logger.debug('HTML: {}'.format(html))
-    self.update_state(state='parsing dataset', meta={
-        'progress': 10,
-        'user': user_id,
-        'node': node_id,
-        'filenames': None,
-    })
+    self.update_state(
+        state='parsing dataset',
+        meta={
+            'progress': 10,
+            'user': user_id,
+            'node': node_id,
+            'filenames': None,
+        },
+    )
     scripts = html.find_all('script', type='application/ld+json')
     if not scripts:
         raise ValueError('No JSON-LD script found in dataset')
@@ -157,30 +168,41 @@ def import_dataset(self, user_id, node_id, dataset_url, provider, filepath):
             content_urls.append(content_url)
     if not content_urls:
         raise ValueError('No contentUrls found in dataset')
-    filenames = [{
-        'url': content_url,
-        'filename': None,
-    } for content_url in content_urls]
-    self.update_state(state='checking destination', meta={
-        'progress': 20,
-        'user': user_id,
-        'node': node_id,
-        'filenames': filenames,
-    })
+    filenames = [
+        {
+            'url': content_url,
+            'filename': None,
+        }
+        for content_url in content_urls
+    ]
+    self.update_state(
+        state='checking destination',
+        meta={
+            'progress': 20,
+            'user': user_id,
+            'node': node_id,
+            'filenames': filenames,
+        },
+    )
     user_info = OSFUser.objects.get(guids___id=user_id)
     cookie = user_info.get_or_create_cookie().decode()
     files = waterbutler.get_node_info(cookie, node_id, provider, filepath)
     if files is None:
         raise ValueError('Failed to get node info')
-    current_filenames = set([
-        current_file['attributes']['name'] for current_file in files['data']
-    ] if 'data' in files and files['data'] is not None else [])
-    self.update_state(state='downloading files', meta={
-        'progress': 25,
-        'user': user_id,
-        'node': node_id,
-        'filenames': filenames,
-    })
+    current_filenames = set(
+        [current_file['attributes']['name'] for current_file in files['data']]
+        if 'data' in files and files['data'] is not None
+        else []
+    )
+    self.update_state(
+        state='downloading files',
+        meta={
+            'progress': 25,
+            'user': user_id,
+            'node': node_id,
+            'filenames': filenames,
+        },
+    )
     work_dir = tempfile.mkdtemp()
     try:
         for index, content_url in enumerate(content_urls):
@@ -219,12 +241,15 @@ def import_dataset(self, user_id, node_id, dataset_url, provider, filepath):
                 provider + filepath,
             )
             filenames[index]['filename'] = filename
-            self.update_state(state='downloading files', meta={
-                'progress': 25 + 75 * (content_urls.index(content_url) + 1) / len(content_urls),
-                'user': user_id,
-                'node': node_id,
-                'filenames': filenames,
-            })
+            self.update_state(
+                state='downloading files',
+                meta={
+                    'progress': 25 + 75 * (content_urls.index(content_url) + 1) / len(content_urls),
+                    'user': user_id,
+                    'node': node_id,
+                    'filenames': filenames,
+                },
+            )
             os.unlink(temp_filepath)
         return {
             'user': user_id,

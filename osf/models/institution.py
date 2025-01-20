@@ -25,9 +25,8 @@ class Institution(DirtyFieldsMixin, Loggable, base.ObjectIDMixin, base.BaseModel
     # TODO Remove null=True for things that shouldn't be nullable
     # e.g. CharFields should never be null=True
 
-    INSTITUTION_DEFAULT = 'us'
     INSTITUTION_GROUPS = {
-        'institutional_admins': ('view_institutional_metrics', ),
+        'institutional_admins': ('view_institutional_metrics',),
     }
     group_format = 'institution_{self._id}_{group}'
     groups = INSTITUTION_GROUPS
@@ -60,9 +59,7 @@ class Institution(DirtyFieldsMixin, Loggable, base.ObjectIDMixin, base.BaseModel
     email_domains = fields.ArrayField(models.CharField(max_length=255), db_index=True, null=True, blank=True)
 
     contributors = models.ManyToManyField(
-        settings.AUTH_USER_MODEL,
-        through=InstitutionalContributor,
-        related_name='institutions'
+        settings.AUTH_USER_MODEL, through=InstitutionalContributor, related_name='institutions'
     )
 
     is_deleted = models.BooleanField(default=False, db_index=True)
@@ -83,10 +80,6 @@ class Institution(DirtyFieldsMixin, Loggable, base.ObjectIDMixin, base.BaseModel
         return u'{} : ({})'.format(self.name, self._id)
 
     @property
-    def guid(self):
-        return self._id
-
-    @property
     def api_v2_url(self):
         return reverse('institutions:institution-detail', kwargs={'institution_id': self._id, 'version': 'v2'})
 
@@ -97,7 +90,10 @@ class Institution(DirtyFieldsMixin, Loggable, base.ObjectIDMixin, base.BaseModel
     @property
     def absolute_api_v2_url(self):
         from api.base.utils import absolute_reverse
-        return absolute_reverse('institutions:institution-detail', kwargs={'institution_id': self._id, 'version': 'v2'})
+
+        return absolute_reverse(
+            'institutions:institution-detail', kwargs={'institution_id': self._id, 'version': 'v2'}
+        )
 
     @property
     def nodes_url(self):
@@ -161,11 +157,13 @@ class Institution(DirtyFieldsMixin, Loggable, base.ObjectIDMixin, base.BaseModel
 
     def get_default_storage_location(self):
         from osf.models import ExportDataLocation
+
         query_set = ExportDataLocation.objects.filter(institution_guid=self.INSTITUTION_DEFAULT)
         return query_set
 
     def get_institutional_storage_location(self):
         from osf.models import ExportDataLocation
+
         query_set = ExportDataLocation.objects.filter(institution_guid=self.guid)
         return query_set
 
@@ -192,9 +190,11 @@ class Institution(DirtyFieldsMixin, Loggable, base.ObjectIDMixin, base.BaseModel
         :return: list of regions
         """
         from addons.osfstorage.models import Region
+
         if not Region.objects.filter(_id=self._id).exists():
             # set up NII storage
             from admin.rdm_custom_storage_location import utils
+
             utils.set_default_storage(self._id)
         return Region.objects.filter(_id=self._id).order_by('pk')
 
@@ -235,6 +235,7 @@ class Institution(DirtyFieldsMixin, Loggable, base.ObjectIDMixin, base.BaseModel
         """
         from addons.osfstorage.models import Region
         from osf.models import UserQuota
+
         region = Region.objects.filter(_id=self._id).first()
         if not region:
             # Institution does not have its own institutional storage, return NII_STORAGE

@@ -81,15 +81,9 @@ class InstitutionNodeList(RdmPermissionMixin, UserPassesTestMixin, ListView):
         kwargs.setdefault('logohost', settings.OSF_URL)
         return super(InstitutionNodeList, self).get_context_data(**kwargs)
 
-class TimeStampAddList(RdmPermissionMixin, UserPassesTestMixin, TemplateView):
+class TimeStampAddList(RdmPermissionMixin, TemplateView):
     template_name = 'rdm_timestampadd/timestampadd.html'
     ordering = 'provider'
-    raise_exception = True
-
-    def test_func(self):
-        """validate user permissions"""
-        institution_id = int(self.kwargs.get('institution_id'))
-        return self.has_auth(institution_id)
 
     def get_context_data(self, **kwargs):
         ctx = super(TimeStampAddList, self).get_context_data(**kwargs)
@@ -102,13 +96,7 @@ class TimeStampAddList(RdmPermissionMixin, UserPassesTestMixin, TemplateView):
         ctx['async_task'] = timestamp.get_async_task_data(absNodeData)
         return ctx
 
-class VerifyTimestamp(RdmPermissionMixin, UserPassesTestMixin, View):
-    raise_exception = True
-
-    def test_func(self):
-        """validate user permissions"""
-        institution_id = int(self.kwargs.get('institution_id'))
-        return self.has_auth(institution_id)
+class VerifyTimestamp(RdmPermissionMixin, View):
 
     def post(self, request, *args, **kwargs):
         async_task = timestamp.celery_verify_timestamp_token.delay(self.request.user.id, self.kwargs['guid'])
@@ -121,8 +109,7 @@ class VerifyTimestamp(RdmPermissionMixin, UserPassesTestMixin, View):
         ctx = {'status': 'OK'}
         return HttpResponse(json.dumps(ctx), content_type='application/json')
 
-class TimestampVerifyData(RdmPermissionMixin, UserPassesTestMixin, View):
-    raise_exception = True
+class TimestampVerifyData(RdmPermissionMixin, View):
 
     def test_func(self):
         """validate user permissions"""
@@ -149,8 +136,7 @@ class TimestampVerifyData(RdmPermissionMixin, UserPassesTestMixin, View):
         self.request.user = source_user
         return HttpResponse(json.dumps(response), content_type='application/json')
 
-class AddTimestamp(RdmPermissionMixin, UserPassesTestMixin, View):
-    raise_exception = True
+class AddTimestamp(RdmPermissionMixin, View):
 
     def test_func(self):
         """validate user permissions"""
@@ -170,8 +156,7 @@ class AddTimestamp(RdmPermissionMixin, UserPassesTestMixin, View):
             content_type='application/json'
         )
 
-class CancelTask(RdmPermissionMixin, UserPassesTestMixin, View):
-    raise_exception = True
+class CancelTask(RdmPermissionMixin, View):
 
     def test_func(self):
         """validate user permissions"""
@@ -185,8 +170,7 @@ class CancelTask(RdmPermissionMixin, UserPassesTestMixin, View):
             content_type='application/json'
         )
 
-class TaskStatus(RdmPermissionMixin, UserPassesTestMixin, View):
-    raise_exception = True
+class TaskStatus(RdmPermissionMixin, View):
 
     def test_func(self):
         """validate user permissions"""
@@ -200,8 +184,7 @@ class TaskStatus(RdmPermissionMixin, UserPassesTestMixin, View):
             content_type='application/json'
         )
 
-class DownloadErrors(RdmPermissionMixin, UserPassesTestMixin, View):
-    raise_exception = True
+class DownloadErrors(RdmPermissionMixin, View):
 
     def test_func(self):
         """validate user permissions"""

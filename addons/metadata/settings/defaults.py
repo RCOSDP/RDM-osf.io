@@ -1,6 +1,7 @@
 """
 Metadata addon default settings
 """
+
 USE_EXPORTING = False
 USE_DATASET_IMPORTING = False
 
@@ -17,4 +18,10 @@ DEFAULT_DATASET_TIMEOUT = 60  # seconds
 
 # List of addons that are not allowed to be exported
 EXCLUDED_ADDONS_FOR_EXPORT = ['mendeley', 'zotero', 'iqbrims']
-EXCLUDED_ADDONS_FOR_EXPORT += ['dropboxbusiness', 'nextcloudinstitutions', 'ociinstitutions', 'onedrivebusiness', 's3compatinstitutions']
+EXCLUDED_ADDONS_FOR_EXPORT += [
+    'dropboxbusiness',
+    'nextcloudinstitutions',
+    'ociinstitutions',
+    'onedrivebusiness',
+    's3compatinstitutions',
+]

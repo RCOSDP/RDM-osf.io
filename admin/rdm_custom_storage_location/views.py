@@ -28,23 +28,26 @@ logger = logging.getLogger(__name__)
 SITE_KEY = 'rdm_custom_storage_location'
 INSTITUTION_NOT_FOUND_MESSAGE = 'Institution does not exist'
 
+
 class InstitutionalStorageBaseView(RdmPermissionMixin, UserPassesTestMixin):
-    """ Base class for all the Institutional Storage Views """
+    """Base class for all the Institutional Storage Views"""
+
     raise_exception = True
 
     def test_func(self):
-        """ Check user permissions """
+        """Check user permissions"""
         institution_id = int(self.kwargs.get('institution_id'))
         return self.has_auth(institution_id)
 
 
 class InstitutionalStorageView(InstitutionalStorageBaseView, TemplateView):
-    """ View that shows the Institutional Storage's template """
+    """View that shows the Institutional Storage's template"""
+
     model = Institution
     template_name = 'rdm_custom_storage_location/institutional_storage.html'
 
     def test_func(self):
-        """ Check user permissions """
+        """Check user permissions"""
         if not self.is_authenticated:
             # If user is not authenticated then redirect to login page
             self.raise_exception = False
@@ -97,7 +100,7 @@ class InstitutionalStorageListView(InstitutionalStorageBaseView, ListView):
     model = Institution
 
     def test_func(self):
-        """ Check user permissions """
+        """Check user permissions"""
         if not self.is_authenticated:
             # If user is not authenticated then redirect to login page
             self.raise_exception = False
@@ -106,7 +109,7 @@ class InstitutionalStorageListView(InstitutionalStorageBaseView, ListView):
         return self.is_super_admin
 
     def get_queryset(self):
-        """ GET: set to self.object_list """
+        """GET: set to self.object_list"""
         return Institution.objects.filter(is_deleted=False).order_by(self.ordering)
 
     def get_context_data(self, **kwargs):
@@ -120,11 +123,12 @@ class InstitutionalStorageListView(InstitutionalStorageBaseView, ListView):
 
 
 class IconView(InstitutionalStorageBaseView, View):
-    """ View for each addon's icon """
+    """View for each addon's icon"""
+
     raise_exception = True
 
     def test_func(self):
-        """ Check user permission """
+        """Check user permission"""
         return self.is_super_admin or (self.is_admin and self.request.user.affiliated_institutions.exists())
 
     def get(self, request, *args, **kwargs):
@@ -142,17 +146,16 @@ class IconView(InstitutionalStorageBaseView, View):
 
 
 class TestConnectionView(InstitutionalStorageBaseView, View):
-    """ View for testing the credentials to connect to a provider.
+    """View for testing the credentials to connect to a provider.
     Called when clicking the 'Connect' Button.
     """
+
     def post(self, request, *args, **kwargs):
         data = json.loads(request.body)
 
         provider_short_name = data.get('provider_short_name')
         if not provider_short_name:
-            response = {
-                'message': 'Provider is missing.'
-            }
+            response = {'message': 'Provider is missing.'}
             return JsonResponse(response, status=http_status.HTTP_400_BAD_REQUEST)
         # Get institution by institution_id value
         institution_id = kwargs.get('institution_id', None)
@@ -242,17 +245,16 @@ class TestConnectionView(InstitutionalStorageBaseView, View):
 
 
 class SaveCredentialsView(InstitutionalStorageBaseView, View):
-    """ View for saving the credentials to the provider into the database.
+    """View for saving the credentials to the provider into the database.
     Called when clicking the 'Save' Button.
     """
+
     def post(self, request, *args, **kwargs):
         data = json.loads(request.body)
 
         provider_short_name = data.get('provider_short_name')
         if not provider_short_name:
-            response = {
-                'message': 'Provider is missing.'
-            }
+            response = {'message': 'Provider is missing.'}
             return JsonResponse(response, status=http_status.HTTP_400_BAD_REQUEST)
         # Get institution by institution_id value
         institution_id = kwargs.get('institution_id', None)
@@ -264,9 +266,7 @@ class SaveCredentialsView(InstitutionalStorageBaseView, View):
 
         storage_name = data.get('storage_name')
         if not storage_name and utils.have_storage_name(provider_short_name):
-            return JsonResponse({
-                'message': 'Storage name is missing.'
-            }, status=http_status.HTTP_400_BAD_REQUEST)
+            return JsonResponse({'message': 'Storage name is missing.'}, status=http_status.HTTP_400_BAD_REQUEST)
 
         result = None
 
@@ -351,7 +351,7 @@ class SaveCredentialsView(InstitutionalStorageBaseView, View):
                 data.get('owncloud_username'),
                 data.get('owncloud_password'),
                 data.get('owncloud_folder'),
-                'owncloud'
+                'owncloud',
             )
         elif provider_short_name == 'nextcloud':
             result = utils.save_nextcloud_credentials(
@@ -382,10 +382,7 @@ class SaveCredentialsView(InstitutionalStorageBaseView, View):
                 data.get('box_folder'),
             )
         elif provider_short_name == 'dropboxbusiness':
-            result = utils.save_dropboxbusiness_credentials(
-                institution,
-                storage_name,
-                provider_short_name)
+            result = utils.save_dropboxbusiness_credentials(institution, storage_name, provider_short_name)
         elif provider_short_name == 'onedrivebusiness':
             result = utils.save_onedrivebusiness_credentials(
                 institution_id,
@@ -399,8 +396,7 @@ class SaveCredentialsView(InstitutionalStorageBaseView, View):
         status = result[1]
         if status == http_status.HTTP_200_OK:
             utils.update_nodes_storage(institution)
-            utils.change_allowed_for_institutions(
-                institution, provider_short_name)
+            utils.change_allowed_for_institutions(institution, provider_short_name)
         return JsonResponse(result[0], status=status)
 
 
@@ -408,9 +404,7 @@ class FetchCredentialsView(InstitutionalStorageBaseView, View):
     def _common(self, request, data):
         provider_short_name = data.get('provider_short_name')
         if not provider_short_name:
-            response = {
-                'message': 'Provider is missing.'
-            }
+            response = {'message': 'Provider is missing.'}
             return JsonResponse(response, status=http_status.HTTP_400_BAD_REQUEST)
         # Get institution by institution_id value
         institution_id = self.kwargs.get('institution_id', None)
@@ -450,9 +444,7 @@ class FetchTemporaryTokenView(InstitutionalStorageBaseView, View):
         provider_short_name = data.get('provider_short_name')
 
         if not provider_short_name:
-            return JsonResponse({
-                'message': 'Provider is missing.'
-            }, status=http_status.HTTP_400_BAD_REQUEST)
+            return JsonResponse({'message': 'Provider is missing.'}, status=http_status.HTTP_400_BAD_REQUEST)
 
         # Get institution by institution_id value
         institution_id = self.kwargs.get('institution_id', None)
@@ -464,13 +456,11 @@ class FetchTemporaryTokenView(InstitutionalStorageBaseView, View):
         data = utils.get_oauth_info_notification(institution_id, provider_short_name)
         if data:
             data['fullname'] = request.user.fullname
-            return JsonResponse({
-                'response_data': data
-            }, status=http_status.HTTP_200_OK)
+            return JsonResponse({'response_data': data}, status=http_status.HTTP_200_OK)
 
-        return JsonResponse({
-            'message': 'Oauth permission procedure was canceled'
-        }, status=http_status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(
+            {'message': 'Oauth permission procedure was canceled'}, status=http_status.HTTP_400_BAD_REQUEST
+        )
 
 
 class RemoveTemporaryAuthData(InstitutionalStorageBaseView, View):
@@ -483,9 +473,8 @@ class RemoveTemporaryAuthData(InstitutionalStorageBaseView, View):
             return JsonResponse({'message': INSTITUTION_NOT_FOUND_MESSAGE}, status=http_status.HTTP_404_NOT_FOUND)
         institution_id = institution._id
         ExternalAccountTemporary.objects.filter(_id=institution_id).delete()
-        return JsonResponse({
-            'message': 'Garbage data removed!!'
-        }, status=http_status.HTTP_200_OK)
+        return JsonResponse({'message': 'Garbage data removed!!'}, status=http_status.HTTP_200_OK)
+
 
 def external_acc_update(request, access_token):
     if hashlib.sha512(SITE_KEY.encode('utf-8')).hexdigest() != access_token.lower():
@@ -494,23 +483,19 @@ def external_acc_update(request, access_token):
             content_type='application/json',
         )
 
-    refresh_addon_tokens.run_main(
-        addons={'googledrive': -14, 'box': -14},
-        dry_run=False
-    )
+    refresh_addon_tokens.run_main(addons={'googledrive': -14, 'box': -14}, dry_run=False)
     return HttpResponse('Done')
 
 
 def to_bool(val):
     return val.lower() in ['true']
 
+
 class UserMapView(InstitutionalStorageBaseView, View):
     def post(self, request, *args, **kwargs):
         provider_name = request.POST.get('provider', None)
         if not provider_name:
-            return JsonResponse({
-                'message': 'Provider is missing.'
-            }, status=http_status.HTTP_400_BAD_REQUEST)
+            return JsonResponse({'message': 'Provider is missing.'}, status=http_status.HTTP_400_BAD_REQUEST)
         # Get institution by institution_id value
         institution_id = kwargs.get('institution_id', None)
         institution = Institution.objects.filter(id=institution_id, is_deleted=False).first()
@@ -523,13 +508,16 @@ class UserMapView(InstitutionalStorageBaseView, View):
         clear = to_bool(request.POST.get('clear', 'false'))
         if clear:
             utils.clear_usermap_tmp(provider_name, institution)
-            return JsonResponse({
-                OK: 0,
-                NG: 0,
-                'provider_name': provider_name,
-                'report': [],
-                'user_to_extuser': {},
-            }, status=http_status.HTTP_200_OK)
+            return JsonResponse(
+                {
+                    OK: 0,
+                    NG: 0,
+                    'provider_name': provider_name,
+                    'report': [],
+                    'user_to_extuser': {},
+                },
+                status=http_status.HTTP_200_OK,
+            )
 
         check_extuser = to_bool(request.POST.get('check_extuser', 'false'))
         usermap = request.FILES['usermap']
@@ -598,8 +586,7 @@ class UserMapView(InstitutionalStorageBaseView, View):
                     add_report(NG, UNKNOWN_USER, line)
                     continue
                 if check_extuser:
-                    detail = utils.extuser_exists(provider_name, request.POST,
-                                                  extuser)
+                    detail = utils.extuser_exists(provider_name, request.POST, extuser)
                     if detail:
                         add_report(NG, UNKNOWN_EXTUSER, line, detail)
                         continue
@@ -610,7 +597,7 @@ class UserMapView(InstitutionalStorageBaseView, View):
                 if extuser in extuser_set:
                     add_report(NG, DUPLICATED_EXTUSER, line)
                     continue
-                user_to_extuser[u._id] = extuser   # guid.lower() -> extuser
+                user_to_extuser[u._id] = extuser  # guid.lower() -> extuser
                 extuser_set.add(extuser)
                 add_report(OK, None, line)
         except Exception as e:
@@ -621,24 +608,24 @@ class UserMapView(InstitutionalStorageBaseView, View):
             utils.clear_usermap_tmp(provider_name, institution)
         else:
             status = http_status.HTTP_200_OK
-            utils.save_usermap_to_tmp(provider_name, institution,
-                                      user_to_extuser)
+            utils.save_usermap_to_tmp(provider_name, institution, user_to_extuser)
 
-        return JsonResponse({
-            OK: result[OK],
-            NG: result[NG],
-            'provider_name': provider_name,
-            'report': report,
-            'user_to_extuser': user_to_extuser,
-        }, status=status)
+        return JsonResponse(
+            {
+                OK: result[OK],
+                NG: result[NG],
+                'provider_name': provider_name,
+                'report': report,
+                'user_to_extuser': user_to_extuser,
+            },
+            status=status,
+        )
 
     def get(self, request, *args, **kwargs):
         # download CSV (or Templates when User mapping file is not set)
         provider_name = request.GET.get('provider', None)
         if not provider_name:
-            return JsonResponse({
-                'message': 'Provider is missing.'
-            }, status=http_status.HTTP_400_BAD_REQUEST)
+            return JsonResponse({'message': 'Provider is missing.'}, status=http_status.HTTP_400_BAD_REQUEST)
         # Get institution by institution_id value
         institution_id = kwargs.get('institution_id', None)
         institution = Institution.objects.filter(id=institution_id, is_deleted=False).first()

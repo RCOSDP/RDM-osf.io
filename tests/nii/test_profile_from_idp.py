@@ -27,12 +27,17 @@ from tests.base import (
 
 TMP_EPPN_PREFIX = 'tmp_eppn_'
 
+
 def make_payload(
-        institution, eppn, fullname,
-        given_name='', family_name='',
-        entitlement='',
-        email='', organization_name='',
-        organizational_unit=''
+    institution,
+    eppn,
+    fullname,
+    given_name='',
+    family_name='',
+    entitlement='',
+    email='',
+    organization_name='',
+    organizational_unit='',
 ):
     data = {
         'provider': {
@@ -45,7 +50,7 @@ def make_payload(
                 'fullname': fullname,
                 'suffix': '',
                 'username': eppn,
-                'entitlement':  entitlement,
+                'entitlement': entitlement,
                 'email': email,
                 'organizationName': organization_name,
                 'organizationalUnitName': organizational_unit,
@@ -55,18 +60,17 @@ def make_payload(
                 'jaMiddleNames': '',
                 'jaOrganizationName': organization_name + '_ja',  # jao
                 'jaOrganizationalUnitName': organizational_unit + '_ja',  # jaou
-            }
+            },
         }
     }
-    return jwe.encrypt(jwt.encode({
-        'sub': eppn,
-        'data': json.dumps(data)
-    }, settings.JWT_SECRET, algorithm='HS256'), settings.JWE_SECRET)
+    return jwe.encrypt(
+        jwt.encode({'sub': eppn, 'data': json.dumps(data)}, settings.JWT_SECRET, algorithm='HS256'),
+        settings.JWE_SECRET,
+    )
 
 
 @pytest.mark.django_db
 class TestGettingShibbolethAttribute:
-
     @pytest.fixture()
     def institution(self):
         return InstitutionFactory()
@@ -85,12 +89,9 @@ class TestGettingShibbolethAttribute:
         family_name_ja = family_name + '_ja'
         tmp_eppn_username = TMP_EPPN_PREFIX + eppn
 
-        res = app.post(
-            url_auth_institution,
-            make_payload(institution, eppn, fullname, given_name, family_name)
-        )
+        res = app.post(url_auth_institution, make_payload(institution, eppn, fullname, given_name, family_name))
 
-        assert res.status_code == 204
+        assert res.status_code == 200
         user = OSFUser.objects.get(username=tmp_eppn_username)
         assert user
         assert user.fullname == fullname
@@ -110,11 +111,10 @@ class TestGettingShibbolethAttribute:
         family_name_ja = family_name + '_ja'
 
         res = app.post(
-            url_auth_institution,
-            make_payload(institution, eppn, fullname, given_name, family_name, email=email)
+            url_auth_institution, make_payload(institution, eppn, fullname, given_name, family_name, email=email)
         )
 
-        assert res.status_code == 204
+        assert res.status_code == 200
         user = OSFUser.objects.get(username=email)
         assert user
         assert user.fullname == fullname
@@ -143,15 +143,20 @@ class TestGettingShibbolethAttribute:
 
         res = app.post(
             url_auth_institution,
-            make_payload(institution, eppn, fullname,
-                given_name, family_name,
-                entitlement=entitlement, email=email,
+            make_payload(
+                institution,
+                eppn,
+                fullname,
+                given_name,
+                family_name,
+                entitlement=entitlement,
+                email=email,
                 organization_name=organization_name,
-                organizational_unit=organizational_unit
-            )
+                organizational_unit=organizational_unit,
+            ),
         )
 
-        assert res.status_code == 204
+        assert res.status_code == 200
         user = OSFUser.objects.get(username=email)
         assert user
         assert user.fullname == fullname
@@ -170,7 +175,7 @@ class TestGettingShibbolethAttribute:
             'startYear': '',
             'endMonth': '',
             'endYear': '',
-            'ongoing': False
+            'ongoing': False,
         }
 
         idp_attr = user.ext.data['idp_attr']
@@ -198,12 +203,18 @@ class TestGettingShibbolethAttribute:
 
         res = app.post(
             url_auth_institution,
-            make_payload(institution, eppn, fullname, given_name, family_name, email=email,
-                organizational_unit=organizational_unit
-            )
+            make_payload(
+                institution,
+                eppn,
+                fullname,
+                given_name,
+                family_name,
+                email=email,
+                organizational_unit=organizational_unit,
+            ),
         )
 
-        assert res.status_code == 204
+        assert res.status_code == 200
         user = OSFUser.objects.get(username=email)
         assert user
         assert user.fullname == fullname
@@ -226,14 +237,14 @@ class TestGettingShibbolethAttribute:
         expected_full_name = given_name_ja + ' ' + family_name_ja
 
         res = app.post(
-            url_auth_institution,
-            make_payload(institution, eppn, fullname, given_name, family_name, email=email)
+            url_auth_institution, make_payload(institution, eppn, fullname, given_name, family_name, email=email)
         )
 
-        assert res.status_code == 204
+        assert res.status_code == 200
 
         # email is ignored
         from django.core.exceptions import ObjectDoesNotExist
+
         with assert_raises(ObjectDoesNotExist):
             OSFUser.objects.get(username=eppn)
 
@@ -257,10 +268,9 @@ class TestGettingShibbolethAttribute:
         family_name_ja = family_name + '_ja'
 
         res = app.post(
-            url_auth_institution,
-            make_payload(institution, eppn, fullname, given_name, family_name, email=email)
+            url_auth_institution, make_payload(institution, eppn, fullname, given_name, family_name, email=email)
         )
-        assert res.status_code == 204
+        assert res.status_code == 200
         user = OSFUser.objects.get(username=email)
         assert user
         assert user.have_email == True
@@ -269,10 +279,9 @@ class TestGettingShibbolethAttribute:
         tmp_eppn_username2 = TMP_EPPN_PREFIX + eppn2
 
         res = app.post(
-            url_auth_institution,
-            make_payload(institution, eppn2, fullname, given_name, family_name, email=email)
+            url_auth_institution, make_payload(institution, eppn2, fullname, given_name, family_name, email=email)
         )
-        assert res.status_code == 204
+        assert res.status_code == 200
 
         # same email is ignored
         user2 = OSFUser.objects.get(username=tmp_eppn_username2)
@@ -294,10 +303,7 @@ class TestGettingShibbolethAttribute:
         family_name = 'Smitth'
         family_name_ja = family_name + '_ja'
 
-        app.post(
-            url_auth_institution,
-            make_payload(institution, eppn, fullname, given_name, family_name, email=email)
-        )
+        app.post(url_auth_institution, make_payload(institution, eppn, fullname, given_name, family_name, email=email))
 
         new_fullname = 'New John Smith'
         new_email = 'new.john.smith@circle.edu'
@@ -310,12 +316,11 @@ class TestGettingShibbolethAttribute:
 
         res = app.post(
             url_auth_institution,
-            make_payload(institution, eppn, new_fullname,
-                         new_given_name, new_family_name, email=new_email)
+            make_payload(institution, eppn, new_fullname, new_given_name, new_family_name, email=new_email),
         )
 
         # user.fullname is not changned
-        assert res.status_code == 204
+        assert res.status_code == 200
         user = OSFUser.objects.get(username=email)
         assert user
         assert user.fullname == fullname
@@ -347,44 +352,48 @@ def set_user_extended_data(user):
             'email': email,
             'organization_name': organization_name,
             'organizational_unit': organizational_unit,
-        }}
+        }
+    }
     ext.save()
     return (organization_name, organizational_unit)
+
 
 # refer to tests/test_views.py
 @pytest.mark.enable_enqueue_task
 @pytest.mark.enable_implicit_clean
 @pytest.mark.enable_quickfiles_creation
 class TestUserProfile(OsfTestCase):
-
     def setUp(self):
         super(TestUserProfile, self).setUp()
         self.user = AuthUserFactory()
 
     def test_unserialize_and_serialize_jobs_with_idp_attr(self):
-        jobs = [{
-            'institution_ja': 'an institution' + '_ja',
-            'department_ja': 'a department' + '_ja',
-            'institution': 'an institution',
-            'department': 'a department',
-            'title': 'a title',
-            'startMonth': 'January',
-            'startYear': '2001',
-            'endMonth': 'March',
-            'endYear': '2001',
-            'ongoing': False,
-        }, {
-            'institution_ja': 'another institution' + '_ja',
-            'department_ja': None,
-            'institution': 'another institution',
-            'department': None,
-            'title': None,
-            'startMonth': 'May',
-            'startYear': '2001',
-            'endMonth': None,
-            'endYear': None,
-            'ongoing': True,
-        }]
+        jobs = [
+            {
+                'institution_ja': 'an institution' + '_ja',
+                'department_ja': 'a department' + '_ja',
+                'institution': 'an institution',
+                'department': 'a department',
+                'title': 'a title',
+                'startMonth': 'January',
+                'startYear': '2001',
+                'endMonth': 'March',
+                'endYear': '2001',
+                'ongoing': False,
+            },
+            {
+                'institution_ja': 'another institution' + '_ja',
+                'department_ja': None,
+                'institution': 'another institution',
+                'department': None,
+                'title': None,
+                'startMonth': 'May',
+                'startYear': '2001',
+                'endMonth': None,
+                'endYear': None,
+                'ongoing': True,
+            },
+        ]
         payload = {'contents': jobs}
         url = api_url_for('unserialize_jobs')
         self.app.put_json(url, payload, auth=self.user.auth)
@@ -406,29 +415,32 @@ class TestUserProfile(OsfTestCase):
         assert_equal(idp_attr['department'], organizational_unit)
 
     def test_unserialize_and_serialize_schools_with_idp_attr(self):
-        schools = [{
-            'institution_ja': 'an institution' + '_ja',
-            'department_ja': 'a department' + '_ja',
-            'institution': 'an institution',
-            'department': 'a department',
-            'degree': 'a degree',
-            'startMonth': 1,
-            'startYear': '2001',
-            'endMonth': 5,
-            'endYear': '2001',
-            'ongoing': False,
-        }, {
-            'institution_ja': 'another institution' + '_ja',
-            'department_ja': None,
-            'institution': 'another institution',
-            'department': None,
-            'degree': None,
-            'startMonth': 5,
-            'startYear': '2001',
-            'endMonth': None,
-            'endYear': None,
-            'ongoing': True,
-        }]
+        schools = [
+            {
+                'institution_ja': 'an institution' + '_ja',
+                'department_ja': 'a department' + '_ja',
+                'institution': 'an institution',
+                'department': 'a department',
+                'degree': 'a degree',
+                'startMonth': 1,
+                'startYear': '2001',
+                'endMonth': 5,
+                'endYear': '2001',
+                'ongoing': False,
+            },
+            {
+                'institution_ja': 'another institution' + '_ja',
+                'department_ja': None,
+                'institution': 'another institution',
+                'department': None,
+                'degree': None,
+                'startMonth': 5,
+                'startYear': '2001',
+                'endMonth': None,
+                'endYear': None,
+                'ongoing': True,
+            },
+        ]
         payload = {'contents': schools}
         url = api_url_for('unserialize_schools')
         self.app.put_json(url, payload, auth=self.user.auth)

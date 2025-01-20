@@ -16,7 +16,7 @@ fake_weko_indices = [
             },
             {
                 'id': 'dummy',
-            }
+            },
         ],
     },
     {
@@ -35,10 +35,11 @@ fake_weko_items = {
             fake_weko_item,
             {
                 'id': 'dummy',
-            }
+            },
         ]
     },
 }
+
 
 class MockResponse:
     def __init__(self, json, status_code):
@@ -64,8 +65,4 @@ class WEKOAddonTestCase(OAuthAddonTestCaseMixin, AddonTestCase):
     Provider = WEKOProvider
     Serializer = WEKOSerializer
     client = None
-    folder = {
-    	'path': 'container',
-    	'name': 'container',
-    	'id': 'container'
-	}
+    folder = {'path': 'container', 'name': 'container', 'id': 'container'}

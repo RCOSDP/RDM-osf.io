@@ -80,7 +80,7 @@ $(document).ready(function(){
                     return;
                 }
 
-                tb.fangornFolderArray = decodeURI(directory.materializedPath).split('/');
+                tb.fangornFolderArray = directory.materializedPath.split('/');
                 if (tb.fangornFolderArray.length > 1) {
                     tb.fangornFolderArray.splice(0, 1);
                 }

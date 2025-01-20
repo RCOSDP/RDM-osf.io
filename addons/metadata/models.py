@@ -48,6 +48,7 @@ def get_draft_files(draft_metadata):
         return []
     return json.loads(draft_value)
 
+
 def schema_has_field(schema, name):
     questions = sum([page['questions'] for page in schema['pages']], [])
     qids = [q['qid'] for q in questions]
@@ -59,13 +60,17 @@ class ERadRecordSet(BaseModel):
 
     def get_or_create_record(self, kenkyusha_no, kadai_id, nendo):
         objs = ERadRecord.objects.filter(
-            recordset=self, kenkyusha_no=kenkyusha_no, kadai_id=kadai_id,
+            recordset=self,
+            kenkyusha_no=kenkyusha_no,
+            kadai_id=kadai_id,
             nendo=nendo,
         )
         if objs.exists():
             return objs.first()
         return ERadRecord.objects.create(
-            recordset=self, kenkyusha_no=kenkyusha_no, kadai_id=kadai_id,
+            recordset=self,
+            kenkyusha_no=kenkyusha_no,
+            kadai_id=kadai_id,
             nendo=nendo,
         )
 
@@ -78,9 +83,9 @@ class ERadRecordSet(BaseModel):
 
 
 class ERadRecord(BaseModel):
-    recordset = models.ForeignKey(ERadRecordSet, related_name='records',
-                                  db_index=True, null=True, blank=True,
-                                  on_delete=models.CASCADE)
+    recordset = models.ForeignKey(
+        ERadRecordSet, related_name='records', db_index=True, null=True, blank=True, on_delete=models.CASCADE
+    )
 
     kenkyusha_no = models.TextField(blank=True, null=True, db_index=True)
     kenkyusha_shimei = EncryptedTextField(blank=True, null=True)
@@ -111,9 +116,7 @@ class ERadRecord(BaseModel):
     funding_stream_code = models.TextField(blank=True, null=True)
 
     class Meta:
-        indexes = [
-            models.Index(fields=['kenkyusha_no', 'kadai_id', 'nendo'])
-        ]
+        indexes = [models.Index(fields=['kenkyusha_no', 'kadai_id', 'nendo'])]
 
 
 class RegistrationReportFormat(BaseModel):
@@ -202,7 +205,7 @@ class NodeSettings(BaseNodeSettings):
                     path=filepath,
                     hash=file_metadata['hash'],
                     folder=file_metadata['folder'],
-                    metadata=json.dumps({'items': file_metadata['items']})
+                    metadata=json.dumps({'items': file_metadata['items']}),
                 )
                 if auth:
                     self.owner.add_log(
@@ -224,10 +227,7 @@ class NodeSettings(BaseNodeSettings):
             for item in file_metadata['items']:
                 if not item['active']:
                     continue
-                self._update_draft_files(
-                    item['schema'],
-                    filepath,
-                    item['data'])
+                self._update_draft_files(item['schema'], filepath, item['data'])
             m.save()
         if auth:
             self.owner.add_log(
@@ -273,25 +273,29 @@ class NodeSettings(BaseNodeSettings):
             r = {}
         else:
             r = json.loads(self.project_metadata)
-        r.update({
-            'files': self.get_file_metadatas(),
-        })
-        r.update({
-            'repositories': self._get_repositories(),
-        })
+        r.update(
+            {
+                'files': self.get_file_metadatas(),
+            }
+        )
+        r.update(
+            {
+                'repositories': self._get_repositories(),
+            }
+        )
         return r
 
     def get_report_formats_for(self, schemas):
         formats = []
         for schema in schemas:
-            for format in RegistrationReportFormat.objects \
-                    .filter(registration_schema_id=schema._id) \
-                    .order_by('order'):
-                formats.append({
-                    'id': f'format-{format.id}',
-                    'schema_id': schema._id,
-                    'name': format.name,
-                })
+            for format in RegistrationReportFormat.objects.filter(registration_schema_id=schema._id).order_by('order'):
+                formats.append(
+                    {
+                        'id': f'format-{format.id}',
+                        'schema_id': schema._id,
+                        'name': format.name,
+                    }
+                )
         destinations = []
         for addon in self.owner.get_addons():
             if not hasattr(addon, 'has_metadata') or not addon.has_metadata:
@@ -330,7 +334,7 @@ class NodeSettings(BaseNodeSettings):
         dest_path = os.path.join(dest['provider'], dest['materialized'].lstrip('/'))
         if src_path.endswith('/'):
             q = source_addon.file_metadata.filter(path__startswith=src_path)
-            path_suffixes = [fm.path[len(src_path):] for fm in q.all()]
+            path_suffixes = [fm.path[len(src_path) :] for fm in q.all()]
         else:
             path_suffixes = ['']
         for path_suffix in path_suffixes:
@@ -345,17 +349,61 @@ class NodeSettings(BaseNodeSettings):
                     'path': dest_path_child,
                     'folder': m.folder,
                     'hash': m.hash,
-                    'items': self._get_file_metadata(m).get('items', [])
+                    'items': self._get_file_metadata(m).get('items', []),
                 }
                 self.set_file_metadata(dest_path_child, file_metadata, auth)
             if action in [NodeLog.FILE_RENAMED, NodeLog.FILE_MOVED, NodeLog.FILE_REMOVED]:
                 source_addon.delete_file_metadata(src_path_child, auth)
 
     def get_metadata_assets(self):
-        return [
-            m.metadata_properties
-            for m in self.metadata_asset_pool.all()
-        ]
+        return [m.metadata_properties for m in self.metadata_asset_pool.all()]
+
+    def set_metadata_asset(self, path, metadata):
+        q = self.metadata_asset_pool.filter(path=path)
+        if not q.exists():
+            MetadataAssetPool.objects.create(
+                project=self,
+                path=path,
+                metadata=metadata,
+            )
+            return
+        m = q.first()
+        m.metadata = metadata
+        m.save()
+
+    def delete_metadata_asset(self, path):
+        if path.endswith('/'):
+            self.metadata_asset_pool.filter(path__startswith=path).delete()
+        else:
+            self.metadata_asset_pool.filter(path=path).delete()
+
+    def add_imported_addon_settings(self, name, folder_id):
+        settings = ImportedAddonSettings.objects.create(
+            name=name,
+            folder_id=folder_id,
+        )
+        self.imported_addon_settings.add(settings)
+
+    def delete_imported_addon_settings(self, name):
+        self.imported_addon_settings.filter(name=name).delete()
+
+    def apply_imported_addon_settings(self, addon_names, auth, delete_applied=False):
+        addons = self.imported_addon_settings.filter(name__in=addon_names)
+        for addon in addons:
+            if not addon.is_applicable:
+                logger.warning(f'Imported {addon.name} settings are not applicable to {self.owner._id}')
+                continue
+            result = addon.apply(auth)
+            if not result:
+                continue
+            if delete_applied:
+                self.delete_imported_addon_settings(addon.name)
+
+    def has_imported_addon_settings_for(self, addon):
+        return self.imported_addon_settings.filter(name=addon.config.short_name).exists()
+
+    def get_metadata_assets(self):
+        return [m.metadata_properties for m in self.metadata_asset_pool.all()]
 
     def set_metadata_asset(self, path, metadata):
         q = self.metadata_asset_pool.filter(path=path)
@@ -452,19 +500,19 @@ class NodeSettings(BaseNodeSettings):
                 raise ValueError('Schema has no grdm-files field')
             draft_metadata = draft.registration_metadata
             draft_files = get_draft_files(draft_metadata)
-            draft_files = [draft_file
-                           for draft_file in draft_files
-                           if draft_file['path'] != filepath]
+            draft_files = [draft_file for draft_file in draft_files if draft_file['path'] != filepath]
             self._update_draft_grdm_files(draft, draft_files)
 
     def _update_draft_grdm_files(self, draft, draft_files):
         value = json.dumps(draft_files, indent=2) if len(draft_files) > 0 else ''
         try:
-            draft.update_metadata({
-                FIELD_GRDM_FILES: {
-                    'value': value,
-                },
-            })
+            draft.update_metadata(
+                {
+                    FIELD_GRDM_FILES: {
+                        'value': value,
+                    },
+                }
+            )
             draft.save()
         except SchemaBlockConversionError as e:
             logger.warning('Failed to update draft metadata due to schema block conversion error. Ignoring.')
@@ -482,8 +530,7 @@ class NodeSettings(BaseNodeSettings):
         try:
             registration_schema = RegistrationSchema.objects.get(_id=schema)
             drafts = DraftRegistration.objects.filter(
-                branched_from=self.owner,
-                registration_schema=registration_schema
+                branched_from=self.owner, registration_schema=registration_schema
             )
             return drafts
         except RegistrationSchema.DoesNotExist:
@@ -500,10 +547,11 @@ class NodeSettings(BaseNodeSettings):
             r.append(repo)
         return r
 
+
 class FileMetadata(BaseModel):
-    project = models.ForeignKey(NodeSettings, related_name='file_metadata',
-                                db_index=True, null=True, blank=True,
-                                on_delete=models.CASCADE)
+    project = models.ForeignKey(
+        NodeSettings, related_name='file_metadata', db_index=True, null=True, blank=True, on_delete=models.CASCADE
+    )
 
     deleted = NonNaiveDateTimeField(blank=True, null=True)
 
@@ -535,8 +583,11 @@ class FileMetadata(BaseModel):
     def load(cls, project_id, path, select_for_update=False):
         try:
             if select_for_update:
-                return cls.objects.filter(project__id=project_id, path=path, deleted__isnull=True) \
-                    .select_for_update().get()
+                return (
+                    cls.objects.filter(project__id=project_id, path=path, deleted__isnull=True)
+                    .select_for_update()
+                    .get()
+                )
             else:
                 return cls.objects.get(project__id=project_id, path=path, deleted__isnull=True)
         except cls.DoesNotExist:
@@ -572,19 +623,18 @@ class FileMetadata(BaseModel):
         if provider == 'osfstorage':
             # materialized path -> object path
             content_type = ContentType.objects.get_for_model(node)
-            filenode = [fn for fn in OsfStorageFileNode.objects.filter(
-                target_content_type=content_type,
-                target_object_id=node.id
-            ) if fn.materialized_path == path]
+            filenode = [
+                fn
+                for fn in OsfStorageFileNode.objects.filter(target_content_type=content_type, target_object_id=node.id)
+                if fn.materialized_path == path
+            ]
             if len(filenode) == 0:
                 logger.warn('No files: ' + self.path)
                 return None
             path = filenode[0].path
         try:
             file_guids = BaseFileNode.resolve_class(provider, BaseFileNode.FILE).get_file_guids(
-                materialized_path=path,
-                provider=provider,
-                target=node
+                materialized_path=path, provider=provider, target=node
             )
             if len(file_guids) == 0:
                 fileUrl = node.url + 'files/' + provider + path
@@ -602,6 +652,7 @@ class FileMetadata(BaseModel):
 
     def update_search(self):
         from website import search
+
         try:
             search.search.update_file_metadata(self, bulk=False, async_update=True)
         except search.exceptions.SearchUnavailableError as e:
@@ -615,9 +666,14 @@ class FileMetadata(BaseModel):
 
 
 class MetadataAssetPool(BaseModel):
-    project = models.ForeignKey(NodeSettings, related_name='metadata_asset_pool',
-                                db_index=True, null=True, blank=True,
-                                on_delete=models.CASCADE)
+    project = models.ForeignKey(
+        NodeSettings,
+        related_name='metadata_asset_pool',
+        db_index=True,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+    )
 
     path = models.TextField()
 
@@ -647,9 +703,14 @@ class MetadataAssetPool(BaseModel):
 
 
 class ImportedAddonSettings(BaseModel):
-    node_settings = models.ForeignKey(NodeSettings, related_name='imported_addon_settings',
-                                      db_index=True, null=True, blank=True,
-                                      on_delete=models.CASCADE)
+    node_settings = models.ForeignKey(
+        NodeSettings,
+        related_name='imported_addon_settings',
+        db_index=True,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+    )
 
     name = models.TextField(blank=True, null=True)
 
@@ -713,11 +774,9 @@ class WaterButlerClient(object):
 
     def get_root_files(self, name):
         response = requests.get(
-            waterbutler_api_url_for(
-                self.node._id, name, path='/', _internal=True, meta=''
-            ),
+            waterbutler_api_url_for(self.node._id, name, path='/', _internal=True, meta=''),
             headers={'content-type': 'application/json'},
-            cookies={website_settings.COOKIE_NAME: self.cookie}
+            cookies={website_settings.COOKIE_NAME: self.cookie},
         )
         if response.status_code == 404:
             return None
@@ -740,7 +799,7 @@ class WaterButlerObject(object):
         response = requests.get(
             url.url,
             headers={'content-type': 'application/json'},
-            cookies={website_settings.COOKIE_NAME: self.wb.cookie}
+            cookies={website_settings.COOKIE_NAME: self.wb.cookie},
         )
         response.raise_for_status()
         return [WaterButlerObject(f, self.wb) for f in response.json()['data']]
@@ -800,8 +859,9 @@ def safe_download_metadata_asset_pool(wb_object):
     wb_file_meta = wb_object.meta()
     size = wb_file_meta['data']['attributes']['size']
     if size > METADATA_ASSET_POOL_MAX_FILESIZE:
-        logger.warning(f'{wb_object.materialized} is too large to download: '
-                       f'{size} > {METADATA_ASSET_POOL_MAX_FILESIZE}')
+        logger.warning(
+            f'{wb_object.materialized} is too large to download: ' f'{size} > {METADATA_ASSET_POOL_MAX_FILESIZE}'
+        )
         return None
     try:
         content = wb_object.download()
@@ -837,14 +897,18 @@ def update_metadata_asset_pool_when_file_changed(sender, instance, created, **kw
     elif action in ['addon_file_renamed', 'addon_file_moved', 'addon_file_copied']:
         if action in ['addon_file_renamed', 'addon_file_moved']:
             src = params.get('source', None)
-            if src is not None and \
-                    src.get('provider', None) == 'osfstorage' and \
-                    src.get('node', {}).get('_id', None) == node._id:
+            if (
+                src is not None
+                and src.get('provider', None) == 'osfstorage'
+                and src.get('node', {}).get('_id', None) == node._id
+            ):
                 src_path = src.get('materialized', None)
         dest = params.get('destination', None)
-        if dest is not None and \
-                dest.get('provider', None) == 'osfstorage' and \
-                dest.get('node', {}).get('_id', None) == node._id:
+        if (
+            dest is not None
+            and dest.get('provider', None) == 'osfstorage'
+            and dest.get('node', {}).get('_id', None) == node._id
+        ):
             dest_path = dest.get('materialized', None)
     else:
         return
@@ -853,15 +917,21 @@ def update_metadata_asset_pool_when_file_changed(sender, instance, created, **kw
     if src_path is not None:
         src_path = src_path.lstrip('/')
 
-    if dest_path is not None and dest_path.startswith(f'{METADATA_ASSET_POOL_BASE_PATH}/') and \
-            (dest_path.endswith('.json') or dest_path.endswith('/')):
+    if (
+        dest_path is not None
+        and dest_path.startswith(f'{METADATA_ASSET_POOL_BASE_PATH}/')
+        and (dest_path.endswith('.json') or dest_path.endswith('/'))
+    ):
         set_metadata_asset_pool.delay(
             instance.user._id,
             node._id,
             dest_path,
         )
-    if src_path is not None and src_path.startswith(f'{METADATA_ASSET_POOL_BASE_PATH}/') and \
-            (src_path.endswith('.json') or src_path.endswith('/')):
+    if (
+        src_path is not None
+        and src_path.startswith(f'{METADATA_ASSET_POOL_BASE_PATH}/')
+        and (src_path.endswith('.json') or src_path.endswith('/'))
+    ):
         delete_metadata_asset_pool.delay(
             instance.user._id,
             node._id,
@@ -877,10 +947,13 @@ def sync_all_metadata_set_pool_when_enabled(sender, instance, created, **kwargs)
     addon = node.get_addon(SHORT_NAME)
     if addon is None:
         return
-    sync_metadata_asset_pool.apply_async((
-        node.creator._id,
-        node._id,
-    ), countdown=1)  # wait for metadata addon to be ready
+    sync_metadata_asset_pool.apply_async(
+        (
+            node.creator._id,
+            node._id,
+        ),
+        countdown=1,
+    )  # wait for metadata addon to be ready
 
 
 def fetch_metadata_asset_files(user, node, base_path):
@@ -900,6 +973,7 @@ def fetch_metadata_asset_files(user, node, base_path):
             return
 
     if base_path.endswith('/'):
+
         def walk_folder(folder):
             children = folder.get_files()
             for child in children:

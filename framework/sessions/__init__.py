@@ -8,6 +8,7 @@ from django.db.models import Q
 import bson.objectid
 import itsdangerous
 from flask import request
+import furl
 from weakref import WeakKeyDictionary
 from werkzeug.local import LocalProxy
 
@@ -99,9 +100,14 @@ def create_session(response, data=None):
         cookie_value = itsdangerous.Signer(settings.SECRET_KEY).sign(session_id)
         set_session(new_session)
     if response is not None:
-        response.set_cookie(settings.COOKIE_NAME, value=cookie_value, domain=settings.OSF_COOKIE_DOMAIN,
-                            secure=settings.SESSION_COOKIE_SECURE, httponly=settings.SESSION_COOKIE_HTTPONLY,
-                            samesite=settings.SESSION_COOKIE_SAMESITE)
+        response.set_cookie(
+            settings.COOKIE_NAME,
+            value=cookie_value,
+            domain=settings.OSF_COOKIE_DOMAIN,
+            secure=settings.SESSION_COOKIE_SECURE,
+            httponly=settings.SESSION_COOKIE_HTTPONLY,
+            samesite=settings.SESSION_COOKIE_SAMESITE,
+        )
         return response
 
 
@@ -116,6 +122,7 @@ def before_request():
     from framework.auth.core import get_user
     from framework.auth import cas
     from framework.utils import throttle_period_expired
+
     Session = apps.get_model('osf.Session')
 
     # Central Authentication Server Ticket Validation and Authentication
@@ -127,13 +134,10 @@ def before_request():
         re_query = urlencode(querys, True)
         service_url = urlunparse(parsed_url._replace(query=re_query))
         # Attempt to authenticate wih CAS, and return a proper redirect response
-        return cas.make_response_from_ticket(ticket=ticket, service_url=service_url)
+        return cas.make_response_from_ticket(ticket=ticket, service_url=service_url.url)
 
     if request.authorization:
-        user = get_user(
-            email=request.authorization.username,
-            password=request.authorization.password
-        )
+        user = get_user(email=request.authorization.username, password=request.authorization.password)
         # Create an empty session
         # TODO: Shoudn't need to create a session for Basic Auth
         user_session = Session()
@@ -169,10 +173,12 @@ def before_request():
             if user_session.data.get('auth_user_id') and 'api' not in request.url:
                 OSFUser = apps.get_model('osf.OSFUser')
                 (
-                    OSFUser.objects
-                    .filter(guids___id__isnull=False, guids___id=user_session.data['auth_user_id'])
+                    OSFUser.objects.filter(guids___id__isnull=False, guids___id=user_session.data['auth_user_id'])
                     # Throttle updates
-                    .filter(Q(date_last_login__isnull=True) | Q(date_last_login__lt=timezone.now() - settings.DATE_LAST_LOGIN_THROTTLE_DELTA))
+                    .filter(
+                        Q(date_last_login__isnull=True)
+                        | Q(date_last_login__lt=timezone.now() - settings.DATE_LAST_LOGIN_THROTTLE_DELTA)
+                    )
                 ).update(date_last_login=timezone.now())
             set_session(user_session)
         else:

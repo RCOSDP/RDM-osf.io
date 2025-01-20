@@ -1,9 +1,10 @@
 import os
 
-from addons.base.apps import BaseAddonAppConfig
+from addons.base.apps import BaseAddonAppConfig, generic_root_folder
 from addons.onedrivebusiness import SHORT_NAME, FULL_NAME
 from addons.onedrivebusiness import settings
-from website.util import rubeus
+
+onedrivebusiness_root_folder = generic_root_folder('onedrivebusiness')
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_PATH = os.path.join(
@@ -11,21 +12,6 @@ TEMPLATE_PATH = os.path.join(
     'templates'
 )
 
-def onedrivebusiness_root_folder(node_settings, auth, **kwargs):
-    """Return the Rubeus/HGrid-formatted response for the root folder only."""
-    # GRDM-37149: Hide deactivated institutional storage
-    if not node_settings.complete:
-        return None
-    node = node_settings.owner
-    root = rubeus.build_addon_root(
-        node_settings=node_settings,
-        name=node_settings.fetch_folder_name(),
-        permissions=auth,
-        nodeUrl=node.url,
-        nodeApiUrl=node.api_url,
-        private_key=kwargs.get('view_only', None),
-    )
-    return [root]
 
 class OneDriveBusinessAddonAppConfig(BaseAddonAppConfig):
 
@@ -43,7 +29,7 @@ class OneDriveBusinessAddonAppConfig(BaseAddonAppConfig):
     max_file_size = settings.MAX_UPLOAD_SIZE
 
     # No node setting views for Institution Storage
-    user_settings_template = os.path.join(TEMPLATE_PATH, 'onedrivebusiness_user_settings.mako')
+    user_settings_template = os.path.join(TEMPLATE_PATH, 'user_settings.mako')
 
     # default value for RdmAddonOption.is_allowed for GRDM Admin
     is_allowed_default = False

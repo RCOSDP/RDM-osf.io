@@ -69,6 +69,7 @@ COPY ./addons/nextcloudinstitutions/requirements.txt ./addons/nextcloudinstituti
 COPY ./admin/rdm_announcement/requirements.txt ./admin/rdm_announcement/
 COPY ./admin/rdm_statistics/requirements.txt ./admin/rdm_statistics/
 COPY ./addons/metadata/requirements.txt ./addons/metadata/
+COPY ./addons/onlyoffice/requirements.txt ./addons/onlyoffice/
 
 RUN pip3 install pip==21.1.3
 
@@ -90,8 +91,8 @@ RUN set -ex \
         libpng-dev \
         freetype-dev \
         jpeg-dev \
-    && pip3 install Cython==0.29.36 \
-    && pip3 install numpy==1.15.4 \
+    && pip3 install Cython \
+    && pip3 install numpy==1.19.5 \
     && for reqs_file in \
         /code/requirements.txt \
         /code/requirements/release.txt \
@@ -145,6 +146,7 @@ COPY ./admin/static/ ./admin/static/
 COPY ./addons/bitbucket/static/ ./addons/bitbucket/static/
 COPY ./addons/box/static/ ./addons/box/static/
 COPY ./addons/citations/static/ ./addons/citations/static/
+COPY ./addons/datasteward/static/ ./addons/datasteward/static/
 COPY ./addons/dataverse/static/ ./addons/dataverse/static/
 COPY ./addons/dropbox/static/ ./addons/dropbox/static/
 COPY ./addons/dropboxbusiness/static/ ./addons/dropboxbusiness/static/
@@ -176,6 +178,7 @@ COPY ./addons/nextcloudinstitutions/static/ ./addons/nextcloudinstitutions/stati
 COPY ./addons/iqbrims/static/ ./addons/iqbrims/static/
 COPY ./addons/binderhub/static/ ./addons/binderhub/static/
 COPY ./addons/metadata/static/ ./addons/metadata/static/
+COPY ./addons/onlyoffice/static/ ./addons/onlyoffice/static/
 RUN \
     # OSF
     yarn install --frozen-lockfile \

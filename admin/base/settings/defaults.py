@@ -4,6 +4,7 @@ Django settings for the admin project.
 
 from django.contrib import messages
 from api.base.settings import *  # noqa
+
 # TODO ALL SETTINGS FROM API WILL BE IMPORTED AND WILL NEED TO BE OVERRRIDEN
 # TODO THIS IS A STEP TOWARD INTEGRATING ADMIN & API INTO ONE PROJECT
 
@@ -39,9 +40,7 @@ CSRF_COOKIE_SECURE = osf_settings.SECURE_MODE
 # set to False for admin draft registration uses a SPA and ajax and grab the token to use it in the requests
 CSRF_COOKIE_HTTPONLY = False
 
-ALLOWED_HOSTS = [
-    'osf.io'
-]
+ALLOWED_HOSTS = ['osf.io']
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -51,7 +50,7 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
         'OPTIONS': {
             'min_length': 5,
-        }
+        },
     },
 ]
 
@@ -80,7 +79,6 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.sessions',
     'django.contrib.staticfiles',
-
     # 3rd party
     'django_celery_results',
     'raven.contrib.django.raven_compat',
@@ -90,15 +88,12 @@ INSTALLED_APPS = (
     'guardian',
     'waffle',
     'elasticsearch_metrics',
-
     # OSF
     'osf',
-
     # Addons
     'addons.osfstorage',
     'addons.wiki',
     'addons.twofactor',
-
     # Internal apps
     'admin.common_auth',
     'admin.base',
@@ -110,7 +105,8 @@ INSTALLED_APPS = (
     'admin.meetings',
     'admin.institutions',
     'admin.preprint_providers',
-
+    # @R2022-48
+    'admin.loa',
     # Additional addons
     'addons.bitbucket',
     'addons.box',
@@ -139,6 +135,7 @@ INSTALLED_APPS = (
     'addons.ociinstitutions',
     'addons.onedrivebusiness',
     'addons.metadata',
+    'addons.datasteward',
 )
 
 MIGRATION_MODULES = {
@@ -185,7 +182,8 @@ UNSUPPORTED_FORCE_TO_USE_ADDONS = [
     'nextcloud',
     'gitlab',
     'onedrive',
-    'iqbrims'
+    'iqbrims',
+    'datasteward',
 ]
 
 USE_TZ = True
@@ -208,9 +206,10 @@ RAVEN_CONFIG = {
 # Settings related to CORS Headers addon: allow API to receive authenticated requests from OSF
 # CORS plugin only matches based on "netloc" part of URL, so as workaround we add that to the list
 CORS_ORIGIN_ALLOW_ALL = False
-CORS_ORIGIN_WHITELIST = (urlparse(osf_settings.DOMAIN).netloc,
-                         osf_settings.DOMAIN,
-                         )
+CORS_ORIGIN_WHITELIST = (
+    urlparse(osf_settings.DOMAIN).netloc,
+    osf_settings.DOMAIN,
+)
 CORS_ALLOW_CREDENTIALS = True
 
 MIDDLEWARE = (
@@ -221,7 +220,6 @@ MIDDLEWARE = (
     'api.base.middleware.DjangoGlobalMiddleware',
     'api.base.middleware.CeleryTaskMiddleware',
     'api.base.middleware.PostcommitTaskMiddleware',
-
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -252,8 +250,9 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
-        }
-    }]
+        },
+    }
+]
 
 ROOT_URLCONF = 'admin.base.urls'
 WSGI_APPLICATION = 'admin.base.wsgi.application'
@@ -286,16 +285,12 @@ KEEN_PROJECT_ID = osf_settings.KEEN['private']['project_id']
 KEEN_READ_KEY = osf_settings.KEEN['private']['read_key']
 KEEN_WRITE_KEY = osf_settings.KEEN['private']['write_key']
 
-KEEN_CREDENTIALS = {
-    'keen_ready': False
-}
+KEEN_CREDENTIALS = {'keen_ready': False}
 
 if KEEN_CREDENTIALS['keen_ready']:
-    KEEN_CREDENTIALS.update({
-        'keen_project_id': KEEN_PROJECT_ID,
-        'keen_read_key': KEEN_READ_KEY,
-        'keen_write_key': KEEN_WRITE_KEY
-    })
+    KEEN_CREDENTIALS.update(
+        {'keen_project_id': KEEN_PROJECT_ID, 'keen_read_key': KEEN_READ_KEY, 'keen_write_key': KEEN_WRITE_KEY}
+    )
 
 
 # Set in local.py
@@ -308,21 +303,25 @@ SHARE_URL = osf_settings.SHARE_URL
 API_DOMAIN = osf_settings.API_DOMAIN
 
 if DEBUG:
-    INSTALLED_APPS += ('debug_toolbar', 'nplusone.ext.django',)
-    MIDDLEWARE += ('debug_toolbar.middleware.DebugToolbarMiddleware', 'nplusone.ext.django.NPlusOneMiddleware',)
+    INSTALLED_APPS += (
+        'debug_toolbar',
+        'nplusone.ext.django',
+    )
+    MIDDLEWARE += (
+        'debug_toolbar.middleware.DebugToolbarMiddleware',
+        'nplusone.ext.django.NPlusOneMiddleware',
+    )
     DEBUG_TOOLBAR_CONFIG = {
         'SHOW_TOOLBAR_CALLBACK': lambda _: True,
         'DISABLE_PANELS': {
             'debug_toolbar.panels.templates.TemplatesPanel',
-            'debug_toolbar.panels.redirects.RedirectsPanel'
-        }
+            'debug_toolbar.panels.redirects.RedirectsPanel',
+        },
     }
 
 # If set to True, automated tests with extra queries will fail.
 NPLUSONE_RAISE = False
-FCM_SETTINGS = {
-    'FCM_SERVER_KEY': ''
-}
+FCM_SETTINGS = {'FCM_SERVER_KEY': ''}
 # separator to devide domain from eppn
 SHIB_EPPN_SCOPING_SEPARATOR = '@'
 
@@ -337,16 +336,16 @@ ANNOUNCEMENT_EMAIL_FROM = 'noreply@rdm.rcos.nii.ac.jp'
 # Addon Controls
 ENABLE_FORCE_CHECK = False
 
+
 def parent_dir(path):
     '''Return the parent of a directory.'''
     return os.path.abspath(os.path.join(path, os.pardir))
 
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 BASE_PATH = parent_dir(parent_dir(HERE))  # admin/ directory
 
-LOCALE_PATHS = (
-    os.path.join(BASE_PATH, 'translations'),
-)
+LOCALE_PATHS = (os.path.join(BASE_PATH, 'translations'),)
 
 # The directory to store data temporarily.
 TEMPORARY_PATH = '/tmp/'

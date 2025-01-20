@@ -14,6 +14,7 @@ def _flatten_indices(indices):
         r += _flatten_indices(i.children)
     return r
 
+
 def _is_valid_index(desc):
     if 'name' in desc and 'id' in desc:
         return True
@@ -21,6 +22,7 @@ def _is_valid_index(desc):
         return False
     logger.warning('Unexpected index description: %s', desc)
     return False
+
 
 def _is_valid_item(desc):
     if 'metadata' in desc:
@@ -33,6 +35,7 @@ class Client(object):
     """
     WEKO Client
     """
+
     host = None
     token = None
     username = None
@@ -98,17 +101,15 @@ class Client(object):
         return resp.json()
 
     def _post(self, path, files, headers=None):
-        resp = requests.post(
-            self._base_host + path,
-            files=files,
-            **self._requests_args(headers=headers)
-        )
+        resp = requests.post(self._base_host + path, files=files, **self._requests_args(headers=headers))
         logger.info(f'_post: url={self._base_host + path}, status={resp.status_code}, response={resp.content}')
         if resp.status_code == 400:
             error_reason = resp.json()
             error_type = error_reason.get('@type', 'Unknown')
             error_message = error_reason.get('error', 'Unknown')
-            raise HTTPError(f'Bad Request for URL: {self._base_host + path}: type={error_type}, message={error_message}')
+            raise HTTPError(
+                f'Bad Request for URL: {self._base_host + path}: type={error_type}, message={error_message}'
+            )
         resp.raise_for_status()
         return resp.json()
 
@@ -138,6 +139,7 @@ class Index(object):
     """
     WEKO Index
     """
+
     client = None
     raw = None
     parent = None
@@ -159,11 +161,7 @@ class Index(object):
     def children(self):
         if 'children' not in self.raw:
             return []
-        return [
-            Index(self.client, i, parent=self)
-            for i in self.raw['children']
-            if _is_valid_index(i)
-        ]
+        return [Index(self.client, i, parent=self) for i in self.raw['children'] if _is_valid_index(i)]
 
     def get_items(self):
         root = self.client._get(f'api/index/?q={self.identifier}')
@@ -186,6 +184,7 @@ class Item(object):
     """
     WEKO Item
     """
+
     raw = None
     index = None
 
@@ -221,9 +220,11 @@ class Item(object):
 
     @property
     def files(self):
-        file_items = [k
-                      for k, v in self._metadata.items()
-                      if k.startswith('item_') and 'attribute_type' in v and v['attribute_type'] == 'file']
+        file_items = [
+            k
+            for k, v in self._metadata.items()
+            if k.startswith('item_') and 'attribute_type' in v and v['attribute_type'] == 'file'
+        ]
         return [File(file_item) for file_item in self._metadata[file_items[0]]['attribute_value_mlt']]
 
 
@@ -231,6 +232,7 @@ class File(object):
     """
     WEKO File
     """
+
     raw = None
     item = None
 

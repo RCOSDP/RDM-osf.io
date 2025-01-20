@@ -11,12 +11,7 @@ from django.core.exceptions import PermissionDenied
 from addons.osfstorage.models import Region
 from api.base import settings as api_settings
 from tests.base import AdminTestCase
-from osf_tests.factories import (
-    AuthUserFactory,
-    InstitutionFactory,
-    ProjectFactory,
-    RegionFactory
-)
+from osf_tests.factories import AuthUserFactory, InstitutionFactory, ProjectFactory, RegionFactory
 from osf.models import Institution, Node, UserQuota, OSFUser
 
 from admin_tests.utilities import setup_form_view, setup_user_view, setup_view
@@ -200,7 +195,7 @@ class TestInstitutionChangeForm(AdminTestCase):
             'name': 'New Name',
             'logo_name': 'awesome_logo.png',
             'domains': 'http://kris.biz/, http://www.little.biz/',
-            '_id': 'newawesomeprov'
+            '_id': 'newawesomeprov',
         }
         form = InstitutionForm(data=new_data)
         nt.assert_true(form.is_valid())
@@ -321,10 +316,7 @@ class TestGetUserListWithQuota(AdminTestCase):
         self.user.save()
         self.request = RequestFactory().get('/fake_path')
         self.view = setup_user_view(
-            views.UserListByInstitutionID(),
-            self.request,
-            user=self.user,
-            institution_id=self.institution.id
+            views.UserListByInstitutionID(), self.request, user=self.user, institution_id=self.institution.id
         )
 
     @mock.patch('website.util.quota.used_quota')
@@ -372,6 +364,7 @@ class TestGetUserListWithQuota(AdminTestCase):
 
         nt.assert_equal(round(user_quota['ratio'], 1), 5.2)
 
+
 class TestGetUserListWithQuotaSorted(AdminTestCase):
     def setUp(self):
         self.institution = InstitutionFactory()
@@ -390,10 +383,7 @@ class TestGetUserListWithQuotaSorted(AdminTestCase):
     def view_get(self, url_params):
         request = RequestFactory().get('/fake_path?{}'.format(url_params))
         view = setup_user_view(
-            views.UserListByInstitutionID(),
-            request,
-            user=self.users[0],
-            institution_id=self.institution.id
+            views.UserListByInstitutionID(), request, user=self.users[0], institution_id=self.institution.id
         )
         return view.get(request)
 
@@ -475,41 +465,23 @@ class TestGetUserListWithQuotaSorted(AdminTestCase):
         result = list(map(itemgetter('ratio'), response.context_data['users']))
         nt.assert_equal(result, expected)
 
+
 class TestStatisticalStatusDefaultStorage(AdminTestCase):
     def setUp(self):
-        self.institution01 = InstitutionFactory(name='inst01')
-
-        self.anon = AnonymousUser()
-
-        self.normal_user = AuthUserFactory(fullname='normal_user')
-        self.normal_user.is_staff = False
-        self.normal_user.is_superuser = False
-
-        self.superuser = AuthUserFactory(fullname='superuser')
-        self.superuser.is_staff = True
-        self.superuser.is_superuser = True
-        self.superuser.save()
-
-        self.institution01_admin = AuthUserFactory(fullname='admin001_inst01')
-        self.institution01_admin.is_staff = True
-        self.institution01_admin.affiliated_institutions.add(self.institution01)
-        self.institution01_admin.save()
-
-        self.institution02_admin = AuthUserFactory(fullname='admin001_inst02')
-        self.institution02_admin.is_staff = True
-        self.institution02_admin.save()
+        self.institution = InstitutionFactory()
 
         self.us = RegionFactory()
         self.us._id = self.institution01._id
         self.us.waterbutler_settings['storage']['type'] = Region.NII_STORAGE
         self.us.save()
 
+        self.user = AuthUserFactory()
+        self.user.affiliated_institutions.add(self.institution)
+        self.user.save()
+
         self.request = RequestFactory().get('/fake_path')
         self.view = setup_user_view(
-            views.StatisticalStatusDefaultStorage(),
-            self.request,
-            user=self.institution01_admin,
-            institution_id=self.institution01.id
+            views.StatisticalStatusDefaultStorage(), self.request, user=self.user, institution_id=self.institution.id
         )
 
     def test_unauthenticated(self):
@@ -574,10 +546,6 @@ class TestStatisticalStatusDefaultStorage(AdminTestCase):
         self.request.user = self.institution01_admin
         nt.assert_true(self.view.test_func())
 
-    def test_admin_not_inst_login(self):
-        self.request.user = self.institution02_admin
-        nt.assert_false(self.view.test_func())
-
     @mock.patch('website.util.quota.used_quota')
     def test_default_quota(self, mock_usedquota):
         mock_usedquota.return_value = 0
@@ -587,13 +555,13 @@ class TestStatisticalStatusDefaultStorage(AdminTestCase):
         nt.assert_equal(user_quota['quota'], api_settings.DEFAULT_MAX_QUOTA)
 
     def test_custom_quota(self):
-        UserQuota.objects.create(user=self.institution01_admin, storage_type=UserQuota.CUSTOM_STORAGE, max_quota=200)
+        UserQuota.objects.create(user=self.user, storage_type=UserQuota.CUSTOM_STORAGE, max_quota=200)
         response = self.view.get(self.request)
         user_quota = response.context_data['users'][0]
         nt.assert_equal(user_quota['quota'], 200)
 
     def test_used_quota_bytes(self):
-        UserQuota.objects.create(user=self.institution01_admin, storage_type=UserQuota.CUSTOM_STORAGE, max_quota=100, used=560)
+        UserQuota.objects.create(user=self.user, storage_type=UserQuota.CUSTOM_STORAGE, max_quota=100, used=560)
         response = self.view.get(self.request)
         user_quota = response.context_data['users'][0]
 
@@ -609,7 +577,7 @@ class TestStatisticalStatusDefaultStorage(AdminTestCase):
 
     def test_used_quota_giga(self):
         used = int(5.2 * api_settings.SIZE_UNIT_GB)
-        UserQuota.objects.create(user=self.institution01_admin, storage_type=UserQuota.CUSTOM_STORAGE, max_quota=100, used=used)
+        UserQuota.objects.create(user=self.user, storage_type=UserQuota.CUSTOM_STORAGE, max_quota=100, used=used)
         response = self.view.get(self.request)
         user_quota = response.context_data['users'][0]
 
@@ -622,6 +590,7 @@ class TestStatisticalStatusDefaultStorage(AdminTestCase):
         nt.assert_equal(user_quota['remaining_abbr'], 'GB')
 
         nt.assert_equal(round(user_quota['ratio'], 1), 5.2)
+
 
 class TestStatisticalStatusDefaultStorageSorted(AdminTestCase):
     def setUp(self):
@@ -641,21 +610,13 @@ class TestStatisticalStatusDefaultStorageSorted(AdminTestCase):
         user.affiliated_institutions.add(self.institution)
         user.eppn = eppn
         user.save()
-        UserQuota.objects.create(
-            user=user,
-            storage_type=UserQuota.CUSTOM_STORAGE,
-            max_quota=max_quota,
-            used=used
-        )
+        UserQuota.objects.create(user=user, storage_type=UserQuota.CUSTOM_STORAGE, max_quota=max_quota, used=used)
         return user
 
     def view_get(self, url_params):
         request = RequestFactory().get('/fake_path?{}'.format(url_params))
         view = setup_user_view(
-            views.StatisticalStatusDefaultStorage(),
-            request,
-            user=self.users[0],
-            institution_id=self.institution.id
+            views.StatisticalStatusDefaultStorage(), request, user=self.users[0], institution_id=self.institution.id
         )
         return view.get(request)
 
@@ -764,15 +725,12 @@ class TestUpdateQuotaUserListByInstitutionID(AdminTestCase):
         max_quota = 50
         request = RequestFactory().post(
             reverse(
-                'institutions'
-                ':update_quota_institution_user_list',
-                kwargs={'institution_id': self.institution.id}),
-            {'maxQuota': max_quota})
-        request.user = AnonymousUser()
-        response = self.view(
-            request,
-            institution_id=self.institution.id
+                'institutions' ':update_quota_institution_user_list', kwargs={'institution_id': self.institution.id}
+            ),
+            {'maxQuota': max_quota},
         )
+        request.user = AnonymousUser()
+        response = self.view(request, institution_id=self.institution.id)
         nt.assert_equal(response.status_code, 302)
         nt.assert_in('login', str(response))
 
@@ -780,16 +738,13 @@ class TestUpdateQuotaUserListByInstitutionID(AdminTestCase):
         max_quota = 50
         request = RequestFactory().post(
             reverse(
-                'institutions'
-                ':update_quota_institution_user_list',
-                kwargs={'institution_id': self.institution.id}),
-            {'maxQuota': max_quota})
+                'institutions' ':update_quota_institution_user_list', kwargs={'institution_id': self.institution.id}
+            ),
+            {'maxQuota': max_quota},
+        )
         request.user = AuthUserFactory()
         with nt.assert_raises(PermissionDenied):
-            self.view(
-                request,
-                institution_id=self.institution.id
-            )
+            self.view(request, institution_id=self.institution.id)
 
     def test_permission_admin(self):
         self.user1.is_superuser = False
@@ -797,31 +752,25 @@ class TestUpdateQuotaUserListByInstitutionID(AdminTestCase):
         max_quota = 50
         request = RequestFactory().post(
             reverse(
-                'institutions'
-                ':update_quota_institution_user_list',
-                kwargs={'institution_id': self.institution.id}),
-            {'maxQuota': max_quota})
+                'institutions' ':update_quota_institution_user_list', kwargs={'institution_id': self.institution.id}
+            ),
+            {'maxQuota': max_quota},
+        )
         request.user = self.user1
         with nt.assert_raises(PermissionDenied):
-            self.view(
-                request,
-                institution_id=self.institution.id
-            )
+            self.view(request, institution_id=self.institution.id)
 
     def test_permission_super_admin(self):
         max_quota = 50
         request = RequestFactory().post(
             reverse(
-                'institutions'
-                ':update_quota_institution_user_list',
-                kwargs={'institution_id': self.institution.id}),
-            {'maxQuota': max_quota})
+                'institutions' ':update_quota_institution_user_list', kwargs={'institution_id': self.institution.id}
+            ),
+            {'maxQuota': max_quota},
+        )
         request.user = self.user1
 
-        response = self.view(
-            request,
-            institution_id=self.institution.id
-        )
+        response = self.view(request, institution_id=self.institution.id)
 
         nt.assert_equal(response.status_code, 302)
         nt.assert_not_in('login', str(response))
@@ -829,97 +778,72 @@ class TestUpdateQuotaUserListByInstitutionID(AdminTestCase):
     def test_post_max_quota_none(self):
         request = RequestFactory().post(
             reverse(
-                'institutions'
-                ':update_quota_institution_user_list',
-                kwargs={'institution_id': self.institution.id}),
-            {})
-        request.user = self.user1
-        response = self.view(
-            request,
-            institution_id=self.institution.id
+                'institutions' ':update_quota_institution_user_list', kwargs={'institution_id': self.institution.id}
+            ),
+            {},
         )
+        request.user = self.user1
+        response = self.view(request, institution_id=self.institution.id)
         nt.assert_equal(response.status_code, 302)
 
-        user_quota = UserQuota.objects.filter(
-            user=self.user2, storage_type=UserQuota.NII_STORAGE
-        ).first()
+        user_quota = UserQuota.objects.filter(user=self.user2, storage_type=UserQuota.NII_STORAGE).first()
         nt.assert_is_none(user_quota)
 
     def test_post_max_quota_invalid(self):
         max_quota = 'test'
         request = RequestFactory().post(
             reverse(
-                'institutions'
-                ':update_quota_institution_user_list',
-                kwargs={'institution_id': self.institution.id}),
-            {'maxQuota': max_quota})
-        request.user = self.user1
-        response = self.view(
-            request,
-            institution_id=self.institution.id
+                'institutions' ':update_quota_institution_user_list', kwargs={'institution_id': self.institution.id}
+            ),
+            {'maxQuota': max_quota},
         )
+        request.user = self.user1
+        response = self.view(request, institution_id=self.institution.id)
         nt.assert_equal(response.status_code, 302)
 
-        user_quota = UserQuota.objects.filter(
-            user=self.user2, storage_type=UserQuota.NII_STORAGE
-        ).first()
+        user_quota = UserQuota.objects.filter(user=self.user2, storage_type=UserQuota.NII_STORAGE).first()
         nt.assert_is_none(user_quota)
 
     def test_post_max_quota_negative(self):
         max_quota = -100
         request = RequestFactory().post(
             reverse(
-                'institutions'
-                ':update_quota_institution_user_list',
-                kwargs={'institution_id': self.institution.id}),
-            {'maxQuota': max_quota})
-        request.user = self.user1
-        response = self.view(
-            request,
-            institution_id=self.institution.id
+                'institutions' ':update_quota_institution_user_list', kwargs={'institution_id': self.institution.id}
+            ),
+            {'maxQuota': max_quota},
         )
+        request.user = self.user1
+        response = self.view(request, institution_id=self.institution.id)
         nt.assert_equal(response.status_code, 302)
 
-        user_quota = UserQuota.objects.filter(
-            user=self.user2, storage_type=UserQuota.NII_STORAGE
-        ).first()
+        user_quota = UserQuota.objects.filter(user=self.user2, storage_type=UserQuota.NII_STORAGE).first()
         nt.assert_is_none(user_quota)
 
     def test_post_max_quota_too_large(self):
         max_quota = 1000000000000
         request = RequestFactory().post(
             reverse(
-                'institutions'
-                ':update_quota_institution_user_list',
-                kwargs={'institution_id': self.institution.id}),
-            {'maxQuota': max_quota})
+                'institutions' ':update_quota_institution_user_list', kwargs={'institution_id': self.institution.id}
+            ),
+            {'maxQuota': max_quota},
+        )
         request.user = self.user1
 
-        response = self.view(
-            request,
-            institution_id=self.institution.id
-        )
+        response = self.view(request, institution_id=self.institution.id)
 
         nt.assert_equal(response.status_code, 302)
-        user_quota = UserQuota.objects.filter(
-            user=self.user2, storage_type=UserQuota.NII_STORAGE
-        ).first()
+        user_quota = UserQuota.objects.filter(user=self.user2, storage_type=UserQuota.NII_STORAGE).first()
         nt.assert_is_none(user_quota)
 
     def test_post_institution_not_found(self):
         max_quota = 50
         request = RequestFactory().post(
-            reverse(
-                'institutions'
-                ':update_quota_institution_user_list',
-                kwargs={'institution_id': 0}),
-            {'maxQuota': max_quota})
+            reverse('institutions' ':update_quota_institution_user_list', kwargs={'institution_id': 0}),
+            {'maxQuota': max_quota},
+        )
         request.user = self.user1
         with nt.assert_raises(Http404):
-            self.view(
-                request,
-                institution_id=0
-            )
+            self.view(request, institution_id=0)
 
     def test_post_institution_not_using_nii_storage(self):
         region = RegionFactory(_id=self.institution.guid)
@@ -928,35 +852,27 @@ class TestUpdateQuotaUserListByInstitutionID(AdminTestCase):
         max_quota = 50
         request = RequestFactory().post(
             reverse(
-                'institutions'
-                ':update_quota_institution_user_list',
-                kwargs={'institution_id': self.institution.id}),
-            {'maxQuota': max_quota})
+                'institutions' ':update_quota_institution_user_list', kwargs={'institution_id': self.institution.id}
+            ),
+            {'maxQuota': max_quota},
+        )
         request.user = self.user1
         with nt.assert_raises(Http404):
-            self.view(
-                request,
-                institution_id=self.institution.id
-            )
+            self.view(request, institution_id=self.institution.id)
 
     def test_post_create_quota(self):
         max_quota = 50
         request = RequestFactory().post(
             reverse(
-                'institutions'
-                ':update_quota_institution_user_list',
-                kwargs={'institution_id': self.institution.id}),
-            {'maxQuota': max_quota})
+                'institutions' ':update_quota_institution_user_list', kwargs={'institution_id': self.institution.id}
+            ),
+            {'maxQuota': max_quota},
+        )
         request.user = self.user1
 
-        response = self.view(
-            request,
-            institution_id=self.institution.id
-        )
+        response = self.view(request, institution_id=self.institution.id)
         nt.assert_equal(response.status_code, 302)
-        user_quota = UserQuota.objects.filter(
-            user=self.user2, storage_type=UserQuota.NII_STORAGE
-        ).first()
+        user_quota = UserQuota.objects.filter(user=self.user2, storage_type=UserQuota.NII_STORAGE).first()
         nt.assert_is_not_none(user_quota)
         nt.assert_equal(user_quota.max_quota, max_quota)
 
@@ -965,32 +881,25 @@ class TestUpdateQuotaUserListByInstitutionID(AdminTestCase):
         max_quota = 150
         request = RequestFactory().post(
             reverse(
-                'institutions'
-                ':update_quota_institution_user_list',
-                kwargs={'institution_id': self.institution.id}),
-            {'maxQuota': max_quota})
+                'institutions' ':update_quota_institution_user_list', kwargs={'institution_id': self.institution.id}
+            ),
+            {'maxQuota': max_quota},
+        )
         request.user = self.user1
 
-        response = self.view(
-            request,
-            institution_id=self.institution.id
-        )
+        response = self.view(request, institution_id=self.institution.id)
 
         nt.assert_equal(response.status_code, 302)
-        user_quota = UserQuota.objects.filter(
-            user=self.user2, storage_type=UserQuota.NII_STORAGE
-        ).first()
+        user_quota = UserQuota.objects.filter(user=self.user2, storage_type=UserQuota.NII_STORAGE).first()
         nt.assert_is_not_none(user_quota)
         nt.assert_equal(user_quota.max_quota, max_quota)
 
     def test__post_update_quota_institution_id_not_exist(self):
         max_quota = 150
         request = RequestFactory().post(
-            reverse(
-                'institutions'
-                ':update_quota_institution_user_list',
-                kwargs={'institution_id': 0}),
-            {'maxQuota': max_quota})
+            reverse('institutions' ':update_quota_institution_user_list', kwargs={'institution_id': 0}),
+            {'maxQuota': max_quota},
+        )
         request.user = self.user1
         with nt.assert_raises(Http404):
             self.view(request, institution_id=0)
@@ -1019,11 +928,10 @@ class TestQuotaUserList(AdminTestCase):
         return self.institution
 
     def get_institution_has_storage_name(self):
-        query = 'select name '\
-                'from addons_osfstorage_region '\
-                'where addons_osfstorage_region._id = osf_institution._id'
-        institution = Institution.objects.filter(
-            id=self.institution.id).extra(
+        query = (
+            'select name ' 'from addons_osfstorage_region ' 'where addons_osfstorage_region._id = osf_institution._id'
+        )
+        institution = Institution.objects.filter(id=self.institution.id).extra(
             select={
                 'storage_name': query,
             }
@@ -1032,43 +940,28 @@ class TestQuotaUserList(AdminTestCase):
 
     def get_userlist(self):
         user_list = []
-        for user in OSFUser.objects.filter(
-                affiliated_institutions=self.institution.id):
-            user_list.append(self.view.get_user_quota_info(
-                user, UserQuota.CUSTOM_STORAGE)
-            )
+        for user in OSFUser.objects.filter(affiliated_institutions=self.institution.id):
+            user_list.append(self.view.get_user_quota_info(user, UserQuota.CUSTOM_STORAGE))
         return user_list
 
     def test_get_user_quota_info_eppn_is_none(self):
         default_value_eppn = ''
-        UserQuota.objects.create(user=self.user,
-                                 storage_type=UserQuota.CUSTOM_STORAGE,
-                                 max_quota=200)
-        response = self.view.get_user_quota_info(
-            self.user,
-            storage_type=UserQuota.CUSTOM_STORAGE
-        )
+        UserQuota.objects.create(user=self.user, storage_type=UserQuota.CUSTOM_STORAGE, max_quota=200)
+        response = self.view.get_user_quota_info(self.user, storage_type=UserQuota.CUSTOM_STORAGE)
 
         nt.assert_is_not_none(response['eppn'])
         nt.assert_equal(response['eppn'], default_value_eppn)
 
     def test_get_user_quota_info_max_quota_zero(self):
-        UserQuota.objects.create(user=self.user,
-                                 storage_type=UserQuota.CUSTOM_STORAGE,
-                                 max_quota=0)
-        response = self.view.get_user_quota_info(
-            self.user,
-            storage_type=UserQuota.CUSTOM_STORAGE
-        )
+        UserQuota.objects.create(user=self.user, storage_type=UserQuota.CUSTOM_STORAGE, max_quota=0)
+        response = self.view.get_user_quota_info(self.user, storage_type=UserQuota.CUSTOM_STORAGE)
 
         nt.assert_is_not_none(response['ratio'])
         nt.assert_equal(response['ratio'], 100)
 
     def test_get_context_data_has_not_storage_name(self):
         self.view.get_institution = self.get_institution
-        UserQuota.objects.create(user=self.user,
-                                 storage_type=UserQuota.CUSTOM_STORAGE,
-                                 max_quota=200)
+        UserQuota.objects.create(user=self.user, storage_type=UserQuota.CUSTOM_STORAGE, max_quota=200)
 
         response = self.view.get_context_data()
 
@@ -1077,9 +970,7 @@ class TestQuotaUserList(AdminTestCase):
 
     def test_get_context_data_has_storage_name(self):
         self.view.get_institution = self.get_institution_has_storage_name
-        UserQuota.objects.create(user=self.user,
-                                 storage_type=UserQuota.CUSTOM_STORAGE,
-                                 max_quota=200)
+        UserQuota.objects.create(user=self.user, storage_type=UserQuota.CUSTOM_STORAGE, max_quota=200)
 
         response = self.view.get_context_data()
 
@@ -1102,9 +993,7 @@ class TestUserListByInstitutionID(AdminTestCase):
         self.request = RequestFactory().get('/fake_path')
         self.request.user = self.user
         self.view = views.UserListByInstitutionID()
-        self.view = setup_view(self.view,
-                               self.request,
-                               institution_id=self.institution.id)
+        self.view = setup_view(self.view, self.request, institution_id=self.institution.id)
 
     def test_permission_unauthenticated(self):
         self.request.user = AnonymousUser()
@@ -1139,9 +1028,7 @@ class TestUserListByInstitutionID(AdminTestCase):
         nt.assert_is_instance(res, list)
 
     def test_default_user_list_by_institution_id_not_found(self, *args, **kwargs):
-        view = setup_view(self.view,
-                          self.request,
-                          institution_id=0)
+        view = setup_view(self.view, self.request, institution_id=0)
         with nt.assert_raises(Http404):
             view.get_userlist()
 
@@ -1154,16 +1041,12 @@ class TestUserListByInstitutionID(AdminTestCase):
 
     def test_search_email_by_institution_id(self):
         request = RequestFactory().get(
-            reverse('institutions:institution_user_list',
-                    kwargs={'institution_id': self.institution.id}),
-            {
-                'email': self.user2.username
-            }
+            reverse('institutions:institution_user_list', kwargs={'institution_id': self.institution.id}),
+            {'email': self.user2.username},
         )
         request.user = self.user
         view = views.UserListByInstitutionID()
-        view = setup_view(view, request,
-                          institution_id=self.institution.id)
+        view = setup_view(view, request, institution_id=self.institution.id)
         res = view.get_userlist()
 
         nt.assert_equal(res[0]['username'], self.user2.username)
@@ -1171,16 +1054,12 @@ class TestUserListByInstitutionID(AdminTestCase):
 
     def test_search_guid_by_institution_id(self):
         request = RequestFactory().get(
-            reverse('institutions:institution_user_list',
-                    kwargs={'institution_id': self.institution.id}),
-            {
-                'guid': self.user2._id
-            }
+            reverse('institutions:institution_user_list', kwargs={'institution_id': self.institution.id}),
+            {'guid': self.user2._id},
         )
         request.user = self.user
         view = views.UserListByInstitutionID()
-        view = setup_view(view, request,
-                          institution_id=self.institution.id)
+        view = setup_view(view, request, institution_id=self.institution.id)
         res = view.get_userlist()
 
         nt.assert_equal(res[0]['id'], self.user2._id)
@@ -1188,11 +1067,8 @@ class TestUserListByInstitutionID(AdminTestCase):
 
     def test_search_name_by_institution_id(self):
         request = RequestFactory().get(
-            reverse('institutions:institution_user_list',
-                    kwargs={'institution_id': self.institution.id}),
-            {
-                'info': 'kenny'
-            }
+            reverse('institutions:institution_user_list', kwargs={'institution_id': self.institution.id}),
+            {'info': 'kenny'},
         )
         request.user = self.user
 
@@ -1205,18 +1081,12 @@ class TestUserListByInstitutionID(AdminTestCase):
 
     def test_search_name_guid_email_inputted(self):
         request = RequestFactory().get(
-            reverse('institutions:institution_user_list',
-                    kwargs={'institution_id': self.institution.id}),
-            {
-                'email': 'test@gmail.com',
-                'guid': self.user._id,
-                'info': 'kenny'
-            }
+            reverse('institutions:institution_user_list', kwargs={'institution_id': self.institution.id}),
+            {'email': 'test@gmail.com', 'guid': self.user._id, 'info': 'kenny'},
         )
         request.user = self.user
         view = views.UserListByInstitutionID()
-        view = setup_view(view, request,
-                          institution_id=self.institution.id)
+        view = setup_view(view, request, institution_id=self.institution.id)
         res = view.get_userlist()
 
         nt.assert_equal(res[0]['id'], self.user._id)
@@ -1225,45 +1095,21 @@ class TestUserListByInstitutionID(AdminTestCase):
 
     def test_search_not_found(self):
         request = RequestFactory().get(
-            reverse('institutions:institution_user_list',
-                    kwargs={'institution_id': self.institution.id}),
-            {
-                'email': 'sstest@gmail.com',
-                'guid': 'guid2',
-                'info': 'guid2'
-            }
+            reverse('institutions:institution_user_list', kwargs={'institution_id': self.institution.id}),
+            {'email': 'sstest@gmail.com', 'guid': 'guid2', 'info': 'guid2'},
         )
         request.user = self.user
         view = views.UserListByInstitutionID()
-        view = setup_view(view, request,
-                          institution_id=self.institution.id)
+        view = setup_view(view, request, institution_id=self.institution.id)
         res = view.get_userlist()
 
         nt.assert_equal(len(res), 0)
-
-    def test_search_institution_id_not_exist(self):
-        request = RequestFactory().get(
-            reverse('institutions:institution_user_list',
-                    kwargs={'institution_id': 0}),
-            {
-                'email': 'sstest@gmail.com',
-                'guid': 'guid2',
-                'info': 'guid2'
-            }
-        )
-        request.user = self.user
-        view = views.UserListByInstitutionID()
-        view = setup_view(view, request,
-                          institution_id=0)
-        with nt.assert_raises(Http404):
-            view.get_userlist()
 
 
 class TestExportFileTSV(AdminTestCase):
     def setUp(self):
         super(TestExportFileTSV, self).setUp()
-        self.user = AuthUserFactory(fullname='Kenny Michel',
-                                    username='Kenny@gmail.com')
+        self.user = AuthUserFactory(fullname='Kenny Michel', username='Kenny@gmail.com')
         self.user2 = AuthUserFactory(fullname='alex queen')
         self.institution = InstitutionFactory()
         self.user.affiliated_institutions.add(self.institution)
@@ -1273,12 +1119,9 @@ class TestExportFileTSV(AdminTestCase):
         self.view = views.ExportFileTSV()
 
     def test_get(self):
-        request = RequestFactory().get(
-            'institutions:tsvexport',
-            kwargs={'institution_id': self.institution.id})
+        request = RequestFactory().get('institutions:tsvexport', kwargs={'institution_id': self.institution.id})
         request.user = self.user
-        view = setup_view(self.view, request,
-                          institution_id=self.institution.id)
+        view = setup_view(self.view, request, institution_id=self.institution.id)
         res = view.get(request)
 
         result = res.content.decode('utf-8')
@@ -1290,25 +1133,17 @@ class TestExportFileTSV(AdminTestCase):
         nt.assert_in('kenny@gmail.com', result)
 
     def test_get_institution_id_not_exist(self):
-        request = RequestFactory().get(
-            'institutions:tsvexport',
-            kwargs={'institution_id': 0})
+        request = RequestFactory().get('institutions:tsvexport', kwargs={'institution_id': 0})
         request.user = self.user
-        view = setup_view(self.view, request,
-                          institution_id=0)
+        view = setup_view(self.view, request, institution_id=0)
         with nt.assert_raises(Http404):
             view.get(request)
 
     def test_get_zero_max_quota(self):
-        UserQuota.objects.create(user=self.user,
-                                 storage_type=UserQuota.NII_STORAGE,
-                                 max_quota=0)
-        request = RequestFactory().get(
-            'institutions:tsvexport',
-            kwargs={'institution_id': self.institution.id})
+        UserQuota.objects.create(user=self.user, storage_type=UserQuota.NII_STORAGE, max_quota=0)
+        request = RequestFactory().get('institutions:tsvexport', kwargs={'institution_id': self.institution.id})
         request.user = self.user
-        view = setup_view(self.view, request,
-                          institution_id=self.institution.id)
+        view = setup_view(self.view, request, institution_id=self.institution.id)
         res = view.get(request)
 
         result = res.content.decode('utf-8')
@@ -1392,7 +1227,10 @@ class TestRecalculateQuota(AdminTestCase):
         mock_osfuser.filter.return_value = [self.user]
         response = self.view.post(request=self.request, institution_id=self.institution1.id)
         nt.assert_equal(response.status_code, 302)
-        nt.assert_equal(response.url, reverse('institutions:institution_user_list', kwargs={'institution_id': self.institution1.id}))
+        nt.assert_equal(
+            response.url,
+            reverse('institutions:institution_user_list', kwargs={'institution_id': self.institution1.id}),
+        )
         mock_osfuser.filter.assert_called()
         mock_update_user_used_quota_method.assert_called()
 

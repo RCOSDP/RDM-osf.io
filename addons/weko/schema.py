@@ -25,14 +25,11 @@ columns_default = [
 
 def _generate_file_columns(index, download_file_name, download_file_type):
     columns = []
-    columns.append((
-        f'.file_path[{index}]',
-        f'.ファイルパス[{index}]',
-        '',
-        'Allow Multiple',
-        f'files/{download_file_name}'
-    ))
+    columns.append(
+        (f'.file_path[{index}]', f'.ファイルパス[{index}]', '', 'Allow Multiple', f'files/{download_file_name}')
+    )
     return columns
+
 
 def _get_metadata_value(file_metadata_data, item, lang, index):
     assert 'type' in item, item
@@ -55,6 +52,7 @@ def _get_metadata_value(file_metadata_data, item, lang, index):
         return json.loads(value)[index][item['value']]
     raise KeyError(item['type'])
 
+
 def _get_item_variables(file_metadata, schema=None):
     values = {
         'value': '',
@@ -64,11 +62,7 @@ def _get_item_variables(file_metadata, schema=None):
     if 'value' in file_metadata:
         v = file_metadata['value']
         if schema is not None and 'options' in schema:
-            options = [
-                o
-                for o in schema['options']
-                if o.get('text', None) == v or (not v and o.get('default', False))
-            ]
+            options = [o for o in schema['options'] if o.get('text', None) == v or (not v and o.get('default', False))]
             if len(options) == 0:
                 logger.debug(f'No suitable options: value={v}, schema={schema}')
             else:
@@ -89,6 +83,7 @@ def _get_item_variables(file_metadata, schema=None):
         values.update(_get_object_variables(o, 'object_'))
     return values
 
+
 def _get_object_variables(o, prefix):
     values = {}
     for k, v in o.items():
@@ -98,6 +93,7 @@ def _get_object_variables(o, prefix):
             continue
         values[f'{prefix}{key_}'] = v
     return values
+
 
 def _get_value(file_metadata, text, commonvars=None, schema=None):
     values = _get_item_variables(file_metadata, schema=schema)
@@ -109,10 +105,13 @@ def _get_value(file_metadata, text, commonvars=None, schema=None):
     template = env.from_string(text)
     return template.render(**values)
 
+
 def _to_columns(full_key, value, weko_key_counts=None):
     if f'{full_key}.__value__' in weko_key_counts:
         if weko_key_counts[f'{full_key}.__value__'] != value:
-            raise ValueError(f'Different values to the same key are detected: {value}, {weko_key_counts[f"{full_key}.__value__"]}')
+            raise ValueError(
+                f'Different values to the same key are detected: {value}, {weko_key_counts[f"{full_key}.__value__"]}'
+            )
         logger.debug(f'Skipped duplicated item: {full_key}')
         return []
     weko_key_counts[f'{full_key}.__value__'] = value
@@ -126,6 +125,7 @@ def _to_columns(full_key, value, weko_key_counts=None):
         )
     ]
 
+
 def _is_column_present(file_metadata, item, commonvars=None, schema=None):
     if not isinstance(item, dict):
         return True
@@ -135,6 +135,7 @@ def _is_column_present(file_metadata, item, commonvars=None, schema=None):
     value = _get_value(file_metadata, present_expression, commonvars=commonvars, schema=schema)
     logger.debug(f'Column check: "{present_expression}" => "{value}"')
     return value
+
 
 def _get_columns(file_metadata, weko_key_prefix, weko_props, weko_key_counts=None, commonvars=None, schema=None):
     if isinstance(weko_props, str):
@@ -166,11 +167,13 @@ def _get_columns(file_metadata, weko_key_prefix, weko_props, weko_key_counts=Non
             columns += _to_columns(full_key, value, weko_key_counts=weko_key_counts)
     return columns
 
+
 def _get_item_metadata_key(key):
     m = re.match(r'^(.+)\[[0-9]*\]$', key)
     if m:
         return _get_item_metadata_key(m.group(1))
     return key
+
 
 def _find_schema_question(schema, qid):
     if 'pages' not in schema:
@@ -184,12 +187,11 @@ def _find_schema_question(schema, qid):
     logger.warning(f'Question {qid} not found: schema={schema}')
     raise KeyError(f'Question {qid} not found')
 
+
 def get_available_schema_id(file_metadata):
     from .models import RegistrationMetadataMapping
-    available_schema_ids = [
-        mapping.registration_schema_id
-        for mapping in RegistrationMetadataMapping.objects.all()
-    ]
+
+    available_schema_ids = [mapping.registration_schema_id for mapping in RegistrationMetadataMapping.objects.all()]
     items = [
         item
         for item in file_metadata['items']
@@ -197,14 +199,11 @@ def get_available_schema_id(file_metadata):
     ]
     if len(items):
         return items[0]['schema']
-    items = [
-        item
-        for item in file_metadata['items']
-        if item.get('schema', None) in available_schema_ids
-    ]
+    items = [item for item in file_metadata['items'] if item.get('schema', None) in available_schema_ids]
     if len(items):
         return items[0]['schema']
     raise ValueError(f'Available schemas not found: {file_metadata}')
+
 
 def _get_common_variables(file_metadata_data, schema, skip_empty=False):
     r = {
@@ -220,6 +219,7 @@ def _get_common_variables(file_metadata_data, schema, skip_empty=False):
         key_ = key.replace('-', '_').replace(':', '_').replace('.', '_')
         r.update(dict([(f'{key_}_{k}', v) for k, v in values.items()]))
     return r
+
 
 def _resolve_array_index(weko_key_counts, key):
     m = re.match(r'^(.+)\[(.*)\]$', key)
@@ -244,6 +244,7 @@ def _resolve_array_index(weko_key_counts, key):
     weko_key_count = matched[0]
     return f'{key_body}[{weko_key_count}]'
 
+
 def _expand_listed_key(mappings):
     r = {}
     for k, v in mappings.items():
@@ -252,6 +253,7 @@ def _expand_listed_key(mappings):
         for e in k.split():
             r[e] = v
     return r
+
 
 def _resolve_duplicated_values(items):
     if len(items) == 0:
@@ -262,6 +264,7 @@ def _resolve_duplicated_values(items):
     if len(set(values)) == 1:
         return items[0]['value']
     return None
+
 
 def _is_empty(value):
     if value is None:
@@ -276,6 +279,7 @@ def _is_empty(value):
                 return False
         return True
     return False
+
 
 def _concatenate_sources(metadatas, check_duplicates=[]):
     if len(metadatas) == 0:
@@ -306,6 +310,7 @@ def _concatenate_sources(metadatas, check_duplicates=[]):
         raise ValueError(f'Duplicated values for key: {key}, {non_empty_values}')
     return r
 
+
 def _has_serializable_attr(object, k):
     try:
         value = getattr(object, k)
@@ -314,11 +319,15 @@ def _has_serializable_attr(object, k):
     except Exception:
         return False
 
+
 def _get_sources_for_key(user, file_metadatas, download_file_names, project_metadatas, schema, key):
-    common_file_metadata_datas = sum([
-        [item['data'] for item in file_metadata['items'] if item['schema'] == schema._id]
-        for file_metadata in file_metadatas
-    ], [])
+    common_file_metadata_datas = sum(
+        [
+            [item['data'] for item in file_metadata['items'] if item['schema'] == schema._id]
+            for file_metadata in file_metadatas
+        ],
+        [],
+    )
     common_project_metadatas = project_metadatas
     common_file_metadata_data = _concatenate_sources(common_file_metadata_datas)
     common_file_commonvars = _get_common_variables(
@@ -347,26 +356,33 @@ def _get_sources_for_key(user, file_metadatas, download_file_names, project_meta
                 'filename': download_file_name,
                 'format': download_file_type,
             }
-            file_metadata_data_.update(dict([
-                (k, v.get('value', ''))
-                for k, v in file_metadata_data.items()
-            ]))
-            r.append(({
-                '@files': {
-                    'value': file_metadata_data_,
-                },
-            }, commonvars))
+            file_metadata_data_.update(dict([(k, v.get('value', '')) for k, v in file_metadata_data.items()]))
+            r.append(
+                (
+                    {
+                        '@files': {
+                            'value': file_metadata_data_,
+                        },
+                    },
+                    commonvars,
+                )
+            )
         return r
     if key == '@projects':
         r = []
         for project_metadata in project_metadatas:
             commonvars = _get_common_variables(project_metadata, schema)
             commonvars.update(common_file_commonvars)
-            r.append(({
-                '@projects': {
-                    'value': project_metadata,
-                },
-            }, commonvars))
+            r.append(
+                (
+                    {
+                        '@projects': {
+                            'value': project_metadata,
+                        },
+                    },
+                    commonvars,
+                )
+            )
         return r
     commonvars = _get_common_variables(
         common_file_metadata_data,
@@ -374,33 +390,36 @@ def _get_sources_for_key(user, file_metadatas, download_file_names, project_meta
     )
     commonvars.update(common_project_commonvars)
     if key == '@agent':
-        user_metadata = dict([
-            (k, getattr(user, k))
-            for k in dir(user)
-            if _has_serializable_attr(user, k)
-        ])
+        user_metadata = dict([(k, getattr(user, k)) for k in dir(user) if _has_serializable_attr(user, k)])
         logger.info(f'@agent: {user_metadata}')
-        return [(
-            {
-                '@agent': {
-                    'value': user_metadata,
+        return [
+            (
+                {
+                    '@agent': {
+                        'value': user_metadata,
+                    },
                 },
-            },
+                commonvars,
+            )
+        ]
+    return [
+        (
+            _concatenate_sources(
+                common_project_metadatas + common_file_metadata_datas,
+                check_duplicates=[key],
+            ),
             commonvars,
-        )]
-    return [(
-        _concatenate_sources(
-            common_project_metadatas + common_file_metadata_datas,
-            check_duplicates=[key],
-        ),
-        commonvars,
-    )]
+        )
+    ]
+
 
 def _is_special_key(key):
     return key in ['_', '@files', '@projects', '@agent']
 
+
 def write_csv(user, f, target_index, download_file_names, schema_id, file_metadatas, project_metadatas):
     from .models import RegistrationMetadataMapping
+
     schema = RegistrationSchema.objects.get(_id=schema_id)
     mapping_def = RegistrationMetadataMapping.objects.get(
         registration_schema_id=schema._id,
@@ -434,9 +453,16 @@ def write_csv(user, f, target_index, download_file_names, schema_id, file_metada
             if weko_mapping is None:
                 logger.debug(f'No mappings: {key}')
                 continue
-            source_data = source.get(key, {
-                'value': '',
-            }) if key != '_' else None
+            source_data = (
+                source.get(
+                    key,
+                    {
+                        'value': '',
+                    },
+                )
+                if key != '_'
+                else None
+            )
             question_schema = _find_schema_question(schema.schema, key) if not _is_special_key(key) else None
             if key == '_' or weko_mapping.get('@type', None) == 'string':
                 if not _is_column_present(

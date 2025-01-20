@@ -1,36 +1,47 @@
 import json
 import uuid
 import logging
-
 import jwe
 import jwt
 import waffle
 
-#from django.utils import timezone
+# @R2022-48 loa
+import re
+import urllib.parse
+
+# from django.utils import timezone
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.exceptions import ValidationError
 
 from api.base.authentication import drf
 from api.base import exceptions, settings
+from addons.datasteward.views import enable_datasteward_addon
 
 from framework import sentry
-from framework.auth import get_or_create_user
+from framework.auth import get_or_create_user, Auth
 from framework.auth.core import get_user
 
 from osf import features
-from osf.models import Institution, UserExtendedData
+from osf.models import Institution, UserExtendedData, LoA
 from osf.exceptions import BlacklistedEmailError
 from website.mails import send_mail, WELCOME_OSF4I
-from website.settings import OSF_SUPPORT_EMAIL, DOMAIN, to_bool
+from website.settings import (
+    OSF_SUPPORT_EMAIL,
+    DOMAIN,
+    to_bool,
+    OSF_SERVICE_URL,
+    CAS_SERVER_URL,
+    OSF_MFA_URL,
+    OSF_IAL2_STR,
+    OSF_AAL2_STR,
+)
 from website.util.quota import update_default_storage
 
 logger = logging.getLogger(__name__)
 
-
-import logging
-logger = logging.getLogger(__name__)
-
 NEW_USER_NO_NAME = 'New User (no name)'
+
 
 def send_welcome(user, request):
     send_mail(
@@ -47,45 +58,49 @@ def send_welcome(user, request):
         use_viewonlylinks=to_bool('USE_VIEWONLYLINKS', True),
     )
 
+
 class InstitutionAuthentication(BaseAuthentication):
-    """A dedicated authentication class for view ``InstitutionAuth``.
+    '''A dedicated authentication class for view ``InstitutionAuth``.
 
     The ``InstitutionAuth`` view and the ``InstitutionAuthentication`` class are only and should
     only be used by OSF CAS for institution login. Changing this class and related tests may break
     the institution login feature. Please check with @longzeC / @mattF / @brianG before making any
     changes.
-    """
+    '''
 
     media_type = 'text/plain'
+    context = {'mfa_url': ''}
 
     def authenticate(self, request):
-        """
+        '''
         Handle CAS institution authentication request.
 
         The JWT `data` payload is expected in the following structure:
         {
-            "provider": {
-                "idp":  "",
-                "id":   "",
-                "user": {
-                    "username":     "",  # email or eppn
-                    "fullname":     "",  # displayName
-                    "familyName":   "",  # sn or surname
-                    "givenName":    "",
-                    "middleNames":  "",
-                    "jaDisplayName": "",
-                    "jaSurname":     "",  # jasn
-                    "jaGivenName":   "",
-                    "jaMiddleNames": "",
-                    "suffix":       "",
-                    "groups":       "",  # isMemberOf for mAP API v1
-                    "eptid":        "",  # persistent-id for mAP API v1
-                    "entitlement":  "",  # eduPersonEntitlement
-                    "email":        "",  # mail
-                    "organizationName": "",    # o
-                    "organizationalUnit": "",  # ou
-                    "jaOrganizationName": "",  # jao
-                    "jaOrganizationalUnitName": "",  # jaou
+            'provider': {
+                'idp':  '',
+                'id':   '',
+                'user': {
+                    'username':     '',  # email or eppn
+                    'fullname':     '',  # displayName
+                    'familyName':   '',  # sn or surname
+                    'givenName':    '',
+                    'middleNames':  '',
+                    'jaDisplayName': '',
+                    'jaSurname':     '',  # jasn
+                    'jaGivenName':   '',
+                    'jaMiddleNames': '',
+                    'suffix':       '',
+                    'groups':       '',  # isMemberOf for mAP API v1
+                    'eptid':        '',  # persistent-id for mAP API v1
+                    'entitlement':  '',  # eduPersonEntitlement
+                    'email':        '',  # mail
+                    'organizationName': '',    # o
+                    'organizationalUnit': '',  # ou
+                    'jaOrganizationName': '',  # jao
+                    'jaOrganizationalUnitName': '',  # jaou
+                    'ial': '',  # eduPersonAssurance
+                    'aal': '',  # AuthnContextClass
                 }
             }
         }
@@ -93,8 +108,7 @@ class InstitutionAuthentication(BaseAuthentication):
         :param request: the POST request
         :return: user, None if authentication succeed
         :raises: AuthenticationFailed if authentication fails
-        """
-
+        '''
         # Verify / decrypt / decode the payload
         try:
             payload = jwt.decode(
@@ -107,6 +121,7 @@ class InstitutionAuthentication(BaseAuthentication):
             raise AuthenticationFailed
 
         # Load institution and user data
+        logger.info(payload)
         data = json.loads(payload['data'])
         provider = data['provider']
         institution = Institution.load(provider['id'])
@@ -164,6 +179,60 @@ class InstitutionAuthentication(BaseAuthentication):
         organization_name_ja = get_next(p_user, 'jao', 'jaOrganizationName')
         # affiliation: 'jaou' is friendlyName
         organizational_unit_ja = get_next(p_user, 'jaou', 'jaOrganizationalUnitName')
+        # @R2022-48 ial
+        ial = p_user.get('eduPersonAssurance')
+        # @R2022-48 aal
+        aal = p_user.get('Shib-AuthnContext-Class')
+
+        # @R2022-48 loa + R-2023-55
+        message = ''
+        self.context['mfa_url'] = ''
+        mfa_url = ''
+        if type(p_idp) is str:
+            mfa_url_q = (
+                OSF_MFA_URL
+                + '?entityID='
+                + p_idp
+                + '&target='
+                + CAS_SERVER_URL
+                + '/login?service='
+                + OSF_SERVICE_URL
+                + '/profile/'
+            )
+            mfa_url = CAS_SERVER_URL + '/logout?service=' + urllib.parse.quote(mfa_url_q, safe='')
+        loa_flag = True
+        loa = LoA.objects.get_or_none(institution_id=institution.id)
+        if loa:
+            if loa.aal == 2:
+                if not re.search(OSF_AAL2_STR, str(aal)):
+                    self.context['mfa_url'] = mfa_url
+            elif loa.aal == 1:
+                # if not re.search('https://www.gakunin.jp/profile/AAL1', aal):
+                if not aal:
+                    message = (
+                        'Institution login failed: Does not meet the required AAL.<br />Please contact the IdP as the'
+                        ' appropriate value may not have been sent out by the IdP.'
+                    )
+                    loa_flag = False
+            if loa.ial == 2:
+                if not re.search(OSF_IAL2_STR, str(ial)):
+                    message = (
+                        'Institution login failed: Does not meet the required IAL.<br />Please check the IAL of your'
+                        ' institution.'
+                    )
+                    loa_flag = False
+            elif loa.ial == 1:
+                # if not re.search('https://www.gakunin.jp/profile/IAL1', ial):
+                if not ial:
+                    message = (
+                        'Institution login failed: Does not meet the required IAL.<br />Please check the IAL of your'
+                        ' institution.'
+                    )
+                    loa_flag = False
+        if not loa_flag:
+            message = 'Institution login failed: Does not meet the required AAL and IAL.'
+            sentry.log_message(message)
+            raise ValidationError(message)
 
         # Use given name and family name to build full name if it is not provided
         if given_name and family_name and not fullname:
@@ -176,8 +245,10 @@ class InstitutionAuthentication(BaseAuthentication):
 
         # Non-empty full name is required. Fail the auth and inform sentry if not provided.
         if not fullname:
-            message = 'Institution login failed: fullname required for ' \
-                      'user "{}" from institution "{}"'.format(username, provider['id'])
+            message = 'Institution login failed: fullname required for user "{}" from institution "{}"'.format(
+                username,
+                provider['id'],
+            )
             sentry.log_message(message)
             raise AuthenticationFailed(message)
 
@@ -199,8 +270,7 @@ class InstitutionAuthentication(BaseAuthentication):
             else:  # new user
                 if email:
                     existing_user = get_user(email=email, log=False)
-                    if existing_user and \
-                       existing_user.eppn != eppn:  # suppose race-condition
+                    if existing_user and existing_user.eppn != eppn:  # suppose race-condition
                         email = None  # require other email address
                 tmp_eppn = ('tmp_eppn_' + eppn).lower()
                 if email:
@@ -210,7 +280,8 @@ class InstitutionAuthentication(BaseAuthentication):
                 try:
                     # try to use email or tmp_eppn
                     user, created = get_or_create_user(
-                        fullname, username_tmp,
+                        fullname,
+                        username_tmp,
                         reset_password=False,
                     )
                 except BlacklistedEmailError:
@@ -220,7 +291,8 @@ class InstitutionAuthentication(BaseAuthentication):
                     email = None
                     # try to use tmp_eppn only
                     user, created = get_or_create_user(
-                        fullname, tmp_eppn,
+                        fullname,
+                        tmp_eppn,
                         reset_password=False,
                     )
         else:
@@ -230,7 +302,7 @@ class InstitutionAuthentication(BaseAuthentication):
         # user is found, it is also possible that the user is inactive (e.g. unclaimed, disabled,
         # unconfirmed, etc.).
 
-        # Existing but inactive users need to be either "activated" or failed the auth
+        # Existing but inactive users need to be either 'activated' or failed the auth
         activation_required = False
         new_password_required = False
         if not created:
@@ -258,22 +330,24 @@ class InstitutionAuthentication(BaseAuthentication):
                 else:
                     # Login take-over has not been implemented for unconfirmed user created via
                     # external IdP login (ORCiD).
-                    message = 'Institution SSO is not eligible for an unconfirmed account ' \
-                              'created via external IdP login: username = "{}"'.format(username)
+                    message = (
+                        'Institution SSO is not eligible for an unconfirmed account '
+                        'created via external IdP login: username = "{}"'.format(username)
+                    )
                     sentry.log_message(message)
                     logger.error(message)
                     return None, None
             except exceptions.DeactivatedAccountError:
                 # Deactivated user: login is not allowed for deactivated users
-                message = 'Institution SSO is not eligible for a deactivated account: ' \
-                          'username = "{}"'.format(username)
+                message = 'Institution SSO is not eligible for a deactivated account: username = "{}"'.format(
+                    username,
+                )
                 sentry.log_message(message)
                 logger.error(message)
                 return None, None
             except exceptions.MergedAccountError:
                 # Merged user: this shouldn't happen since merged users do not have an email
-                message = 'Institution SSO is not eligible for a merged account: ' \
-                          'username = "{}"'.format(username)
+                message = 'Institution SSO is not eligible for a merged account: username = "{}"'.format(username)
                 sentry.log_message(message)
                 logger.error(message)
                 return None, None
@@ -281,8 +355,10 @@ class InstitutionAuthentication(BaseAuthentication):
                 # Other invalid status: this shouldn't happen unless the user happens to be in a
                 # temporary state. Such state requires more updates before the user can be saved
                 # to the database. (e.g. `get_or_create_user()` creates a temporary-state user.)
-                message = 'Institution SSO is not eligible for an inactive account with ' \
-                          'an unknown or invalid status: username = "{}"'.format(username)
+                message = (
+                    'Institution SSO is not eligible for an inactive account with '
+                    'an unknown or invalid status: username = "{}"'.format(username)
+                )
                 sentry.log_message(message)
                 logger.error(message)
                 return None, None
@@ -293,10 +369,20 @@ class InstitutionAuthentication(BaseAuthentication):
         if department and user.department != department:
             user.department = department
             user.save()
+        # @R-2023-55.
+        # if not re.search(OSF_AAL2_STR, str(aal)) and re.search(OSF_AAL2_STR, str(user.aal)):
+        #    self.context['mfa_url'] = mfa_url
+        # elif ial and user.ial != ial:
+        if ial and user.ial != ial:
+            user.ial = ial
+            user.save()
+        if aal and user.aal != aal:
+            user.aal = aal
+            user.save()
+        logger.info('MFA URL "{}"'.format(self.context['mfa_url']))
 
         # Both created and activated accounts need to be updated and registered
         if created or activation_required:
-
             if given_name:
                 user.given_name = given_name
             if family_name:
@@ -319,8 +405,8 @@ class InstitutionAuthentication(BaseAuthentication):
 
             user.update_date_last_login()
 
-            ## Relying on front-end validation until `accepted_tos` is added to the JWT payload
-            #user.accepted_terms_of_service = timezone.now()
+            # Relying on front-end validation until `accepted_tos` is added to the JWT payload
+            # user.accepted_terms_of_service = timezone.now()
             if settings.USER_TIMEZONE:
                 user.timezone = settings.USER_TIMEZONE
 
@@ -339,7 +425,7 @@ class InstitutionAuthentication(BaseAuthentication):
                 else:
                     username = user.username
                     user.have_email = False
-                    #user.unclaimed_records = {}
+                    # user.unclaimed_records = {}
                 if organization_name:
                     # Settings > Profile information > Employment > ...
                     #   organization_name (o) : Institution / Employer
@@ -367,7 +453,7 @@ class InstitutionAuthentication(BaseAuthentication):
             else:
                 user.eppn = None
                 user.have_email = True
-                ### username is email address
+                # username is email address
 
             # Register and save user
             password = str(uuid.uuid4()) if new_password_required else None
@@ -377,12 +463,13 @@ class InstitutionAuthentication(BaseAuthentication):
             # send confirmation email
             if user.have_email:
                 send_welcome(user, request)
-            ### the user is not available when have_email is False.
+            # the user is not available when have_email is False.
 
         ext, created = UserExtendedData.objects.get_or_create(user=user)
         # update every login.
         ext.set_idp_attr(
             {
+                'id': institution.id,  # @R-2023-55
                 'idp': p_idp,
                 'eppn': eppn,
                 'username': username,
@@ -408,13 +495,33 @@ class InstitutionAuthentication(BaseAuthentication):
             user.save()
             update_default_storage(user)
 
+        # Update DataSteward status after every time user login
+        if entitlement and 'GakuNinRDMDataSteward' in entitlement:
+            if not user.is_data_steward:
+                # Set user.is_data_steward to True
+                user.is_data_steward = True
+                user.save()
+
+            # Get user DataSteward add-on setings
+            addon_user_settings = user.get_addon('datasteward')
+            if addon_user_settings and addon_user_settings.enabled:
+                # If user enabled DataSteward add-on, start enable Datasteward add-on process
+                auth = Auth(user=user)
+                enable_datasteward_addon(auth, is_authenticating=True)
+        else:
+            # Set user.is_data_steward to False
+            user.is_data_steward = False
+            user.save()
+
         # update every login. (for mAP API v1)
         init_cloud_gateway_groups(user, provider)
 
         return user, None
 
+
 def login_by_eppn():
     return settings.LOGIN_BY_EPPN
+
 
 def init_cloud_gateway_groups(user, provider):
     if not hasattr(settings, 'CLOUD_GATEWAY_ISMEMBEROF_PREFIX'):
@@ -431,7 +538,7 @@ def init_cloud_gateway_groups(user, provider):
     user.eptid = eptid
 
     debug = False
-    #debug = True
+    # debug = True
 
     if debug:
         groups_str = ''
@@ -452,6 +559,7 @@ def init_cloud_gateway_groups(user, provider):
 
     # set groups
     import re
+
     patt_prefix = re.compile('^' + prefix)
     patt_admin = re.compile('(.+)/admin$')
     for group in groups_str.split(';'):

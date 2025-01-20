@@ -40,10 +40,11 @@ class TestWEKOSchema(OsfTestCase):
         files = [
             ('test.jpg', 'image/jpeg'),
         ]
-        target_schema = RegistrationSchema.objects \
-            .filter(name='公的資金による研究データのメタデータ登録') \
-            .order_by('-schema_version') \
+        target_schema = (
+            RegistrationSchema.objects.filter(name='公的資金による研究データのメタデータ登録')
+            .order_by('-schema_version')
             .first()
+        )
         file_metadata = {
             'items': [
                 {
@@ -75,11 +76,14 @@ class TestWEKOSchema(OsfTestCase):
         reader = csv.reader(buf)
         lines = list(reader)
         assert_equal(len(lines), 6)
-        assert_equal(lines[0], [
-            '#ItemType',
-            'デフォルトアイテムタイプ（フル）(30002)',
-            'https://localhost:8443/items/jsonschema/30002',
-        ])
+        assert_equal(
+            lines[0],
+            [
+                '#ItemType',
+                'デフォルトアイテムタイプ（フル）(30002)',
+                'https://localhost:8443/items/jsonschema/30002',
+            ],
+        )
         props = _transpose(lines[1::])[::-1]
 
         assert_equal(
@@ -103,9 +107,7 @@ class TestWEKOSchema(OsfTestCase):
             feedback_mail[:-1],
             ['.feedback_mail[0]', '', '', ''],
         )
-        assert_true(
-            re.match(r'[^@]+@[^@]+\.[^@]+', feedback_mail[-1])
-        )
+        assert_true(re.match(r'[^@]+@[^@]+\.[^@]+', feedback_mail[-1]))
         assert_equal(
             props.pop(),
             ['.metadata.item_30002_file35[0].accessrole', '', '', '', 'open_no'],
@@ -127,9 +129,7 @@ class TestWEKOSchema(OsfTestCase):
             pub_date[:-1],
             ['.metadata.pubdate', '', '', ''],
         )
-        assert_true(
-            re.match(r'[0-9]+\-[0-9]+\-[0-9]+', pub_date[-1])
-        )
+        assert_true(re.match(r'[0-9]+\-[0-9]+\-[0-9]+', pub_date[-1]))
         assert_equal(
             props.pop(),
             ['.metadata.item_30002_description9[0].subitem_description', '', '', '', '日本語説明'],
@@ -187,59 +187,68 @@ class TestWEKOSchema(OsfTestCase):
         files = [
             ('test.jpg', 'image/jpeg'),
         ]
-        target_schema = RegistrationSchema.objects \
-            .filter(name='公的資金による研究データのメタデータ登録') \
-            .order_by('-schema_version') \
+        target_schema = (
+            RegistrationSchema.objects.filter(name='公的資金による研究データのメタデータ登録')
+            .order_by('-schema_version')
             .first()
+        )
         file_metadata = {
             'items': [
                 {
                     'schema': target_schema._id,
-                    'data': dict([(k, {
-                        'value': v,
-                    })for k, v in {
-                        'grdm-file:data-number': '00001',
-                        'grdm-file:title-en': 'TEST DATA',
-                        'grdm-file:title-ja': 'テストデータ',
-                        'grdm-file:date-issued-updated': '2023-09-15',
-                        'grdm-file:data-description-ja': 'テスト説明',
-                        'grdm-file:data-description-en': 'TEST DESCRIPTION',
-                        'grdm-file:data-research-field': '189',
-                        'grdm-file:data-type': 'experimental data',
-                        'grdm-file:file-size': '29.9KB',
-                        'grdm-file:data-policy-free': 'free',
-                        'grdm-file:data-policy-license': 'CC0',
-                        'grdm-file:data-policy-cite-ja': 'ライセンスのテスト',
-                        'grdm-file:data-policy-cite-en': 'Test for license',
-                        'grdm-file:access-rights': 'restricted access',
-                        'grdm-file:available-date': '',
-                        'grdm-file:repo-information-ja': 'テストリポジトリ',
-                        'grdm-file:repo-information-en': 'Test Repository',
-                        'grdm-file:repo-url-doi-link': 'http://localhost:5000/q3gnm/files/osfstorage/650e68f8c00e45055fc9e0ac',
-                        'grdm-file:creators': [
-                            {
-                                'number': '22222',
-                                'name-ja': '情報太郎',
-                                'name-en': 'Taro Joho',
-                            }
-                        ],
-                        'grdm-file:hosting-inst-ja': '国立情報学研究所',
-                        'grdm-file:hosting-inst-en': 'National Institute of Informatics',
-                        'grdm-file:hosting-inst-id': 'https://ror.org/04ksd4g47',
-                        'grdm-file:data-man-type': 'individual',
-                        'grdm-file:data-man-number': '11111',
-                        'grdm-file:data-man-name-ja': '情報花子',
-                        'grdm-file:data-man-name-en': 'Hanako Joho',
-                        'grdm-file:data-man-org-ja': '国立情報学研究所',
-                        'grdm-file:data-man-org-en': 'National Institute of Informatics',
-                        'grdm-file:data-man-address-ja': '一ツ橋',
-                        'grdm-file:data-man-address-en': 'Hitotsubashi',
-                        'grdm-file:data-man-tel': 'XX-XXXX-XXXX',
-                        'grdm-file:data-man-email': 'dummy@test.rcos.nii.ac.jp',
-                        'grdm-file:remarks-ja': 'コメント',
-                        'grdm-file:remarks-en': 'Comment',
-                        'grdm-file:metadata-access-rights': 'closed access',
-                    }.items()]),
+                    'data': dict(
+                        [
+                            (
+                                k,
+                                {
+                                    'value': v,
+                                },
+                            )
+                            for k, v in {
+                                'grdm-file:data-number': '00001',
+                                'grdm-file:title-en': 'TEST DATA',
+                                'grdm-file:title-ja': 'テストデータ',
+                                'grdm-file:date-issued-updated': '2023-09-15',
+                                'grdm-file:data-description-ja': 'テスト説明',
+                                'grdm-file:data-description-en': 'TEST DESCRIPTION',
+                                'grdm-file:data-research-field': '189',
+                                'grdm-file:data-type': 'experimental data',
+                                'grdm-file:file-size': '29.9KB',
+                                'grdm-file:data-policy-free': 'free',
+                                'grdm-file:data-policy-license': 'CC0',
+                                'grdm-file:data-policy-cite-ja': 'ライセンスのテスト',
+                                'grdm-file:data-policy-cite-en': 'Test for license',
+                                'grdm-file:access-rights': 'restricted access',
+                                'grdm-file:available-date': '',
+                                'grdm-file:repo-information-ja': 'テストリポジトリ',
+                                'grdm-file:repo-information-en': 'Test Repository',
+                                'grdm-file:repo-url-doi-link': 'http://localhost:5000/q3gnm/files/osfstorage/650e68f8c00e45055fc9e0ac',
+                                'grdm-file:creators': [
+                                    {
+                                        'number': '22222',
+                                        'name-ja': '情報太郎',
+                                        'name-en': 'Taro Joho',
+                                    }
+                                ],
+                                'grdm-file:hosting-inst-ja': '国立情報学研究所',
+                                'grdm-file:hosting-inst-en': 'National Institute of Informatics',
+                                'grdm-file:hosting-inst-id': 'https://ror.org/04ksd4g47',
+                                'grdm-file:data-man-type': 'individual',
+                                'grdm-file:data-man-number': '11111',
+                                'grdm-file:data-man-name-ja': '情報花子',
+                                'grdm-file:data-man-name-en': 'Hanako Joho',
+                                'grdm-file:data-man-org-ja': '国立情報学研究所',
+                                'grdm-file:data-man-org-en': 'National Institute of Informatics',
+                                'grdm-file:data-man-address-ja': '一ツ橋',
+                                'grdm-file:data-man-address-en': 'Hitotsubashi',
+                                'grdm-file:data-man-tel': 'XX-XXXX-XXXX',
+                                'grdm-file:data-man-email': 'dummy@test.rcos.nii.ac.jp',
+                                'grdm-file:remarks-ja': 'コメント',
+                                'grdm-file:remarks-en': 'Comment',
+                                'grdm-file:metadata-access-rights': 'closed access',
+                            }.items()
+                        ]
+                    ),
                 },
             ],
         }
@@ -260,11 +269,14 @@ class TestWEKOSchema(OsfTestCase):
         lines = list(reader)
         assert_equal(len(lines), 6)
         logger.info(repr(lines))
-        assert_equal(lines[0], [
-            '#ItemType',
-            'デフォルトアイテムタイプ（フル）(30002)',
-            'https://localhost:8443/items/jsonschema/30002',
-        ])
+        assert_equal(
+            lines[0],
+            [
+                '#ItemType',
+                'デフォルトアイテムタイプ（フル）(30002)',
+                'https://localhost:8443/items/jsonschema/30002',
+            ],
+        )
         props = _transpose(lines[1::])[::-1]
 
         assert_equal(
@@ -288,9 +300,7 @@ class TestWEKOSchema(OsfTestCase):
             feedback_mail[:-1],
             ['.feedback_mail[0]', '', '', ''],
         )
-        assert_true(
-            re.match(r'[^@]+@[^@]+\.[^@]+', feedback_mail[-1])
-        )
+        assert_true(re.match(r'[^@]+@[^@]+\.[^@]+', feedback_mail[-1]))
         assert_equal(
             props.pop(),
             ['.metadata.item_30002_file35[0].accessrole', '', '', '', 'open_login'],
@@ -312,9 +322,7 @@ class TestWEKOSchema(OsfTestCase):
             pub_date[:-1],
             ['.metadata.pubdate', '', '', ''],
         )
-        assert_true(
-            re.match(r'[0-9]+\-[0-9]+\-[0-9]+', pub_date[-1])
-        )
+        assert_true(re.match(r'[0-9]+\-[0-9]+\-[0-9]+', pub_date[-1]))
         assert_equal(
             props.pop(),
             ['.metadata.item_30002_access_rights4.subitem_access_right', '', '', '', 'restricted access'],
@@ -337,7 +345,13 @@ class TestWEKOSchema(OsfTestCase):
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_30002_creator2[0].nameIdentifiers[0].nameIdentifierScheme', '', '', '', 'e-Rad_Researcher'],
+            [
+                '.metadata.item_30002_creator2[0].nameIdentifiers[0].nameIdentifierScheme',
+                '',
+                '',
+                '',
+                'e-Rad_Researcher',
+            ],
         )
         assert_equal(
             props.pop(),
@@ -369,7 +383,13 @@ class TestWEKOSchema(OsfTestCase):
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_30002_contributor3[0].contributorNames[0].contributorName', '', '', '', 'National Institute of Informatics Hitotsubashi TEL: XX-XXXX-XXXX E-Mail: dummy@test.rcos.nii.ac.jp'],
+            [
+                '.metadata.item_30002_contributor3[0].contributorNames[0].contributorName',
+                '',
+                '',
+                '',
+                'National Institute of Informatics Hitotsubashi TEL: XX-XXXX-XXXX E-Mail: dummy@test.rcos.nii.ac.jp',
+            ],
         )
         assert_equal(
             props.pop(),
@@ -385,7 +405,13 @@ class TestWEKOSchema(OsfTestCase):
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_30002_contributor3[0].contributorNames[1].contributorName', '', '', '', '国立情報学研究所 一ツ橋 TEL: XX-XXXX-XXXX E-Mail: dummy@test.rcos.nii.ac.jp'],
+            [
+                '.metadata.item_30002_contributor3[0].contributorNames[1].contributorName',
+                '',
+                '',
+                '',
+                '国立情報学研究所 一ツ橋 TEL: XX-XXXX-XXXX E-Mail: dummy@test.rcos.nii.ac.jp',
+            ],
         )
         assert_equal(
             props.pop(),
@@ -417,7 +443,13 @@ class TestWEKOSchema(OsfTestCase):
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_30002_contributor3[1].nameIdentifiers[0].nameIdentifierScheme', '', '', '', 'e-Rad_Researcher'],
+            [
+                '.metadata.item_30002_contributor3[1].nameIdentifiers[0].nameIdentifierScheme',
+                '',
+                '',
+                '',
+                'e-Rad_Researcher',
+            ],
         )
         assert_equal(
             props.pop(),
@@ -503,7 +535,13 @@ class TestWEKOSchema(OsfTestCase):
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_30002_contributor3[2].contributorNames[0].contributorName', '', '', '', 'National Institute of Informatics'],
+            [
+                '.metadata.item_30002_contributor3[2].contributorNames[0].contributorName',
+                '',
+                '',
+                '',
+                'National Institute of Informatics',
+            ],
         )
         assert_equal(
             props.pop(),
@@ -519,11 +557,23 @@ class TestWEKOSchema(OsfTestCase):
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_30002_contributor3[2].nameIdentifiers[0].nameIdentifierURI', '', '', '', 'https://ror.org/04ksd4g47'],
+            [
+                '.metadata.item_30002_contributor3[2].nameIdentifiers[0].nameIdentifierURI',
+                '',
+                '',
+                '',
+                'https://ror.org/04ksd4g47',
+            ],
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_30002_contributor3[2].contributorNames[1].contributorName', '', '', '', '国立情報学研究所'],
+            [
+                '.metadata.item_30002_contributor3[2].contributorNames[1].contributorName',
+                '',
+                '',
+                '',
+                '国立情報学研究所',
+            ],
         )
         assert_equal(
             props.pop(),

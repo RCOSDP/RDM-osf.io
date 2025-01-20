@@ -32,6 +32,7 @@ DEFAULT_PERMISSIONS = {
     'edit': False,
 }
 
+
 def default_urls(node_api, short_name):
     return {
         'fetch': u'{node_api}{addonshort}/hgrid/'.format(node_api=node_api, addonshort=short_name),
@@ -50,9 +51,9 @@ def to_hgrid(node, auth, **data):
     return NodeFileCollector(node, auth, **data).to_hgrid()
 
 
-def build_addon_root(node_settings, name, permissions=None,
-                     urls=None, extra=None, buttons=None, user=None,
-                     private_key=None, **kwargs):
+def build_addon_root(
+    node_settings, name, permissions=None, urls=None, extra=None, buttons=None, user=None, private_key=None, **kwargs
+):
     """Builds the root or "dummy" folder for an addon.
 
     :param addonNodeSettingsBase node_settings: Addon settings
@@ -87,9 +88,9 @@ def build_addon_root(node_settings, name, permissions=None,
         auth = permissions
         permissions = {
             'view': node_settings.owner.can_view(auth),
-            'edit': (node_settings.owner.can_edit(auth)
-                     and not node_settings.owner.is_registration
-                     and not forbid_edit),
+            'edit': (
+                node_settings.owner.can_edit(auth) and not node_settings.owner.is_registration and not forbid_edit
+            ),
         }
 
     max_size = node_settings.config.max_file_size
@@ -151,8 +152,8 @@ def sort_by_name(hgrid_data):
 
 
 class NodeFileCollector(object):
-
     """A utility class for creating rubeus formatted node data"""
+
     def __init__(self, node, auth, **kwargs):
         NodeRelation = apps.get_model('osf.NodeRelation')
         self.node = node.child if isinstance(node, NodeRelation) else node
@@ -185,10 +186,13 @@ class NodeFileCollector(object):
         else:
             can_write = node._nodes.none()
         descendants_qs = (
-            node._nodes
-            .filter(is_deleted=False)
+            node._nodes.filter(is_deleted=False)
             .annotate(is_linked_node=Exists(linked_node_sqs))
-            .annotate(has_write_perm=Case(When(id__in=can_write, then=Value(1)), default=Value(0), output_field=IntegerField()))
+            .annotate(
+                has_write_perm=Case(
+                    When(id__in=can_write, then=Value(1)), default=Value(0), output_field=IntegerField()
+                )
+            )
             .order_by('_parents')
         )
 
@@ -252,43 +256,58 @@ class NodeFileCollector(object):
 
         # GRDM-36019 Package Export/Import
         from addons.metadata.apps import SHORT_NAME as METADATA_SHORT_NAME
+
         metadata_addon = node.get_addon(METADATA_SHORT_NAME)
 
         for addon in node.get_addons():
             if addon.config.has_hgrid_files:
+                if addon == osfstorage and region_disabled:
+                    continue  # skip (hide osfstorage)
+                if addon.config.for_institutions:
+                    if region_provider != addon.config.short_name:
+                        continue  # skip (hide this *institutions)
+
                 # WARNING: get_hgrid_data can return None if the addon is added but has no credentials.
                 try:
                     temp = addon.config.get_hgrid_data(addon, self.auth, **self.extra)
                     # GRDM-36019 Package Export/Import
                     # Display as error if add-on is not set and metadata add-on has settings
-                    if temp is None and metadata_addon is not None and metadata_addon.has_imported_addon_settings_for(addon):
-                        temp = [{
-                            KIND: FOLDER,
-                            'name': '{} is not configured'.format(addon.config.full_name),
-                            'addonFullname': addon.config.full_name,
-                            'provider': addon.config.short_name,
-                            'iconUrl': addon.config.icon_url,
-                            'permissions': {'view': False, 'edit': False},
-                            'unavailable': True,
-                        }]
+                    if (
+                        temp is None
+                        and metadata_addon is not None
+                        and metadata_addon.has_imported_addon_settings_for(addon)
+                    ):
+                        temp = [
+                            {
+                                KIND: FOLDER,
+                                'name': '{} is not configured'.format(addon.config.full_name),
+                                'addonFullname': addon.config.full_name,
+                                'provider': addon.config.short_name,
+                                'iconUrl': addon.config.icon_url,
+                                'permissions': {'view': False, 'edit': False},
+                                'unavailable': True,
+                            }
+                        ]
                 except Exception as e:
                     logger.warn(
                         getattr(
                             e,
                             'data',
-                            'Unexpected error when fetching file contents for {0}.'.format(addon.config.full_name)
+                            'Unexpected error when fetching file contents for {0}.'.format(addon.config.full_name),
                         )
                     )
                     sentry.log_exception()
-                    rv.append({
-                        KIND: FOLDER,
-                        'unavailable': True,
-                        'iconUrl': addon.config.icon_url,
-                        'provider': addon.config.short_name,
-                        'addonFullname': addon.config.full_name,
-                        'permissions': {'view': False, 'edit': False},
-                        'name': '{} is currently unavailable'.format(addon.config.full_name),
-                    })
+                    rv.append(
+                        {
+                            KIND: FOLDER,
+                            'unavailable': True,
+                            'iconUrl': addon.config.icon_url,
+                            'provider': addon.config.short_name,
+                            'addonFullname': addon.config.full_name,
+                            'permissions': {'view': False, 'edit': False},
+                            'name': '{} is currently unavailable'.format(addon.config.full_name),
+                        }
+                    )
                     continue
                 rv.extend(sort_by_name(temp) or [])
         return rv

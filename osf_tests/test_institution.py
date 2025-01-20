@@ -1,4 +1,3 @@
-from nose import tools as nt
 from past.builtins import basestring
 from addons.osfstorage.models import Region
 from osf.models import Institution, UserQuota

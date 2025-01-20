@@ -60,12 +60,21 @@ $('.is_allowed input').on('change', function() {
     } else {
         var deletionKey = Math.random().toString(36).slice(-8);
         var id = addonName + "DeleteKey";
-        bootbox.confirm({
-            title: sprintf(_("Disallow %s?"),$osf.htmlEscape(addonFullName)),
-            message: sprintf(_("Are you sure you want to disallow the %1$s?<br>"),$osf.htmlEscape(addonFullName)) +
+        var message = sprintf(_("Are you sure you want to disallow the %1$s?<br>"),$osf.htmlEscape(addonFullName)) +
                      sprintf(_("This will revoke access to %1$s for all projects using the accounts.<br><br>"),$osf.htmlEscape(addonFullName)) +
                      sprintf(_("Type the following to continue: <strong>%1$s</strong><br><br>"),$osf.htmlEscape(deletionKey)) +
-                     "<input id='" + $osf.htmlEscape(id) + "' type='text' class='bootbox-input bootbox-input-text form-control'>",
+                     "<input id='" + $osf.htmlEscape(id) + "' type='text' class='bootbox-input bootbox-input-text form-control'>";
+        if (addonName === 'datasteward') {
+            message = sprintf(_("Are you sure you want to disallow the %1$s?<br>"),$osf.htmlEscape(addonFullName)) +
+                     sprintf(_("This will not revoke access to %1$s for all projects using the accounts.<br>"),$osf.htmlEscape(addonFullName)) +
+                     sprintf(_("But the accounts will not be able to see and change their %1$s settings until you reallow it.<br><br>"),$osf.htmlEscape(addonFullName)) +
+                     sprintf(_("Type the following to continue: <strong>%1$s</strong><br><br>"),$osf.htmlEscape(deletionKey)) +
+                     "<input id='" + $osf.htmlEscape(id) + "' type='text' class='bootbox-input bootbox-input-text form-control'>"
+        }
+        bootbox.confirm({
+            title: sprintf(_("Disallow %s?"),$osf.htmlEscape(addonFullName)),
+            message: message,
+            backdrop: true,
             buttons: {
                 cancel: {
                     label: _('Cancel')

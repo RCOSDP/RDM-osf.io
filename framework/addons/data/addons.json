@@ -678,6 +678,36 @@
                 "status": "none",
                 "text": "Metadata information will not be registered."
             }
+        },
+        "Onlyoffice": {
+            "Permissions": {
+                "status": "none",
+                "text": "The GakuNin RDM does not affect the permissions of Onlyoffice."
+            },
+            "View / download file versions": {
+                "status": "none",
+                "text": "The Onlyoffice add-on does not provide Storage Features."
+            },
+            "Add / update files": {
+                "status": "none",
+                "text": "The Onlyoffice add-on does not provide Storage Features."
+            },
+            "Delete files": {
+                "status": "none",
+                "text": "The Onlyoffice add-on does not provide Storage Features."
+            },
+            "Logs": {
+                "status": "none",
+                "text": "The Onlyoffice add-on does not provide Storage Features."
+            },
+            "Forking": {
+                "status": "partial",
+                "text": "Forking a project or component copies information about linked Onlyoffice but the GakuNin RDM does not affect authentication of Onlyoffice."
+            },
+            "Registering": {
+                "status": "none",
+                "text": "Onlyoffice information will not be registered."
+            }
         }
     },
     "disclaimers": [
