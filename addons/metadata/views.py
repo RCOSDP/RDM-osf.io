@@ -35,20 +35,16 @@ def _response_config(addon):
         'data': {
             'type': 'metadata-config',
             'attributes': {
-                'imported_addon_settings': [
-                    {
-                        'name': imported.name,
-                        'folder_id': imported.folder_id,
-                        'applicable': imported.is_applicable,
-                        'applied': imported.is_applied,
-                        'full_name': imported.full_name,
-                    }
-                    for imported in addon.imported_addon_settings.all()
-                ],
-            },
+                'imported_addon_settings': [{
+                    'name': imported.name,
+                    'folder_id': imported.folder_id,
+                    'applicable': imported.is_applicable,
+                    'applied': imported.is_applied,
+                    'full_name': imported.full_name,
+                } for imported in addon.imported_addon_settings.all()],
+            }
         }
     }
-
 
 def _response_project_metadata(user, addon):
     attr = {
@@ -64,7 +60,6 @@ def _response_project_metadata(user, addon):
         }
     }
 
-
 def _response_file_metadata(addon, path):
     return {
         'data': {
@@ -74,7 +69,6 @@ def _response_file_metadata(addon, path):
         }
     }
 
-
 def _response_schemas(addon, schemas):
     return {
         'data': {
@@ -83,7 +77,6 @@ def _response_schemas(addon, schemas):
             'attributes': addon.get_report_formats_for(schemas),
         }
     }
-
 
 def _get_file_metadata_for_schema(schema_id, file_metadata):
     assert not file_metadata['generated']
@@ -99,7 +92,6 @@ def _get_file_metadata_for_schema(schema_id, file_metadata):
         'metadata': items[0]['data'],
     }
 
-
 def _get_file_metadata_node(node, metadata_node_id):
     if node._id == metadata_node_id:
         return node
@@ -107,7 +99,6 @@ def _get_file_metadata_node(node, metadata_node_id):
     if len(nodes) == 0:
         raise ValueError('Unexpected node ID: {}'.format(metadata_node_id))
     return AbstractNode.objects.filter(guids___id=metadata_node_id).first()
-
 
 @must_be_valid_project
 @must_be_logged_in
@@ -117,7 +108,6 @@ def metadata_get_config(auth, **kwargs):
     node = kwargs['node'] or kwargs['project']
     addon = node.get_addon(SHORT_NAME)
     return _response_config(addon)
-
 
 @must_be_valid_project
 @must_be_logged_in
@@ -136,7 +126,6 @@ def metadata_update_config(auth, **kwargs):
         raise HTTPError(http_status.HTTP_400_BAD_REQUEST)
     return _response_config(addon)
 
-
 @must_be_valid_project
 @must_be_logged_in
 @must_have_permission('write')
@@ -154,10 +143,9 @@ def metadata_get_erad_candidates(auth, **kwargs):
             'type': 'metadata-node-erad',
             'attributes': {
                 'records': candidates,
-            },
+            }
         }
     }
-
 
 @must_be_valid_project
 @must_have_permission('read')
@@ -167,7 +155,6 @@ def metadata_get_project(auth, **kwargs):
     addon = node.get_addon(SHORT_NAME)
     return _response_project_metadata(auth.user, addon)
 
-
 @must_be_valid_project
 @must_be_logged_in
 @must_have_permission('read')
@@ -175,11 +162,10 @@ def metadata_get_project(auth, **kwargs):
 def metadata_get_schemas(auth, **kwargs):
     node = kwargs['node'] or kwargs['project']
     addon = node.get_addon(SHORT_NAME)
-    schemas = [
-        schema for schema in RegistrationSchema.objects.all() if schema_has_field(schema.schema, FIELD_GRDM_FILES)
-    ]
+    schemas = [schema
+               for schema in RegistrationSchema.objects.all()
+               if schema_has_field(schema.schema, FIELD_GRDM_FILES)]
     return _response_schemas(addon, schemas)
-
 
 @must_be_valid_project
 @must_have_permission('read')
@@ -188,7 +174,6 @@ def metadata_get_file(auth, filepath=None, **kwargs):
     node = kwargs['node'] or kwargs['project']
     addon = node.get_addon(SHORT_NAME)
     return _response_file_metadata(addon, filepath)
-
 
 @must_be_valid_project
 @must_have_permission('write')
@@ -203,7 +188,6 @@ def metadata_set_file(auth, filepath=None, **kwargs):
         raise HTTPError(http_status.HTTP_400_BAD_REQUEST)
     return _response_file_metadata(addon, filepath)
 
-
 @must_be_valid_project
 @must_have_permission('write')
 @must_have_addon(SHORT_NAME, 'node')
@@ -217,7 +201,6 @@ def metadata_set_file_hash(auth, filepath=None, **kwargs):
         raise HTTPError(http_status.HTTP_400_BAD_REQUEST)
     return _response_file_metadata(addon, filepath)
 
-
 @must_be_valid_project
 @must_have_permission('write')
 @must_have_addon(SHORT_NAME, 'node')
@@ -226,7 +209,6 @@ def metadata_delete_file(auth, filepath=None, **kwargs):
     addon = node.get_addon(SHORT_NAME)
     addon.delete_file_metadata(filepath, auth=auth)
     return _response_file_metadata(addon, filepath)
-
 
 @must_be_valid_project
 @must_have_permission('write')
@@ -239,41 +221,39 @@ def metadata_set_file_to_drafts(auth, did=None, mnode=None, filepath=None, **kwa
         draft = DraftRegistration.objects.get(_id=did, branched_from=node)
         draft_schema = draft.registration_schema.schema
         if not schema_has_field(draft_schema, FIELD_GRDM_FILES):
-            logger.error(
-                'No grdm-files metadata: schema={}'.format(
-                    draft.registration_schema._id,
-                )
-            )
+            logger.error('No grdm-files metadata: schema={}'.format(
+                draft.registration_schema._id,
+            ))
             raise HTTPError(http_status.HTTP_400_BAD_REQUEST)
         draft_metadata = draft.registration_metadata
         draft_files = get_draft_files(draft_metadata)
         file_metadata_ = addon.get_file_metadata_for_path(filepath)
-        file_metadata = _get_file_metadata_for_schema(draft.registration_schema._id, file_metadata_)
+        file_metadata = _get_file_metadata_for_schema(
+            draft.registration_schema._id,
+            file_metadata_
+        )
         if file_metadata is None:
-            logger.error(
-                'No file metadata: schema={}, filepath={}'.format(
-                    draft.registration_schema._id,
-                    filepath,
-                )
-            )
+            logger.error('No file metadata: schema={}, filepath={}'.format(
+                draft.registration_schema._id,
+                filepath,
+            ))
             raise HTTPError(http_status.HTTP_400_BAD_REQUEST)
         logger.info('Draft: draft={}, file_metadata={}'.format(draft_files, file_metadata))
         if node._id != mnode_obj._id:
             file_metadata['path'] = '{}/{}'.format(mnode_obj._id, file_metadata['path'])
-        draft_files = [df for df in draft_files if df['path'] != file_metadata['path']]
+        draft_files = [df
+                       for df in draft_files
+                       if df['path'] != file_metadata['path']]
         draft_files.append(file_metadata)
-        draft.update_metadata(
-            {
-                FIELD_GRDM_FILES: {
-                    'value': json.dumps(draft_files, indent=2) if len(draft_files) > 0 else '',
-                },
-            }
-        )
+        draft.update_metadata({
+            FIELD_GRDM_FILES: {
+                'value': json.dumps(draft_files, indent=2) if len(draft_files) > 0 else '',
+            },
+        })
         draft.save()
         return _response_file_metadata(addon, filepath)
     except DraftRegistration.DoesNotExist:
         raise HTTPError(http_status.HTTP_404_NOT_FOUND)
-
 
 @must_be_valid_project
 @must_have_permission('write')
@@ -293,19 +273,18 @@ def metadata_delete_file_from_drafts(auth, did=None, mnode=None, filepath=None, 
         draft_filepath = filepath
         if node._id != mnode_obj._id:
             draft_filepath = '{}/{}'.format(mnode_obj._id, filepath)
-        draft_files = [df for df in draft_files if df['path'] != draft_filepath]
-        draft.update_metadata(
-            {
-                FIELD_GRDM_FILES: {
-                    'value': json.dumps(draft_files, indent=2) if len(draft_files) > 0 else '',
-                },
-            }
-        )
+        draft_files = [df
+                       for df in draft_files
+                       if df['path'] != draft_filepath]
+        draft.update_metadata({
+            FIELD_GRDM_FILES: {
+                'value': json.dumps(draft_files, indent=2) if len(draft_files) > 0 else '',
+            },
+        })
         draft.save()
         return _response_file_metadata(addon, filepath)
     except DraftRegistration.DoesNotExist:
         raise HTTPError(http_status.HTTP_404_NOT_FOUND)
-
 
 @must_be_valid_project
 @must_be_contributor
@@ -313,13 +292,11 @@ def metadata_delete_file_from_drafts(auth, did=None, mnode=None, filepath=None, 
 def metadata_report_list_view(**kwargs):
     return use_ember_app()
 
-
 @must_be_valid_project
 @must_be_contributor
 @must_have_addon(SHORT_NAME, 'node')
 def metadata_package_view(**kwargs):
     return use_ember_app()
-
 
 @must_be_valid_project
 @must_have_permission('read')
@@ -334,7 +311,8 @@ def metadata_export_draft_registrations_csv(auth, did=None, **kwargs):
         if name is not None:
             formats = [f for f in formats if f.name == name]
         if len(formats) == 0:
-            logger.error('No report format for {} (name={})'.format(draft.registration_schema.name, name))
+            logger.error('No report format for {} (name={})'
+                .format(draft.registration_schema.name, name))
             raise HTTPError(http_status.HTTP_400_BAD_REQUEST)
         draft_metadata = draft.registration_metadata
         schema = draft.registration_schema.schema
@@ -347,7 +325,6 @@ def metadata_export_draft_registrations_csv(auth, did=None, **kwargs):
     except DraftRegistration.DoesNotExist:
         raise HTTPError(http_status.HTTP_404_NOT_FOUND)
 
-
 @must_be_valid_project
 @must_have_permission('read')
 def metadata_export_registrations_csv(auth, rid=None, **kwargs):
@@ -359,9 +336,12 @@ def metadata_export_registrations_csv(auth, rid=None, **kwargs):
         if name is not None:
             formats = [f for f in formats if f.name == name]
         if len(formats) == 0:
-            logger.error('No report format for {} (name={})'.format(registration.registration_schema.name, name))
+            logger.error('No report format for {} (name={})'
+                .format(registration.registration_schema.name, name))
             raise HTTPError(http_status.HTTP_400_BAD_REQUEST)
-        registration_metadata = registration.get_registration_metadata(registration.registration_schema)
+        registration_metadata = registration.get_registration_metadata(
+            registration.registration_schema
+        )
         schema = registration.registration_schema.schema
         filename, csvcontent = make_report_as_csv(formats[0], registration_metadata, schema)
         response = make_response()
@@ -371,77 +351,6 @@ def metadata_export_registrations_csv(auth, rid=None, **kwargs):
         return response
     except Registration.DoesNotExist:
         raise HTTPError(http_status.HTTP_404_NOT_FOUND)
-
-
-@must_be_logged_in
-def metadata_import_project_page(auth):
-    title = request.args.get('title', '')
-    url = request.args.get('url', None)
-    if url is None:
-        logger.warning('Missing parameters: url')
-        raise HTTPError(http_status.HTTP_400_BAD_REQUEST)
-    return {
-        'url': url,
-        'default_title': title,
-    }
-
-
-@must_be_logged_in
-def metadata_import_project(auth):
-    task = import_project.delay(
-        request.json['url'],
-        auth.user._id,
-        request.json['title'],
-    )
-    return {
-        'task_id': task.task_id,
-        'progress_url': web_url_for('metadata_task_progress_page', taskid=task.task_id),
-    }
-
-
-@must_be_logged_in
-def metadata_task_progress_page(auth, taskid=None, **kwargs):
-    result = get_task_result(auth, taskid)
-    if result['state'] == 'SUCCESS':
-        return redirect(result['info']['node_url'])
-    return {
-        'task_id': taskid,
-        'result': result,
-    }
-
-
-@must_be_logged_in
-def metadata_task_progress(auth, taskid=None):
-    return get_task_result(auth, taskid)
-
-
-@must_be_valid_project
-@must_be_logged_in
-@must_have_permission('read')
-@must_have_addon(SHORT_NAME, 'node')
-def metadata_export_project(auth, **kwargs):
-    node = kwargs['node'] or kwargs['project']
-    task = export_project.delay(
-        auth.user._id,
-        node._id,
-        request.json,
-    )
-    return {
-        'node_id': node._id,
-        'task_id': task.task_id,
-        'progress_api_url': api_url_for(
-            'metadata_node_task_progress',
-            **dict([(k, v) for k, v in kwargs.items() if k in ['nid', 'pid']] + [('taskid', task.task_id)]),
-        ),
-    }
-
-
-@must_be_valid_project
-@must_have_permission('read')
-@must_have_addon(SHORT_NAME, 'node')
-def metadata_node_task_progress(auth, taskid=None, **kwargs):
-    return get_task_result(auth, taskid)
-
 
 @must_be_valid_project
 @must_be_logged_in
@@ -457,15 +366,20 @@ def metadata_file_metadata_suggestions(auth, filepath=None, **kwargs):
         raise HTTPError(http_status.HTTP_400_BAD_REQUEST)
     keyword = request.args.get('keyword', '').lower()
     node = kwargs['node'] or kwargs['project']
-    suggestions = sum([suggestion_metadata(key, keyword, filepath, node) for key in key_list], [])  # flatten
+    suggestions = sum([  # flatten
+        suggestion_metadata(key, keyword, filepath, node)
+        for key in key_list
+    ], [])
     return {
         'data': {
             'id': node._id,
             'type': 'file-metadata-suggestion',
-            'attributes': {'filepath': filepath, 'suggestions': suggestions},
+            'attributes': {
+                'filepath': filepath,
+                'suggestions': suggestions
+            }
         }
     }
-
 
 @must_be_logged_in
 def metadata_import_project_page(auth):
@@ -479,7 +393,6 @@ def metadata_import_project_page(auth):
         'default_title': title,
     }
 
-
 @must_be_logged_in
 def metadata_import_project(auth):
     task = import_project.delay(
@@ -492,7 +405,6 @@ def metadata_import_project(auth):
         'progress_url': web_url_for('metadata_task_progress_page', taskid=task.task_id),
     }
 
-
 @must_be_logged_in
 def metadata_task_progress_page(auth, taskid=None, **kwargs):
     result = get_task_result(auth, taskid)
@@ -503,11 +415,9 @@ def metadata_task_progress_page(auth, taskid=None, **kwargs):
         'result': result,
     }
 
-
 @must_be_logged_in
 def metadata_task_progress(auth, taskid=None):
     return get_task_result(auth, taskid)
-
 
 @must_be_valid_project
 @must_be_logged_in
@@ -528,7 +438,6 @@ def metadata_export_project(auth, **kwargs):
             **dict([(k, v) for k, v in kwargs.items() if k in ['nid', 'pid']] + [('taskid', task.task_id)]),
         ),
     }
-
 
 @must_be_valid_project
 @must_have_permission('read')
