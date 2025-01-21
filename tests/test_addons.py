@@ -2035,7 +2035,7 @@ class TestViewUtils(OsfTestCase):
         assert enabled_addons[1]['short_name'] == 'osfstorage'
 
         default_addons = [addon for addon in addon_dicts if addon['default']]
-        assert len(default_addons) == 1
+        assert len(default_addons) == 2
         assert default_addons[0]['short_name'] == 'osfstorage'
 
     @mock.patch('addons.github.models.NodeSettings.get_folders', return_value=[])
