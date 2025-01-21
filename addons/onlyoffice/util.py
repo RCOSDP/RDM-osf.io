@@ -6,8 +6,6 @@ from osf.models import BaseFileNode, OSFUser
 from osf.utils.permissions import WRITE
 from requests.exceptions import RequestException
 
-from framework.database import get_or_http_error
-
 from . import settings
 from . import proof_key as pfkey
 

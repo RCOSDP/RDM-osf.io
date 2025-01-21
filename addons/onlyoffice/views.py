@@ -174,7 +174,6 @@ def onlyoffice_file_content_view(**kwargs):
             logger.warning(err)
             raise
 
-
     if request.method == 'POST':
         #  wopi PutFile endpoint
         logger.info('ONLYOFFICE: file saved: user id = {}, fullname = {}, file_name = {}'
@@ -193,7 +192,7 @@ def onlyoffice_file_content_view(**kwargs):
                 def __next__(self):
                     chunk = request.stream.read(8192)
                     if not chunk:
-                       raise StopIteration
+                        raise StopIteration
                     return chunk
 
                 def __len__(self):
