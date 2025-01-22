@@ -16,16 +16,6 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunSQL(
-            [
-                '''
-                CREATE UNIQUE INDEX filemetadata_project_id_path
-                ON addons_metadata_filemetadata (project_id, path);
-                ''',
-            ],
-            [
-                '''
-                DROP INDEX filemetadata_project_id_path RESTRICT;
-                ''',
-            ],
+            [],
         ),
     ]
