@@ -29,21 +29,21 @@ class Migration(migrations.Migration):
         #            name='required_if',
         #            field=models.TextField(null=True),
         #        ),
-        migrations.AddField(
-            model_name='registrationschemablock',
-            name='message_required_if',
-            field=models.TextField(null=True),
-        ),
-        migrations.AddField(
-            model_name='registrationschemablock',
-            name='enabled_if',
-            field=models.TextField(null=True),
-        ),
-        migrations.AddField(
-            model_name='registrationschemablock',
-            name='suggestion',
-            field=models.TextField(null=True),
-        ),
+        # migrations.AddField(
+        #    model_name='registrationschemablock',
+        #    name='message_required_if',
+        #    field=models.TextField(null=True),
+        # ),
+        # migrations.AddField(
+        #    model_name='registrationschemablock',
+        #    name='enabled_if',
+        #    field=models.TextField(null=True),
+        # ),
+        # migrations.AddField(
+        #    model_name='registrationschemablock',
+        #    name='suggestion',
+        #    field=models.TextField(null=True),
+        # ),
         UpdateRegistrationSchemasAndSchemaBlocks(),
         migrations.RunPython(ensure_registration_reports, ensure_registration_reports),
     ]
