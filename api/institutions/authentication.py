@@ -185,11 +185,11 @@ class InstitutionAuthentication(BaseAuthentication):
         # @R-2024-AUTH01 eduPersonAssurance(multi value)
         eduPersonAssurance = p_user.get('eduPersonAssurance')
         if re.search(OSF_IAL2_STR, str(eduPersonAssurance)):
-            ial = OSF_IAL2_STR
+            ial = OSF_IAL2_VAR
         if re.search(OSF_AAL2_STR, str(eduPersonAssurance)):
-            aal = OSF_AAL2_STR
-        elif re.search('https://www.gakunin.jp/profile/AAL1', str(eduPersonAssurance)):
-            aal = 'https://www.gakunin.jp/profile/AAL1'
+            aal = OSF_AAL2_VAR
+        elif re.search(OSF_AAL1_STR, str(eduPersonAssurance)):
+            aal = OSF_AAL1_VAR
         else:
             aal = p_user.get('Shib-AuthnContext-Class')
 
@@ -216,7 +216,6 @@ class InstitutionAuthentication(BaseAuthentication):
                 if not re.search(OSF_AAL2_STR, str(aal)):
                     self.context['mfa_url'] = mfa_url
             elif loa.aal == 1:
-                # if not re.search('https://www.gakunin.jp/profile/AAL1', aal):
                 if not aal:
                     message = (
                         'Institution login failed: Does not meet the required AAL.<br />Please contact the IdP as the'
@@ -231,7 +230,6 @@ class InstitutionAuthentication(BaseAuthentication):
                     )
                     loa_flag = False
             elif loa.ial == 1:
-                # if not re.search('https://www.gakunin.jp/profile/IAL1', ial):
                 if not ial:
                     message = (
                         'Institution login failed: Does not meet the required IAL.<br />Please check the IAL of your'
