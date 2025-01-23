@@ -179,10 +179,19 @@ class InstitutionAuthentication(BaseAuthentication):
         organization_name_ja = get_next(p_user, 'jao', 'jaOrganizationName')
         # affiliation: 'jaou' is friendlyName
         organizational_unit_ja = get_next(p_user, 'jaou', 'jaOrganizationalUnitName')
-        # @R2022-48 ial
-        ial = p_user.get('eduPersonAssurance')
-        # @R2022-48 aal
-        aal = p_user.get('Shib-AuthnContext-Class')
+        # @R2022-48 ial,aal
+        ial = None
+        aal = None
+        # @R-2024-AUTH01 eduPersonAssurance(multi value)
+        eduPersonAssurance = p_user.get('eduPersonAssurance')
+        if re.search(OSF_IAL2_STR, str(eduPersonAssurance)):
+            ial = OSF_IAL2_STR
+        if re.search(OSF_AAL2_STR, str(eduPersonAssurance)):
+            aal = OSF_AAL2_STR
+        elif re.search('https://www.gakunin.jp/profile/AAL1', str(eduPersonAssurance)):
+            aal = 'https://www.gakunin.jp/profile/AAL1'
+        else:
+            aal = p_user.get('Shib-AuthnContext-Class')
 
         # @R2022-48 loa + R-2023-55
         message = ''

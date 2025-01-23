@@ -41,9 +41,10 @@ def serialize_user(user, node=None, admin=False, full=False, is_profile=False, i
         _aal = 'AAL2'
     else:
         _aal = 'AAL1'
-    if not user.ial:
-        _ial = 'NULL'
-    elif re.search(settings.OSF_IAL2_STR, str(user.ial)):
+    # @R-2024-AUTH01 Values other than IAL2 are equivalent to IAL1.
+    # if not user.ial:
+    #    _ial = 'NULL'
+    if re.search(settings.OSF_IAL2_STR, str(user.ial)):
         _ial = 'IAL2'
     else:
         _ial = 'IAL1'
@@ -102,9 +103,11 @@ def serialize_user(user, node=None, admin=False, full=False, is_profile=False, i
                     contrib = None
             is_contributor_obj = isinstance(contrib, Contributor)
             flags = {
-                'visible': contrib.visible
-                if is_contributor_obj
-                else node.contributor_set.filter(user=user, visible=True).exists(),
+                'visible': (
+                    contrib.visible
+                    if is_contributor_obj
+                    else node.contributor_set.filter(user=user, visible=True).exists()
+                ),
                 'permission': contrib.permission if is_contributor_obj else None,
             }
         ret.update(flags)
