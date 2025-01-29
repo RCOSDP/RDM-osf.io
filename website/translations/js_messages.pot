@@ -8,14 +8,19 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2024-02-21 06:53+0000\n"
+"POT-Creation-Date: 2025-01-29 05:58+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.9.1\n"
+"Generated-By: Babel 2.5.1\n"
+
+#: addons/github/static/githubFangornConfig.js:215
+#: website/static/js/fangorn.js:2427
+msgid "Upload Folder"
+msgstr ""
 
 #: addons/jupyterhub/static/files.js:96
 msgid "Launch"
@@ -29,13 +34,14 @@ msgstr ""
 msgid "Paste from Clipboard"
 msgstr ""
 
-#: addons/metadata/static/files.js:637 addons/metadata/static/files.js:651
-#: website/static/js/fangorn.js:1853
+#: addons/metadata/static/files.js:646 addons/metadata/static/files.js:647
+#: addons/metadata/static/files.js:661 addons/metadata/static/files.js:662
+#: website/static/js/fangorn.js:1865
 msgid "Could not copy text"
 msgstr ""
 
-#: addons/metadata/static/files.js:649 website/static/js/clipboard.js:27
-#: website/static/js/fangorn.js:1847 website/static/js/fangorn.js:1851
+#: addons/metadata/static/files.js:659 website/static/js/clipboard.js:27
+#: website/static/js/fangorn.js:1859 website/static/js/fangorn.js:1863
 msgid "Copied!"
 msgstr ""
 
@@ -105,12 +111,12 @@ msgstr ""
 msgid "Deleting..."
 msgstr ""
 
-#: addons/metadata/static/files.js:1255 addons/metadata/static/files.js:1994
-#: addons/metadata/static/files.js:2072 addons/metadata/static/files.js:2119
-#: addons/metadata/static/files.js:2147 addons/metadata/static/files.js:2173
-#: addons/metadata/static/files.js:2229
-#: addons/metadata/static/metadataImportDatasetButton.js:23
-#: website/static/js/accountSettings.js:267 website/static/js/fangorn.js:2777
+#: addons/metadata/static/files.js:1280 addons/metadata/static/files.js:2139
+#: addons/metadata/static/files.js:2217 addons/metadata/static/files.js:2264
+#: addons/metadata/static/files.js:2296 addons/metadata/static/files.js:2322
+#: addons/metadata/static/files.js:2378
+#: addons/metadata/static/metadataImportDatasetButton.js:24
+#: website/static/js/accountSettings.js:267 website/static/js/fangorn.js:2817
 #: website/static/js/folderPickerNodeConfig.js:591
 #: website/static/js/pages/profile-settings-addons-page.js:72
 #: website/static/js/pages/project-settings-page.js:118
@@ -186,9 +192,11 @@ msgstr ""
 msgid "Edit Multiple File Metadata"
 msgstr ""
 
-#: addons/metadata/static/files.js:2121 website/static/js/fangorn.js:1551
-#: website/static/js/fangorn.js:1574 website/static/js/fangorn.js:2469
-#: website/static/js/fangorn.js:2505 website/static/js/filepage/index.js:204
+#: addons/metadata/static/files.js:2270
+#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:801
+#: website/static/js/fangorn.js:1563 website/static/js/fangorn.js:1586
+#: website/static/js/fangorn.js:2482 website/static/js/fangorn.js:2518
+#: website/static/js/filepage/index.js:204
 #: website/static/js/filepage/index.js:519 website/static/js/myProjects.js:1637
 msgid "Delete"
 msgstr ""
@@ -367,10 +375,10 @@ msgstr ""
 #: website/static/js/apiPersonalToken.js:438
 #: website/static/js/citationsNodeConfig.js:169
 #: website/static/js/citationsNodeConfig.js:187
-#: website/static/js/contribManager.js:444 website/static/js/fangorn.js:562
-#: website/static/js/fangorn.js:567 website/static/js/fangorn.js:1553
-#: website/static/js/fangorn.js:1576 website/static/js/fangorn.js:1629
-#: website/static/js/fangorn.js:1648 website/static/js/fangorn.js:2457
+#: website/static/js/contribManager.js:444 website/static/js/fangorn.js:565
+#: website/static/js/fangorn.js:570 website/static/js/fangorn.js:1562
+#: website/static/js/fangorn.js:1585 website/static/js/fangorn.js:1638
+#: website/static/js/fangorn.js:1657 website/static/js/fangorn.js:2492
 #: website/static/js/filepage/index.js:208
 #: website/static/js/folderPickerNodeConfig.js:510
 #: website/static/js/folderPickerNodeConfig.js:566
@@ -409,8 +417,8 @@ msgstr ""
 msgid "Enable"
 msgstr ""
 
-#: addons/weko/static/wekoFangornConfig.js:42
-#: addons/weko/static/wekoFangornConfig.js:62 website/static/js/fangorn.js:2459
+#: addons/weko/static/wekoFangornConfig.js:40
+#: addons/weko/static/wekoFangornConfig.js:60 website/static/js/fangorn.js:2472
 #: website/static/js/filepage/index.js:544
 msgid "View"
 msgstr ""
@@ -2586,7 +2594,7 @@ msgstr ""
 msgid ""
 "\n"
 "\n"
-"<h3>Onlyoffice Add-on Terms</h3>\n"
+"<h3>ONLYOFFICE Add-on Terms</h3>\n"
 "\n"
 "<table class=\"table table-bordered table-addon-terms\">\n"
 "\n"
@@ -2601,33 +2609,33 @@ msgid ""
 "            <tr class=\"danger\">\n"
 "                <td>Permissions</td>\n"
 "                <td>The GakuNin RDM does not affect the permissions of "
-"Onlyoffice.</td>\n"
+"ONLYOFFICE.</td>\n"
 "            </tr>\n"
 "            <tr class=\"danger\">\n"
 "                <td>View / download file versions</td>\n"
-"                <td>The Onlyoffice add-on does not provide Storage "
+"                <td>The ONLYOFFICE add-on does not provide Storage "
 "Features.</td>\n"
 "            </tr>\n"
 "            <tr class=\"danger\">\n"
 "                <td>Add / update files</td>\n"
-"                <td>The Onlyoffice add-on does not provide Storage "
+"                <td>The ONLYOFFICE add-on does not provide Storage "
 "Features.</td>\n"
 "            </tr>\n"
 "            <tr class=\"danger\">\n"
 "                <td>Delete files</td>\n"
-"                <td>The Onlyoffice add-on does not provide Storage "
+"                <td>The ONLYOFFICE add-on does not provide Storage "
 "Features.</td>\n"
 "            </tr>\n"
 "            <tr class=\"danger\">\n"
 "                <td>Logs</td>\n"
-"                <td>The Onlyoffice add-on does not provide Storage "
+"                <td>The ONLYOFFICE add-on does not provide Storage "
 "Features.</td>\n"
 "            </tr>\n"
 "            <tr class=\"warning\">\n"
 "                <td>Forking</td>\n"
 "                <td>Forking a project or component copies information "
-"about linked Onlyoffice but the GakuNin RDM does not affect "
-"authentication of Onlyoffice.</td>\n"
+"about linked ONLYOFFICE but the GakuNin RDM does not affect "
+"authentication of ONLYOFFICE.</td>\n"
 "            </tr>\n"
 "    </tbody>\n"
 "\n"
@@ -4417,7 +4425,7 @@ msgstr ""
 msgid "View original document"
 msgstr ""
 
-#: website/static/js/citationGrid.js:202 website/static/js/fangorn.js:2492
+#: website/static/js/citationGrid.js:202 website/static/js/fangorn.js:2527
 msgid "View on %1$s"
 msgstr ""
 
@@ -4610,7 +4618,7 @@ msgstr ""
 msgid "Date Created"
 msgstr ""
 
-#: website/static/js/conference.js:43 website/static/js/fangorn.js:2083
+#: website/static/js/conference.js:43 website/static/js/fangorn.js:2117
 msgid "Downloads"
 msgstr ""
 
@@ -4915,118 +4923,118 @@ msgstr ""
 msgid "New folder created!"
 msgstr ""
 
-#: website/static/js/fangorn.js:1440
+#: website/static/js/fangorn.js:1450
 msgid "Please enter a file name."
 msgstr ""
 
-#: website/static/js/fangorn.js:1444
+#: website/static/js/fangorn.js:1454
 msgid "File name contains illegal characters."
 msgstr ""
 
-#: website/static/js/fangorn.js:1473
+#: website/static/js/fangorn.js:1483
 msgid "New file created!"
 msgstr ""
 
-#: website/static/js/fangorn.js:1486
+#: website/static/js/fangorn.js:1496
 msgid "File creation failed."
 msgstr ""
 
-#: website/static/js/fangorn.js:1506
+#: website/static/js/fangorn.js:1515
 msgid "<i> Deleting...</i>"
 msgstr ""
 
-#: website/static/js/fangorn.js:1528
+#: website/static/js/fangorn.js:1537
 msgid "Delete failed."
 msgstr ""
 
-#: website/static/js/fangorn.js:1543
+#: website/static/js/fangorn.js:1552
 msgid ""
 "This folder and all of its contents will be deleted. This folder is "
 "linked to "
 msgstr ""
 
-#: website/static/js/fangorn.js:1544
+#: website/static/js/fangorn.js:1553
 msgid "your wiki(s). Deleting it will remove images embedded in your wiki(s). "
 msgstr ""
 
-#: website/static/js/fangorn.js:1545 website/static/js/fangorn.js:1573
-#: website/static/js/fangorn.js:1596 website/static/js/pages/base-page.js:132
+#: website/static/js/fangorn.js:1554 website/static/js/fangorn.js:1582
+#: website/static/js/fangorn.js:1605 website/static/js/pages/base-page.js:132
 msgid "This action is irreversible."
 msgstr ""
 
-#: website/static/js/fangorn.js:1548
+#: website/static/js/fangorn.js:1557
 msgid ""
 "This folder and ALL its contents will be deleted. This action is "
 "irreversible."
 msgstr ""
 
-#: website/static/js/fangorn.js:1556 website/static/js/fangorn.js:1581
+#: website/static/js/fangorn.js:1565 website/static/js/fangorn.js:1590
 msgid "Delete \"%1$s\"?"
 msgstr ""
 
-#: website/static/js/fangorn.js:1558
+#: website/static/js/fangorn.js:1567
 msgid "You don't have permission to delete this file."
 msgstr ""
 
-#: website/static/js/fangorn.js:1566
+#: website/static/js/fangorn.js:1575
 msgid "This file may be linked to your wiki(s). Deleting it will remove the"
 msgstr ""
 
-#: website/static/js/fangorn.js:1567
+#: website/static/js/fangorn.js:1576
 msgid " image embedded in your wiki(s). "
 msgstr ""
 
-#: website/static/js/fangorn.js:1607
+#: website/static/js/fangorn.js:1616
 msgid ""
 "Some of the selected items are folders. This will delete the folder(s) "
 "and ALL of their content."
 msgstr ""
 
-#: website/static/js/fangorn.js:1621
+#: website/static/js/fangorn.js:1630
 msgid " may be linked to"
 msgstr ""
 
-#: website/static/js/fangorn.js:1622
+#: website/static/js/fangorn.js:1631
 msgid " your wiki(s). Deleting them will remove images embedded in your wiki(s). "
 msgstr ""
 
-#: website/static/js/fangorn.js:1630
+#: website/static/js/fangorn.js:1639
 msgid "Delete All"
 msgstr ""
 
-#: website/static/js/fangorn.js:1634
+#: website/static/js/fangorn.js:1643
 msgid ""
 "Some of these files can't be deleted but you can delete the ones "
 "highlighted with green. This action is irreversible."
 msgstr ""
 
-#: website/static/js/fangorn.js:1649
+#: website/static/js/fangorn.js:1658
 msgid "Delete Some"
 msgstr ""
 
-#: website/static/js/fangorn.js:1652
+#: website/static/js/fangorn.js:1661
 msgid "Delete multiple files?"
 msgstr ""
 
-#: website/static/js/fangorn.js:1678
+#: website/static/js/fangorn.js:1687
 msgid ""
 "Unable to check out file. This is most likely due to the file being "
 "already checked-out"
 msgstr ""
 
-#: website/static/js/fangorn.js:1679
+#: website/static/js/fangorn.js:1688
 msgid " by another user."
 msgstr ""
 
-#: website/static/js/fangorn.js:1994
+#: website/static/js/fangorn.js:2006
 msgid "%1$s is not configured"
 msgstr ""
 
-#: website/static/js/fangorn.js:1997
+#: website/static/js/fangorn.js:2009
 msgid " Restore Add-ons"
 msgstr ""
 
-#: website/static/js/fangorn.js:2008 website/static/js/fileViewTreebeard.js:63
+#: website/static/js/fangorn.js:2104 website/static/js/fileViewTreebeard.js:63
 #: website/static/js/filesWidget.js:34 website/static/js/meetings.js:18
 #: website/static/js/pages/project-dashboard-page.js:549
 #: website/static/js/project-organizer.js:192
@@ -5034,236 +5042,228 @@ msgstr ""
 msgid "Name"
 msgstr ""
 
-#: website/static/js/fangorn.js:2075
+#: website/static/js/fangorn.js:2109
 msgid "Size"
 msgstr ""
 
-#: website/static/js/fangorn.js:2079
+#: website/static/js/fangorn.js:2113
 msgid "Version"
 msgstr ""
 
-#: website/static/js/fangorn.js:2087
-#: website/static/js/pages/project-dashboard-page.js:555
+#: website/static/js/fangorn.js:2121
+#: website/static/js/pages/project-dashboard-page.js:588
 #: website/static/js/project-organizer.js:201
 msgid "Modified"
 msgstr ""
 
-#: website/static/js/fangorn.js:2198
+#: website/static/js/fangorn.js:2233
 msgid "Unable to retrieve components."
 msgstr ""
 
-#: website/static/js/fangorn.js:2200
+#: website/static/js/fangorn.js:2235
 msgid "Unable to retrieve components for node %1$s"
 msgstr ""
 
-#: website/static/js/fangorn.js:2282
+#: website/static/js/fangorn.js:2317
 msgid "You cannot rename your Wiki images folder."
 msgstr ""
 
-#: website/static/js/fangorn.js:2392
-msgid "Upload Folder"
-msgstr ""
-
-#: website/static/js/fangorn.js:2397
+#: website/static/js/fangorn.js:2432
 msgid "Upload"
 msgstr ""
 
-#: website/static/js/fangorn.js:2404
+#: website/static/js/fangorn.js:2439
 msgid "Create Folder"
 msgstr ""
 
-#: website/static/js/fangorn.js:2406
+#: website/static/js/fangorn.js:2446
 msgid "Create File"
 msgstr ""
 
-#: website/static/js/fangorn.js:2348
+#: website/static/js/fangorn.js:2453
 msgid "Delete Folder"
 msgstr ""
 
-#: website/static/js/fangorn.js:2427 website/static/js/filepage/index.js:522
+#: website/static/js/fangorn.js:2462 website/static/js/filepage/index.js:522
 #: website/static/js/filepage/revisions.js:111
 msgid "Download"
 msgstr ""
 
-#: website/static/js/fangorn.js:2437 website/static/js/filepage/index.js:544
-msgid "View"
-msgstr ""
-
-#: website/static/js/fangorn.js:2453 website/static/js/filepage/index.js:216
+#: website/static/js/fangorn.js:2488 website/static/js/filepage/index.js:216
 msgid "This would mean "
 msgstr ""
 
-#: website/static/js/fangorn.js:2454 website/static/js/filepage/index.js:217
+#: website/static/js/fangorn.js:2489 website/static/js/filepage/index.js:217
 msgid ""
 "other contributors cannot edit, delete or upload new versions of this "
 "file "
 msgstr ""
 
-#: website/static/js/fangorn.js:2455
+#: website/static/js/fangorn.js:2490
 msgid "as long as it is checked-out. You can check it back in at anytime."
 msgstr ""
 
-#: website/static/js/fangorn.js:2460 website/static/js/fangorn.js:2465
+#: website/static/js/fangorn.js:2495 website/static/js/fangorn.js:2500
 #: website/static/js/filepage/index.js:243
 msgid "Check out file"
 msgstr ""
 
-#: website/static/js/fangorn.js:2461
+#: website/static/js/fangorn.js:2496
 msgid "Confirm file check-out?"
 msgstr ""
 
-#: website/static/js/fangorn.js:2474
+#: website/static/js/fangorn.js:2509
 msgid "Check in file"
 msgstr ""
 
-#: website/static/js/fangorn.js:2502
+#: website/static/js/fangorn.js:2537
 msgid "Download as zip"
 msgstr ""
 
-#: website/static/js/fangorn.js:2513 website/static/js/myProjects.js:1613
+#: website/static/js/fangorn.js:2548 website/static/js/myProjects.js:1613
 msgid "Rename"
 msgstr ""
 
-#: website/static/js/fangorn.js:2522
+#: website/static/js/fangorn.js:2557
 msgid "copy link"
 msgstr ""
 
-#: website/static/js/fangorn.js:2607
+#: website/static/js/fangorn.js:2642
 msgid "New folder name"
 msgstr ""
 
-#: website/static/js/fangorn.js:2635
+#: website/static/js/fangorn.js:2670
 msgid "Enter name"
 msgstr ""
 
-#: website/static/js/fangorn.js:2660
+#: website/static/js/fangorn.js:2700
 msgid "New file name"
 msgstr ""
 
-#: website/static/js/fangorn.js:2599
+#: website/static/js/fangorn.js:2762
 msgid "Cancel Pending Uploads"
 msgstr ""
 
-#: website/static/js/fangorn.js:2756
+#: website/static/js/fangorn.js:2791
 msgid "Delete Multiple"
 msgstr ""
 
-#: website/static/js/fangorn.js:2768 website/static/js/fangorn.js:3616
+#: website/static/js/fangorn.js:2803 website/static/js/fangorn.js:3655
 msgid "Filter"
 msgstr ""
 
-#: website/static/js/fangorn.js:2773
+#: website/static/js/fangorn.js:2808
 msgid "Select rows:"
 msgstr ""
 
-#: website/static/js/fangorn.js:2773
+#: website/static/js/fangorn.js:2808
 msgid ""
 " Click on a row (outside the add-on, file, or folder name) to show "
 "further actions in the toolbar. Use Command or Shift keys to select "
 "multiple files."
 msgstr ""
 
-#: website/static/js/fangorn.js:2774
+#: website/static/js/fangorn.js:2809
 msgid "Open files:"
 msgstr ""
 
-#: website/static/js/fangorn.js:2774
+#: website/static/js/fangorn.js:2809
 msgid " Click a file name to go to view the file in the GakuNin RDM."
 msgstr ""
 
-#: website/static/js/fangorn.js:2775
+#: website/static/js/fangorn.js:2810
 msgid "Open files in new tab:"
 msgstr ""
 
-#: website/static/js/fangorn.js:2775
+#: website/static/js/fangorn.js:2810
 msgid ""
 " Press Command (Ctrl in Windows) and click a file name to open it in a "
 "new tab."
 msgstr ""
 
-#: website/static/js/fangorn.js:2776
+#: website/static/js/fangorn.js:2811
 msgid "Download as zip:"
 msgstr ""
 
-#: website/static/js/fangorn.js:2776
+#: website/static/js/fangorn.js:2811
 msgid ""
 " Click on the row of an add-on or folder and click the Download as Zip "
 "button in the toolbar."
 msgstr ""
 
-#: website/static/js/fangorn.js:2776
+#: website/static/js/fangorn.js:2811
 msgid " Not available for all storage add-ons."
 msgstr ""
 
-#: website/static/js/fangorn.js:2777
+#: website/static/js/fangorn.js:2812
 msgid "Copy files:"
 msgstr ""
 
-#: website/static/js/fangorn.js:2777
+#: website/static/js/fangorn.js:2812
 msgid ""
 " Press Option (Alt in Windows) while dragging a file to a new folder or "
 "component."
 msgstr ""
 
-#: website/static/js/fangorn.js:2777
+#: website/static/js/fangorn.js:2812
 msgid " Only for contributors with write access."
 msgstr ""
 
-#: website/static/js/fangorn.js:2783
+#: website/static/js/fangorn.js:2818
 msgid "How to Use the File Browser"
 msgstr ""
 
-#: website/static/js/fangorn.js:2847
+#: website/static/js/fangorn.js:2882
 msgid "Please wait for current action to complete"
 msgstr ""
 
-#: website/static/js/fangorn.js:3028
+#: website/static/js/fangorn.js:3063
 msgid "Upload Status"
 msgstr ""
 
-#: website/static/js/fangorn.js:3028
+#: website/static/js/fangorn.js:3063
 msgid " files succeeded."
 msgstr ""
 
-#: website/static/js/fangorn.js:3139
+#: website/static/js/fangorn.js:3175
 msgid "Done"
 msgstr ""
 
-#: website/static/js/fangorn.js:3141
+#: website/static/js/fangorn.js:3177
 msgid "Move Status"
 msgstr ""
 
-#: website/static/js/fangorn.js:3143
+#: website/static/js/fangorn.js:3179
 msgid " files successfully moved."
 msgstr ""
 
-#: website/static/js/fangorn.js:3144
+#: website/static/js/fangorn.js:3180
 msgid " Skipped %1$s/%2$s files."
 msgstr ""
 
-#: website/static/js/fangorn.js:3530
+#: website/static/js/fangorn.js:3569
 msgid "You have pending uploads, if you leave this page they may not complete."
 msgstr ""
 
-#: website/static/js/fangorn.js:3533
+#: website/static/js/fangorn.js:3572
 msgid ""
 "You have pending file operations, if you leave this page they may not "
 "complete."
 msgstr ""
 
-#: website/static/js/fangorn.js:3577
+#: website/static/js/fangorn.js:3616
 msgid "This file is too large (%1$s). Max file size is %2$s."
 msgstr ""
 
-#: website/static/js/fangorn.js:3593
+#: website/static/js/fangorn.js:3632
 msgid "Not enough quota to upload the file."
 msgstr ""
 
-#: website/static/js/fangorn.js:3600
+#: website/static/js/fangorn.js:3639
 msgid "Quota usage alert"
 msgstr ""
 
-#: website/static/js/fangorn.js:3601
+#: website/static/js/fangorn.js:3640
 #, python-format
 msgid "You have used more than %1$s% of your quota."
 msgstr ""
@@ -8627,7 +8627,7 @@ msgid "Revisions"
 msgstr ""
 
 #: website/static/js/filepage/index.js:572
-msgid "Edit(Onlyoffice)"
+msgid "Edit(ONLYOFFICE)"
 msgstr ""
 
 #: website/static/js/filepage/revisions.js:72

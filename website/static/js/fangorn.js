@@ -1488,7 +1488,10 @@ function _createFile(event, dismissCallback, helpText, extension) {
     });
 }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4e76d269f9 (Add office file edit function. (ONLYOFFICE interface))
 /**
  * Deletes the item, only appears for items
  * @param event DOM event object for click
@@ -3745,6 +3748,7 @@ Fangorn.ButtonEvents = {
     _removeEvent : _removeEvent,
     createFolder : _createFolder,
     _gotoFileEvent : gotoFileEvent,
+    _uploadFolderEvent : _uploadFolderEvent,
     createFile : _createFile,
 };
 

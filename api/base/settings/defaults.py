@@ -14,7 +14,9 @@ import os
 from future.moves.urllib.parse import urlparse
 from website import settings as osf_settings
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+BASE_DIR = os.path.dirname(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+)
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
@@ -34,7 +36,9 @@ DATABASES = {
     },
 }
 
-DATABASE_ROUTERS = ['osf.db.router.PostgreSQLFailoverRouter', ]
+DATABASE_ROUTERS = [
+    'osf.db.router.PostgreSQLFailoverRouter',
+]
 PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
     'django.contrib.auth.hashers.BCryptPasswordHasher',
@@ -80,7 +84,6 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.staticfiles',
     'django.contrib.admin',
-
     # 3rd party
     'django_celery_beat',
     'django_celery_results',
@@ -92,10 +95,8 @@ INSTALLED_APPS = (
     'storages',
     'waffle',
     'elasticsearch_metrics',
-
     # OSF
     'osf',
-
     # Addons
     'addons.osfstorage',
     'addons.bitbucket',
@@ -126,7 +127,6 @@ INSTALLED_APPS = (
     'addons.binderhub',
     'addons.onedrivebusiness',
     'addons.metadata',
-    'addons.datasteward',
     'addons.onlyoffice',
 )
 
@@ -234,7 +234,6 @@ MIDDLEWARE = (
     # A profiling middleware. ONLY FOR DEV USE
     # Uncomment and add "prof" to url params to recieve a profile for that url
     # 'api.base.middleware.ProfileMiddleware',
-
     # 'django.contrib.sessions.middleware.SessionMiddleware',
     'api.base.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -300,8 +299,30 @@ ENABLE_ESI = osf_settings.ENABLE_ESI
 VARNISH_SERVERS = osf_settings.VARNISH_SERVERS
 ESI_MEDIA_TYPES = osf_settings.ESI_MEDIA_TYPES
 
-ADDONS_FOLDER_CONFIGURABLE = ['box', 'dropbox', 's3', 'googledrive', 'figshare', 'owncloud', 'onedrive', 'swift', 'azureblobstorage', 'weko', 'iqbrims']
-ADDONS_OAUTH = ADDONS_FOLDER_CONFIGURABLE + ['dataverse', 'github', 'bitbucket', 'gitlab', 'mendeley', 'zotero', 'forward', 'binderhub', 'metadata']
+ADDONS_FOLDER_CONFIGURABLE = [
+    'box',
+    'dropbox',
+    's3',
+    'googledrive',
+    'figshare',
+    'owncloud',
+    'onedrive',
+    'swift',
+    'azureblobstorage',
+    'weko',
+    'iqbrims',
+]
+ADDONS_OAUTH = ADDONS_FOLDER_CONFIGURABLE + [
+    'dataverse',
+    'github',
+    'bitbucket',
+    'gitlab',
+    'mendeley',
+    'zotero',
+    'forward',
+    'binderhub',
+    'metadata',
+]
 
 BYPASS_THROTTLE_TOKEN = 'test-token'
 
@@ -378,48 +399,96 @@ ADDONS_OAUTH.append('nextcloud')
 
 TST_COMMAND_DELIMITER = ' '
 # RSA key generation settings
-SSL_GENERATE_KEY = 'openssl' + TST_COMMAND_DELIMITER + \
-                   'genrsa' + TST_COMMAND_DELIMITER + \
-                   '-des3' + TST_COMMAND_DELIMITER + \
-                   '-out' + TST_COMMAND_DELIMITER + \
-                   '{0}.key {1}'
-SSL_GENERATE_KEY_NOPASS = 'openssl' + TST_COMMAND_DELIMITER + \
-                          'rsa' + TST_COMMAND_DELIMITER + \
-                          '-in' + TST_COMMAND_DELIMITER + \
-                          '{0}.key' + TST_COMMAND_DELIMITER + \
-                          '-out' + TST_COMMAND_DELIMITER + \
-                          '{0}.key.nopass'
-SSL_GENERATE_CSR = 'openssl' + TST_COMMAND_DELIMITER + \
-                   'req' + TST_COMMAND_DELIMITER + \
-                   '-new' + TST_COMMAND_DELIMITER + \
-                   '-key' + TST_COMMAND_DELIMITER + \
-                   '{0}.key.nopass' + TST_COMMAND_DELIMITER + \
-                   '-out' + TST_COMMAND_DELIMITER + \
-                   '{0}.csr'
-SSL_GENERATE_SELF_SIGNED = 'openssl' + TST_COMMAND_DELIMITER + \
-                           'req' + TST_COMMAND_DELIMITER + \
-                           '-x509' + TST_COMMAND_DELIMITER + \
-                           '-nodes' + TST_COMMAND_DELIMITER + \
-                           '-days' + TST_COMMAND_DELIMITER + \
-                           '365' + TST_COMMAND_DELIMITER + \
-                           '-newkey' + TST_COMMAND_DELIMITER + \
-                           'rsa:2048' + TST_COMMAND_DELIMITER + \
-                           '-keyout' + TST_COMMAND_DELIMITER + \
-                           '{0}.key' + TST_COMMAND_DELIMITER + \
-                           '-out' + TST_COMMAND_DELIMITER + \
-                           '{0}.crt'
-SSL_PRIVATE_KEY_GENERATION = 'openssl' + TST_COMMAND_DELIMITER + \
-                             'genrsa' + TST_COMMAND_DELIMITER + \
-                             '-out' + TST_COMMAND_DELIMITER + \
-                             '{0}' + TST_COMMAND_DELIMITER + \
-                             '{1}'
-SSL_PUBLIC_KEY_GENERATION = 'openssl' + TST_COMMAND_DELIMITER + \
-                            'rsa' + TST_COMMAND_DELIMITER + \
-                            '-in' + TST_COMMAND_DELIMITER + \
-                            '{0}' + TST_COMMAND_DELIMITER + \
-                            '-pubout' + TST_COMMAND_DELIMITER + \
-                            '-out' + TST_COMMAND_DELIMITER + \
-                            '{1}'
+SSL_GENERATE_KEY = (
+    'openssl'
+    + TST_COMMAND_DELIMITER
+    + 'genrsa'
+    + TST_COMMAND_DELIMITER
+    + '-des3'
+    + TST_COMMAND_DELIMITER
+    + '-out'
+    + TST_COMMAND_DELIMITER
+    + '{0}.key {1}'
+)
+SSL_GENERATE_KEY_NOPASS = (
+    'openssl'
+    + TST_COMMAND_DELIMITER
+    + 'rsa'
+    + TST_COMMAND_DELIMITER
+    + '-in'
+    + TST_COMMAND_DELIMITER
+    + '{0}.key'
+    + TST_COMMAND_DELIMITER
+    + '-out'
+    + TST_COMMAND_DELIMITER
+    + '{0}.key.nopass'
+)
+SSL_GENERATE_CSR = (
+    'openssl'
+    + TST_COMMAND_DELIMITER
+    + 'req'
+    + TST_COMMAND_DELIMITER
+    + '-new'
+    + TST_COMMAND_DELIMITER
+    + '-key'
+    + TST_COMMAND_DELIMITER
+    + '{0}.key.nopass'
+    + TST_COMMAND_DELIMITER
+    + '-out'
+    + TST_COMMAND_DELIMITER
+    + '{0}.csr'
+)
+SSL_GENERATE_SELF_SIGNED = (
+    'openssl'
+    + TST_COMMAND_DELIMITER
+    + 'req'
+    + TST_COMMAND_DELIMITER
+    + '-x509'
+    + TST_COMMAND_DELIMITER
+    + '-nodes'
+    + TST_COMMAND_DELIMITER
+    + '-days'
+    + TST_COMMAND_DELIMITER
+    + '365'
+    + TST_COMMAND_DELIMITER
+    + '-newkey'
+    + TST_COMMAND_DELIMITER
+    + 'rsa:2048'
+    + TST_COMMAND_DELIMITER
+    + '-keyout'
+    + TST_COMMAND_DELIMITER
+    + '{0}.key'
+    + TST_COMMAND_DELIMITER
+    + '-out'
+    + TST_COMMAND_DELIMITER
+    + '{0}.crt'
+)
+SSL_PRIVATE_KEY_GENERATION = (
+    'openssl'
+    + TST_COMMAND_DELIMITER
+    + 'genrsa'
+    + TST_COMMAND_DELIMITER
+    + '-out'
+    + TST_COMMAND_DELIMITER
+    + '{0}'
+    + TST_COMMAND_DELIMITER
+    + '{1}'
+)
+SSL_PUBLIC_KEY_GENERATION = (
+    'openssl'
+    + TST_COMMAND_DELIMITER
+    + 'rsa'
+    + TST_COMMAND_DELIMITER
+    + '-in'
+    + TST_COMMAND_DELIMITER
+    + '{0}'
+    + TST_COMMAND_DELIMITER
+    + '-pubout'
+    + TST_COMMAND_DELIMITER
+    + '-out'
+    + TST_COMMAND_DELIMITER
+    + '{1}'
+)
 
 # UserKey Placement destination
 KEY_NAME_PRIVATE = 'pvt'
@@ -431,24 +500,44 @@ KEY_NAME_FORMAT = '{0}_{1}_{2}{3}'
 PRIVATE_KEY_VALUE = 1
 PUBLIC_KEY_VALUE = 2
 # FreeTSA openation commands
-SSL_CREATE_TIMESTAMP_REQUEST = 'openssl' + TST_COMMAND_DELIMITER + \
-                               'ts' + TST_COMMAND_DELIMITER + \
-                               '-query' + TST_COMMAND_DELIMITER + \
-                               '-data' + TST_COMMAND_DELIMITER + \
-                               '{0}' + TST_COMMAND_DELIMITER + \
-                               '-cert' + TST_COMMAND_DELIMITER + \
-                               '-sha512'
-SSL_GET_TIMESTAMP_RESPONSE = 'openssl' + TST_COMMAND_DELIMITER + \
-                             'ts' + TST_COMMAND_DELIMITER + \
-                             '-verify' + TST_COMMAND_DELIMITER + \
-                             '-data' + TST_COMMAND_DELIMITER + \
-                             '{0}' + TST_COMMAND_DELIMITER + \
-                             '-in' + TST_COMMAND_DELIMITER + \
-                             '{1}' + TST_COMMAND_DELIMITER + \
-                             '-CAfile' + TST_COMMAND_DELIMITER + \
-                             '{2}'
+SSL_CREATE_TIMESTAMP_REQUEST = (
+    'openssl'
+    + TST_COMMAND_DELIMITER
+    + 'ts'
+    + TST_COMMAND_DELIMITER
+    + '-query'
+    + TST_COMMAND_DELIMITER
+    + '-data'
+    + TST_COMMAND_DELIMITER
+    + '{0}'
+    + TST_COMMAND_DELIMITER
+    + '-cert'
+    + TST_COMMAND_DELIMITER
+    + '-sha512'
+)
+SSL_GET_TIMESTAMP_RESPONSE = (
+    'openssl'
+    + TST_COMMAND_DELIMITER
+    + 'ts'
+    + TST_COMMAND_DELIMITER
+    + '-verify'
+    + TST_COMMAND_DELIMITER
+    + '-data'
+    + TST_COMMAND_DELIMITER
+    + '{0}'
+    + TST_COMMAND_DELIMITER
+    + '-in'
+    + TST_COMMAND_DELIMITER
+    + '{1}'
+    + TST_COMMAND_DELIMITER
+    + '-CAfile'
+    + TST_COMMAND_DELIMITER
+    + '{2}'
+)
 
-SSL_CREATE_TIMESTAMP_HASH_REQUEST = 'openssl ts -query -digest {digest} {digest_type} -cert'
+SSL_CREATE_TIMESTAMP_HASH_REQUEST = (
+    'openssl ts -query -digest {digest} {digest_type} -cert'
+)
 SSL_GET_TIMESTAMP_HASH_RESPONSE = 'openssl ts -verify {digest_type} -digest {digest} -in {input} -CAfile {ca}'
 
 # openssl ts verify check value
@@ -465,7 +554,7 @@ RETRY_COUNT = 3
 # UPKI flag
 USE_UPKI = False
 
-#uPKI operation commands
+# uPKI operation commands
 UPKI_TIMESTAMP_URL = ''
 UPKI_CREATE_TIMESTAMP = ''  # {0}=target, {1}=out
 UPKI_VERIFY_TIMESTAMP = ''  # {0}=target, {1}=in
@@ -488,15 +577,19 @@ FILE_NOT_EXISTS_MSG = 'Fail: deleted file.'
 FILE_NOT_FOUND = 6
 FILE_NOT_FOUND_MSG = 'Fail: file was gone.'
 TIME_STAMP_VERIFICATION_ERR = 7
-TIME_STAMP_VERIFICATION_ERR_MSG = 'Error: some errors has occurred in verification.'
+TIME_STAMP_VERIFICATION_ERR_MSG = (
+    'Error: some errors has occurred in verification.'
+)
 TIME_STAMP_STORAGE_DISCONNECTED = 8
 TIME_STAMP_STORAGE_DISCONNECTED_MSG = 'Error: storage disconnected.'
 TIME_STAMP_STORAGE_NOT_ACCESSIBLE = 9
-TIME_STAMP_STORAGE_NOT_ACCESSIBLE_MSG = 'Error: storage service connection error occurred.'
+TIME_STAMP_STORAGE_NOT_ACCESSIBLE_MSG = (
+    'Error: storage service connection error occurred.'
+)
 
 # Quota settings
 DEFAULT_MAX_QUOTA = 100
 WARNING_THRESHOLD = 0.9
 BASE_FOR_METRIC_PREFIX = 1000
-SIZE_UNIT_GB = BASE_FOR_METRIC_PREFIX ** 3
+SIZE_UNIT_GB = BASE_FOR_METRIC_PREFIX**3
 NII_STORAGE_REGION_ID = 1
