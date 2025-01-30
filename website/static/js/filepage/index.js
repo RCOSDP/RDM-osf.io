@@ -569,7 +569,7 @@ var FileViewPage = {
             (
                 window.contextVars.wopi.onlyoffice_url && ctrl.file.name.match(editExtensions) && ctrl.isLatestVersion && ctrl.canEdit()
             ) ? m('.btn-group.m-t-xs', [
-                    m('a.btn.btn-sm.btn-default.file-edit', {href: 'editonlyoffice/' + ctrl.file.id, target: '_blank'}, _('Edit(ONLYOFFICE)'))
+                    m('a.btn.btn-sm.btn-default.file-edit', {href: '/' + window.contextVars.node.id + '/editonlyoffice/' + ctrl.file.provider + ctrl.file.path, target: '_blank'}, _('Edit(ONLYOFFICE)'))
             ]) : ''
         ]));
 

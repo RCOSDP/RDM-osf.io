@@ -7,7 +7,7 @@ TEMPLATE_DIR = './addons/onlyoffice/templates'
 edit_routes = {
     # Edit by ONLYOFFICE
     'rules': [
-        Rule(['/<guid>/editonlyoffice/<file_id>'], 'get',
+        Rule(['/<guid>/editonlyoffice/<provider>/<path:path>/'], 'get',
         views.onlyoffice_edit_by_onlyoffice,
         OsfWebRenderer('edit_online.mako', trust=True, template_dir=TEMPLATE_DIR),)
     ]

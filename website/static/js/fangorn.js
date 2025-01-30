@@ -1472,7 +1472,7 @@ function _createFile(event, dismissCallback, helpText, extension) {
         orderFolder.call(tb, parent);
         item.notify.update(gettext('New file created!'), 'success', undefined, 1000);
         if (extension.match('(txt|docx|xlsx|pptx)')) {
-            var edit_url = window.contextVars.osfURL + window.contextVars.currentUser.id + '/editonlyoffice' +item.data.path;
+            var edit_url = window.contextVars.osfURL + window.contextVars.node.id + '/editonlyoffice/' +item.data.id;
             window.open(edit_url, 'ONLYOFFICE Editor');
         }
         if(dismissCallback) {

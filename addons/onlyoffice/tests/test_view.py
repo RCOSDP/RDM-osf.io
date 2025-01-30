@@ -89,7 +89,8 @@ class TestOnlyofficeAddon(OsfTestCase):
         mock_filenode = Filenode()
         mock_filenode.name = 'filename.docx'
         mock_user_info = {'user_id': 'userid', 'full_name': 'fullname', 'display_name': 'dispname'}
-        mock_file_info = {'name': 'filename.docx'}
+        mock_file_info = {'name': 'filename.docx', 'mtime': '202501010000'}
+        mock_file_version = ''
         mock_access_token = {websettings.COOKIE_NAME: 'cookie'}
 
         with mock.patch.object(BaseFileNode.objects, 'get', return_value=mock_filenode):
@@ -98,6 +99,7 @@ class TestOnlyofficeAddon(OsfTestCase):
                     with mock.patch.object(onlyoffice_token, 'decrypt', return_value=mock_jsonobj):
                         with mock.patch.object(onlyoffice_token, 'check_token', return_value=mock_check_token):
                             with mock.patch.object(onlyoffice_util, 'get_file_info', return_value=mock_file_info):
-                                with mock.patch.object(onlyoffice_util, 'check_proof_key', return_value=mock_proof_key):
-                                    res = onlyoffice_check_file_info(file_id='ABCDEFG')
+                                with mock.patch.object(onlyoffice_util, 'get_file_version', return_value=mock_file_version):
+                                    with mock.patch.object(onlyoffice_util, 'check_proof_key', return_value=mock_proof_key):
+                                        res = onlyoffice_check_file_info(file_id='ABCDEFG')
         assert res['BaseFileName'] == 'filename.docx'
