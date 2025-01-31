@@ -82,6 +82,14 @@ class BaseFileNode(TypedModel, CommentableMixin, OptionalGuidMixin, Taggable, Ob
     # The User that has this file "checked out"
     # Should only be used for OsfStorage
     checkout = models.ForeignKey('osf.OSFUser', blank=True, null=True, on_delete=models.CASCADE)
+    # The User that has locked this file
+    locked = models.ForeignKey(
+        'osf.OSFUser',
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+        related_name='locked_by',
+    )
     # The last time the touch method was called on this FileNode
     last_touched = NonNaiveDateTimeField(null=True, blank=True)
     # A list of dictionaries sorted by the 'modified' key
@@ -560,12 +568,14 @@ class File(models.Model):
                 'contentType': None,
                 'downloads': self.get_download_count(),
                 'checkout': self.checkout._id if self.checkout else None,
+                'locked': self.locked._id if self.locked else None,
             })
 
         return dict(self._serialize(), **{
             'size': newest_version.size,
             'downloads': self.get_download_count(),
             'checkout': self.checkout._id if self.checkout else None,
+            'locked': self.locked._id if self.locked else None,
             'version': newest_version.identifier if newest_version else None,
             'contentType': newest_version.content_type if newest_version else None,
             'modified': newest_version.external_modified.isoformat() if newest_version.external_modified else None,
