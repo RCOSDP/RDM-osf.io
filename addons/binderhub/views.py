@@ -476,6 +476,7 @@ def collect_ancestor_nodes(node):
 # The graph is directed and cyclic but is never reflective.
 def collect_relative_nodes(node):
     visited = set()
+
     def _rec(node, level):
         if node in visited:
             return
