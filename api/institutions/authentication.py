@@ -9,6 +9,9 @@ import waffle
 import re
 import urllib.parse
 
+# @R-2024-AUTH01 for eduGAIN
+import requests
+
 # from django.utils import timezone
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
@@ -131,6 +134,20 @@ class InstitutionAuthentication(BaseAuthentication):
         institution = Institution.load(provider['id'])
         if not institution:
             raise AuthenticationFailed('Invalid institution id: "{}"'.format(provider['id']))
+        # @R-2024-AUTH01 for eduGAIN
+        if provider['id'] == 'eduGAIN':
+            eduGAIN_api_url = 'https://technical.edugain.org/api.php?action=show_entity&e_id=' + provider['idp']
+            try:
+                _res = requests.get(eduGAIN_api_url, timeout=(12, 30))
+            except Timeout:
+                _res = None
+            if _res is None:
+                message = 'Invalid institution idp(eduGAIN) "{}"'.format(
+                    provider['idp'],
+                )
+                sentry.log_message(message)
+                logger.error(message)
+                raise AuthenticationFailed('Invalid institution idp(eduGAIN): "{}"'.format(provider['idp']))
 
         USE_EPPN = login_by_eppn()
 
