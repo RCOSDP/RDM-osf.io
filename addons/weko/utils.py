@@ -2,6 +2,8 @@ import logging
 import re
 
 from osf.models.metaschema import RegistrationSchema
+from jinja2 import Environment
+from jinja2.exceptions import TemplateSyntaxError
 
 
 REGISTRATION_METADATA_MAPPING_PACKAGING_SIMPLE_ZIP = 'http://purl.org/net/sword/3.0/package/SimpleZip'
@@ -10,23 +12,37 @@ REGISTRATION_METADATA_MAPPING_PACKAGING_SWORD_BAGIT = 'http://purl.org/net/sword
 logger = logging.getLogger(__name__)
 
 
-def _validate_mapping_element(element):
+def _validate_mapping_element(element, full_key=None):
     if isinstance(element, list):
-        for e in element:
+        for i, e in enumerate(element):
             if isinstance(e, str):
                 continue
-            _validate_mapping_element(e)
+            current_key = f'{full_key}[{i}]' if full_key else f'[{i}]'
+            _validate_mapping_element(e, full_key=current_key)
         return
     for key, v in element.items():
+        current_key = f'{full_key}.{key}' if full_key else key
         if key.startswith('@'):
             if key not in ['@type', '@createIf']:
-                raise ValueError(f'Unexpected special property: {key}')
+                raise ValueError(f'Unexpected special property: {current_key}')
+            _validate_jinja2_syntax(v, current_key)
             continue
         if not re.match(r'([\.a-zA-Z_]+)(\[[A-Z_]*\])?', key):
             raise ValueError(f'Unexpected key format "{key}" (must be [a-zA-Z_]+[[A-Z_]*]?)')
         if isinstance(v, str):
+            _validate_jinja2_syntax(v, current_key)
             continue
-        _validate_mapping_element(v)
+        _validate_mapping_element(v, full_key=current_key)
+
+
+def _validate_jinja2_syntax(value, key):
+    if not isinstance(value, str):
+        raise ValueError('Value must be string')
+    try:
+        env = Environment(autoescape=False)
+        env.parse(value)
+    except TemplateSyntaxError as e:
+        raise ValueError(f'Invalid Jinja2 syntax in {key} "{value}": {e}')
 
 
 def _validate_metadata_element(element):
@@ -93,8 +109,8 @@ def validate_mapping(mapping):
         if key == '_' and '@type' in element:
             raise ValueError('Mapping "_" cannot have @type property')
         if key == '_' and '@createIf' in element:
-            raise ValueError('Mapping "_" cannot have @createIf property')
-        _validate_mapping_element(element)
+            raise ValueError(f'Mapping "_" cannot have @createIf property')
+        _validate_mapping_element(element, full_key=key)
 
 
 def ensure_registration_metadata_mapping(schema_name, mapping):
