@@ -1050,9 +1050,9 @@
           }
         },
         {
-          "qid": "grdm-file:journal-name",
-          "nav": "掲載誌名",
-          "title": "掲載誌名|Journal Name",
+          "qid": "grdm-file:journal-name-ja",
+          "nav": "掲載誌名 (日本語)",
+          "title": "掲載誌名 (日本語)|Journal Name (Japanese)",
           "type": "string",
           "format": "text",
           "required": false,
@@ -1060,9 +1060,38 @@
             "grdm-file:file-type": "manuscript"
           },
           "required_if": {
-            "grdm-file:doi-exists": "not exists"
+            "$and": [
+              {
+                "grdm-file:doi-exists": "not exists"
+              },
+              {
+                "grdm-file:journal-name-en": ""
+              }
+            ]
           },
-          "message_required_if": "論文（出版社版）のDOIの有無が「なし」の場合は必須項目です|This field is required if the existence of DOI of the publication (publisher version) is \"not exists\""
+          "message_required_if": "論文（出版社版）のDOIの有無が「なし」の場合は日英どちらか必須です|Either Japanese or English is required if the existence of DOI of the publication (publisher version) is \"not exists\""
+        },
+        {
+          "qid": "grdm-file:journal-name-en",
+          "nav": "Journal Name (English)",
+          "title": "Journal Name (English)",
+          "type": "string",
+          "format": "text",
+          "required": false,
+          "enabled_if": {
+            "grdm-file:file-type": "manuscript"
+          },
+          "required_if": {
+            "$and": [
+              {
+                "grdm-file:doi-exists": "not exists"
+              },
+              {
+                "grdm-file:journal-name-ja": ""
+              }
+            ]
+          },
+          "message_required_if": "論文（出版社版）のDOIの有無が「なし」の場合は日英どちらか必須です|Either Japanese or English is required if the existence of DOI of the publication (publisher version) is \"not exists\""
         },
         {
           "qid": "grdm-file:date-published",
@@ -1104,8 +1133,8 @@
         },
         {
           "qid": "grdm-file:page-start",
-          "nav": "掲載ページ(開始)",
-          "title": "掲載ページ(開始)|Page Start",
+          "nav": "掲載ページ (開始)",
+          "title": "掲載ページ (開始)|Page Start",
           "type": "string",
           "format": "text",
           "required": false,
@@ -1115,8 +1144,8 @@
         },
         {
           "qid": "grdm-file:page-end",
-          "nav": "掲載ページ(終了)",
-          "title": "掲載ページ(終了)|Page End",
+          "nav": "掲載ページ (終了)",
+          "title": "掲載ページ (終了)|Page End",
           "type": "string",
           "format": "text",
           "required": false,
