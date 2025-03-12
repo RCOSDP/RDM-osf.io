@@ -12,7 +12,9 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunSQL(
-            [],
+        migrations.AddField(
+            model_name='registrationreportformat',
+            name='order',
+            field=models.IntegerField(blank=True, null=True),
         ),
     ]
