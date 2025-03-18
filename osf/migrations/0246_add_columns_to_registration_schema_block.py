@@ -20,30 +20,30 @@ def ensure_registration_reports(*args):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('osf', '0233_merge_20230928_0450'),
+        ('osf', '0245_ensure_schema_and_reports'),
     ]
 
     operations = [
-        #        migrations.AddField(
-        #            model_name='registrationschemablock',
-        #            name='required_if',
-        #            field=models.TextField(null=True),
-        #        ),
-        # migrations.AddField(
-        #    model_name='registrationschemablock',
-        #    name='message_required_if',
-        #    field=models.TextField(null=True),
-        # ),
-        # migrations.AddField(
-        #    model_name='registrationschemablock',
-        #    name='enabled_if',
-        #    field=models.TextField(null=True),
-        # ),
-        # migrations.AddField(
-        #    model_name='registrationschemablock',
-        #    name='suggestion',
-        #    field=models.TextField(null=True),
-        # ),
+        migrations.AddField(
+            model_name='registrationschemablock',
+            name='auto_date',
+            field=models.BooleanField(default=False),
+        ),
+        migrations.AddField(
+            model_name='registrationschemablock',
+            name='auto_title',
+            field=models.BooleanField(default=False),
+        ),
+        migrations.AddField(
+            model_name='registrationschemablock',
+            name='auto_value',
+            field=models.BooleanField(default=False),
+        ),
+        migrations.AddField(
+            model_name='registrationschemablock',
+            name='hide_projectmetadata',
+            field=models.BooleanField(default=False),
+        ),
         UpdateRegistrationSchemasAndSchemaBlocks(),
         migrations.RunPython(ensure_registration_reports, ensure_registration_reports),
     ]

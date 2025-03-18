@@ -10,6 +10,7 @@ def ensure_registration_mappings(*args):
     from addons.weko.apps import NAME
     from addons.weko.utils import ensure_registration_metadata_mapping
     from addons.weko.mappings import REGISTRATION_METADATA_MAPPINGS
+
     if NAME not in settings.INSTALLED_APPS:
         return
     for schema_name, mappings in REGISTRATION_METADATA_MAPPINGS:
@@ -19,7 +20,7 @@ def ensure_registration_mappings(*args):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('osf', '0241_ensure_schema_and_reports_and_mappings'),
+        ('osf', '0247_ensure_schema_and_reports_and_mappings'),
     ]
 
     operations = [

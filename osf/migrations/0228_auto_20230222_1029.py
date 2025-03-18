@@ -8,15 +8,19 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('osf', '0226_osfuser_is_data_steward'),
         ('osf', '0226_alter_filelog_path'),
+        ('osf', '0227_osfuser_is_data_steward'),
     ]
 
     operations = [
         migrations.AddField(
             model_name='contributor',
             name='data_steward_old_permission',
-            field=models.CharField(choices=[('NULL', None), ('READ', 'read'), ('WRITE', 'write'), ('ADMIN', 'admin')], max_length=255, null=True),
+            field=models.CharField(
+                choices=[('NULL', None), ('READ', 'read'), ('WRITE', 'write'), ('ADMIN', 'admin')],
+                max_length=255,
+                null=True,
+            ),
         ),
         migrations.AddField(
             model_name='contributor',
