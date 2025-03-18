@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('osf', '0234_loa'),
+        ('osf', '0231_loa'),
     ]
 
     operations = [

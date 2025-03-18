@@ -20,30 +20,30 @@ def ensure_registration_reports(*args):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('osf', '0236_auto_20230518_0407'),
+        ('osf', '0234_ensure_schema_and_reports'),
     ]
 
     operations = [
-        #        migrations.AddField(
-        #            model_name='registrationschemablock',
-        #            name='required_if',
-        #            field=models.TextField(null=True),
-        #        ),
-        # migrations.AddField(
-        #    model_name='registrationschemablock',
-        #    name='message_required_if',
-        #    field=models.TextField(null=True),
-        # ),
-        # migrations.AddField(
-        #    model_name='registrationschemablock',
-        #    name='enabled_if',
-        #    field=models.TextField(null=True),
-        # ),
-        # migrations.AddField(
-        #    model_name='registrationschemablock',
-        #    name='suggestion',
-        #    field=models.TextField(null=True),
-        # ),
+        migrations.AddField(
+            model_name='registrationschemablock',
+            name='required_if',
+            field=models.TextField(null=True),
+        ),
+        migrations.AddField(
+            model_name='registrationschemablock',
+            name='message_required_if',
+            field=models.TextField(null=True),
+        ),
+        migrations.AddField(
+            model_name='registrationschemablock',
+            name='enabled_if',
+            field=models.TextField(null=True),
+        ),
+        migrations.AddField(
+            model_name='registrationschemablock',
+            name='suggestion',
+            field=models.TextField(null=True),
+        ),
         UpdateRegistrationSchemasAndSchemaBlocks(),
         migrations.RunPython(ensure_registration_reports, ensure_registration_reports),
     ]
