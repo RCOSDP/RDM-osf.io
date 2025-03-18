@@ -5,6 +5,9 @@ from __future__ import unicode_literals
 from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Migration(migrations.Migration):
@@ -28,3 +31,5 @@ class Migration(migrations.Migration):
             ),
         ),
     ]
+
+    logger.info('loa update.')

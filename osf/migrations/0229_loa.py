@@ -7,6 +7,9 @@ from django.db import migrations, models
 import django.db.models.deletion
 import django_extensions.db.fields
 import osf.models.base
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Migration(migrations.Migration):
@@ -44,3 +47,5 @@ class Migration(migrations.Migration):
             bases=(models.Model, osf.models.base.QuerySetExplainMixin),
         ),
     ]
+
+    logger.info('loa create.')
