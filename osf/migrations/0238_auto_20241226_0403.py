@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('osf', '0237_ensure_schema_and_reports'),
+        ('osf', '0229_loa'),
     ]
 
     operations = [
