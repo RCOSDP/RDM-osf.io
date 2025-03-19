@@ -13,18 +13,18 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='contributor',
-            name='data_steward_old_permission',
-            field=models.CharField(
-                choices=[('NULL', None), ('READ', 'read'), ('WRITE', 'write'), ('ADMIN', 'admin')],
-                max_length=255,
-                null=True,
-            ),
-        ),
-        migrations.AddField(
-            model_name='contributor',
-            name='is_data_steward',
-            field=models.BooleanField(db_index=True, default=False),
-        ),
+        # migrations.AddField(
+        #    model_name='contributor',
+        #    name='data_steward_old_permission',
+        #    field=models.CharField(
+        #        choices=[('NULL', None), ('READ', 'read'), ('WRITE', 'write'), ('ADMIN', 'admin')],
+        #        max_length=255,
+        #        null=True,
+        #    ),
+        # ),
+        # migrations.AddField(
+        #    model_name='contributor',
+        #    name='is_data_steward',
+        #    field=models.BooleanField(db_index=True, default=False),
+        # ),
     ]
