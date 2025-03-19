@@ -12,14 +12,14 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='osfuser',
-            name='aal',
-            field=models.CharField(blank=True, max_length=255, null=True),
-        ),
-        migrations.AddField(
-            model_name='osfuser',
-            name='ial',
-            field=models.CharField(blank=True, max_length=255, null=True),
-        ),
+        # migrations.AddField(
+        #    model_name='osfuser',
+        #    name='aal',
+        #    field=models.CharField(blank=True, max_length=255, null=True),
+        # ),
+        # migrations.AddField(
+        #    model_name='osfuser',
+        #    name='ial',
+        #    field=models.CharField(blank=True, max_length=255, null=True),
+        # ),
     ]
