@@ -67,7 +67,7 @@ class Migration(migrations.Migration):
             model_name='loa',
             name='modifier',
             field=models.ForeignKey(
-                on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL, null=True
+                on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL, blank=True, null=True
             ),
         ),
     ]
