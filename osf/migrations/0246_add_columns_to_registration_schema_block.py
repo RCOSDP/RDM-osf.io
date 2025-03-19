@@ -3,6 +3,9 @@ from __future__ import unicode_literals
 
 from django.db import migrations, models
 from osf.utils.migrations import UpdateRegistrationSchemasAndSchemaBlocks
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def ensure_registration_reports(*args):
@@ -18,6 +21,8 @@ def ensure_registration_reports(*args):
 
 
 class Migration(migrations.Migration):
+
+    logger.info('Migration.')
 
     dependencies = [
         ('osf', '0245_ensure_schema_and_reports'),
