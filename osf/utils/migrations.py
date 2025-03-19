@@ -284,13 +284,12 @@ def create_schema_block(
         'auto_title': auto_title,
         'hide_projectmetadata': hide_projectmetadata,
     }
-    meta_fields = RegistrationSchemaBlock._meta.get_fields()
-    logger.info('meta_fields {} '.format(meta_fields))
+    # meta_fields = RegistrationSchemaBlock._meta.get_fields()
+    # logger.info('meta_fields {} '.format(meta_fields))
     try:
         RegistrationSchemaBlock.objects.create(**params, **additional)
     except TypeError:
         # for old migration
-        logger.info('TypeError {} '.format(schema_id))
         RegistrationSchemaBlock.objects.create(**params)
 
 
