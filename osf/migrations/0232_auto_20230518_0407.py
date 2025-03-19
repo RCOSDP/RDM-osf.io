@@ -5,9 +5,6 @@ from __future__ import unicode_literals
 from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
-import logging
-
-logger = logging.getLogger(__name__)
 
 
 class Migration(migrations.Migration):
@@ -16,31 +13,4 @@ class Migration(migrations.Migration):
         ('osf', '0231_loa'),
     ]
 
-    operations = [
-        migrations.AlterField(
-            model_name='loa',
-            name='aal',
-            field=models.IntegerField(blank=True, choices=[(0, 'NULL'), (1, 'AAL1'), (2, 'AAL2')], null=True),
-        ),
-        migrations.AlterField(
-            model_name='loa',
-            name='ial',
-            field=models.IntegerField(blank=True, choices=[(0, 'NULL'), (1, 'IAL1'), (2, 'IAL2')], null=True),
-        ),
-        migrations.AddField(
-            model_name='loa',
-            name='is_mfa',
-            field=models.BooleanField(
-                choices=[(False, 'Disabled'), (True, 'Enabled')], default=False, verbose_name='Display MFA link button'
-            ),
-        ),
-        migrations.AlterField(
-            model_name='loa',
-            name='modifier',
-            field=models.ForeignKey(
-                on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL, null=True
-            ),
-        ),
-    ]
-
-    logger.info('loa update.')
+    operations = []
