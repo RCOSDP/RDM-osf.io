@@ -37,10 +37,10 @@ class AddonAppConfig(BaseAddonAppConfig):
 
     node_settings_template = os.path.join(TEMPLATE_PATH, 'metadata_node_settings.mako')
 
-    excel_maximun_file_size = 10485760
-    text_maximun_file_size = 10485760
-    image_maximun_file_size = 10485760
-    other_maximun_file_size = 10485760
+    excel_file_maximum_size = 10485760
+    text_file_maximum_size = 10485760
+    image_file_maximum_size = 10485760
+    any_file_maximum_size = 10485760
 
     text_file_extension = ['txt', 'csv', 'tsv']
     excel_file_extension = ['xlsx', 'xls']

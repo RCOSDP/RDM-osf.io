@@ -36,12 +36,11 @@ class ROCrateFactory(BaseROCrateFactory):
         comment_ids = {}
         files = []
         for file in self.folder.get_files():
-            _, children = self._create_file_entities(crate, self.node, f'./', file, user_ids, schema_ids, comment_ids)
+            _, children = self._create_file_entities(crate, self.node, './', file, user_ids, schema_ids, comment_ids)
             files += children
         for _, _, comments in files:
             crate.add(*comments)
         return crate, files
-
 
 def _download(node, file, tmp_dir, total_size):
     if file.kind == 'file':
@@ -73,6 +72,7 @@ def deposit_metadata(
     self, user_id, index_id, node_id, metadata_node_id,
     schema_id, file_metadatas, project_metadatas, metadata_paths, status_path, delete_after=False,
 ):
+    import os
     user = OSFUser.load(user_id)
     logger.info(f'Deposit: {metadata_paths}, {status_path} {self.request.id}')
     node = AbstractNode.load(node_id)
@@ -138,6 +138,7 @@ def deposit_metadata(
             'Packaging': 'http://purl.org/net/sword/3.0/package/SimpleZip',
             'Content-Disposition': 'attachment; filename=payload.zip',
         }
+
         files = {
             'file': ('payload.zip', open(zip_path, 'rb'), 'application/zip'),
         }
@@ -152,7 +153,7 @@ def deposit_metadata(
             'progress': 100,
             'paths': metadata_paths,
         })
-        links = [l for l in respbody['links'] if 'contentType' in l and '@id' in l and l['contentType'] == 'text/html']
+        links = [link for link in respbody['links'] if 'contentType' in link and '@id' in link and link['contentType'] == 'text/html']
         for file in download_files:
             if delete_after:
                 file.delete()

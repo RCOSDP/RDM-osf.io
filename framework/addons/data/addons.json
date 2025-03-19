@@ -708,6 +708,36 @@
                 "status": "none",
                 "text": "ONLYOFFICE information will not be registered."
             }
+        },
+        "Work Flow": {
+            "Permissions": {
+                "status": "none",
+                "text": "The GakuNin RDM does not affect the permissions of Work Flow."
+            },
+            "View / download file versions": {
+                "status": "none",
+                "text": "The Work Flow add-on does not provide Storage Features."
+            },
+            "Add / update files": {
+                "status": "none",
+                "text": "The Work Flow add-on does not provide Storage Features."
+            },
+            "Delete files": {
+                "status": "none",
+                "text": "The Work Flow add-on does not provide Storage Features."
+            },
+            "Logs": {
+                "status": "none",
+                "text": "The Work Flow add-on does not provide Storage Features."
+            },
+            "Forking": {
+                "status": "partial",
+                "text": "Forking a project or component copies information about linked Work Flow but the GakuNin RDM does not affect authentication of Work Flow."
+            },
+            "Registering": {
+                "status": "none",
+                "text": "Work Flow information will not be registered."
+            }
         }
     },
     "disclaimers": [

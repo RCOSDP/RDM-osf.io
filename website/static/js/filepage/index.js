@@ -246,6 +246,227 @@ var FileViewPage = {
                 }
             });
         });
+
+        $(document).on('fileviewpage:approval', function() {
+            var tmpForm = $('<form id=\'infos\' action=\'\'>');
+            tmpForm.append(_('Workflow Project ID'));
+            tmpForm.append('<br/><input type=\'text\' class=\'bootbox-input bootbox-input-text\' style=\'width: 100%;\' name=\'workflow_project_id\' value=\'\'><br/><br/>');
+            tmpForm.append(_('Workflow Process Project ID'));
+            tmpForm.append('<br/><input type=\'text\' class=\'bootbox-input bootbox-input-text\' style=\'width: 100%;\' name=\'process_project_id\' value=\'\'><br/><br/>');
+            tmpForm.append(_('Workflow User ID'));
+            tmpForm.append('<br/><input type=\'text\' class=\'bootbox-input bootbox-input-text\' style=\'width: 100%;\' name=\'workflow_userid\' value=\'\'><br/><br/>');
+            tmpForm.append(_('Workflow Valid User ID'));
+            tmpForm.append('<br/><input type=\'text\' class=\'bootbox-input bootbox-input-text\' style=\'width: 100%;\' name=\'workflow_valid_userid\' value=\'\'><br/><br/>');
+            tmpForm.append(_('Workfllow Startup User ID'));
+            tmpForm.append('<br/><input type=\'text\' class=\'bootbox-input bootbox-input-text\' style=\'width: 100%;\' name=\'workflow_startup_userid\' value=\'\'><br/><br/>');
+            tmpForm.append(_('File Path'));
+            tmpForm.append('<br/><input type=\'text\' class=\'bootbox-input bootbox-input-text\' style=\'width: 100%;\' name=\'file_path\' value=\'' + sprintf(window.contextVars.apiV2Prefix + 'files' + self.file.path + '/') + '\'><br/><br/>');
+            tmpForm.append(_('Admin Mail Address'));
+            tmpForm.append('<br/><input type=\'text\' class=\'bootbox-input bootbox-input-text\' style=\'width: 100%;\' name=\'admin_mailaddr\' value=\'\'><br/><br/>');
+            tmpForm.append(_('Researcher Mail Address'));
+            tmpForm.append('<br/><input type=\'text\' class=\'bootbox-input bootbox-input-text\' style=\'width: 100%;\' name=\'researcher_mailaddr\' value=\'\'><br/><br/>');
+            tmpForm.append('</form>');
+
+            $osf.ajaxJSON('get', '/api/v1/addons/workflow/all_registered_workflows/')
+            .done(function(resp) {
+                const targetItem = resp.data.find(function(item) {
+                    return item.workflow_project_id === self.context.node.id;
+                });
+                if (targetItem) {
+                    var workflow_project_id = targetItem.workflow_project_id;
+                    var workflow_userid = targetItem.workflow_userid;
+                    var workflow_valid_userid = targetItem.workflow_valid_userid;
+                    tmpForm.find('input[name=\'workflow_project_id\']').val(workflow_project_id);
+                    tmpForm.find('input[name=\'workflow_userid\']').val(workflow_userid);
+                    tmpForm.find('input[name=\'workflow_valid_userid\']').val(workflow_valid_userid);
+                }
+
+                const process_project_id = self.context.node.id;
+                const workflow_startup_userid = self.context.currentUser.id;
+                tmpForm.find('input[name=\'process_project_id\']').val(process_project_id);
+                tmpForm.find('input[name=\'workflow_startup_userid\']').val(workflow_startup_userid);
+            }).fail(function(resp) {
+            });
+
+
+            bootbox.confirm({
+                title: _('Workflow Start'),
+                message: tmpForm,
+                buttons: {
+                    confirm: {
+                        label: _('Workflow Start'),
+                        className: 'btn-success'
+                    },
+                    cancel: {
+                        label: _('Cancel'),
+                        className: 'btn-danger'
+                    }
+                },
+                callback: function(confirm) {
+                    if (!confirm) {
+                        return;
+                    }
+
+                    if (tmpForm.find('input[name=\'workflow_project_id\']').val() === '' ||
+                        tmpForm.find('input[name=\'process_project_id\']').val() === '' ||
+                        tmpForm.find('input[name=\'workflow_userid\']').val() === '' ||
+                        tmpForm.find('input[name=\'workflow_valid_userid\']').val() === '' ||
+                        tmpForm.find('input[name=\'workflow_startup_userid\']').val() === '' ||
+                        tmpForm.find('input[name=\'file_path\']').val() === '' ||
+                        tmpForm.find('input[name=\'admin_mailaddr\']').val() === '' ||
+                        tmpForm.find('input[name=\'researcher_mailaddr\']').val() === ''
+                    ) {
+                        alert(_('Check the workflow data again.'));
+                        return;
+                    }
+
+                    var loadingMessage = bootbox.dialog({
+                        message: '<p class=\'text-center\'><i class=\'fa fa-spinner fa-spin\'></i>' + _('Processing...') + '</p>',
+                        closeButton: false
+                    });
+
+
+                    $osf.ajaxJSON('get', '/api/v1/project/' + self.context.node.id + '/workflow/workflow_connection')
+                        .done(function(resp) {
+                            var workflow_url = resp.data[0].url;
+
+                            function fetchWorkflowData() {
+                                var username = 'admin';
+                                var password = 'test';
+                                var credentials = btoa(username + ':' + password);
+
+                                return fetch(workflow_url + '/process-api/repository/process-definitions', {
+                                    method: 'GET',
+                                    headers: {
+                                        'Authorization': 'Basic ' + credentials,
+                                        'Content-Type': 'application/json'
+                                    }
+                                }).then(function(response) {
+                                    if (!response.ok) {
+                                        throw new Error('Failed to fetch: ' + response.status);
+                                    }
+                                    return response.json();
+                                }).then(function(data) {
+                                    if (!data.data || data.data.length === 0) {
+                                        throw new Error('No process definition ID found in response.');
+                                    }
+
+                                    var firstId = data.data[0].id;
+
+                                    console.log('First Process Definition ID:', firstId);
+                                    return firstId;
+                                }).catch(function(error) {
+                                    console.error('Error fetching workflow data:', error);
+                                    return null;
+                                });
+                            }
+
+                            function registerCombinedWorkflowData() {
+                                var processDefinitionId;
+
+                                return fetchWorkflowData().then(function(id) {
+                                    processDefinitionId = id;
+
+                                    if (!processDefinitionId) {
+                                        throw new Error('Failed to retrieve process definition ID.');
+                                    }
+
+                                    var requestData = {
+                                        processDefinitionId: processDefinitionId,
+                                        variables: [
+                                            { name: 'WorkflowProjectId', value: tmpForm.find('input[name=\'workflow_project_id\']').val() },
+                                            { name: 'WorkflowProcessProjectId', value: tmpForm.find('input[name=\'process_project_id\']').val() },
+                                            { name: 'WorkflowRegistUserId', value: tmpForm.find('input[name=\'workflow_userid\']').val() },
+                                            { name: 'WorkflowActiveUserId', value: tmpForm.find('input[name=\'workflow_valid_userid\']').val() },
+                                            { name: 'WorkflowProcessStartId', value: tmpForm.find('input[name=\'workflow_startup_userid\']').val() },
+                                            { name: 'FilePass', value: tmpForm.find('input[name=\'file_path\']').val() },
+                                            { name: 'Email_address_of_the_person_responsible_for_the_management', value: tmpForm.find('input[name=\'admin_mailaddr\']').val() },
+                                            { name: 'Email_address_of_the_person_conducting_the_research', value: tmpForm.find('input[name=\'researcher_mailaddr\']').val() }
+                                        ]
+                                    };
+
+                                return fetch(workflow_url+'/process-api/runtime/process-instances', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': 'Basic ' + btoa('admin:test')
+                                    },
+                                    body: JSON.stringify(requestData)
+                                });
+                            }).then(function(response) {
+                                if (!response.ok) {
+                                    return response.text().then(function(errorText) {
+                                        throw new Error('Failed to register data: ' + response.status + ' - ' + errorText);
+                                    });
+                                }
+                                return response.json();
+                            }).then(function(responseData) {
+
+                                return responseData.id;
+                            }).catch(function(error) {
+                                console.error('Error during workflow registration:', error);
+                                return null;
+                            });
+                        }
+
+                        registerCombinedWorkflowData().then(function(processId) {
+                            $osf.ajaxJSON('post', '/api/v1/addons/workflow/start_workflow/', {
+                                data: {
+                                    workflow_engine: '',
+                                    workflow_name: '',
+                                    workflow_id: '',
+                                    creator_token: self.context.currentUser.id,
+                                    admin_token: '',
+                                    executor_token: '',
+                                    process_id: processId,
+                                    process_name: '',
+                                    workflow_project_id: tmpForm.find('input[name=\'workflow_project_id\']').val(),
+                                    process_project_id: tmpForm.find('input[name=\'process_project_id\']').val(),
+                                    workflow_userid: tmpForm.find('input[name=\'workflow_userid\']').val(),
+                                    workflow_valid_userid: tmpForm.find('input[name=\'workflow_valid_userid\']').val(),
+                                    workflow_startup_userid: tmpForm.find('input[name=\'workflow_startup_userid\']').val(),
+                                    file_path: tmpForm.find('input[name=\'file_path\']').val(),
+                                    admin_mailaddr: tmpForm.find('input[name=\'admin_mailaddr\']').val(),
+                                    researcher_mailaddr: tmpForm.find('input[name=\'researcher_mailaddr\']').val()
+                                },
+                            }).done(function(resp) {
+                                if(resp.status === 'OK'){
+                                    $.ajax({
+                                        headers: {
+                                            'Accept': 'application/json',
+                                            'Content-Type': 'application/json'
+                                        },
+                                        type: 'PATCH',
+                                        url: window.contextVars.apiV2Prefix + 'files' + self.file.path + '/',
+                                        data: JSON.stringify({
+                                            data: {
+                                                type: 'files',
+                                                id: self.context.file.id,
+                                                attributes: {
+                                                    locked: true
+                                                }
+                                            }
+                                        }),
+                                        xhrFields: { withCredentials: true }
+                                    })
+                                    .done(function(patchResp) {
+                                        loadingMessage.modal('hide');
+                                        alert(_('The workflow process is complete.'));
+                                    })
+                                    .fail(function(patchResp) {
+                                        loadingMessage.modal('hide');
+                                        alert(_('The workflow process has failed.'));
+                                    });
+                                }
+                            }).fail(function(resp) {
+                            });
+                        });
+                        }).fail(function(resp) {
+                        });
+                }
+            });
+        });
+
         $(document).on('fileviewpage:checkin', function() {
             var url = window.contextVars.apiV2Prefix + 'files' + self.file.path + '/';
             $osf.ajaxJSON('PUT', url, {
@@ -566,6 +787,11 @@ var FileViewPage = {
                     }
                 }}, _('Revisions'))
             ]),
+
+            (ctrl.context.currentUser.isAdmin) ? m('.btn-group.m-t-xs', [
+                m('a.btn.btn-sm.btn-success', {onclick: $(document).trigger.bind($(document), 'fileviewpage:approval')}, _('Request for administrator approval to publish'))
+            ]) : '',
+
             (
                 window.contextVars.wopi.onlyoffice_url && ctrl.file.name.match(editExtensions) && ctrl.isLatestVersion && ctrl.canEdit()
             ) ? m('.btn-group.m-t-xs', [

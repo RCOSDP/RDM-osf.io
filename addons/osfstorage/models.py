@@ -139,8 +139,16 @@ class OsfStorageFileNode(BaseFileNode):
         return '/' + self._id + ('' if self.is_file else '/')
 
     @property
+    def is_readonly(self):
+        return self.is_checked_out or self.is_locked
+
+    @property
     def is_checked_out(self):
         return self.checkout is not None
+
+    @property
+    def is_locked(self):
+        return self.locked is not None
 
     # overrides BaseFileNode
     @property
@@ -152,6 +160,8 @@ class OsfStorageFileNode(BaseFileNode):
             raise exceptions.FileNodeIsPrimaryFile()
         if self.is_checked_out:
             raise exceptions.FileNodeCheckedOutError()
+        if self.is_locked:
+            raise exceptions.FileNodeLockedError()
         return True
 
     @property
@@ -175,6 +185,8 @@ class OsfStorageFileNode(BaseFileNode):
                 raise exceptions.FileNodeIsPrimaryFile()
         if self.is_checked_out:
             raise exceptions.FileNodeCheckedOutError()
+        if self.is_locked:
+            raise exceptions.FileNodeLockedError()
         self.update_region_from_latest_version(destination_parent)
         return super(OsfStorageFileNode, self).move_under(destination_parent, name)
 
@@ -192,6 +204,10 @@ class OsfStorageFileNode(BaseFileNode):
         from osf.models import NodeLog  # Avoid circular import
 
         target = self.target
+        if self.is_locked:
+            # Prevent check in/out if file is locked
+            raise exceptions.FileNodeLockedError()
+
         if isinstance(target, AbstractNode) and self.is_checked_out and self.checkout != user:
             # Allow project admins to force check in
             if not target.has_permission(user, permissions.ADMIN):
@@ -224,6 +240,55 @@ class OsfStorageFileNode(BaseFileNode):
 
             if save:
                 self.save()
+
+    def lock(self, user, is_locked, save=False):
+        """
+        Updates self.locked with the requesting user or None,
+        iff user has permission to lock file or folder.
+        Adds log to self.target if target is a node.
+
+
+        :param user:      User making the request
+        :param is_locked: Whether or not to lock the file or folder
+        :param save:      Whether or not to save the user
+        """
+        from osf.models import NodeLog
+
+        target = self.target
+        if self.is_checked_out:
+            # Prevent lock/unlock if file is checked out
+            raise exceptions.FileNodeCheckedOutError()
+
+        if not target.has_permission(user, permissions.ADMIN):
+            raise exceptions.FileNodeLockedError()
+
+        action = NodeLog.LOCKED if is_locked else NodeLog.UNLOCKED
+        if self.is_locked and action == NodeLog.LOCKED:
+            # No need to lock again
+            return
+        if not self.is_locked and action == NodeLog.UNLOCKED:
+            # No need to unlock again
+            return
+        self.locked = user if is_locked else None
+        if isinstance(target, Loggable):
+            target.add_log(
+                action=action,
+                params={
+                    'kind': self.kind,
+                    'project': target.parent_id,
+                    'node': target._id,
+                    'urls': {
+                        'download': '/project/{}/files/{}/{}/?action=download'.format(target._id,
+                                                                                      self.provider,
+                                                                                      self._id),
+                        'view': '/project/{}/files/{}/{}'.format(target._id, self.provider, self._id)},
+                    'path': self.materialized_path
+                },
+                auth=Auth(user),
+            )
+
+        if save:
+            self.save()
 
     def save(self):
         self._path = ''
@@ -437,6 +502,39 @@ class OsfStorageFolder(OsfStorageFileNode, Folder):
             SELECT N.checkout_id
             FROM is_checked_out_cte as N
             WHERE N.checkout_id IS NOT NULL
+            LIMIT 1;
+        """
+
+        with connection.cursor() as cursor:
+            cursor.execute(sql, [AsIs(self._meta.db_table), self.pk, AsIs(self._meta.db_table)])
+            row = cursor.fetchone()
+
+            if row and row[0]:
+                return True
+
+        return False
+
+    @property
+    def is_locked(self):
+        sql = """
+            WITH RECURSIVE is_locked_cte(id, parent_id, locked_id) AS (
+              SELECT
+                T.id,
+                T.parent_id,
+                T.locked_id
+              FROM %s AS T
+              WHERE T.id = %s
+              UNION ALL
+              SELECT
+                T.id,
+                T.parent_id,
+                T.locked_id
+              FROM is_locked_cte AS R
+                JOIN %s AS T ON T.parent_id = R.id
+            )
+            SELECT N.locked_id
+            FROM is_locked_cte as N
+            WHERE N.locked_id IS NOT NULL
             LIMIT 1;
         """
 

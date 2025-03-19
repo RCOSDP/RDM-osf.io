@@ -1,0 +1,9 @@
+{
+    "engine1":
+        {
+            "name":"flowable-task",
+            "url":"http://dummy:8091/flowable-task",
+            "account":"",
+            "password":""
+        }
+}

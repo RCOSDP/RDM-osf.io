@@ -133,6 +133,7 @@ class TestGetMetadataHook(HookTestCase):
         # latestVersionSeen should not be present in record.serialize, because it has to do
         # with the user making the request itself, which isn't important when serializing the record
         expected_data['latestVersionSeen'] = None
+        expected_data['locked'] = None
 
         assert_equal(res_date_modified, expected_date_modified)
         assert_equal(res_date_created, expected_date_created)

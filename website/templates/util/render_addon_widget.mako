@@ -232,7 +232,26 @@
                     </div>
                 % endif
 
+                % if addon_name == 'workflow':
+                    <div id="workflow-content" class="scripted">
+                        <!-- ko if: loading -->
+                        <div>${_("Loading")}</div>
+                        <!-- /ko -->
+                        <!-- ko if: loadFailed -->
+                        <div class="text-danger">${_("Error occurred")}</div>
+                        <!-- /ko -->
+                        <!-- ko if: loadCompleted -->
+                        <div style="display: flex; gap: 10px;">
+                            % if permissions.READ in user['permissions'] and permissions.WRITE in user['permissions']:
+                            <a href="${node['url']}${addon_data['short_name']}" class="btn btn-primary">${_("Manage Workflow")}</a>
+                           % endif
+                        </div>
+                        <!-- /ko -->
+                    </div>
+                % endif
+
                 </div>
+
             % else:
                 <div class='addon-config-error p-sm'>
                     ${addon_data['full_name']} add-on is not configured properly.

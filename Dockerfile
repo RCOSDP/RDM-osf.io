@@ -70,6 +70,7 @@ COPY ./admin/rdm_announcement/requirements.txt ./admin/rdm_announcement/
 COPY ./admin/rdm_statistics/requirements.txt ./admin/rdm_statistics/
 COPY ./addons/metadata/requirements.txt ./addons/metadata/
 COPY ./addons/onlyoffice/requirements.txt ./addons/onlyoffice/
+COPY ./addons/workflow/requirements.txt ./addons/workflow/
 
 RUN pip3 install pip==21.0
 
@@ -179,6 +180,7 @@ COPY ./addons/iqbrims/static/ ./addons/iqbrims/static/
 COPY ./addons/binderhub/static/ ./addons/binderhub/static/
 COPY ./addons/metadata/static/ ./addons/metadata/static/
 COPY ./addons/onlyoffice/static/ ./addons/onlyoffice/static/
+COPY ./addons/workflow/static/ ./addons/workflow/static/
 RUN \
     # OSF
     yarn install --frozen-lockfile \
