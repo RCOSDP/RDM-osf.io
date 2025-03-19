@@ -66,6 +66,7 @@ FORMAT_TYPE_TO_TYPE_MAP = {
     ('file-institution-identifier', 'string'): 'short-text-input',
 }
 
+
 def get_osf_models():
     """
     Helper function to retrieve all osf related models.
@@ -74,7 +75,16 @@ def get_osf_models():
         with disable_auto_now_fields(models=get_osf_models()):
             ...
     """
-    return list(itertools.chain(*[app.get_models() for app in apps.get_app_configs() if app.label.startswith('addons_') or app.label.startswith('osf')]))
+    return list(
+        itertools.chain(
+            *[
+                app.get_models()
+                for app in apps.get_app_configs()
+                if app.label.startswith('addons_') or app.label.startswith('osf')
+            ]
+        )
+    )
+
 
 @contextmanager
 def disable_auto_now_fields(models=None):
@@ -100,6 +110,7 @@ def disable_auto_now_fields(models=None):
             if hasattr(field, 'auto_now') and not field.auto_now:
                 field.auto_now = True
 
+
 @contextmanager
 def disable_auto_now_add_fields(models=None):
     """
@@ -124,6 +135,7 @@ def disable_auto_now_add_fields(models=None):
             if hasattr(field, 'auto_now_add') and not field.auto_now_add:
                 field.auto_now_add = True
 
+
 def ensure_licenses(*args, **kwargs):
     """Upsert the licenses in our database based on a JSON file.
 
@@ -139,10 +151,14 @@ def ensure_licenses(*args, **kwargs):
         # Working outside a migration
         from osf.models import NodeLicense
     with builtins.open(
-            os.path.join(
-                settings.APP_PATH,
-                'node_modules', '@centerforopenscience', 'list-of-licenses', 'dist', 'list-of-licenses.json'
-            )
+        os.path.join(
+            settings.APP_PATH,
+            'node_modules',
+            '@centerforopenscience',
+            'list-of-licenses',
+            'dist',
+            'list-of-licenses.json',
+        )
     ) as fp:
         licenses = json.loads(fp.read())
         for id, info in licenses.items():
@@ -166,9 +182,9 @@ def ensure_licenses(*args, **kwargs):
 
             logger.info('License {name} ({id}) added to the database.'.format(name=name, id=id))
 
-    logger.info('{} licenses inserted into the database, {} licenses updated in the database.'.format(
-        ninserted, nupdated
-    ))
+    logger.info(
+        '{} licenses inserted into the database, {} licenses updated in the database.'.format(ninserted, nupdated)
+    )
 
     return ninserted, nupdated
 
@@ -183,8 +199,7 @@ def remove_licenses(*args):
 
 
 def ensure_schemas(*args):
-    """Import meta-data schemas from JSON to database if not already loaded
-    """
+    """Import meta-data schemas from JSON to database if not already loaded"""
     schema_count = 0
     try:
         RegistrationSchema = args[0].get_model('osf', 'registrationschema')
@@ -200,7 +215,7 @@ def ensure_schemas(*args):
             schema_version=schema.get('version', 1),
             defaults={
                 'schema': schema,
-            }
+            },
         )
         schema_count += 1
 
@@ -212,16 +227,35 @@ def ensure_schemas(*args):
 
 def remove_schemas(*args):
     from osf.models import RegistrationSchema
+
     pre_count = RegistrationSchema.objects.all().count()
     RegistrationSchema.objects.all().delete()
 
     logger.info('Removed {} schemas from the database'.format(pre_count))
 
 
-def create_schema_block(state, schema_id, block_type, display_text='', required=False, help_text='',
-        registration_response_key=None, schema_block_group_key='', example_text='',
-        default=False, pattern=None, space_normalization=False, required_if=None,
-        message_required_if=None, enabled_if=None, suggestion=None, auto_value=False, auto_date=False, auto_title=False, hide_projectmetadata=False):
+def create_schema_block(
+    state,
+    schema_id,
+    block_type,
+    display_text='',
+    required=False,
+    help_text='',
+    registration_response_key=None,
+    schema_block_group_key='',
+    example_text='',
+    default=False,
+    pattern=None,
+    space_normalization=False,
+    required_if=None,
+    message_required_if=None,
+    enabled_if=None,
+    suggestion=None,
+    auto_value=False,
+    auto_date=False,
+    auto_title=False,
+    hide_projectmetadata=False,
+):
     """
     For mapping schemas to schema blocks: creates a given block from the specified parameters
     """
@@ -231,29 +265,11 @@ def create_schema_block(state, schema_id, block_type, display_text='', required=
         'schema_id': schema_id,
         'block_type': block_type,
         'required': required,
-        'display_text': unescape_entities(
-            display_text,
-            safe={
-                '&lt;': '<',
-                '&gt;': '>'
-            }
-        ),
-        'help_text': unescape_entities(
-            help_text,
-            safe={
-                '&lt;': '<',
-                '&gt;': '>'
-            }
-        ),
+        'display_text': unescape_entities(display_text, safe={'&lt;': '<', '&gt;': '>'}),
+        'help_text': unescape_entities(help_text, safe={'&lt;': '<', '&gt;': '>'}),
         'registration_response_key': registration_response_key,
         'schema_block_group_key': schema_block_group_key,
-        'example_text': unescape_entities(
-            example_text,
-            safe={
-                '&lt;': '<',
-                '&gt;': '>'
-            }
-        ),
+        'example_text': unescape_entities(example_text, safe={'&lt;': '<', '&gt;': '>'}),
     }
     additional = {
         'default': default,
@@ -268,12 +284,14 @@ def create_schema_block(state, schema_id, block_type, display_text='', required=
         'auto_title': auto_title,
         'hide_projectmetadata': hide_projectmetadata,
     }
-
+    logger.info('auto_date {} '.format(auto_date))
     try:
         RegistrationSchemaBlock.objects.create(**params, **additional)
     except TypeError:
         # for old migration
+        logger.info('TypeError {} '.format(schema_id))
         RegistrationSchemaBlock.objects.create(**params)
+
 
 # Split question multiple choice options into their own blocks
 def split_options_into_blocks(state, rs, question, schema_block_group_key):
@@ -296,12 +314,14 @@ def split_options_into_blocks(state, rs, question, schema_block_group_key):
             schema_block_group_key=schema_block_group_key,
         )
 
+
 def get_registration_response_key(question):
     """
     For mapping schemas to schema blocks:
     Answer ids will map to the user's response
     """
     return question.get('qid', '') or question.get('id', '')
+
 
 def find_title_description_help_example(rs, question):
     """
@@ -355,6 +375,7 @@ def find_title_description_help_example(rs, question):
         description = ''
 
     return title, description, help, example
+
 
 def get_subquestion_qid(question, subquestion):
     """
@@ -441,7 +462,7 @@ def create_schema_blocks_for_question(state, rs, question, sub=False):
             display_text=title,
             help_text='' if description else help,
             example_text=example,
-            schema_block_group_key=schema_block_group_key
+            schema_block_group_key=schema_block_group_key,
         )
 
         # Creates paragraph block (question description)
@@ -499,7 +520,9 @@ def map_schemas_to_schemablocks(*args):
     unmap_schemablocks(*args)
 
     for rs in RegistrationSchema.objects.all():
-        logger.info('Migrating schema {}, version {} to schema blocks.'.format(rs.schema.get('name'), rs.schema_version))
+        logger.info(
+            'Migrating schema {}, version {} to schema blocks.'.format(rs.schema.get('name'), rs.schema_version)
+        )
         for page in rs.schema['pages']:
             # Create page heading block
             create_schema_block(
@@ -508,7 +531,7 @@ def map_schemas_to_schemablocks(*args):
                 'page-heading',
                 display_text=strip_html(page.get('title', '')),
                 help_text=strip_html(page.get('description', '')),
-                hide_projectmetadata=strip_html(page.get('hide_projectmetadata', False))
+                hide_projectmetadata=strip_html(page.get('hide_projectmetadata', False)),
             )
             for question in page['questions']:
                 create_schema_blocks_for_question(state, rs, question)
@@ -521,8 +544,8 @@ def unmap_schemablocks(*args):
 
 
 class UpdateRegistrationSchemas(Operation):
-    """Custom migration operation to update registration schemas
-    """
+    """Custom migration operation to update registration schemas"""
+
     reversible = True
 
     def state_forwards(self, app_label, state):
@@ -539,8 +562,8 @@ class UpdateRegistrationSchemas(Operation):
 
 
 class UpdateRegistrationSchemasAndSchemaBlocks(Operation):
-    """Custom migration operation to update registration schemas
-    """
+    """Custom migration operation to update registration schemas"""
+
     reversible = True
 
     def state_forwards(self, app_label, state):
@@ -565,6 +588,7 @@ class AddWaffleFlags(Operation):
     - flag_names: iterable of strings, flag names to create
     - on_for_everyone: boolean (default False), whether to activate the newly created flags
     """
+
     reversible = True
 
     def __init__(self, flag_names, on_for_everyone=False):
@@ -593,6 +617,7 @@ class DeleteWaffleFlags(Operation):
     Params:
     - flag_names: iterable of strings, flag names to delete
     """
+
     reversible = True
 
     def __init__(self, flag_names):
@@ -621,6 +646,7 @@ class AddWaffleSwitches(Operation):
     - switch_names: iterable of strings, the names of the switches to create
     - active: boolean (default False), whether the switches should be active
     """
+
     reversible = True
 
     def __init__(self, switch_names, active=False):
@@ -649,6 +675,7 @@ class DeleteWaffleSwitches(Operation):
     Params:
     - switch_names: iterable of strings, switch names to delete
     """
+
     reversible = True
 
     def __init__(self, switch_names):
@@ -669,6 +696,7 @@ class DeleteWaffleSwitches(Operation):
     def describe(self):
         return 'Removes waffle switches: {}'.format(', '.join(self.switch_names))
 
+
 def batch_node_migrations(state, migrations):
     AbstractNode = state.get_model('osf', 'abstractnode')
     max_nid = getattr(AbstractNode.objects.last(), 'id', 0)
@@ -685,8 +713,5 @@ def batch_node_migrations(state, migrations):
             if page <= total_pages:
                 logger.info('Updating page {} / {}'.format(page_end / increment, total_pages))
             with connection.cursor() as cursor:
-                cursor.execute(migration['sql'].format(
-                    start=page_start,
-                    end=page_end
-                ))
+                cursor.execute(migration['sql'].format(start=page_start, end=page_end))
             page_start = page_end
