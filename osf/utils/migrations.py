@@ -284,7 +284,7 @@ def create_schema_block(
         'auto_title': auto_title,
         'hide_projectmetadata': hide_projectmetadata,
     }
-    logger.info('auto_date {} '.format(auto_date))
+    logger.info('auto_value {} '.format(auto_value))
     try:
         RegistrationSchemaBlock.objects.create(**params, **additional)
     except TypeError:
