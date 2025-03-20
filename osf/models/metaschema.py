@@ -36,14 +36,17 @@ def allow_egap_admins(queryset, request):
     Allows egap admins to see EGAP registrations as visible, should be deleted when when the EGAP registry goes
     live.
     """
-    if hasattr(request, 'user') and waffle.flag_is_active(request, EGAP_ADMINS):
-        return queryset | RegistrationSchema.objects.filter(name='EGAP Registration').distinct('name')
+    if hasattr(request, 'user') and waffle.flag_is_active(
+        request, EGAP_ADMINS
+    ):
+        return queryset | RegistrationSchema.objects.filter(
+            name='EGAP Registration'
+        ).distinct('name')
     else:
         return queryset
 
 
 class AbstractSchemaManager(models.Manager):
-
     def get_latest_version(self, name):
         """
         Return the latest version of the given schema
@@ -59,19 +62,28 @@ class AbstractSchemaManager(models.Manager):
         :param request: the request object needed for waffling
         :return: queryset
         """
-        queryset = self.filter(visible=True).order_by('name', '-schema_version').distinct('name')
+        queryset = (
+            self.filter(visible=True)
+            .order_by('name', '-schema_version')
+            .distinct('name')
+        )
 
         if request:
             return allow_egap_admins(queryset, request)
 
         return queryset
 
+
 class AbstractSchema(ObjectIDMixin, BaseModel):
     name = models.CharField(max_length=255)
     schema = DateTimeAwareJSONField(default=dict)
     category = models.CharField(max_length=255, null=True, blank=True)
-    active = models.BooleanField(default=True)  # whether or not the schema accepts submissions
-    visible = models.BooleanField(default=True)  # whether or not the schema should be visible in the API and registries search
+    active = models.BooleanField(
+        default=True
+    )  # whether or not the schema accepts submissions
+    visible = models.BooleanField(
+        default=True
+    )  # whether or not the schema should be visible in the API and registries search
 
     # Version of the schema to use (e.g. if questions, responses change)
     schema_version = models.IntegerField()
@@ -83,7 +95,9 @@ class AbstractSchema(ObjectIDMixin, BaseModel):
         unique_together = ('name', 'schema_version')
 
     def __unicode__(self):
-        return '(name={}, schema_version={}, id={})'.format(self.name, self.schema_version, self.id)
+        return '(name={}, schema_version={}, id={})'.format(
+            self.name, self.schema_version, self.id
+        )
 
 
 class RegistrationSchema(AbstractSchema):
@@ -119,13 +133,15 @@ class RegistrationSchema(AbstractSchema):
         path = '/schemas/registrations/{}/'.format(self._id)
         return api_v2_url(path)
 
-    def validate_metadata(self, metadata, reviewer=False, required_fields=False):
+    def validate_metadata(
+        self, metadata, reviewer=False, required_fields=False
+    ):
         """
         Validates registration_metadata field.
         """
-        schema = create_jsonschema_from_metaschema(self.schema,
-                                                   required_fields=required_fields,
-                                                   is_reviewer=reviewer)
+        schema = create_jsonschema_from_metaschema(
+            self.schema, required_fields=required_fields, is_reviewer=reviewer
+        )
         try:
             jsonschema.validate(metadata, schema)
         except jsonschema.ValidationError as e:
@@ -133,41 +149,52 @@ class RegistrationSchema(AbstractSchema):
                 for question in page['questions']:
                     if e.relative_schema_path[0] == 'required':
                         raise ValidationError(
-                            'For your registration the \'{}\' field is required'.format(question['title'])
+                            "For your registration the '{}' field is required".format(
+                                question['title']
+                            )
                         )
                     elif e.relative_schema_path[0] == 'additionalProperties':
                         raise ValidationError(
-                            'For your registration the \'{}\' field is extraneous and not permitted in your response.'.format(question['qid'])
+                            "For your registration the '{}' field is extraneous and not permitted in your response.".format(
+                                question['qid']
+                            )
                         )
                     elif e.relative_path[0] == question['qid']:
                         if 'options' in question:
                             raise ValidationError(
-                                'For your registration your response to the \'{}\' field is invalid, your response must be one of the provided options.'.format(
+                                "For your registration your response to the '{}' field is invalid, your response must be one of the provided options.".format(
                                     question['title'],
                                 ),
                             )
                         if 'title' in question:
                             raise ValidationError(
-                                'For your registration your response to the \'{}\' field is invalid.'.format(question['title']),
+                                "For your registration your response to the '{}' field is invalid.".format(
+                                    question['title']
+                                ),
                             )
                         raise ValidationError(
-                            'For your registration your response to the field with qid: \'{}\' is invalid.'.format(question['qid']),
+                            "For your registration your response to the field with qid: '{}' is invalid.".format(
+                                question['qid']
+                            ),
                         )
             raise ValidationError(e)
         except jsonschema.SchemaError as e:
             raise ValidationValueError(e)
         return
 
-    def validate_registration_responses(self, registration_responses, required_fields=False):
+    def validate_registration_responses(
+        self, registration_responses, required_fields=False
+    ):
         """Validates `registration_responses` against this schema (using `schema_blocks`).
         Raises `ValidationError` if invalid. Otherwise, returns True.
         """
-        validator = RegistrationResponsesValidator(self.schema_blocks.all(), required_fields)
+        validator = RegistrationResponsesValidator(
+            self.schema_blocks.all(), required_fields
+        )
         return validator.validate(registration_responses)
 
 
 class FileMetadataSchema(AbstractSchema):
-
     @property
     def absolute_api_v2_url(self):
         path = '/schemas/files/{}/'.format(self._id)
@@ -179,14 +206,24 @@ class RegistrationSchemaBlock(ObjectIDMixin, BaseModel):
         order_with_respect_to = 'schema'
         unique_together = ('schema', 'registration_response_key')
 
-    schema = models.ForeignKey('RegistrationSchema', related_name='schema_blocks', on_delete=models.CASCADE)
+    schema = models.ForeignKey(
+        'RegistrationSchema',
+        related_name='schema_blocks',
+        on_delete=models.CASCADE,
+    )
     help_text = models.TextField()
     example_text = models.TextField(null=True)
     # Corresponds to a key in DraftRegistration.registration_responses dictionary
-    registration_response_key = models.CharField(max_length=255, db_index=True, null=True, blank=True)
+    registration_response_key = models.CharField(
+        max_length=255, db_index=True, null=True, blank=True
+    )
     # A question can be split into multiple schema blocks, but are linked with a schema_block_group_key
-    schema_block_group_key = models.CharField(max_length=24, db_index=True, null=True)
-    block_type = models.CharField(max_length=31, db_index=True, choices=SCHEMABLOCK_TYPES)
+    schema_block_group_key = models.CharField(
+        max_length=24, db_index=True, null=True
+    )
+    block_type = models.CharField(
+        max_length=31, db_index=True, choices=SCHEMABLOCK_TYPES
+    )
     display_text = models.TextField()
     required = models.BooleanField(default=False)
     default = models.BooleanField(default=False)
@@ -200,10 +237,21 @@ class RegistrationSchemaBlock(ObjectIDMixin, BaseModel):
     auto_date = models.BooleanField(default=False)
     auto_title = models.BooleanField(default=False)
     hide_projectmetadata = models.BooleanField(default=False)
+    retrieval_title = models.TextField(null=True)
+    retrieval_date = models.TextField(null=True)
+    concealment_page_navigator = models.BooleanField(default=False)
+    required_all_check = models.TextField(null=True)
+    multi_language = models.BooleanField(default=False)
+    retrieval_version = models.TextField(null=True)
+    readonly = models.BooleanField(default=False)
+    sentence = models.BooleanField(default=False)
+    row_addition_caption = models.TextField(null=True)
 
     @property
     def absolute_api_v2_url(self):
-        path = '{}schema_blocks/{}/'.format(self.schema.absolute_api_v2_url, self._id)
+        path = '{}schema_blocks/{}/'.format(
+            self.schema.absolute_api_v2_url, self._id
+        )
         return api_v2_url(path)
 
     def save(self, *args, **kwargs):

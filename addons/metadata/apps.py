@@ -5,14 +5,10 @@ from . import DISPLAY_NAME, SHORT_NAME
 
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-TEMPLATE_PATH = os.path.join(
-    HERE,
-    'templates'
-)
+TEMPLATE_PATH = os.path.join(HERE, 'templates')
 
 
 class AddonAppConfig(BaseAddonAppConfig):
-
     short_name = SHORT_NAME
     name = 'addons.{}'.format(SHORT_NAME)
     label = 'addons_{}'.format(SHORT_NAME)
@@ -37,12 +33,14 @@ class AddonAppConfig(BaseAddonAppConfig):
 
     has_page_icon = False
 
-    node_settings_template = os.path.join(TEMPLATE_PATH, 'metadata_node_settings.mako')
+    node_settings_template = os.path.join(
+        TEMPLATE_PATH, 'metadata_node_settings.mako'
+    )
 
-    excel_maximun_file_size = 10485760
-    text_maximun_file_size = 10485760
-    image_maximun_file_size = 10485760
-    other_maximun_file_size = 10485760
+    excel_file_maximum_size = 10485760
+    text_file_maximum_size = 10485760
+    image_file_maximum_size = 10485760
+    any_file_maximum_size = 10485760
 
     text_file_extension = ['txt', 'csv', 'tsv']
     excel_file_extension = ['xlsx', 'xls']
@@ -54,6 +52,7 @@ class AddonAppConfig(BaseAddonAppConfig):
     @property
     def routes(self):
         from . import routes
+
         return [routes.api_routes, routes.page_routes]
 
     @property

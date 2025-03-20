@@ -7,6 +7,7 @@ import logging
 import sys
 
 from website.app import setup_django
+
 setup_django()
 
 from website.app import init_app
@@ -15,7 +16,10 @@ from django.db.transaction import commit
 from osf.utils.migrations import ensure_schemas
 from osf.utils.sanitize import strip_html
 from osf.models import RegistrationSchema, RegistrationSchemaBlock
-from osf.utils.migrations import create_schema_blocks_for_question, create_schema_block
+from osf.utils.migrations import (
+    create_schema_blocks_for_question,
+    create_schema_block,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +45,9 @@ if __name__ == '__main__':
             'page-heading',
             display_text=strip_html(page.get('title', '')),
             help_text=strip_html(page.get('description', '')),
-            hide_projectmetadata=strip_html(page.get('hide_projectmetadata', False))
+            concealment_page_navigator=strip_html(
+                page.get('concealment_page_navigator', False)
+            ),
         )
         for question in page['questions']:
             create_schema_blocks_for_question(apps, schema, question)

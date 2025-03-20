@@ -3,7 +3,10 @@ import re
 import waffle
 import jsonschema
 
-from django.core.validators import URLValidator, validate_email as django_validate_email
+from django.core.validators import (
+    URLValidator,
+    validate_email as django_validate_email,
+)
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils.deconstruct import deconstructible
 from past.builtins import basestring
@@ -13,9 +16,15 @@ from website.notifications.constants import NOTIFICATION_TYPES
 
 from osf.utils.registrations import FILE_VIEW_URL_REGEX
 from osf.utils.sanitize import strip_html
-from osf.exceptions import ValidationError, ValidationValueError, reraise_django_validation_errors, BlacklistedEmailError
+from osf.exceptions import (
+    ValidationError,
+    ValidationValueError,
+    reraise_django_validation_errors,
+    BlacklistedEmailError,
+)
 
 from website.language import SWITCH_VALIDATOR_ERROR
+
 
 def validate_history_item(items):
     for value in items or []:
@@ -30,10 +39,14 @@ def validate_history_item(items):
 
         if startYear and endYear:
             if endYear < startYear:
-                raise ValidationValueError('End date must be later than start date.')
+                raise ValidationValueError(
+                    'End date must be later than start date.'
+                )
             elif endYear == startYear:
                 if endMonth and startMonth and endMonth < startMonth:
-                    raise ValidationValueError('End date must be later than start date.')
+                    raise ValidationValueError(
+                        'End date must be later than start date.'
+                    )
 
 
 def validate_year(item):
@@ -81,6 +94,7 @@ def validate_title(value, allow_blank=False):
 
 validate_url = URLValidator()
 
+
 def validate_profile_websites(profile_websites):
     for value in profile_websites or []:
         try:
@@ -89,15 +103,21 @@ def validate_profile_websites(profile_websites):
             # Reraise with a better message
             raise ValidationError('Invalid personal URL.')
 
+
 def validate_social(value):
     validate_profile_websites(value.get('profileWebsites'))
     from osf.models import OSFUser
+
     for soc_key in value.keys():
         if soc_key not in OSFUser.SOCIAL_FIELDS:
-            raise ValidationError('{} is not a valid key for social.'.format(soc_key))
+            raise ValidationError(
+                '{} is not a valid key for social.'.format(soc_key)
+            )
+
 
 def validate_email(value):
     from osf.models import BlacklistedEmailDomain
+
     with reraise_django_validation_errors():
         django_validate_email(value)
     domain = value.split('@')[1].lower()
@@ -106,18 +126,31 @@ def validate_email(value):
 
 
 def validate_subject_highlighted_count(provider, is_highlighted_addition):
-    if is_highlighted_addition and provider.subjects.filter(highlighted=True).count() >= 10:
-        raise DjangoValidationError('Too many highlighted subjects for PreprintProvider {}'.format(provider._id))
+    if (
+        is_highlighted_addition
+        and provider.subjects.filter(highlighted=True).count() >= 10
+    ):
+        raise DjangoValidationError(
+            'Too many highlighted subjects for PreprintProvider {}'.format(
+                provider._id
+            )
+        )
+
 
 def validate_subject_hierarchy_length(parent):
     from osf.models import Subject
+
     parent = Subject.objects.get(id=parent)
     if parent and len(parent.hierarchy) >= 3:
         raise DjangoValidationError('Invalid hierarchy')
 
+
 def validate_subject_provider_mapping(provider, mapping):
     if not mapping and provider._id != 'osf':
-        raise DjangoValidationError('Invalid PreprintProvider / Subject alias mapping.')
+        raise DjangoValidationError(
+            'Invalid PreprintProvider / Subject alias mapping.'
+        )
+
 
 def validate_subjects(subject_list):
     """
@@ -126,10 +159,12 @@ def validate_subjects(subject_list):
     :return Subject queryset
     """
     from osf.models import Subject
+
     subjects = Subject.objects.filter(_id__in=subject_list)
     if subjects.count() != len(subject_list):
         raise ValidationValueError('Subject not found.')
     return subjects
+
 
 def expand_subject_hierarchy(subject_list):
     """
@@ -149,13 +184,17 @@ def expand_subject_hierarchy(subject_list):
             subj = subj.parent
     return expanded_subjects
 
+
 def validate_subject_hierarchy(subject_hierarchy):
     from osf.models import Subject
+
     validated_hierarchy, raw_hierarchy = [], set(subject_hierarchy)
     for subject_id in subject_hierarchy:
         subject = Subject.load(subject_id)
         if not subject:
-            raise ValidationValueError('Subject with id <{}> could not be found.'.format(subject_id))
+            raise ValidationValueError(
+                'Subject with id <{}> could not be found.'.format(subject_id)
+            )
 
         if subject.parent:
             continue
@@ -164,8 +203,13 @@ def validate_subject_hierarchy(subject_hierarchy):
         validated_hierarchy.append(subject._id)
 
         while raw_hierarchy:
-            if not set(subject.children.values_list('_id', flat=True)) & raw_hierarchy:
-                raise ValidationValueError('Invalid subject hierarchy: {}'.format(subject_hierarchy))
+            if (
+                not set(subject.children.values_list('_id', flat=True))
+                & raw_hierarchy
+            ):
+                raise ValidationValueError(
+                    'Invalid subject hierarchy: {}'.format(subject_hierarchy)
+                )
             else:
                 for child in subject.children.filter(_id__in=raw_hierarchy):
                     subject = child
@@ -175,13 +219,19 @@ def validate_subject_hierarchy(subject_hierarchy):
         if set(validated_hierarchy) == set(subject_hierarchy):
             return
         else:
-            raise ValidationValueError('Invalid subject hierarchy: {}'.format(subject_hierarchy))
-    raise ValidationValueError('Unable to find root subject in {}'.format(subject_hierarchy))
+            raise ValidationValueError(
+                'Invalid subject hierarchy: {}'.format(subject_hierarchy)
+            )
+    raise ValidationValueError(
+        'Unable to find root subject in {}'.format(subject_hierarchy)
+    )
 
 
 @deconstructible
 class CommentMaxLength(object):
-    mention_re = re.compile(r'\[([@|\+].*?)\]\(htt[ps]{1,2}:\/\/[a-z\d:.]+?\/[a-z\d]{5}\/\)')
+    mention_re = re.compile(
+        r'\[([@|\+].*?)\]\(htt[ps]{1,2}:\/\/[a-z\d:.]+?\/[a-z\d]{5}\/\)'
+    )
     max_length = None
 
     def __init__(self, max_length=500):
@@ -195,12 +245,17 @@ class CommentMaxLength(object):
         reduced_comment = self.mention_re.sub(self.link_repl, value)
         if len(reduced_comment) > self.max_length + 2:
             raise ValidationValueError(
-                'Ensure this field has no more than {} characters.'.format(self.max_length))
+                'Ensure this field has no more than {} characters.'.format(
+                    self.max_length
+                )
+            )
 
         return True
 
 
 sanitize_pattern = re.compile(r'<\/?[^>]+>')
+
+
 def validate_no_html(value):
     if value != sanitize_pattern.sub('', value):
         raise ValidationError('Unsanitary string')
@@ -221,7 +276,9 @@ def validate_location(value):
 
     for key in ('service', settings.WATERBUTLER_RESOURCE, 'object'):
         if key not in value:
-            raise ValidationValueError('Location {} missing key "{}"'.format(value, key))
+            raise ValidationValueError(
+                'Location {} missing key "{}"'.format(value, key)
+            )
     return True
 
 
@@ -242,7 +299,9 @@ class RegistrationResponsesValidator:
                 'type': 'object',
                 'minProperties': 1,  # at least one identifying URL
                 'additionalProperties': False,
-                'required': ['html'],  # html/view URL is required by archiver and for converting to legacy "nested" format
+                'required': [
+                    'html'
+                ],  # html/view URL is required by archiver and for converting to legacy "nested" format
                 'properties': {
                     'html': {
                         'type': 'string',
@@ -288,20 +347,27 @@ class RegistrationResponsesValidator:
             relative_path = getattr(e, 'relative_path', None)
             question_id = relative_path[0] if relative_path else ''
             if properties.get(question_id, None):
-                question_title = properties.get(question_id).get('description') or question_id
+                question_title = (
+                    properties.get(question_id).get('description')
+                    or question_id
+                )
                 if e.relative_schema_path[0] == 'required':
                     raise ValidationError(
-                        'For your registration the \'{}\' field is required'.format(question_title)
+                        "For your registration the '{}' field is required".format(
+                            question_title
+                        )
                     )
                 elif 'enum' in properties.get(question_id):
                     raise ValidationError(
-                        'For your registration, your response to the \'{}\' field is invalid, your response must be one of the provided options.'.format(
+                        "For your registration, your response to the '{}' field is invalid, your response must be one of the provided options.".format(
                             question_title,
                         ),
                     )
                 else:
                     raise ValidationError(
-                        'For your registration, your response to the \'{}\' field is invalid. {}'.format(question_title, e.message),
+                        "For your registration, your response to the '{}' field is invalid. {}".format(
+                            question_title, e.message
+                        ),
                     )
             raise ValidationError(e.message)
         except jsonschema.SchemaError as e:
@@ -309,16 +375,18 @@ class RegistrationResponsesValidator:
         return True
 
     def _build_json_schema(self):
-        """Builds jsonschema for validating flattened registration_responses field
-        """
+        """Builds jsonschema for validating flattened registration_responses field"""
         # schema blocks corresponding to registration_responses
         questions = [
-            block for block in self.schema_blocks
+            block
+            for block in self.schema_blocks
             if block.registration_response_key is not None
         ]
 
         properties = {
-            question.registration_response_key: self._build_question_schema(question)
+            question.registration_response_key: self._build_question_schema(
+                question
+            )
             for question in questions
             if self._build_question_schema(question) is not None
         }
@@ -326,7 +394,7 @@ class RegistrationResponsesValidator:
         json_schema = {
             'type': 'object',
             'additionalProperties': False,
-            'properties': properties
+            'properties': properties,
         }
 
         if self.required_fields:
@@ -371,18 +439,28 @@ class RegistrationResponsesValidator:
                 block.display_text
                 for block in self.schema_blocks
                 if block.block_type == 'question-label'
-                and block.schema_block_group_key == question.schema_block_group_key
+                and block.schema_block_group_key
+                == question.schema_block_group_key
             ),
             question.registration_response_key,  # default
         )
 
-        if question.block_type in ('single-select-input', 'e-rad-award-field-input'):
+        if question.block_type in (
+            'single-select-input',
+            'e-rad-award-field-input',
+        ):
             return {
                 'type': 'string',
                 'enum': self._get_multiple_choice_options(question),
                 'description': question_text,
             }
         elif question.block_type == 'e-rad-award-funder-input':
+            # allow any option
+            return {
+                'type': 'string',
+                'description': question_text,
+            }
+        elif question.block_type == 'single-select-pulldown-input':
             # allow any option
             return {
                 'type': 'string',
@@ -409,26 +487,35 @@ class RegistrationResponsesValidator:
                 'items': self.FILE_REFERENCE,
                 'description': question_text,
             }
-        elif question.block_type in ('short-text-input', 'long-text-input', 'contributors-input',
-                                     'japan-grant-number-input',
-                                     'jgn-program-name-ja-input',
-                                     'jgn-program-name-en-input',
-                                     'funding-stream-code-input',
-                                     'e-rad-award-number-input',
-                                     'e-rad-award-title-ja-input',
-                                     'e-rad-award-title-en-input',
-                                     'e-rad-researcher-number-input',
-                                     'e-rad-researcher-name-ja-input',
-                                     'e-rad-researcher-name-en-input',
-                                     'e-rad-bunnya-input',
-                                     'file-metadata-input', 'date-input',
-                                     'file-capacity-input', 'file-creators-input',
-                                     'file-data-number-input',
-                                     'file-title-input',
-                                     'file-url-input', 'file-institution-ja-input',
-                                     'file-institution-en-input',
-                                     'file-institution-id-input',
-                                     'array-input'):
+        elif question.block_type in (
+            'short-text-input',
+            'long-text-input',
+            'contributors-input',
+            'japan-grant-number-input',
+            'jgn-program-name-ja-input',
+            'jgn-program-name-en-input',
+            'funding-stream-code-input',
+            'e-rad-award-number-input',
+            'e-rad-award-title-ja-input',
+            'e-rad-award-title-en-input',
+            'e-rad-researcher-number-input',
+            'e-rad-researcher-name-ja-input',
+            'e-rad-researcher-name-en-input',
+            'e-rad-bunnya-input',
+            'file-metadata-input',
+            'date-input',
+            'ad-metadata-input',
+            'date-input',
+            'file-capacity-input',
+            'file-creators-input',
+            'file-data-number-input',
+            'file-title-input',
+            'file-url-input',
+            'file-institution-ja-input',
+            'file-institution-en-input',
+            'file-institution-id-input',
+            'array-input',
+        ):
             if self.required_fields and question.required:
                 return {
                     'type': 'string',
@@ -440,14 +527,24 @@ class RegistrationResponsesValidator:
                     'type': 'string',
                     'description': question_text,
                 }
-        elif question.block_type == 'section-heading' or question.block_type == 'subsection-heading':
+        elif (
+            question.block_type == 'section-heading'
+            or question.block_type == 'subsection-heading'
+        ):
             return None
 
-        raise ValueError('Unexpected `block_type`: {}'.format(question.block_type))
+        raise ValueError(
+            'Unexpected `block_type`: {}'.format(question.block_type)
+        )
 
 
 class SwitchValidator(object):
-    def __init__(self, switch_name: str, message: str = SWITCH_VALIDATOR_ERROR, should_be: bool = True):
+    def __init__(
+        self,
+        switch_name: str,
+        message: str = SWITCH_VALIDATOR_ERROR,
+        should_be: bool = True,
+    ):
         """
         This throws a validation error if a switched off field is prematurely used. This the on/off state of the field
         is determined by the validators `should_be` value, if the switch's active value is `not` what it `should_be` a

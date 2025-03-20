@@ -9,8 +9,8 @@ from api.base.serializers import (
 )
 from api.base.versioning import get_kebab_snake_case_field
 
-class SchemaSerializer(JSONAPISerializer):
 
+class SchemaSerializer(JSONAPISerializer):
     id = IDField(source='_id', read_only=True)
     type = TypeField()
 
@@ -19,9 +19,11 @@ class SchemaSerializer(JSONAPISerializer):
     schema = ser.DictField(read_only=True)
     active = ser.BooleanField(read_only=True)
 
-    links = LinksField({
-        'self': 'get_absolute_url',
-    })
+    links = LinksField(
+        {
+            'self': 'get_absolute_url',
+        }
+    )
 
     def get_absolute_url(self, obj):
         return obj.absolute_api_v2_url
@@ -31,7 +33,6 @@ class SchemaSerializer(JSONAPISerializer):
 
 
 class RegistrationSchemaBlockSerializer(JSONAPISerializer):
-
     id = IDField(source='_id', read_only=True)
     type = TypeField()
     registration_response_key = ser.CharField(read_only=True)
@@ -52,11 +53,22 @@ class RegistrationSchemaBlockSerializer(JSONAPISerializer):
     auto_date = ser.BooleanField(read_only=True)
     auto_title = ser.BooleanField(read_only=True)
     hide_projectmetadata = ser.BooleanField(read_only=True)
+    retrieval_title = ser.CharField(read_only=True)
+    retrieval_date = ser.CharField(read_only=True)
+    concealment_page_navigator = ser.BooleanField(read_only=True)
+    required_all_check = ser.CharField(read_only=True)
     index = ser.IntegerField(read_only=True, source='_order')
+    multi_language = ser.BooleanField(read_only=True)
+    retrieval_version = ser.CharField(read_only=True)
+    readonly = ser.CharField(read_only=True)
+    sentence = ser.CharField(read_only=True)
+    row_addition_caption = ser.CharField(read_only=True)
 
-    links = LinksField({
-        'self': 'get_absolute_url',
-    })
+    links = LinksField(
+        {
+            'self': 'get_absolute_url',
+        }
+    )
 
     schema = RelationshipField(
         related_view='schemas:registration-schema-detail',
@@ -83,24 +95,25 @@ class RegistrationSchemaSerializer(SchemaSerializer):
     class Meta:
         @staticmethod
         def get_type(request):
-            return get_kebab_snake_case_field(request.version, 'registration-schemas')
+            return get_kebab_snake_case_field(
+                request.version, 'registration-schemas'
+            )
 
 
 class FileMetadataSchemaSerializer(SchemaSerializer):
-
     class Meta:
         @staticmethod
         def get_type(request):
-            return get_kebab_snake_case_field(request.version, 'file-metadata-schemas')
+            return get_kebab_snake_case_field(
+                request.version, 'file-metadata-schemas'
+            )
 
 
 class DeprecatedMetaSchemaSerializer(SchemaSerializer):
-
     class Meta:
         type_ = 'metaschemas'
 
 
 class DeprecatedRegistrationMetaSchemaSerializer(SchemaSerializer):
-
     class Meta:
         type_ = 'registration_metaschemas'
