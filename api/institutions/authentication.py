@@ -183,6 +183,9 @@ class InstitutionAuthentication(BaseAuthentication):
         organization_name_ja = get_next(p_user, 'jao', 'jaOrganizationName')
         # affiliation: 'jaou' is friendlyName
         organizational_unit_ja = get_next(p_user, 'jaou', 'jaOrganizationalUnitName')
+        # @R-2024-AUTH01 gakuninIdentityAssuranceMethodReference
+        gakunin_identity_assurance_method_reference = p_user.get('gakuninIdentityAssuranceMethodReference')
+
         # @R2022-48 ial,aal
         ial = None
         aal = None
@@ -492,6 +495,7 @@ class InstitutionAuthentication(BaseAuthentication):
                 'organizational_unit': organizational_unit,
                 'organization_name_ja': organization_name_ja,
                 'organizational_unit_ja': organizational_unit_ja,
+                'gakunin_identity_assurance_method_reference': gakunin_identity_assurance_method_reference,
             },
         )
 
