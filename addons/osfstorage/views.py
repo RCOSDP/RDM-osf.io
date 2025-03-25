@@ -32,7 +32,8 @@ from addons.osfstorage import utils
 from addons.osfstorage import decorators
 from addons.osfstorage.models import OsfStorageFolder
 from addons.osfstorage import settings as osf_storage_settings
-
+import datetime
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -180,6 +181,8 @@ def osfstorage_get_metadata(file_node, **kwargs):
 @decorators.autoload_filenode(must_be='folder')
 def osfstorage_get_children(file_node, **kwargs):
     from django.contrib.contenttypes.models import ContentType
+    begin = time.time()
+    logger.info(f"--------------Begin osfstorage_get_children : {datetime.datetime.fromtimestamp(begin).strftime('%H:%M:%S.%f')[:-3]}--------------")
     user_id = request.args.get('user_id')
     user_content_type_id = ContentType.objects.get_for_model(OSFUser).id
     user_pk = OSFUser.objects.filter(guids___id=user_id, guids___id__isnull=False).values_list('pk', flat=True).first()
@@ -282,12 +285,18 @@ def osfstorage_get_children(file_node, **kwargs):
             user_id,
             file_node.id
         ])
+        logger.info(
+            f"--------------End osfstorage_get_children : {datetime.datetime.fromtimestamp(begin).strftime('%H:%M:%S.%f')[:-3]}--------------")
+        logger.info(
+            f"--------------Total time osfstorage_get_children : {datetime.datetime.fromtimestamp(time.time() - begin).strftime('%H:%M:%S.%f')[:-3]}--------------")
         return cursor.fetchone()[0] or []
 
 
 @must_be_signed
 @decorators.autoload_filenode(must_be='folder')
 def osfstorage_create_child(file_node, payload, **kwargs):
+    begin = time.time()
+    logger.info(f"--------------Begin osfstorage_create_child : {datetime.datetime.fromtimestamp(begin).strftime('%H:%M:%S.%f')[:-3]}--------------")
     parent = file_node  # Just for clarity
     name = payload.get('name')
     user = OSFUser.load(payload.get('user'))
@@ -366,6 +375,10 @@ def osfstorage_create_child(file_node, payload, **kwargs):
         version_id = None
         archive_exists = False
 
+    logger.info(
+        f"--------------End osfstorage_create_child : {datetime.datetime.fromtimestamp(begin).strftime('%H:%M:%S.%f')[:-3]}--------------")
+    logger.info(
+        f"--------------Total time osfstorage_create_child : {datetime.datetime.fromtimestamp(time.time() - begin).strftime('%H:%M:%S.%f')[:-3]}--------------")
     return {
         'status': 'success',
         'archive': not archive_exists,  # Should waterbutler also archive this file

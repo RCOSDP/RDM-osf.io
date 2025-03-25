@@ -23,7 +23,7 @@ var storageAddons = require('json-loader!storageAddons.json');
 var gt = require('js/rdmGettext').rdmGettext();
 var gettext = require('js/rdmGettext')._;
 var sprintf = require('agh.sprintf').sprintf;
-
+var startTime = '';
 // CSS
 require('css/fangorn.css');
 
@@ -818,6 +818,8 @@ function _fangornMouseOverRow(item, event) {
  * @private
  */
 function _fangornUploadProgress(treebeard, file, progress) {
+    startTime = new Date().toLocaleString();
+    console.log("Begin fangornUploadProgress:", startTime);
     var parent = file.treebeardParent;
     progress = Math.ceil(progress);
     for(var i = 0; i < parent.children.length; i++) {
@@ -841,6 +843,8 @@ function _fangornUploadProgress(treebeard, file, progress) {
  * @private
  */
 function _fangornSending(treebeard, file, xhr, formData) {
+    startTime = new Date().toLocaleString();
+    console.log("Begin _fangornSending:", startTime);
     treebeard.options.uploadInProgress = true;
     var parent = file.treebeardParent || treebeard.dropzoneItemCache;
     xhr = $osf.setXHRAuthorization(xhr);
@@ -950,6 +954,7 @@ function _fangornDropzoneDrop(treebeard, event) {
  * @private
  */
 function _fangornComplete(treebeard, file) {
+	console.log("Begin _fangornComplete:", new Date().toLocaleString());
     var item = file.treebeardParent;
     resolveconfigOption.call(treebeard, item, 'onUploadComplete', [item]);
     orderFolder.call(treebeard, item);
@@ -961,6 +966,22 @@ function _fangornComplete(treebeard, file) {
             this.processFile(nextFile);
         }
     }
+    
+    var endTime = new Date().toLocaleString();
+    console.log("End _fangornComplete:", endTime);
+
+
+	startTime = new Date(startTime).getTime();
+	endTime = new Date(endTime).getTime();
+
+	var elapsedTime = endTime - startTime; // milliseconds
+
+	// Convert to hours, minutes, seconds
+	var hours = Math.floor(elapsedTime / (1000 * 60 * 60));
+	var minutes = Math.floor((elapsedTime % (1000 * 60 * 60)) / (1000 * 60));
+	var seconds = Math.floor((elapsedTime % (1000 * 60)) / 1000);
+
+	console.log("Total time: " + hours + " hours " + minutes + " minutes " + seconds + " seconds");
 }
 
 /**
