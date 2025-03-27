@@ -52,7 +52,16 @@ class RegistrationSchemaBlockSerializer(JSONAPISerializer):
     auto_date = ser.BooleanField(read_only=True)
     auto_title = ser.BooleanField(read_only=True)
     hide_projectmetadata = ser.BooleanField(read_only=True)
+    get_retrieval_title = ser.CharField(read_only=True)
+    get_retrieval_date = ser.CharField(read_only=True)
+    concealment_page_navigator = ser.BooleanField(read_only=True)
+    required_all_check = ser.CharField(read_only=True)
     index = ser.IntegerField(read_only=True, source='_order')
+    multi_language = ser.BooleanField(read_only=True)
+    get_retrieval_version = ser.CharField(read_only=True)
+    get_edit = ser.CharField(read_only=True)
+    sentence = ser.CharField(read_only=True)
+    row_addition_caption = ser.CharField(read_only=True)
 
     links = LinksField({
         'self': 'get_absolute_url',

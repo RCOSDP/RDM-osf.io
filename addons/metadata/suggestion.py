@@ -15,7 +15,6 @@ import json
 from io import BytesIO
 from website import settings
 from flask import request
-
 import numpy as np
 import openpyxl
 import io
@@ -23,7 +22,6 @@ from PIL import Image
 import imghdr
 import csv
 import chardet
-
 from addons.metadata.apps import AddonAppConfig as AddonAppConfig
 
 import mimetypes
@@ -45,7 +43,7 @@ ROR_URL = 'https://api.ror.org/organizations'
 def valid_suggestion_key(key):
     if key == 'file-data-number':
         return True
-    elif key.startswith('auto-'):
+    elif key.startswith('get-'):
         return True
     elif key == 'ror':
         return True
@@ -62,8 +60,8 @@ def suggestion_metadata(key, keyword, filepath, node):
     suggestions = []
     if key == 'file-data-number':
         suggestions.extend(suggestion_file_data_number(key, filepath, node))
-    elif key.startswith('auto-'):
-        suggestions.extend(suggestion_file_metadata_auto_value(key, keyword, filepath, node))
+    elif key.startswith('get-'):
+        suggestions.extend(suggestion_file_metadata_get_value(key, keyword, filepath, node))
     elif key == 'ror':
         suggestions.extend(suggestion_ror(key, keyword))
     elif key.startswith('erad:'):
@@ -76,7 +74,7 @@ def suggestion_metadata(key, keyword, filepath, node):
         raise KeyError('Invalid key: {}'.format(key))
     return suggestions
 
-def suggestion_file_metadata_auto_value(key, keyword, filepath, node):
+def suggestion_file_metadata_get_value(key, keyword, filepath, node):
     data = ''
     error_string = ''
     extension = ''
@@ -92,13 +90,13 @@ def suggestion_file_metadata_auto_value(key, keyword, filepath, node):
 
         file_size, extension = get_file_size_and_extension(url, cookies)
 
-        excelmaximumsize = AddonAppConfig.excel_maximun_file_size
-        textmaximumsize = AddonAppConfig.text_maximun_file_size
-        imagemaximumsize = AddonAppConfig.image_maximun_file_size
-        othermaximumsize = AddonAppConfig.other_maximun_file_size
+        excel_file_maximum_size = AddonAppConfig.excel_file_maximum_size
+        text_file_maximum_size = AddonAppConfig.text_file_maximum_size
+        image_file_maximum_size = AddonAppConfig.image_file_maximum_size
+        any_file_maximum_size = AddonAppConfig.any_file_maximum_size
 
-        if (key == 'auto-file-number-of-rows-excel' or key == 'auto-file-number-of-columns-excel') and extension in AddonAppConfig.excel_file_extension:
-            if file_size < excelmaximumsize:
+        if (key == 'get-excel-row-count' or key == 'get-excel-column-count') and extension in AddonAppConfig.excel_file_extension:
+            if file_size < excel_file_maximum_size:
                 response = download_file(url, cookies)
                 try:
                     byteCode = BytesIO(response)
@@ -109,18 +107,19 @@ def suggestion_file_metadata_auto_value(key, keyword, filepath, node):
                     rows, columns = excel_data.shape
                     data = str(rows) + str(columns)
 
-                    if key == 'auto-file-number-of-rows-excel':
+                    if key == 'get-excel-row-count':
                         data = str(rows)
-                    elif key == 'auto-file-number-of-columns-excel':
+                    elif key == 'get-excel-column-count':
                         data = str(columns)
                 except Exception as e:
                     data = ''
                     error_string = error_string + str(e)
+                    logger.info(error_string)
             else:
-                data = 'auto-value-filesize-over-error'
+                data = 'get-filesize-over-error'
 
-        elif key == 'auto-file-number-of-rows-text' and extension in AddonAppConfig.text_file_extension:
-            if file_size < textmaximumsize:
+        elif key == 'get-text-row-count' and extension in AddonAppConfig.text_file_extension:
+            if file_size < text_file_maximum_size:
                 response = download_file(url, cookies)
                 try:
                     encoding_info = chardet.detect(response)
@@ -134,11 +133,12 @@ def suggestion_file_metadata_auto_value(key, keyword, filepath, node):
                 except Exception as e:
                     data = ''
                     error_string = error_string + str(e)
+                    logger.info(error_string)
             else:
-                data = 'auto-value-filesize-over-error'
+                data = 'get-filesize-over-error'
 
-        elif key == 'auto-file-number-of-columns-text' and extension in AddonAppConfig.text_file_extension:
-            if file_size < textmaximumsize:
+        elif key == 'get-text-column-count' and extension in AddonAppConfig.text_file_extension:
+            if file_size < text_file_maximum_size:
                 response = download_file(url, cookies)
                 try:
                     text_data = chardet.detect(response).get('encoding')
@@ -162,11 +162,12 @@ def suggestion_file_metadata_auto_value(key, keyword, filepath, node):
                 except Exception as e:
                     data = ''
                     error_string = error_string + str(e)
+                    logger.info(error_string)
             else:
-                data = 'auto-value-filesize-over-error'
+                data = 'get-filesize-over-error'
 
-        elif key == 'auto-file-delimiter' and extension in AddonAppConfig.text_file_extension:
-            if file_size < textmaximumsize:
+        elif key == 'get-text-delimiter' and extension in AddonAppConfig.text_file_extension:
+            if file_size < text_file_maximum_size:
                 response = download_file(url, cookies)
                 try:
                     content = response.decode('utf-8')
@@ -201,11 +202,12 @@ def suggestion_file_metadata_auto_value(key, keyword, filepath, node):
                 except Exception as e:
                     data = ''
                     error_string = error_string + str(e)
+                    logger.info(error_string)
             else:
-                data = 'auto-value-filesize-over-error'
+                data = 'get-filesize-over-error'
 
-        elif key == 'auto-file-image-type' and extension in AddonAppConfig.image_file_extension:
-            if file_size < imagemaximumsize:
+        elif key == 'get-image-type' and extension in AddonAppConfig.image_file_extension:
+            if file_size < image_file_maximum_size:
                 response = download_file(url, cookies)
                 try:
                     image_type = imghdr.what(None, h=response)
@@ -216,11 +218,12 @@ def suggestion_file_metadata_auto_value(key, keyword, filepath, node):
                 except Exception as e:
                     data = ''
                     error_string = error_string + str(e)
+                    logger.info(error_string)
             else:
-                data = 'auto-value-filesize-over-error'
+                data = 'get-filesize-over-error'
 
-        elif key == 'auto-file-color-b&w' and extension in AddonAppConfig.image_file_extension:
-            if file_size < imagemaximumsize:
+        elif key == 'get-image-color-information' and extension in AddonAppConfig.image_file_extension:
+            if file_size < image_file_maximum_size:
                 response = download_file(url, cookies)
                 try:
                     image_data = b''
@@ -253,11 +256,12 @@ def suggestion_file_metadata_auto_value(key, keyword, filepath, node):
                 except Exception as e:
                     data = ''
                     error_string = error_string + str(e)
+                    logger.info(error_string)
             else:
-                data = 'auto-value-filesize-over-error'
+                data = 'get-filesize-over-error'
 
-        elif key == 'auto-file-text/binary' and (extension in AddonAppConfig.text_file_extension or extension in AddonAppConfig.excel_file_extension or extension in AddonAppConfig.image_file_extension):
-            if file_size < othermaximumsize:
+        elif key == 'get-image-text/binary' and (extension in AddonAppConfig.text_file_extension or extension in AddonAppConfig.excel_file_extension or extension in AddonAppConfig.image_file_extension):
+            if file_size < any_file_maximum_size:
                 response = download_file(url, cookies)
                 try:
                     # Download the content directly into a variable
@@ -267,7 +271,7 @@ def suggestion_file_metadata_auto_value(key, keyword, filepath, node):
                             file_content += chunk
 
                     # Determine if the content is binary or text
-                    if isBinary(file_content, extension):
+                    if is_binary(file_content, extension):
                         data = 'binary'
                     else:
                         data = 'text'
@@ -275,11 +279,12 @@ def suggestion_file_metadata_auto_value(key, keyword, filepath, node):
                 except Exception as e:
                     data = ''
                     error_string = error_string + str(e)
+                    logger.info(error_string)
             else:
-                data = 'auto-value-filesize-over-error'
+                data = 'get-filesize-over-error'
 
-        elif key == 'auto-file-resolution' and extension in AddonAppConfig.image_file_extension:
-            if file_size < imagemaximumsize:
+        elif key == 'get-image-resolution' and extension in AddonAppConfig.image_file_extension:
+            if file_size < image_file_maximum_size:
                 response = download_file(url, cookies)
                 try:
                     Image.MAX_IMAGE_PIXELS = None
@@ -296,11 +301,12 @@ def suggestion_file_metadata_auto_value(key, keyword, filepath, node):
                 except Exception as e:
                     data = ''
                     error_string = error_string + str(e)
+                    logger.info(error_string)
             else:
-                data = 'auto-value-filesize-over-error'
+                data = 'get-filesize-over-error'
 
-        elif key == 'auto-file-character-code' and extension in AddonAppConfig.text_file_extension:
-            if file_size < textmaximumsize:
+        elif key == 'get-text-character-code' and extension in AddonAppConfig.text_file_extension:
+            if file_size < text_file_maximum_size:
                 response = download_file(url, cookies)
                 try:
                     encoding = chardet.detect(response).get('encoding')
@@ -308,11 +314,12 @@ def suggestion_file_metadata_auto_value(key, keyword, filepath, node):
                 except Exception as e:
                     data = ''
                     error_string = error_string + str(e)
+                    logger.info(error_string)
             else:
-                data = 'auto-value-filesize-over-error'
+                data = 'get-filesize-over-error'
 
-        elif key == 'auto-file-data-size' and extension in AddonAppConfig.image_file_extension:
-            if file_size < imagemaximumsize:
+        elif key == 'get-image-datasaize' and extension in AddonAppConfig.image_file_extension:
+            if file_size < image_file_maximum_size:
                 response = download_file(url, cookies)
                 try:
                     Image.MAX_IMAGE_PIXELS = None
@@ -322,19 +329,21 @@ def suggestion_file_metadata_auto_value(key, keyword, filepath, node):
                 except Exception as e:
                     data = ''
                     error_string = error_string + str(e)
+                    logger.info(error_string)
             else:
-                data = 'auto-value-filesize-over-error'
+                data = 'get-filesize-over-error'
 
     except Exception as e:
         data = ''
         error_string = error_string + str(e)
+        logger.info(error_string)
     return [{
         'key': key,
         'value': data,
         'error': error_string,
     }]
 
-def isBinary(file_content, extension):
+def is_binary(file_content, extension):
     """Binary file detection.
     Determine by MIME type and content if MIME is not enough.
     """
@@ -346,7 +355,7 @@ def isBinary(file_content, extension):
         # If encoding is None, consider it binary
         if encode is None:
             ret = True
-        elif isBinary08HCharacter(file_content):
+        elif is_binary08H_character(file_content):
             ret = True
     else:
         if 'office' in m or m.startswith('image') or m.startswith('application/vnd.ms-excel'):
@@ -356,7 +365,7 @@ def isBinary(file_content, extension):
 
     return ret
 
-def isBinary08HCharacter(buf):
+def is_binary08H_character(buf):
     """Binary file detection.
     Check for ASCII code below 08H to determine binary.
     """
@@ -367,8 +376,7 @@ def isBinary08HCharacter(buf):
             break
     return ret
 
-
-def readdump(dumpname, mode='r'):
+def read_dump(dumpname, mode='r'):
     buf = ''
     with open(dumpname, mode) as f:
         buf = f.read()
@@ -382,6 +390,30 @@ def detect_delimiter(content, delimiters):
             if delimiter in line:
                 return delimiter
     return None
+
+def get_file_size_and_extension(url, cookies):
+    try:
+        response = requests.head(url, cookies=cookies, stream=True)
+        response.raise_for_status()
+        content_length = response.headers.get('Content-Length')
+        if content_length is not None:
+            file_size = int(content_length)
+        else:
+            raise ValueError('The Content-Length header is missing.')
+
+        content_disposition = response.headers.get('X-Waterbutler-Metadata')
+        metadata_json = json.loads(content_disposition)
+        file_name = metadata_json.get('attributes', {}).get('name')
+        extension = file_name.split('.')[-1]
+
+        return file_size, extension
+    except requests.RequestException as e:
+        logger.info(str(e))
+        return None, None
+
+def download_file(url, cookies):
+    response = requests.get(url, cookies=cookies).content
+    return response
 
 def suggestion_file_data_number(key, filepath, node):
     parts = filepath.split('/')
@@ -505,29 +537,6 @@ def _erad_candidates(**pred):
         for record in ERadRecord.objects.filter(**pred)
     ]
 
-def get_file_size_and_extension(url, cookies):
-    try:
-        response = requests.head(url, cookies=cookies, stream=True)
-        response.raise_for_status()
-        content_length = response.headers.get('Content-Length')
-        if content_length is not None:
-            file_size = int(content_length)
-        else:
-            raise ValueError('The Content-Length header is missing.')
-
-        content_disposition = response.headers.get('X-Waterbutler-Metadata')
-        metadata_json = json.loads(content_disposition)
-        file_name = metadata_json.get('attributes', {}).get('name')
-        extension = file_name.split('.')[-1]
-        logger.info(file_size)
-        logger.info(extension)
-        return file_size, extension
-    except requests.RequestException:
-        return None, None
-
-def download_file(url, cookies):
-    response = requests.get(url, cookies=cookies).content
-    return response
 
 def suggestion_asset(key, keyword, node):
     addon = node.get_addon(SHORT_NAME)
