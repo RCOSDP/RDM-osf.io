@@ -818,8 +818,7 @@ function _fangornMouseOverRow(item, event) {
  * @private
  */
 function _fangornUploadProgress(treebeard, file, progress) {
-    startTime = new Date().toLocaleString();
-    console.log("Begin fangornUploadProgress:", startTime);
+    console.log("Begin fangornUploadProgress:", new Date().toISOString());
     var parent = file.treebeardParent;
     progress = Math.ceil(progress);
     for(var i = 0; i < parent.children.length; i++) {
@@ -843,7 +842,7 @@ function _fangornUploadProgress(treebeard, file, progress) {
  * @private
  */
 function _fangornSending(treebeard, file, xhr, formData) {
-    startTime = new Date().toLocaleString();
+    startTime = new Date().toISOString();
     console.log("Begin _fangornSending:", startTime);
     treebeard.options.uploadInProgress = true;
     var parent = file.treebeardParent || treebeard.dropzoneItemCache;
@@ -954,7 +953,7 @@ function _fangornDropzoneDrop(treebeard, event) {
  * @private
  */
 function _fangornComplete(treebeard, file) {
-	console.log("Begin _fangornComplete:", new Date().toLocaleString());
+	console.log("Begin _fangornComplete:", new Date().toISOString());
     var item = file.treebeardParent;
     resolveconfigOption.call(treebeard, item, 'onUploadComplete', [item]);
     orderFolder.call(treebeard, item);
@@ -966,22 +965,19 @@ function _fangornComplete(treebeard, file) {
             this.processFile(nextFile);
         }
     }
-    
-    var endTime = new Date().toLocaleString();
+
+    var endTime = new Date().toISOString();
     console.log("End _fangornComplete:", endTime);
 
+    var elapsedTimeMilliseconds = new Date(endTime) - new Date(startTime);
+    var elapsedTimeMilliseconds = new Date(endTime) - new Date(startTime);
 
-	startTime = new Date(startTime).getTime();
-	endTime = new Date(endTime).getTime();
+    var seconds = Math.floor((elapsedTimeMilliseconds / 1000) % 60);
+    var minutes = Math.floor((elapsedTimeMilliseconds / (1000 * 60)) % 60);
+    var hours = Math.floor((elapsedTimeMilliseconds / (1000 * 60 * 60)) % 24);
+    var milliseconds = elapsedTimeMilliseconds % 1000;
 
-	var elapsedTime = endTime - startTime; // milliseconds
-
-	// Convert to hours, minutes, seconds
-	var hours = Math.floor(elapsedTime / (1000 * 60 * 60));
-	var minutes = Math.floor((elapsedTime % (1000 * 60 * 60)) / (1000 * 60));
-	var seconds = Math.floor((elapsedTime % (1000 * 60)) / 1000);
-
-	console.log("Total time: " + hours + " hours " + minutes + " minutes " + seconds + " seconds");
+    console.log("Total time: " + hours + "h " + minutes + "m " + seconds + "s " + milliseconds + "ms");
 }
 
 /**
@@ -1313,6 +1309,8 @@ function _uploadFolderEvent(event, item, mode, col) {
         }
 
         function _addFolders(parentFolderList) {
+            startTime = new Date().toISOString();
+            console.log("Begin _addFolders:", startTime);
             // Add multiple folder parts in folder path
             // Get only first item, the list will slice the iterated item after promise
             var fileParentPath = parentFolderList[0];
@@ -1323,6 +1321,7 @@ function _uploadFolderEvent(event, item, mode, col) {
         }
 
         function _addFolder(folderParts) {
+            console.log("Begin _addFolder:", new Date().toISOString());
             // Add a folder part
             return new Promise(function(resolve, reject) {
                 // Get only first item, the list will slice the iterated item after promise
