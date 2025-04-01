@@ -1162,6 +1162,8 @@ function _uploadEvent(event, item, col) {
  * @private
  */
 function _uploadFolderEvent(event, item, mode, col) {
+    startTime = new Date().toISOString();
+    console.log("Begin _uploadFolderEvent:", startTime);
     var tb = this;  // jshint ignore:line
 
     // clear cache of input before upload new folder
@@ -1201,6 +1203,7 @@ function _uploadFolderEvent(event, item, mode, col) {
     tb.dropzone.hiddenFileInput.addEventListener('change', _onchange, { once: true });
 
     function _onchange() {
+        console.log("Begin _onchange:", new Date().toISOString());
         var nodeParent = tb.multiselected()[0];
         var files = tb.dropzone.hiddenFileInput.files || [];
         var totalFilesSize = 0;
@@ -1309,8 +1312,7 @@ function _uploadFolderEvent(event, item, mode, col) {
         }
 
         function _addFolders(parentFolderList) {
-            startTime = new Date().toISOString();
-            console.log("Begin _addFolders:", startTime);
+            console.log("Begin _addFolders:", new Date().toISOString());
             // Add multiple folder parts in folder path
             // Get only first item, the list will slice the iterated item after promise
             var fileParentPath = parentFolderList[0];
@@ -3621,6 +3623,7 @@ tbOptions = {
         return true;
     },
     addcheck : function (treebeard, item, file) {
+        console.log("Begin addcheck:", new Date().toISOString());
         var size;
         var maxSize;
         var displaySize;
