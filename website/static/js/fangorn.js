@@ -970,7 +970,6 @@ function _fangornComplete(treebeard, file) {
     console.log("End _fangornComplete:", endTime);
 
     var elapsedTimeMilliseconds = new Date(endTime) - new Date(startTime);
-    var elapsedTimeMilliseconds = new Date(endTime) - new Date(startTime);
 
     var seconds = Math.floor((elapsedTimeMilliseconds / 1000) % 60);
     var minutes = Math.floor((elapsedTimeMilliseconds / (1000 * 60)) % 60);
@@ -1319,7 +1318,9 @@ function _uploadFolderEvent(event, item, mode, col) {
             var newFolderParts = fileParentPath.split('/');
             parentPath = '/';
             nodeParent = tb.multiselected()[0];
-            return processDataSequentially(_addFolder, newFolderParts);
+            var result = processDataSequentially(_addFolder, newFolderParts);
+            console.log("End _addFolders:", new Date().toISOString());
+            return result;
         }
 
         function _addFolder(folderParts) {
@@ -1461,6 +1462,7 @@ function _createFolder(event, dismissCallback, helpText) {
 }
 
 function _createFile(event, dismissCallback, helpText, extension) {
+	console.log("Begin _createFile:", new Date().toISOString());
     var tb = this;
     helpText('');
     var val = $.trim(tb.select('#createFileInput').val());
@@ -1518,6 +1520,7 @@ function _createFile(event, dismissCallback, helpText, extension) {
             helpText(gettext('File creation failed.'));
         }
     });
+	console.log("End _createFile:", new Date().toISOString());
 }
 
 /**
