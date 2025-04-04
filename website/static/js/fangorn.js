@@ -818,7 +818,7 @@ function _fangornMouseOverRow(item, event) {
  * @private
  */
 function _fangornUploadProgress(treebeard, file, progress) {
-    console.log("Begin fangornUploadProgress:", new Date().toISOString());
+    console.log('Begin fangornUploadProgress:', new Date().toISOString());
     var parent = file.treebeardParent;
     progress = Math.ceil(progress);
     for(var i = 0; i < parent.children.length; i++) {
@@ -843,7 +843,7 @@ function _fangornUploadProgress(treebeard, file, progress) {
  */
 function _fangornSending(treebeard, file, xhr, formData) {
     startTime = new Date().toISOString();
-    console.log("Begin _fangornSending:", startTime);
+    console.log('Begin _fangornSending:', startTime);
     treebeard.options.uploadInProgress = true;
     var parent = file.treebeardParent || treebeard.dropzoneItemCache;
     xhr = $osf.setXHRAuthorization(xhr);
@@ -953,7 +953,7 @@ function _fangornDropzoneDrop(treebeard, event) {
  * @private
  */
 function _fangornComplete(treebeard, file) {
-	console.log("Begin _fangornComplete:", new Date().toISOString());
+	console.log('Begin _fangornComplete:', new Date().toISOString());
     var item = file.treebeardParent;
     resolveconfigOption.call(treebeard, item, 'onUploadComplete', [item]);
     orderFolder.call(treebeard, item);
@@ -967,7 +967,7 @@ function _fangornComplete(treebeard, file) {
     }
 
     var endTime = new Date().toISOString();
-    console.log("End _fangornComplete:", endTime);
+    console.log('End _fangornComplete:', endTime);
 
     var elapsedTimeMilliseconds = new Date(endTime) - new Date(startTime);
 
@@ -976,7 +976,7 @@ function _fangornComplete(treebeard, file) {
     var hours = Math.floor((elapsedTimeMilliseconds / (1000 * 60 * 60)) % 24);
     var milliseconds = elapsedTimeMilliseconds % 1000;
 
-    console.log("Total time: " + hours + "h " + minutes + "m " + seconds + "s " + milliseconds + "ms");
+    console.log('Total time: ' + hours + 'h ' + minutes + 'm ' + seconds + 's ' + milliseconds + 'ms');
 }
 
 /**
@@ -1162,7 +1162,7 @@ function _uploadEvent(event, item, col) {
  */
 function _uploadFolderEvent(event, item, mode, col) {
     startTime = new Date().toISOString();
-    console.log("Begin _uploadFolderEvent:", startTime);
+    console.log('Begin _uploadFolderEvent:', startTime);
     var tb = this;  // jshint ignore:line
 
     // clear cache of input before upload new folder
@@ -1202,7 +1202,7 @@ function _uploadFolderEvent(event, item, mode, col) {
     tb.dropzone.hiddenFileInput.addEventListener('change', _onchange, { once: true });
 
     function _onchange() {
-        console.log("Begin _onchange:", new Date().toISOString());
+        console.log('Begin _onchange:', new Date().toISOString());
         var nodeParent = tb.multiselected()[0];
         var files = tb.dropzone.hiddenFileInput.files || [];
         var totalFilesSize = 0;
@@ -1311,7 +1311,7 @@ function _uploadFolderEvent(event, item, mode, col) {
         }
 
         function _addFolders(parentFolderList) {
-            console.log("Begin _addFolders:", new Date().toISOString());
+            console.log('Begin _addFolders:', new Date().toISOString());
             // Add multiple folder parts in folder path
             // Get only first item, the list will slice the iterated item after promise
             var fileParentPath = parentFolderList[0];
@@ -1319,12 +1319,12 @@ function _uploadFolderEvent(event, item, mode, col) {
             parentPath = '/';
             nodeParent = tb.multiselected()[0];
             var result = processDataSequentially(_addFolder, newFolderParts);
-            console.log("End _addFolders:", new Date().toISOString());
+            console.log('End _addFolders:', new Date().toISOString());
             return result;
         }
 
         function _addFolder(folderParts) {
-            console.log("Begin _addFolder:", new Date().toISOString());
+            console.log('Begin _addFolder:', new Date().toISOString());
             // Add a folder part
             return new Promise(function(resolve, reject) {
                 // Get only first item, the list will slice the iterated item after promise
@@ -1462,7 +1462,7 @@ function _createFolder(event, dismissCallback, helpText) {
 }
 
 function _createFile(event, dismissCallback, helpText, extension) {
-	console.log("Begin _createFile:", new Date().toISOString());
+	console.log('Begin _createFile:', new Date().toISOString());
     var tb = this;
     helpText('');
     var val = $.trim(tb.select('#createFileInput').val());
@@ -1520,7 +1520,7 @@ function _createFile(event, dismissCallback, helpText, extension) {
             helpText(gettext('File creation failed.'));
         }
     });
-	console.log("End _createFile:", new Date().toISOString());
+	console.log('End _createFile:', new Date().toISOString());
 }
 
 /**
@@ -3626,7 +3626,7 @@ tbOptions = {
         return true;
     },
     addcheck : function (treebeard, item, file) {
-        console.log("Begin addcheck:", new Date().toISOString());
+        console.log('Begin addcheck:', new Date().toISOString());
         var size;
         var maxSize;
         var displaySize;
