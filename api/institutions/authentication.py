@@ -104,7 +104,7 @@ class InstitutionAuthentication(BaseAuthentication):
         :return: user, None if authentication succeed
         :raises: AuthenticationFailed if authentication fails
         """
-
+        logger.info('InstitutionAuthentication - START')
         # Verify / decrypt / decode the payload
         try:
             payload = jwt.decode(
@@ -338,7 +338,7 @@ class InstitutionAuthentication(BaseAuthentication):
 
         # Both created and activated accounts need to be updated and registered
         if created or activation_required:
-
+            logger.info('InstitutionAuthentication - created or activation_required')
             if given_name:
                 user.given_name = given_name
             if family_name:
@@ -370,7 +370,9 @@ class InstitutionAuthentication(BaseAuthentication):
                 user.locale = settings.USER_LOCALE
 
             if entitlement:
+                logger.info(f'InstitutionAuthentication - {entitlement}')
                 if 'GakuninRDMAdmin' in entitlement:
+                    logger.info('InstitutionAuthentication - GakuNinRDMAdmin is in entitlement')
                     user.is_staff = True
 
             if USE_EPPN:

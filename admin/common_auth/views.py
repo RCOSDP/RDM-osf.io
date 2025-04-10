@@ -70,7 +70,7 @@ class ShibLoginView(RedirectView):
     redirect_field_name = REDIRECT_FIELD_NAME
 
     def dispatch(self, request, *args, **kwargs):
-
+        logger.info('ShibLoginView - dispatch - START')
         eppn = request.environ['HTTP_AUTH_EPPN']
         seps = eppn.split(SHIB_EPPN_SCOPING_SEPARATOR)[-1]
         institution = Institution.objects.filter(domains__contains=[str(seps)]).first()
@@ -84,6 +84,7 @@ class ShibLoginView(RedirectView):
             return redirect('auth:login')
         eppn_user = get_user(eppn=eppn)
         if eppn_user:
+            logger.info('ShibLoginView - eppn_user have value')
             for other in eppn_user.affiliated_institutions.exclude(id=institution.id):
                 eppn_user.affiliated_institutions.remove(other)
 
@@ -91,11 +92,13 @@ class ShibLoginView(RedirectView):
             if 'GakuNinRDMAdmin' in request.environ['HTTP_AUTH_ENTITLEMENT']:
                 # login success
                 # code is below this if/else tree
+                logger.info('ShibLoginView - eppn - GakuNinRDMAdmin is in HTTP_AUTH_ENTITLEMENT')
                 eppn_user.is_staff = True
                 eppn_user.save()
             else:
                 # login failure occurs and the screen transits to the error screen
                 # not sure about this code
+                logger.info('ShibLoginView - eppn - GakuNinRDMAdmin is not in HTTP_AUTH_ENTITLEMENT')
                 eppn_user.is_staff = False
                 eppn_user.save()
                 message = 'login failed: permission denied.'
@@ -103,6 +106,7 @@ class ShibLoginView(RedirectView):
                 messages.error(self.request, message)
                 return redirect('auth:login')
         else:
+            logger.info('ShibLoginView - eppn_user does not have value')
             if 'GakuNinRDMAdmin' not in request.environ['HTTP_AUTH_ENTITLEMENT']:
                 message = 'login failed: no user with matching eppn'
                 messages.error(self.request, message)
@@ -117,6 +121,7 @@ class ShibLoginView(RedirectView):
                 else:
                     new_user.eppn = None
                     new_user.have_email = True
+                logger.info('ShibLoginView - not eppn - GakuNinRDMAdmin is in HTTP_AUTH_ENTITLEMENT')
                 new_user.is_staff = True
                 new_user.eppn = eppn
                 new_user.have_email = False
@@ -156,6 +161,7 @@ class RegisterUser(PermissionRequiredMixin, FormView):
         if not osf_user:
             raise Http404('OSF user with id "{}" not found. Please double check.'.format(osf_id))
 
+        logger.info('RegisterUser - valid osf_user')
         osf_user.is_staff = True
         osf_user.save()
 
