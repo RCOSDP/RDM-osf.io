@@ -1,22 +1,26 @@
 # English translations for .
-# Copyright (C) 2023 ORGANIZATION
+# Copyright (C) 2024 ORGANIZATION
 # This file is distributed under the same license as the  project.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2024.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version:  0.6.0\n"
 "Report-Msgid-Bugs-To: rocs-office@nii.ac.jp\n"
+<<<<<<< HEAD
 "POT-Creation-Date: 2025-01-29 05:58+0000\n"
+=======
+"POT-Creation-Date: 2024-11-18 15:42+0900\n"
+>>>>>>> feature/wiki-import-dev
 "PO-Revision-Date: 2020-11-16 20:17+0900\n"
 "Last-Translator: Hiroki Ohashi\n"
 "Language: en\n"
 "Language-Team: RCOS <rocs-office@nii.ac.jp>\n"
-"Plural-Forms: nplurals=1; plural=0\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.5.1\n"
+"Generated-By: Babel 2.11.0\n"
 
 #: addons/github/static/githubFangornConfig.js:215
 #: website/static/js/fangorn.js:2427
@@ -37,12 +41,20 @@ msgstr ""
 
 #: addons/metadata/static/files.js:646 addons/metadata/static/files.js:647
 #: addons/metadata/static/files.js:661 addons/metadata/static/files.js:662
+<<<<<<< HEAD
 #: website/static/js/fangorn.js:1865
+=======
+#: website/static/js/fangorn.js:1794
+>>>>>>> feature/wiki-import-dev
 msgid "Could not copy text"
 msgstr ""
 
 #: addons/metadata/static/files.js:659 website/static/js/clipboard.js:27
+<<<<<<< HEAD
 #: website/static/js/fangorn.js:1859 website/static/js/fangorn.js:1863
+=======
+#: website/static/js/fangorn.js:1788 website/static/js/fangorn.js:1792
+>>>>>>> feature/wiki-import-dev
 msgid "Copied!"
 msgstr ""
 
@@ -118,7 +130,11 @@ msgstr ""
 #: addons/metadata/static/files.js:2296 addons/metadata/static/files.js:2322
 #: addons/metadata/static/files.js:2378
 #: addons/metadata/static/metadataImportDatasetButton.js:24
+<<<<<<< HEAD
 #: website/static/js/accountSettings.js:267 website/static/js/fangorn.js:2817
+=======
+#: website/static/js/accountSettings.js:267 website/static/js/fangorn.js:2679
+>>>>>>> feature/wiki-import-dev
 #: website/static/js/folderPickerNodeConfig.js:591
 #: website/static/js/pages/profile-settings-addons-page.js:72
 #: website/static/js/pages/project-settings-page.js:118
@@ -196,10 +212,17 @@ msgstr ""
 
 #: addons/metadata/static/files.js:2270
 #: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:801
+<<<<<<< HEAD
 #: website/static/js/fangorn.js:1563 website/static/js/fangorn.js:1586
 #: website/static/js/fangorn.js:2482 website/static/js/fangorn.js:2518
 #: website/static/js/filepage/index.js:204
 #: website/static/js/filepage/index.js:519 website/static/js/myProjects.js:1637
+=======
+#: website/static/js/fangorn.js:1492 website/static/js/fangorn.js:1515
+#: website/static/js/fangorn.js:2402 website/static/js/fangorn.js:2438
+#: website/static/js/filepage/index.js:204
+#: website/static/js/filepage/index.js:517 website/static/js/myProjects.js:1637
+>>>>>>> feature/wiki-import-dev
 msgid "Delete"
 msgstr ""
 
@@ -235,6 +258,7 @@ msgid ""
 "browser menu."
 msgstr ""
 
+<<<<<<< HEAD
 #: addons/metadata/static/metadata-fields.js:247
 #: addons/metadata/static/metadata-fields.js:257
 msgid "Show Items"
@@ -243,6 +267,8 @@ msgstr ""
 #: addons/metadata/static/metadata-fields.js:254
 msgid "Hide Items"
 msgstr ""
+=======
+>>>>>>> feature/wiki-import-dev
 #: addons/metadata/static/metadata-fields.js:213
 msgid "Clear"
 msgstr ""
@@ -322,10 +348,13 @@ msgstr ""
 msgid "Could not GET metadata settings"
 msgstr ""
 
+<<<<<<< HEAD
 #: addons/metadata/static/metadata-fields.js:1187
 msgid "File size exceeds the maximum allowed size."
 msgstr ""
 
+=======
+>>>>>>> feature/wiki-import-dev
 #: addons/metadata/static/metadataNodeConfig.js:156
 msgid "Add-on settings configured."
 msgstr ""
@@ -354,10 +383,17 @@ msgstr ""
 #: website/static/js/apiPersonalToken.js:438
 #: website/static/js/citationsNodeConfig.js:169
 #: website/static/js/citationsNodeConfig.js:187
+<<<<<<< HEAD
 #: website/static/js/contribManager.js:444 website/static/js/fangorn.js:565
 #: website/static/js/fangorn.js:570 website/static/js/fangorn.js:1562
 #: website/static/js/fangorn.js:1585 website/static/js/fangorn.js:1638
 #: website/static/js/fangorn.js:1657 website/static/js/fangorn.js:2492
+=======
+#: website/static/js/contribManager.js:444 website/static/js/fangorn.js:562
+#: website/static/js/fangorn.js:567 website/static/js/fangorn.js:1491
+#: website/static/js/fangorn.js:1514 website/static/js/fangorn.js:1567
+#: website/static/js/fangorn.js:1586 website/static/js/fangorn.js:2412
+>>>>>>> feature/wiki-import-dev
 #: website/static/js/filepage/index.js:208
 #: website/static/js/folderPickerNodeConfig.js:510
 #: website/static/js/folderPickerNodeConfig.js:566
@@ -397,8 +433,13 @@ msgid "Enable"
 msgstr ""
 
 #: addons/weko/static/wekoFangornConfig.js:40
+<<<<<<< HEAD
 #: addons/weko/static/wekoFangornConfig.js:60 website/static/js/fangorn.js:2472
 #: website/static/js/filepage/index.js:544
+=======
+#: addons/weko/static/wekoFangornConfig.js:60 website/static/js/fangorn.js:2392
+#: website/static/js/filepage/index.js:542
+>>>>>>> feature/wiki-import-dev
 msgid "View"
 msgstr ""
 
@@ -626,14 +667,22 @@ msgid "the page now, those changes may be lost."
 msgstr ""
 
 #: addons/wiki/static/wikiPage.js:94
+<<<<<<< HEAD
 #: website/static/js/pages/project-dashboard-page.js:782
+=======
+#: website/static/js/pages/project-dashboard-page.js:793
+>>>>>>> feature/wiki-import-dev
 msgid ""
 "*Add important information, links, or images here to describe your "
 "project.*"
 msgstr ""
 
 #: addons/wiki/static/wikiPage.js:96
+<<<<<<< HEAD
 #: website/static/js/pages/project-dashboard-page.js:784
+=======
+#: website/static/js/pages/project-dashboard-page.js:795
+>>>>>>> feature/wiki-import-dev
 msgid "*No wiki content.*"
 msgstr ""
 
@@ -1005,6 +1054,10 @@ msgid ""
 "account.<br><br>"
 msgstr ""
 
+<<<<<<< HEAD
+=======
+# rdm-institutional-storage-page.js
+>>>>>>> feature/wiki-import-dev
 #: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:786
 msgid "Unable to delete location %1$s"
 msgstr ""
@@ -4409,7 +4462,11 @@ msgstr ""
 msgid "View original document"
 msgstr ""
 
+<<<<<<< HEAD
 #: website/static/js/citationGrid.js:202 website/static/js/fangorn.js:2527
+=======
+#: website/static/js/citationGrid.js:202 website/static/js/fangorn.js:2447
+>>>>>>> feature/wiki-import-dev
 msgid "View on %1$s"
 msgstr ""
 
@@ -4459,7 +4516,11 @@ msgid " if the problem persists."
 msgstr ""
 
 #: website/static/js/citationWidget.js:46
+<<<<<<< HEAD
 #: website/static/js/pages/project-dashboard-page.js:173
+=======
+#: website/static/js/pages/project-dashboard-page.js:175
+>>>>>>> feature/wiki-import-dev
 #, python-format
 msgid "Please enter %s or more characters"
 msgstr ""
@@ -4602,7 +4663,11 @@ msgstr ""
 msgid "Date Created"
 msgstr ""
 
+<<<<<<< HEAD
 #: website/static/js/conference.js:43 website/static/js/fangorn.js:2117
+=======
+#: website/static/js/conference.js:43 website/static/js/fangorn.js:2046
+>>>>>>> feature/wiki-import-dev
 msgid "Downloads"
 msgstr ""
 
@@ -4634,6 +4699,7 @@ msgstr ""
 msgid "Add Unregistered Contributor"
 msgstr ""
 
+<<<<<<< HEAD
 #: website/static/js/contribAdder.js:332
 msgid "Full Name is required."
 msgstr ""
@@ -4655,17 +4721,48 @@ msgid "Could not add contributors"
 msgstr ""
 
 #: website/static/js/contribAdder.js:460
+=======
+#: website/static/js/contribAdder.js:339
+msgid "Full Name is required."
+msgstr ""
+
+#: website/static/js/contribAdder.js:342
+msgid "Not a valid email address."
+msgstr ""
+
+#: website/static/js/contribAdder.js:349
+msgid "%1$s is already in queue."
+msgstr ""
+
+#: website/static/js/contribAdder.js:465
+msgid "There was a problem trying to add contributors%1$s."
+msgstr ""
+
+#: website/static/js/contribAdder.js:466
+msgid "Could not add contributors"
+msgstr ""
+
+#: website/static/js/contribAdder.js:467
+>>>>>>> feature/wiki-import-dev
 #: website/static/js/contribManager.js:150
 msgid "Error adding contributors"
 msgstr ""
 
+<<<<<<< HEAD
 #: website/static/js/contribAdder.js:530
+=======
+#: website/static/js/contribAdder.js:541
+>>>>>>> feature/wiki-import-dev
 #: website/static/js/institutionProjectSettings.js:254
 #: website/static/js/nodesDelete.js:194 website/static/js/nodesPrivacy.js:207
 msgid "Unable to retrieve project settings"
 msgstr ""
 
+<<<<<<< HEAD
 #: website/static/js/contribAdder.js:531
+=======
+#: website/static/js/contribAdder.js:542
+>>>>>>> feature/wiki-import-dev
 #: website/static/js/institutionProjectSettings.js:255
 #: website/static/js/nodesDelete.js:195 website/static/js/nodesPrivacy.js:208
 msgid "Could not GET project settings."
@@ -4676,7 +4773,11 @@ msgid "Sent"
 msgstr ""
 
 #: website/static/js/contribManager.js:130
+<<<<<<< HEAD
 #: website/static/js/pages/project-dashboard-page.js:534
+=======
+#: website/static/js/pages/project-dashboard-page.js:545
+>>>>>>> feature/wiki-import-dev
 msgid "Error"
 msgstr ""
 
@@ -5010,6 +5111,7 @@ msgstr ""
 msgid " by another user."
 msgstr ""
 
+<<<<<<< HEAD
 #: website/static/js/fangorn.js:2006
 msgid "%1$s is not configured"
 msgstr ""
@@ -5021,11 +5123,26 @@ msgstr " Configure"
 #: website/static/js/fangorn.js:2104 website/static/js/fileViewTreebeard.js:63
 #: website/static/js/filesWidget.js:34 website/static/js/meetings.js:18
 #: website/static/js/pages/project-dashboard-page.js:582
+=======
+#: website/static/js/fangorn.js:1935
+msgid "%1$s is not configured"
+msgstr ""
+
+#: website/static/js/fangorn.js:1938
+msgid " Restore Add-ons"
+msgstr " Configure"
+
+#: website/static/js/fangorn.js:2033 website/static/js/fileViewTreebeard.js:63
+#: website/static/js/filesWidget.js:34 website/static/js/meetings.js:18
+#: website/static/js/pages/project-dashboard-page.js:593
+>>>>>>> feature/wiki-import-dev
 #: website/static/js/project-organizer.js:192
-#: website/static/js/project-organizer.js:208 website/static/js/wikiMenu.js:58
+#: website/static/js/project-organizer.js:208 website/static/js/wikiMenu.js:59
+#: website/static/js/wikiMenu_copy.js:64
 msgid "Name"
 msgstr ""
 
+<<<<<<< HEAD
 #: website/static/js/fangorn.js:2109
 msgid "Size"
 msgstr ""
@@ -5036,10 +5153,23 @@ msgstr ""
 
 #: website/static/js/fangorn.js:2121
 #: website/static/js/pages/project-dashboard-page.js:588
+=======
+#: website/static/js/fangorn.js:2038
+msgid "Size"
+msgstr ""
+
+#: website/static/js/fangorn.js:2042
+msgid "Version"
+msgstr ""
+
+#: website/static/js/fangorn.js:2050
+#: website/static/js/pages/project-dashboard-page.js:599
+>>>>>>> feature/wiki-import-dev
 #: website/static/js/project-organizer.js:201
 msgid "Modified"
 msgstr ""
 
+<<<<<<< HEAD
 #: website/static/js/fangorn.js:2233
 msgid "Unable to retrieve components."
 msgstr ""
@@ -5081,20 +5211,72 @@ msgid "This would mean "
 msgstr ""
 
 #: website/static/js/fangorn.js:2489 website/static/js/filepage/index.js:217
+=======
+#: website/static/js/fangorn.js:2161
+msgid "Unable to retrieve components."
+msgstr ""
+
+#: website/static/js/fangorn.js:2163
+msgid "Unable to retrieve components for node %1$s"
+msgstr ""
+
+#: website/static/js/fangorn.js:2245
+msgid "You cannot rename your Wiki images folder."
+msgstr ""
+
+#: website/static/js/fangorn.js:2354
+msgid "Upload Folder"
+msgstr ""
+
+#: website/static/js/fangorn.js:2359
+msgid "Upload"
+msgstr ""
+
+#: website/static/js/fangorn.js:2366
+msgid "Create Folder"
+msgstr ""
+
+#: website/static/js/fangorn.js:2373
+msgid "Delete Folder"
+msgstr ""
+
+#: website/static/js/fangorn.js:2382 website/static/js/filepage/index.js:520
+#: website/static/js/filepage/revisions.js:111
+#: website/static/js/pages/project-dashboard-page.js:526
+#: website/static/js/pages/project-dashboard-page.js:536
+#: website/static/js/pages/project-dashboard-page.js:543
+msgid "Download"
+msgstr ""
+
+#: website/static/js/fangorn.js:2408 website/static/js/filepage/index.js:216
+msgid "This would mean "
+msgstr ""
+
+#: website/static/js/fangorn.js:2409 website/static/js/filepage/index.js:217
+>>>>>>> feature/wiki-import-dev
 msgid ""
 "other contributors cannot edit, delete or upload new versions of this "
 "file "
 msgstr ""
 
+<<<<<<< HEAD
 #: website/static/js/fangorn.js:2490
 msgid "as long as it is checked-out. You can check it back in at anytime."
 msgstr ""
 
 #: website/static/js/fangorn.js:2495 website/static/js/fangorn.js:2500
+=======
+#: website/static/js/fangorn.js:2410
+msgid "as long as it is checked-out. You can check it back in at anytime."
+msgstr ""
+
+#: website/static/js/fangorn.js:2415 website/static/js/fangorn.js:2420
+>>>>>>> feature/wiki-import-dev
 #: website/static/js/filepage/index.js:243
 msgid "Check out file"
 msgstr ""
 
+<<<<<<< HEAD
 #: website/static/js/fangorn.js:2496
 msgid "Confirm file check-out?"
 msgstr ""
@@ -5144,12 +5326,60 @@ msgid "Select rows:"
 msgstr ""
 
 #: website/static/js/fangorn.js:2808
+=======
+#: website/static/js/fangorn.js:2416
+msgid "Confirm file check-out?"
+msgstr ""
+
+#: website/static/js/fangorn.js:2429
+msgid "Check in file"
+msgstr ""
+
+#: website/static/js/fangorn.js:2457
+msgid "Download as zip"
+msgstr ""
+
+#: website/static/js/fangorn.js:2468 website/static/js/myProjects.js:1613
+msgid "Rename"
+msgstr ""
+
+#: website/static/js/fangorn.js:2477
+msgid "copy link"
+msgstr ""
+
+#: website/static/js/fangorn.js:2559
+msgid "New folder name"
+msgstr ""
+
+#: website/static/js/fangorn.js:2587
+msgid "Enter name"
+msgstr ""
+
+#: website/static/js/fangorn.js:2624
+msgid "Cancel Pending Uploads"
+msgstr ""
+
+#: website/static/js/fangorn.js:2653
+msgid "Delete Multiple"
+msgstr ""
+
+#: website/static/js/fangorn.js:2665 website/static/js/fangorn.js:3516
+msgid "Filter"
+msgstr ""
+
+#: website/static/js/fangorn.js:2670
+msgid "Select rows:"
+msgstr ""
+
+#: website/static/js/fangorn.js:2670
+>>>>>>> feature/wiki-import-dev
 msgid ""
 " Click on a row (outside the add-on, file, or folder name) to show "
 "further actions in the toolbar. Use Command or Shift keys to select "
 "multiple files."
 msgstr ""
 
+<<<<<<< HEAD
 #: website/static/js/fangorn.js:2809
 msgid "Open files:"
 msgstr ""
@@ -5163,21 +5393,45 @@ msgid "Open files in new tab:"
 msgstr ""
 
 #: website/static/js/fangorn.js:2810
+=======
+#: website/static/js/fangorn.js:2671
+msgid "Open files:"
+msgstr ""
+
+#: website/static/js/fangorn.js:2671
+msgid " Click a file name to go to view the file in the GakuNin RDM."
+msgstr ""
+
+#: website/static/js/fangorn.js:2672
+msgid "Open files in new tab:"
+msgstr ""
+
+#: website/static/js/fangorn.js:2672
+>>>>>>> feature/wiki-import-dev
 msgid ""
 " Press Command (Ctrl in Windows) and click a file name to open it in a "
 "new tab."
 msgstr ""
 
+<<<<<<< HEAD
 #: website/static/js/fangorn.js:2811
 msgid "Download as zip:"
 msgstr ""
 
 #: website/static/js/fangorn.js:2811
+=======
+#: website/static/js/fangorn.js:2673
+msgid "Download as zip:"
+msgstr ""
+
+#: website/static/js/fangorn.js:2673
+>>>>>>> feature/wiki-import-dev
 msgid ""
 " Click on the row of an add-on or folder and click the Download as Zip "
 "button in the toolbar."
 msgstr ""
 
+<<<<<<< HEAD
 #: website/static/js/fangorn.js:2811
 msgid " Not available for all storage add-ons."
 msgstr ""
@@ -5187,11 +5441,23 @@ msgid "Copy files:"
 msgstr ""
 
 #: website/static/js/fangorn.js:2812
+=======
+#: website/static/js/fangorn.js:2673
+msgid " Not available for all storage add-ons."
+msgstr ""
+
+#: website/static/js/fangorn.js:2674
+msgid "Copy files:"
+msgstr ""
+
+#: website/static/js/fangorn.js:2674
+>>>>>>> feature/wiki-import-dev
 msgid ""
 " Press Option (Alt in Windows) while dragging a file to a new folder or "
 "component."
 msgstr ""
 
+<<<<<<< HEAD
 #: website/static/js/fangorn.js:2812
 msgid " Only for contributors with write access."
 msgstr ""
@@ -5233,11 +5499,55 @@ msgid "You have pending uploads, if you leave this page they may not complete."
 msgstr ""
 
 #: website/static/js/fangorn.js:3572
+=======
+#: website/static/js/fangorn.js:2674
+msgid " Only for contributors with write access."
+msgstr ""
+
+#: website/static/js/fangorn.js:2680
+msgid "How to Use the File Browser"
+msgstr ""
+
+#: website/static/js/fangorn.js:2744
+msgid "Please wait for current action to complete"
+msgstr ""
+
+#: website/static/js/fangorn.js:2925
+msgid "Upload Status"
+msgstr ""
+
+#: website/static/js/fangorn.js:2925
+msgid " files succeeded."
+msgstr ""
+
+#: website/static/js/fangorn.js:3036
+msgid "Done"
+msgstr ""
+
+#: website/static/js/fangorn.js:3038
+msgid "Move Status"
+msgstr ""
+
+#: website/static/js/fangorn.js:3040
+msgid " files successfully moved."
+msgstr ""
+
+#: website/static/js/fangorn.js:3041
+msgid " Skipped %1$s/%2$s files."
+msgstr ""
+
+#: website/static/js/fangorn.js:3430
+msgid "You have pending uploads, if you leave this page they may not complete."
+msgstr ""
+
+#: website/static/js/fangorn.js:3433
+>>>>>>> feature/wiki-import-dev
 msgid ""
 "You have pending file operations, if you leave this page they may not "
 "complete."
 msgstr ""
 
+<<<<<<< HEAD
 #: website/static/js/fangorn.js:3616
 msgid "This file is too large (%1$s). Max file size is %2$s."
 msgstr ""
@@ -5251,6 +5561,21 @@ msgid "Quota usage alert"
 msgstr ""
 
 #: website/static/js/fangorn.js:3640
+=======
+#: website/static/js/fangorn.js:3477
+msgid "This file is too large (%1$s). Max file size is %2$s."
+msgstr ""
+
+#: website/static/js/fangorn.js:3493
+msgid "Not enough quota to upload the file."
+msgstr ""
+
+#: website/static/js/fangorn.js:3500
+msgid "Quota usage alert"
+msgstr ""
+
+#: website/static/js/fangorn.js:3501
+>>>>>>> feature/wiki-import-dev
 #, python-format
 msgid "You have used more than %1$s%% of your quota."
 msgstr ""
@@ -6745,6 +7070,7 @@ msgstr ""
 msgid "Swift addon for ${node} deauthorized"
 msgstr ""
 
+<<<<<<< HEAD
 #: website/static/js/logActionsList_extract.js:220
 msgid "${user} linked the Azure Blob Storage container ${bucket} to ${node}"
 msgstr ""
@@ -6790,41 +7116,45 @@ msgid "Azure Blob Storage addon for ${node} deauthorized"
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js:229
+=======
+#: website/static/js/logActionsList_extract.js:251
+>>>>>>> feature/wiki-import-dev
 msgid "${user} added draft file ${filename} to WEKO index ${dataset} in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:230
+#: website/static/js/logActionsList_extract.js:252
 msgid ""
 "${user} removed draft file ${filename} from WEKO index ${dataset} in "
 "${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:231
+#: website/static/js/logActionsList_extract.js:253
 msgid "${user} linked WEKO index ${dataset} to ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:232
+#: website/static/js/logActionsList_extract.js:254
 msgid ""
 "${user} created draft folder ${filename} in WEKO index ${dataset} in "
 "${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:233
+#: website/static/js/logActionsList_extract.js:255
 msgid "${user} deposit item ${path} in WEKO index ${dataset} in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:234
+#: website/static/js/logActionsList_extract.js:256
 msgid "${user} authorized the WEKO addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:235
+#: website/static/js/logActionsList_extract.js:257
 msgid "${user} deauthorized the WEKO addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:236
+#: website/static/js/logActionsList_extract.js:258
 msgid "WEKO addon for ${node} deauthorized"
 msgstr ""
 
+<<<<<<< HEAD
 #: website/static/js/logActionsList_extract.js:237
 msgid "${user} linked the S3 Compatible Storage bucket ${bucket} to ${node}"
 msgstr ""
@@ -6834,6 +7164,29 @@ msgid "${user} unselected the S3 Compatible Storage bucket ${bucket} in ${node}"
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js:239
+=======
+#: website/static/js/logActionsList_extract.js:259
+msgid "${user} linked Zotero folder ${folder_name} to ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js:260
+msgid "${user} linked Zotero library ${library_name} to ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js:261
+msgid "${user} authorized the Zotero addon for ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js:262
+msgid "${user} deauthorized the Zotero addon for ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js:263
+msgid "${user} added file ${path} to Nextcloud (for Institutions) in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js:264
+>>>>>>> feature/wiki-import-dev
 msgid ""
 "${user} added file ${path} to S3 Compatible Storage bucket ${bucket} in "
 "${node}"
@@ -6851,6 +7204,7 @@ msgid ""
 " ${node}"
 msgstr ""
 
+<<<<<<< HEAD
 #: website/static/js/logActionsList_extract.js:242
 msgid ""
 "${user} created folder ${path} in S3 Compatible Storage bucket ${bucket} "
@@ -6870,47 +7224,99 @@ msgid "S3 Compatible Storage addon for ${node} deauthorized"
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js:246
+=======
+#: website/static/js/logActionsList_extract.js:265
+msgid "${user} updated file ${path} in Nextcloud (for Institutions) in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js:266
+msgid "${user} created folder ${path} in Nextcloud (for Institutions) in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js:267
+msgid "${user} linked Nextcloud (for Institutions) folder ${folder} to ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js:268
+msgid "${user} authorized the Nextcloud (for Institutions) addon for ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js:269
+msgid "${user} deauthorized the Nextcloud (for Institutions) addon for ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js:270
+msgid "Nextcloud (for Institutions) addon for ${node} deauthorized"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js:271
+>>>>>>> feature/wiki-import-dev
 msgid ""
 "${user} added file ${path} to S3 Compatible Storage for Institutions in "
 "${node}"
 msgstr ""
 
+<<<<<<< HEAD
 #: website/static/js/logActionsList_extract.js:247
+=======
+#: website/static/js/logActionsList_extract.js:272
+>>>>>>> feature/wiki-import-dev
 msgid ""
 "${user} removed ${path_type} ${path} from S3 Compatible Storage for "
 "Institutions in ${node}"
 msgstr ""
 
+<<<<<<< HEAD
 #: website/static/js/logActionsList_extract.js:248
+=======
+#: website/static/js/logActionsList_extract.js:273
+>>>>>>> feature/wiki-import-dev
 msgid ""
 "${user} updated file ${path} in S3 Compatible Storage for Institutions in"
 " ${node}"
 msgstr ""
 
+<<<<<<< HEAD
 #: website/static/js/logActionsList_extract.js:249
+=======
+#: website/static/js/logActionsList_extract.js:274
+>>>>>>> feature/wiki-import-dev
 msgid ""
 "${user} created folder ${path} in S3 Compatible Storage for Institutions "
 "in ${node}"
 msgstr ""
 
+<<<<<<< HEAD
 #: website/static/js/logActionsList_extract.js:250
+=======
+#: website/static/js/logActionsList_extract.js:275
+>>>>>>> feature/wiki-import-dev
 msgid ""
 "${user} linked S3 Compatible Storage for Institutions folder ${folder} to"
 " ${node}"
 msgstr ""
 
+<<<<<<< HEAD
 #: website/static/js/logActionsList_extract.js:251
+=======
+#: website/static/js/logActionsList_extract.js:276
+>>>>>>> feature/wiki-import-dev
 msgid ""
 "${user} authorized the S3 Compatible Storage for Institutions addon for "
 "${node}"
 msgstr ""
 
+<<<<<<< HEAD
 #: website/static/js/logActionsList_extract.js:252
+=======
+#: website/static/js/logActionsList_extract.js:277
+>>>>>>> feature/wiki-import-dev
 msgid ""
 "${user} deauthorized the S3 Compatible Storage for Institutions addon for"
 " ${node}"
 msgstr ""
 
+<<<<<<< HEAD
 #: website/static/js/logActionsList_extract.js:253
 msgid "S3 Compatible Storage for Institutions addon for ${node} deauthorized"
 msgstr ""
@@ -6968,53 +7374,89 @@ msgid "Oracle Cloud Infrastructure Object Storage addon for ${node} deauthorized
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js:263
+=======
+#: website/static/js/logActionsList_extract.js:278
+msgid "S3 Compatible Storage for Institutions addon for ${node} deauthorized"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js:279
+>>>>>>> feature/wiki-import-dev
 msgid ""
 "${user} added file ${path} to Oracle Cloud Infrastructure for "
 "Institutions in ${node}"
 msgstr ""
 
+<<<<<<< HEAD
 #: website/static/js/logActionsList_extract.js:264
+=======
+#: website/static/js/logActionsList_extract.js:280
+>>>>>>> feature/wiki-import-dev
 msgid ""
 "${user} removed ${path_type} ${path} from Oracle Cloud Infrastructure for"
 " Institutions in ${node}"
 msgstr ""
 
+<<<<<<< HEAD
 #: website/static/js/logActionsList_extract.js:265
+=======
+#: website/static/js/logActionsList_extract.js:281
+>>>>>>> feature/wiki-import-dev
 msgid ""
 "${user} updated file ${path} in Oracle Cloud Infrastructure for "
 "Institutions in ${node}"
 msgstr ""
 
+<<<<<<< HEAD
 #: website/static/js/logActionsList_extract.js:266
+=======
+#: website/static/js/logActionsList_extract.js:282
+>>>>>>> feature/wiki-import-dev
 msgid ""
 "${user} created folder ${path} in Oracle Cloud Infrastructure for "
 "Institutions in ${node}"
 msgstr ""
 
+<<<<<<< HEAD
 #: website/static/js/logActionsList_extract.js:267
+=======
+#: website/static/js/logActionsList_extract.js:283
+>>>>>>> feature/wiki-import-dev
 msgid ""
 "${user} linked Oracle Cloud Infrastructure for Institutions folder "
 "${folder} to ${node}"
 msgstr ""
 
+<<<<<<< HEAD
 #: website/static/js/logActionsList_extract.js:268
+=======
+#: website/static/js/logActionsList_extract.js:284
+>>>>>>> feature/wiki-import-dev
 msgid ""
 "${user} authorized the Oracle Cloud Infrastructure for Institutions addon"
 " for ${node}"
 msgstr ""
 
+<<<<<<< HEAD
 #: website/static/js/logActionsList_extract.js:269
+=======
+#: website/static/js/logActionsList_extract.js:285
+>>>>>>> feature/wiki-import-dev
 msgid ""
 "${user} deauthorized the Oracle Cloud Infrastructure for Institutions "
 "addon for ${node}"
 msgstr ""
 
+<<<<<<< HEAD
 #: website/static/js/logActionsList_extract.js:270
+=======
+#: website/static/js/logActionsList_extract.js:286
+>>>>>>> feature/wiki-import-dev
 msgid ""
 "Oracle Cloud Infrastructure for Institutions addon for ${node} "
 "deauthorized"
 msgstr ""
 
+<<<<<<< HEAD
 #: website/static/js/logActionsList_extract.js:271
 msgid "${user} added file ${path} to Nextcloud in ${node}"
 msgstr ""
@@ -7207,6 +7649,8 @@ msgstr ""
 msgid "${user} deleted metadata ${path} in ${node}"
 msgstr ""
 
+=======
+>>>>>>> feature/wiki-import-dev
 #: website/static/js/logTextParser.js:829
 msgid "unknown format"
 msgstr ""
@@ -8755,14 +9199,24 @@ msgstr ""
 #: website/static/js/pages/file-page.js:23
 #: website/static/js/pages/file-page.js:58
 #: website/static/js/pages/file-page.js:60
+<<<<<<< HEAD
 #: website/static/js/pages/project-dashboard-page.js:681
 #: website/static/js/pages/project-dashboard-page.js:765
 #: website/static/js/pages/project-dashboard-page.js:798
+=======
+#: website/static/js/pages/project-dashboard-page.js:692
+#: website/static/js/pages/project-dashboard-page.js:776
+#: website/static/js/pages/project-dashboard-page.js:809
+>>>>>>> feature/wiki-import-dev
 msgid "Removing tag"
 msgstr ""
 
 #: website/static/js/pages/file-page.js:24
+<<<<<<< HEAD
 #: website/static/js/pages/project-dashboard-page.js:682
+=======
+#: website/static/js/pages/project-dashboard-page.js:693
+>>>>>>> feature/wiki-import-dev
 msgid "Add a tag"
 msgstr ""
 
@@ -8771,7 +9225,11 @@ msgid "Could not add tag."
 msgstr ""
 
 #: website/static/js/pages/file-page.js:29
+<<<<<<< HEAD
 #: website/static/js/pages/project-dashboard-page.js:705
+=======
+#: website/static/js/pages/project-dashboard-page.js:716
+>>>>>>> feature/wiki-import-dev
 msgid "Failed to add tag"
 msgstr ""
 
@@ -8780,7 +9238,11 @@ msgid "Could not remove tag."
 msgstr ""
 
 #: website/static/js/pages/file-page.js:44
+<<<<<<< HEAD
 #: website/static/js/pages/project-dashboard-page.js:741
+=======
+#: website/static/js/pages/project-dashboard-page.js:752
+>>>>>>> feature/wiki-import-dev
 msgid "Failed to remove tag"
 msgstr ""
 
@@ -8862,6 +9324,7 @@ msgstr ""
 msgid "Disable"
 msgstr ""
 
+<<<<<<< HEAD
 #: website/static/js/pages/project-dashboard-page.js:119
 msgid "Filter by users"
 msgstr ""
@@ -8907,6 +9370,53 @@ msgid "Add a project tag to enhance discoverability"
 msgstr ""
 
 #: website/static/js/pages/project-dashboard-page.js:740
+=======
+#: website/static/js/pages/project-dashboard-page.js:121
+msgid "Filter by users"
+msgstr ""
+
+#: website/static/js/pages/project-dashboard-page.js:122
+msgid "Select from current contributors"
+msgstr ""
+
+#: website/static/js/pages/project-dashboard-page.js:123
+msgid "Select including past contributors"
+msgstr ""
+
+#: website/static/js/pages/project-dashboard-page.js:124
+msgid "Include past project contributors in your search"
+msgstr ""
+
+#: website/static/js/pages/project-dashboard-page.js:125
+msgid "Use dropdown menu"
+msgstr ""
+
+#: website/static/js/pages/project-dashboard-page.js:453
+msgid "Add Component"
+msgstr ""
+
+#: website/static/js/pages/project-dashboard-page.js:455
+msgid "Create new component"
+msgstr ""
+
+#: website/static/js/pages/project-dashboard-page.js:523
+msgid "Downloading"
+msgstr ""
+
+#: website/static/js/pages/project-dashboard-page.js:545
+msgid "Download failed."
+msgstr ""
+
+#: website/static/js/pages/project-dashboard-page.js:673
+msgid "Error retrieving filebrowser"
+msgstr ""
+
+#: website/static/js/pages/project-dashboard-page.js:690
+msgid "Add a project tag to enhance discoverability"
+msgstr ""
+
+#: website/static/js/pages/project-dashboard-page.js:751
+>>>>>>> feature/wiki-import-dev
 msgid "Could not remove tag"
 msgstr ""
 
@@ -9009,7 +9519,9 @@ msgid "An unexpected error occurred. Please try again."
 msgstr ""
 
 #: website/static/js/pages/wiki-edit-page.js:108
-msgid "<p>Could not retrieve wiki pages. If this issue persists, "
+msgid ""
+"<p>Could not retrieve wiki pages. Please reload the page. If this issue "
+"persists, "
 msgstr ""
 
 #: website/static/js/pages/wiki-edit-page.js:109

@@ -1,22 +1,26 @@
 # Japanese translations for .
-# Copyright (C) 2023 ORGANIZATION
+# Copyright (C) 2024 ORGANIZATION
 # This file is distributed under the same license as the  project.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2024.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version:  0.6.0\n"
 "Report-Msgid-Bugs-To: rocs-office@nii.ac.jp\n"
+<<<<<<< HEAD
 "POT-Creation-Date: 2025-01-29 05:58+0000\n"
+=======
+"POT-Creation-Date: 2024-11-18 15:42+0900\n"
+>>>>>>> feature/wiki-import-dev
 "PO-Revision-Date: 2020-11-23 09:30+0900\n"
 "Last-Translator: Hidetoshi Yoshimoto\n"
 "Language: ja\n"
 "Language-Team: RCOS <rocs-office@nii.ac.jp>\n"
-"Plural-Forms: nplurals=1; plural=0\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.5.1\n"
+"Generated-By: Babel 2.11.0\n"
 
 #: addons/github/static/githubFangornConfig.js:215
 #: website/static/js/fangorn.js:2427
@@ -37,12 +41,20 @@ msgstr "クリップボードから貼り付け"
 
 #: addons/metadata/static/files.js:646 addons/metadata/static/files.js:647
 #: addons/metadata/static/files.js:661 addons/metadata/static/files.js:662
+<<<<<<< HEAD
 #: website/static/js/fangorn.js:1865
+=======
+#: website/static/js/fangorn.js:1794
+>>>>>>> feature/wiki-import-dev
 msgid "Could not copy text"
 msgstr "テキストをコピーできませんでした"
 
 #: addons/metadata/static/files.js:659 website/static/js/clipboard.js:27
+<<<<<<< HEAD
 #: website/static/js/fangorn.js:1859 website/static/js/fangorn.js:1863
+=======
+#: website/static/js/fangorn.js:1788 website/static/js/fangorn.js:1792
+>>>>>>> feature/wiki-import-dev
 msgid "Copied!"
 msgstr "コピーされました！"
 
@@ -118,7 +130,11 @@ msgstr "削除中..."
 #: addons/metadata/static/files.js:2296 addons/metadata/static/files.js:2322
 #: addons/metadata/static/files.js:2378
 #: addons/metadata/static/metadataImportDatasetButton.js:24
+<<<<<<< HEAD
 #: website/static/js/accountSettings.js:267 website/static/js/fangorn.js:2817
+=======
+#: website/static/js/accountSettings.js:267 website/static/js/fangorn.js:2679
+>>>>>>> feature/wiki-import-dev
 #: website/static/js/folderPickerNodeConfig.js:591
 #: website/static/js/pages/profile-settings-addons-page.js:72
 #: website/static/js/pages/project-settings-page.js:118
@@ -177,6 +193,7 @@ msgid ""
 "can break the association of the metadata you have added."
 msgstr "ファイルのリネーム、ファイルやディレクトリの移動、ディレクトリ階層の変更を行うと、入力したメタデータの関連付けが解除される場合があります。"
 
+<<<<<<< HEAD
 #: addons/metadata/static/files.js:245
 msgid "Hide Items"
 msgstr "項目を非表示"
@@ -185,6 +202,8 @@ msgstr "項目を非表示"
 msgid "Show Items"
 msgstr "項目を表示"
 
+=======
+>>>>>>> feature/wiki-import-dev
 #: addons/metadata/static/files.js:2177
 msgid "Edit File Metadata"
 msgstr "ファイルメタデータの編集"
@@ -204,10 +223,17 @@ msgstr "ファイルメタデータの複数編集"
 
 #: addons/metadata/static/files.js:2270
 #: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:801
+<<<<<<< HEAD
 #: website/static/js/fangorn.js:1563 website/static/js/fangorn.js:1586
 #: website/static/js/fangorn.js:2482 website/static/js/fangorn.js:2518
 #: website/static/js/filepage/index.js:204
 #: website/static/js/filepage/index.js:519 website/static/js/myProjects.js:1637
+=======
+#: website/static/js/fangorn.js:1492 website/static/js/fangorn.js:1515
+#: website/static/js/fangorn.js:2402 website/static/js/fangorn.js:2438
+#: website/static/js/filepage/index.js:204
+#: website/static/js/filepage/index.js:517 website/static/js/myProjects.js:1637
+>>>>>>> feature/wiki-import-dev
 msgid "Delete"
 msgstr "削除"
 
@@ -352,10 +378,17 @@ msgstr "アドオンの設定に失敗しました。"
 #: website/static/js/apiPersonalToken.js:438
 #: website/static/js/citationsNodeConfig.js:169
 #: website/static/js/citationsNodeConfig.js:187
+<<<<<<< HEAD
 #: website/static/js/contribManager.js:444 website/static/js/fangorn.js:565
 #: website/static/js/fangorn.js:570 website/static/js/fangorn.js:1562
 #: website/static/js/fangorn.js:1585 website/static/js/fangorn.js:1638
 #: website/static/js/fangorn.js:1657 website/static/js/fangorn.js:2492
+=======
+#: website/static/js/contribManager.js:444 website/static/js/fangorn.js:562
+#: website/static/js/fangorn.js:567 website/static/js/fangorn.js:1491
+#: website/static/js/fangorn.js:1514 website/static/js/fangorn.js:1567
+#: website/static/js/fangorn.js:1586 website/static/js/fangorn.js:2412
+>>>>>>> feature/wiki-import-dev
 #: website/static/js/filepage/index.js:208
 #: website/static/js/folderPickerNodeConfig.js:510
 #: website/static/js/folderPickerNodeConfig.js:566
@@ -397,8 +430,13 @@ msgid "Enable"
 msgstr "有効にする"
 
 #: addons/weko/static/wekoFangornConfig.js:40
+<<<<<<< HEAD
 #: addons/weko/static/wekoFangornConfig.js:60 website/static/js/fangorn.js:2472
 #: website/static/js/filepage/index.js:544
+=======
+#: addons/weko/static/wekoFangornConfig.js:60 website/static/js/fangorn.js:2392
+#: website/static/js/filepage/index.js:542
+>>>>>>> feature/wiki-import-dev
 msgid "View"
 msgstr "プレビュー"
 
@@ -634,14 +672,22 @@ msgid "the page now, those changes may be lost."
 msgstr "ここでページを終了すると、これらの変更が失われる可能性があります。"
 
 #: addons/wiki/static/wikiPage.js:94
+<<<<<<< HEAD
 #: website/static/js/pages/project-dashboard-page.js:782
+=======
+#: website/static/js/pages/project-dashboard-page.js:793
+>>>>>>> feature/wiki-import-dev
 msgid ""
 "*Add important information, links, or images here to describe your "
 "project.*"
 msgstr "*重要な情報、リンク、または画像をここに追加して、プロジェクトを説明してください。*"
 
 #: addons/wiki/static/wikiPage.js:96
+<<<<<<< HEAD
 #: website/static/js/pages/project-dashboard-page.js:784
+=======
+#: website/static/js/pages/project-dashboard-page.js:795
+>>>>>>> feature/wiki-import-dev
 msgid "*No wiki content.*"
 msgstr "* Wikiコンテンツはありません。*"
 
@@ -1019,6 +1065,10 @@ msgid ""
 "account.<br><br>"
 msgstr "これにより、このアカウントを使用するすべてのプロジェクトの%1$sへのアクセスが取り消されます。"
 
+<<<<<<< HEAD
+=======
+# rdm-institutional-storage-page.js
+>>>>>>> feature/wiki-import-dev
 #: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:786
 msgid "Unable to delete location %1$s"
 msgstr "場所%1$sを削除できません"
@@ -5667,7 +5717,11 @@ msgstr "サイテーションをコピー"
 msgid "View original document"
 msgstr "元のドキュメントを表示"
 
+<<<<<<< HEAD
 #: website/static/js/citationGrid.js:202 website/static/js/fangorn.js:2527
+=======
+#: website/static/js/citationGrid.js:202 website/static/js/fangorn.js:2447
+>>>>>>> feature/wiki-import-dev
 msgid "View on %1$s"
 msgstr "%1$sで表示"
 
@@ -5717,7 +5771,11 @@ msgid " if the problem persists."
 msgstr " "
 
 #: website/static/js/citationWidget.js:46
+<<<<<<< HEAD
 #: website/static/js/pages/project-dashboard-page.js:173
+=======
+#: website/static/js/pages/project-dashboard-page.js:175
+>>>>>>> feature/wiki-import-dev
 #, python-format
 msgid "Please enter %s or more characters"
 msgstr "後%s文字入力してください"
@@ -5860,7 +5918,11 @@ msgstr "著者"
 msgid "Date Created"
 msgstr "作成日時"
 
+<<<<<<< HEAD
 #: website/static/js/conference.js:43 website/static/js/fangorn.js:2117
+=======
+#: website/static/js/conference.js:43 website/static/js/fangorn.js:2046
+>>>>>>> feature/wiki-import-dev
 msgid "Downloads"
 msgstr "ダウンロード"
 
@@ -5892,6 +5954,7 @@ msgstr "電子メールで新しいメンバーを招待する"
 msgid "Add Unregistered Contributor"
 msgstr "未登録のメンバーを追加"
 
+<<<<<<< HEAD
 #: website/static/js/contribAdder.js:332
 msgid "Full Name is required."
 msgstr "氏名が必要です。"
@@ -5913,17 +5976,48 @@ msgid "Could not add contributors"
 msgstr "メンバーを追加できませんでした"
 
 #: website/static/js/contribAdder.js:460
+=======
+#: website/static/js/contribAdder.js:339
+msgid "Full Name is required."
+msgstr "氏名が必要です。"
+
+#: website/static/js/contribAdder.js:342
+msgid "Not a valid email address."
+msgstr "有効な電子メールアドレスではありません。"
+
+#: website/static/js/contribAdder.js:349
+msgid "%1$s is already in queue."
+msgstr "%1$sはすでにキューにあります。"
+
+#: website/static/js/contribAdder.js:465
+msgid "There was a problem trying to add contributors%1$s."
+msgstr "メンバー%1$sを追加しようとして問題が発生しました。"
+
+#: website/static/js/contribAdder.js:466
+msgid "Could not add contributors"
+msgstr "メンバーを追加できませんでした"
+
+#: website/static/js/contribAdder.js:467
+>>>>>>> feature/wiki-import-dev
 #: website/static/js/contribManager.js:150
 msgid "Error adding contributors"
 msgstr "メンバーの追加エラー"
 
+<<<<<<< HEAD
 #: website/static/js/contribAdder.js:530
+=======
+#: website/static/js/contribAdder.js:541
+>>>>>>> feature/wiki-import-dev
 #: website/static/js/institutionProjectSettings.js:254
 #: website/static/js/nodesDelete.js:194 website/static/js/nodesPrivacy.js:207
 msgid "Unable to retrieve project settings"
 msgstr "プロジェクト設定を取得できません"
 
+<<<<<<< HEAD
 #: website/static/js/contribAdder.js:531
+=======
+#: website/static/js/contribAdder.js:542
+>>>>>>> feature/wiki-import-dev
 #: website/static/js/institutionProjectSettings.js:255
 #: website/static/js/nodesDelete.js:195 website/static/js/nodesPrivacy.js:208
 msgid "Could not GET project settings."
@@ -5934,7 +6028,11 @@ msgid "Sent"
 msgstr "送信完了"
 
 #: website/static/js/contribManager.js:130
+<<<<<<< HEAD
 #: website/static/js/pages/project-dashboard-page.js:534
+=======
+#: website/static/js/pages/project-dashboard-page.js:545
+>>>>>>> feature/wiki-import-dev
 msgid "Error"
 msgstr "エラー"
 
@@ -6268,6 +6366,7 @@ msgstr "ファイルをチェックアウトできません。 これは、フ�
 msgid " by another user."
 msgstr "である可能性があります。"
 
+<<<<<<< HEAD
 #: website/static/js/fangorn.js:2006
 msgid "%1$s is not configured"
 msgstr "%1$sが未設定です"
@@ -6279,11 +6378,26 @@ msgstr " 設定"
 #: website/static/js/fangorn.js:2104 website/static/js/fileViewTreebeard.js:63
 #: website/static/js/filesWidget.js:34 website/static/js/meetings.js:18
 #: website/static/js/pages/project-dashboard-page.js:582
+=======
+#: website/static/js/fangorn.js:1935
+msgid "%1$s is not configured"
+msgstr "%1$sが未設定です"
+
+#: website/static/js/fangorn.js:1938
+msgid " Restore Add-ons"
+msgstr " 設定"
+
+#: website/static/js/fangorn.js:2033 website/static/js/fileViewTreebeard.js:63
+#: website/static/js/filesWidget.js:34 website/static/js/meetings.js:18
+#: website/static/js/pages/project-dashboard-page.js:593
+>>>>>>> feature/wiki-import-dev
 #: website/static/js/project-organizer.js:192
-#: website/static/js/project-organizer.js:208 website/static/js/wikiMenu.js:58
+#: website/static/js/project-organizer.js:208 website/static/js/wikiMenu.js:59
+#: website/static/js/wikiMenu_copy.js:64
 msgid "Name"
 msgstr "名前"
 
+<<<<<<< HEAD
 #: website/static/js/fangorn.js:2109
 msgid "Size"
 msgstr "サイズ"
@@ -6294,10 +6408,23 @@ msgstr "バージョン"
 
 #: website/static/js/fangorn.js:2121
 #: website/static/js/pages/project-dashboard-page.js:588
+=======
+#: website/static/js/fangorn.js:2038
+msgid "Size"
+msgstr "サイズ"
+
+#: website/static/js/fangorn.js:2042
+msgid "Version"
+msgstr "バージョン"
+
+#: website/static/js/fangorn.js:2050
+#: website/static/js/pages/project-dashboard-page.js:599
+>>>>>>> feature/wiki-import-dev
 #: website/static/js/project-organizer.js:201
 msgid "Modified"
 msgstr "最終更新日時"
 
+<<<<<<< HEAD
 #: website/static/js/fangorn.js:2233
 msgid "Unable to retrieve components."
 msgstr "コンポーネントを取得できません。"
@@ -6339,20 +6466,72 @@ msgid "This would mean "
 msgstr "これは、"
 
 #: website/static/js/fangorn.js:2489 website/static/js/filepage/index.js:217
+=======
+#: website/static/js/fangorn.js:2161
+msgid "Unable to retrieve components."
+msgstr "コンポーネントを取得できません。"
+
+#: website/static/js/fangorn.js:2163
+msgid "Unable to retrieve components for node %1$s"
+msgstr "ノード%1$sのコンポーネントを取得できません"
+
+#: website/static/js/fangorn.js:2245
+msgid "You cannot rename your Wiki images folder."
+msgstr "Wiki画像フォルダの名前を変更することはできません。"
+
+#: website/static/js/fangorn.js:2354
+msgid "Upload Folder"
+msgstr "フォルダのアップロード"
+
+#: website/static/js/fangorn.js:2359
+msgid "Upload"
+msgstr "アップロード"
+
+#: website/static/js/fangorn.js:2366
+msgid "Create Folder"
+msgstr "新規フォルダ作成"
+
+#: website/static/js/fangorn.js:2373
+msgid "Delete Folder"
+msgstr "フォルダを削除"
+
+#: website/static/js/fangorn.js:2382 website/static/js/filepage/index.js:520
+#: website/static/js/filepage/revisions.js:111
+#: website/static/js/pages/project-dashboard-page.js:526
+#: website/static/js/pages/project-dashboard-page.js:536
+#: website/static/js/pages/project-dashboard-page.js:543
+msgid "Download"
+msgstr "ダウンロード"
+
+#: website/static/js/fangorn.js:2408 website/static/js/filepage/index.js:216
+msgid "This would mean "
+msgstr "これは、"
+
+#: website/static/js/fangorn.js:2409 website/static/js/filepage/index.js:217
+>>>>>>> feature/wiki-import-dev
 msgid ""
 "other contributors cannot edit, delete or upload new versions of this "
 "file "
 msgstr "チェックアウトされている限り他のメンバーがこのファイルの新しいバージョンを編集、削除、またはアップロードできないことを意味します。"
 
+<<<<<<< HEAD
 #: website/static/js/fangorn.js:2490
 msgid "as long as it is checked-out. You can check it back in at anytime."
 msgstr "いつでもチェックインできます。"
 
 #: website/static/js/fangorn.js:2495 website/static/js/fangorn.js:2500
+=======
+#: website/static/js/fangorn.js:2410
+msgid "as long as it is checked-out. You can check it back in at anytime."
+msgstr "いつでもチェックインできます。"
+
+#: website/static/js/fangorn.js:2415 website/static/js/fangorn.js:2420
+>>>>>>> feature/wiki-import-dev
 #: website/static/js/filepage/index.js:243
 msgid "Check out file"
 msgstr "ファイルをチェックアウト"
 
+<<<<<<< HEAD
 #: website/static/js/fangorn.js:2496
 msgid "Confirm file check-out?"
 msgstr "ファイルのチェックアウトを確認しますか？"
@@ -6402,6 +6581,53 @@ msgid "Select rows:"
 msgstr "行を選択："
 
 #: website/static/js/fangorn.js:2808
+=======
+#: website/static/js/fangorn.js:2416
+msgid "Confirm file check-out?"
+msgstr "ファイルのチェックアウトを確認しますか？"
+
+#: website/static/js/fangorn.js:2429
+msgid "Check in file"
+msgstr "ファイルをチェックイン"
+
+#: website/static/js/fangorn.js:2457
+msgid "Download as zip"
+msgstr "ZIPでダウンロード"
+
+#: website/static/js/fangorn.js:2468 website/static/js/myProjects.js:1613
+msgid "Rename"
+msgstr "名前を変更"
+
+#: website/static/js/fangorn.js:2477
+msgid "copy link"
+msgstr "リンクをコピー"
+
+#: website/static/js/fangorn.js:2559
+msgid "New folder name"
+msgstr "新しいフォルダ名"
+
+#: website/static/js/fangorn.js:2587
+msgid "Enter name"
+msgstr "名前を入力"
+
+#: website/static/js/fangorn.js:2624
+msgid "Cancel Pending Uploads"
+msgstr "保留中のアップロードをキャンセル"
+
+#: website/static/js/fangorn.js:2653
+msgid "Delete Multiple"
+msgstr "複数削除"
+
+#: website/static/js/fangorn.js:2665 website/static/js/fangorn.js:3516
+msgid "Filter"
+msgstr "フィルタ"
+
+#: website/static/js/fangorn.js:2670
+msgid "Select rows:"
+msgstr "行を選択："
+
+#: website/static/js/fangorn.js:2670
+>>>>>>> feature/wiki-import-dev
 msgid ""
 " Click on a row (outside the add-on, file, or folder name) to show "
 "further actions in the toolbar. Use Command or Shift keys to select "
@@ -6410,6 +6636,7 @@ msgstr ""
 "行（アドオン、ファイル、またはフォルダー名の外側）をクリックして、ツールバーにさらにアクションを表示します。 "
 "複数のファイルを選択するには、コマンドまたはShiftキーを使用します。"
 
+<<<<<<< HEAD
 #: website/static/js/fangorn.js:2809
 msgid "Open files:"
 msgstr "ファイルを開く："
@@ -6423,21 +6650,45 @@ msgid "Open files in new tab:"
 msgstr "新しいタブでファイルを開く："
 
 #: website/static/js/fangorn.js:2810
+=======
+#: website/static/js/fangorn.js:2671
+msgid "Open files:"
+msgstr "ファイルを開く："
+
+#: website/static/js/fangorn.js:2671
+msgid " Click a file name to go to view the file in the GakuNin RDM."
+msgstr "ファイル名をクリックして、GakuNin RDMでファイルを表示します。"
+
+#: website/static/js/fangorn.js:2672
+msgid "Open files in new tab:"
+msgstr "新しいタブでファイルを開く："
+
+#: website/static/js/fangorn.js:2672
+>>>>>>> feature/wiki-import-dev
 msgid ""
 " Press Command (Ctrl in Windows) and click a file name to open it in a "
 "new tab."
 msgstr "コマンド（WindowsではCtrl）を押し、ファイル名をクリックして新しいタブで開きます。"
 
+<<<<<<< HEAD
 #: website/static/js/fangorn.js:2811
 msgid "Download as zip:"
 msgstr "ZIPでダウンロード："
 
 #: website/static/js/fangorn.js:2811
+=======
+#: website/static/js/fangorn.js:2673
+msgid "Download as zip:"
+msgstr "ZIPでダウンロード："
+
+#: website/static/js/fangorn.js:2673
+>>>>>>> feature/wiki-import-dev
 msgid ""
 " Click on the row of an add-on or folder and click the Download as Zip "
 "button in the toolbar."
 msgstr "アドオンまたはフォルダーの行をクリックし、ツールバーの [ZIPでダウンロード] ボタンをクリックします。"
 
+<<<<<<< HEAD
 #: website/static/js/fangorn.js:2811
 msgid " Not available for all storage add-ons."
 msgstr "すべてのストレージアドオンで利用できるわけではありません。"
@@ -6447,11 +6698,23 @@ msgid "Copy files:"
 msgstr "ファイルをコピー："
 
 #: website/static/js/fangorn.js:2812
+=======
+#: website/static/js/fangorn.js:2673
+msgid " Not available for all storage add-ons."
+msgstr "すべてのストレージアドオンで利用できるわけではありません。"
+
+#: website/static/js/fangorn.js:2674
+msgid "Copy files:"
+msgstr "ファイルをコピー："
+
+#: website/static/js/fangorn.js:2674
+>>>>>>> feature/wiki-import-dev
 msgid ""
 " Press Option (Alt in Windows) while dragging a file to a new folder or "
 "component."
 msgstr "オプション（WindowsではAlt）を押しながら、ファイルを新しいフォルダーまたはコンポーネントにドラッグします。"
 
+<<<<<<< HEAD
 #: website/static/js/fangorn.js:2812
 msgid " Only for contributors with write access."
 msgstr "書き込みアクセス権を持つメンバーのみ。"
@@ -6493,11 +6756,55 @@ msgid "You have pending uploads, if you leave this page they may not complete."
 msgstr "保留中のアップロードがあります。このページを離れると、アップロードが完了しない場合があります。"
 
 #: website/static/js/fangorn.js:3572
+=======
+#: website/static/js/fangorn.js:2674
+msgid " Only for contributors with write access."
+msgstr "書き込みアクセス権を持つメンバーのみ。"
+
+#: website/static/js/fangorn.js:2680
+msgid "How to Use the File Browser"
+msgstr "ファイルブラウザの使用方法"
+
+#: website/static/js/fangorn.js:2744
+msgid "Please wait for current action to complete"
+msgstr "現在のアクションが完了するまでお待ちください"
+
+#: website/static/js/fangorn.js:2925
+msgid "Upload Status"
+msgstr "ステータスをアップロード"
+
+#: website/static/js/fangorn.js:2925
+msgid " files succeeded."
+msgstr "ファイルが成功しました。"
+
+#: website/static/js/fangorn.js:3036
+msgid "Done"
+msgstr "完了"
+
+#: website/static/js/fangorn.js:3038
+msgid "Move Status"
+msgstr "移動ステータス"
+
+#: website/static/js/fangorn.js:3040
+msgid " files successfully moved."
+msgstr "ファイルが移動成功しました。"
+
+#: website/static/js/fangorn.js:3041
+msgid " Skipped %1$s/%2$s files."
+msgstr "%1$s/%2$sファイルをスキップしました。"
+
+#: website/static/js/fangorn.js:3430
+msgid "You have pending uploads, if you leave this page they may not complete."
+msgstr "保留中のアップロードがあります。このページを離れると、アップロードが完了しない場合があります。"
+
+#: website/static/js/fangorn.js:3433
+>>>>>>> feature/wiki-import-dev
 msgid ""
 "You have pending file operations, if you leave this page they may not "
 "complete."
 msgstr "保留中のファイル操作があります。このページを離れると、完了しない場合があります。"
 
+<<<<<<< HEAD
 #: website/static/js/fangorn.js:3616
 msgid "This file is too large (%1$s). Max file size is %2$s."
 msgstr "このファイルは大きすぎます(%1$s)。 最大ファイルサイズは%2$sです。"
@@ -6514,6 +6821,25 @@ msgstr "クォータ使用量アラート"
 #, python-format
 msgid "You have used more than %1$s%% of your quota."
 msgstr ""
+=======
+#: website/static/js/fangorn.js:3477
+msgid "This file is too large (%1$s). Max file size is %2$s."
+msgstr "このファイルは大きすぎます(%1$s)。 最大ファイルサイズは%2$sです。"
+
+#: website/static/js/fangorn.js:3493
+msgid "Not enough quota to upload the file."
+msgstr "ファイルをアップロードするのに十分なクォータがありません。"
+
+#: website/static/js/fangorn.js:3500
+msgid "Quota usage alert"
+msgstr "クォータ使用量アラート"
+
+#: website/static/js/fangorn.js:3501
+#, fuzzy, python-format
+#| msgid "You have used more than %1$s% of your quota."
+msgid "You have used more than %1$s%% of your quota."
+msgstr "割り当ての%1$s%％以上を使用しました。"
+>>>>>>> feature/wiki-import-dev
 
 #: website/static/js/fileViewTreebeard.js:120
 msgid "Uploading %1$s..."
@@ -8011,6 +8337,7 @@ msgstr "${user}が${node}のSwiftアドオンの認証を解除しました"
 msgid "Swift addon for ${node} deauthorized"
 msgstr "${node}のSwiftアドオンの認証が解除されました"
 
+<<<<<<< HEAD
 #: website/static/js/logActionsList_extract.js:220
 msgid "${user} linked the Azure Blob Storage container ${bucket} to ${node}"
 msgstr "${user}がAzure Blob Storageコンテナ${bucket}を${node}にリンクしました"
@@ -8056,41 +8383,45 @@ msgid "Azure Blob Storage addon for ${node} deauthorized"
 msgstr "${node}のAzure Blob Storageアドオンの認証が解除されました"
 
 #: website/static/js/logActionsList_extract.js:229
+=======
+#: website/static/js/logActionsList_extract.js:251
+>>>>>>> feature/wiki-import-dev
 msgid "${user} added draft file ${filename} to WEKO index ${dataset} in ${node}"
 msgstr "${user}が${node}のWEKOインデックス(${dataset})にドラフトファイル(${filename})を追加しました"
 
-#: website/static/js/logActionsList_extract.js:230
+#: website/static/js/logActionsList_extract.js:252
 msgid ""
 "${user} removed draft file ${filename} from WEKO index ${dataset} in "
 "${node}"
 msgstr "${user}が${node}のWEKOインデックス(${dataset})からドラフトファイル(${filename})を削除しました"
 
-#: website/static/js/logActionsList_extract.js:231
+#: website/static/js/logActionsList_extract.js:253
 msgid "${user} linked WEKO index ${dataset} to ${node}"
 msgstr "${user}がWEKOインデックス(${dataset})を${node}にリンクしました"
 
-#: website/static/js/logActionsList_extract.js:232
+#: website/static/js/logActionsList_extract.js:254
 msgid ""
 "${user} created draft folder ${filename} in WEKO index ${dataset} in "
 "${node}"
 msgstr "${user}が${node}のWEKOインデックス(${dataset})にドラフトフォルダ(${filename})を作成しました"
 
-#: website/static/js/logActionsList_extract.js:233
+#: website/static/js/logActionsList_extract.js:255
 msgid "${user} deposit item ${path} in WEKO index ${dataset} in ${node}"
 msgstr "${user}が${node}のWEKOインデックス(${dataset})にアイテムを登録しました"
 
-#: website/static/js/logActionsList_extract.js:234
+#: website/static/js/logActionsList_extract.js:256
 msgid "${user} authorized the WEKO addon for ${node}"
 msgstr "${user}が${node}のWEKOアドオンを承認しました"
 
-#: website/static/js/logActionsList_extract.js:235
+#: website/static/js/logActionsList_extract.js:257
 msgid "${user} deauthorized the WEKO addon for ${node}"
 msgstr "${user}が${node}のWEKOアドオンの認証を解除しました"
 
-#: website/static/js/logActionsList_extract.js:236
+#: website/static/js/logActionsList_extract.js:258
 msgid "WEKO addon for ${node} deauthorized"
 msgstr "${node}のWEKOアドオンの認証が解除されました"
 
+<<<<<<< HEAD
 #: website/static/js/logActionsList_extract.js:237
 msgid "${user} linked the S3 Compatible Storage bucket ${bucket} to ${node}"
 msgstr "${user}がS3互換ストレージバケット(${bucket})を${node}にリンクしました"
@@ -8100,6 +8431,29 @@ msgid "${user} unselected the S3 Compatible Storage bucket ${bucket} in ${node}"
 msgstr "${user}が${node}のS3互換ストレージバケット(${bucket})の選択を解除しました"
 
 #: website/static/js/logActionsList_extract.js:239
+=======
+#: website/static/js/logActionsList_extract.js:259
+msgid "${user} linked Zotero folder ${folder_name} to ${node}"
+msgstr "${user}がZoteroフォルダ(${folder_name})を${node}にリンクしました"
+
+#: website/static/js/logActionsList_extract.js:260
+msgid "${user} linked Zotero library ${library_name} to ${node}"
+msgstr "${user}がZoteroライブラリ(${library_name})を${node}にリンクしました"
+
+#: website/static/js/logActionsList_extract.js:261
+msgid "${user} authorized the Zotero addon for ${node}"
+msgstr "${user}が${node}のZoteroアドオンを承認しました"
+
+#: website/static/js/logActionsList_extract.js:262
+msgid "${user} deauthorized the Zotero addon for ${node}"
+msgstr "${user}が${node}のZoteroアドオンの認証を解除しました"
+
+#: website/static/js/logActionsList_extract.js:263
+msgid "${user} added file ${path} to Nextcloud (for Institutions) in ${node}"
+msgstr "${user}が${node}のNextcloud(for Institutions)にファイル(${path})を追加しました"
+
+#: website/static/js/logActionsList_extract.js:264
+>>>>>>> feature/wiki-import-dev
 msgid ""
 "${user} added file ${path} to S3 Compatible Storage bucket ${bucket} in "
 "${node}"
@@ -8117,6 +8471,7 @@ msgid ""
 " ${node}"
 msgstr "${user}が${node}のS3互換ストレージバケット(${bucket})のファイル(${path})を更新しました"
 
+<<<<<<< HEAD
 #: website/static/js/logActionsList_extract.js:242
 msgid ""
 "${user} created folder ${path} in S3 Compatible Storage bucket ${bucket} "
@@ -8136,47 +8491,99 @@ msgid "S3 Compatible Storage addon for ${node} deauthorized"
 msgstr "${node}のS3互換ストレージアドオンの認証が解除されました"
 
 #: website/static/js/logActionsList_extract.js:246
+=======
+#: website/static/js/logActionsList_extract.js:265
+msgid "${user} updated file ${path} in Nextcloud (for Institutions) in ${node}"
+msgstr "${user}が${node}のNextcloud(for Institutions)のファイル(${path})を更新しました"
+
+#: website/static/js/logActionsList_extract.js:266
+msgid "${user} created folder ${path} in Nextcloud (for Institutions) in ${node}"
+msgstr "${user}が${node}のNextcloud(for Institutions)にフォルダ(${path})を作成しました"
+
+#: website/static/js/logActionsList_extract.js:267
+msgid "${user} linked Nextcloud (for Institutions) folder ${folder} to ${node}"
+msgstr "${user}がNextcloud(for Institutions)フォルダ(${folder})を${node}にリンクしました"
+
+#: website/static/js/logActionsList_extract.js:268
+msgid "${user} authorized the Nextcloud (for Institutions) addon for ${node}"
+msgstr "${user}が${node}のNextcloud(for Institutions)アドオンを承認しました"
+
+#: website/static/js/logActionsList_extract.js:269
+msgid "${user} deauthorized the Nextcloud (for Institutions) addon for ${node}"
+msgstr "${user}が${node}のNextcloud(for Institutions)アドオンの認証を解除しました"
+
+#: website/static/js/logActionsList_extract.js:270
+msgid "Nextcloud (for Institutions) addon for ${node} deauthorized"
+msgstr "${node}のNextcloud(for Institutions)アドオンの認証が解除されました"
+
+#: website/static/js/logActionsList_extract.js:271
+>>>>>>> feature/wiki-import-dev
 msgid ""
 "${user} added file ${path} to S3 Compatible Storage for Institutions in "
 "${node}"
 msgstr "${user}が${node}のS3互換ストレージ(for Institutions)にファイル(${path})を追加しました"
 
+<<<<<<< HEAD
 #: website/static/js/logActionsList_extract.js:247
+=======
+#: website/static/js/logActionsList_extract.js:272
+>>>>>>> feature/wiki-import-dev
 msgid ""
 "${user} removed ${path_type} ${path} from S3 Compatible Storage for "
 "Institutions in ${node}"
 msgstr "${user}が${node}のS3互換ストレージ(for Institutions)から${path_type}(${path})を削除しました"
 
+<<<<<<< HEAD
 #: website/static/js/logActionsList_extract.js:248
+=======
+#: website/static/js/logActionsList_extract.js:273
+>>>>>>> feature/wiki-import-dev
 msgid ""
 "${user} updated file ${path} in S3 Compatible Storage for Institutions in"
 " ${node}"
 msgstr "${user}が${node}のS3互換ストレージ(for Institutions)のファイル(${path})を更新しました"
 
+<<<<<<< HEAD
 #: website/static/js/logActionsList_extract.js:249
+=======
+#: website/static/js/logActionsList_extract.js:274
+>>>>>>> feature/wiki-import-dev
 msgid ""
 "${user} created folder ${path} in S3 Compatible Storage for Institutions "
 "in ${node}"
 msgstr "${user}が${node}のS3互換ストレージ(for Institutions)にフォルダ(${path})を作成しました"
 
+<<<<<<< HEAD
 #: website/static/js/logActionsList_extract.js:250
+=======
+#: website/static/js/logActionsList_extract.js:275
+>>>>>>> feature/wiki-import-dev
 msgid ""
 "${user} linked S3 Compatible Storage for Institutions folder ${folder} to"
 " ${node}"
 msgstr "${user}がS3互換ストレージ(for Institutions)のフォルダ(${folder})を${node}にリンクしました"
 
+<<<<<<< HEAD
 #: website/static/js/logActionsList_extract.js:251
+=======
+#: website/static/js/logActionsList_extract.js:276
+>>>>>>> feature/wiki-import-dev
 msgid ""
 "${user} authorized the S3 Compatible Storage for Institutions addon for "
 "${node}"
 msgstr "${user}が${node}のS3互換ストレージ(for Institutions)アドオンを承認しました"
 
+<<<<<<< HEAD
 #: website/static/js/logActionsList_extract.js:252
+=======
+#: website/static/js/logActionsList_extract.js:277
+>>>>>>> feature/wiki-import-dev
 msgid ""
 "${user} deauthorized the S3 Compatible Storage for Institutions addon for"
 " ${node}"
 msgstr "${user}が${node}のS3互換ストレージ(for Institutions)アドオンの認証を解除しました"
 
+<<<<<<< HEAD
 #: website/static/js/logActionsList_extract.js:253
 msgid "S3 Compatible Storage for Institutions addon for ${node} deauthorized"
 msgstr "${node}のS3互換ストレージ(for Institutions)アドオンの認証が解除されました"
@@ -8234,12 +8641,23 @@ msgid "Oracle Cloud Infrastructure Object Storage addon for ${node} deauthorized
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js:263
+=======
+#: website/static/js/logActionsList_extract.js:278
+msgid "S3 Compatible Storage for Institutions addon for ${node} deauthorized"
+msgstr "${node}のS3互換ストレージ(for Institutions)アドオンの認証が解除されました"
+
+#: website/static/js/logActionsList_extract.js:279
+>>>>>>> feature/wiki-import-dev
 msgid ""
 "${user} added file ${path} to Oracle Cloud Infrastructure for "
 "Institutions in ${node}"
 msgstr "${user}が${node}のOCIオブジェクトストレージ(for Institutions)にファイル(${path})を追加しました"
 
+<<<<<<< HEAD
 #: website/static/js/logActionsList_extract.js:264
+=======
+#: website/static/js/logActionsList_extract.js:280
+>>>>>>> feature/wiki-import-dev
 msgid ""
 "${user} removed ${path_type} ${path} from Oracle Cloud Infrastructure for"
 " Institutions in ${node}"
@@ -8247,42 +8665,67 @@ msgstr ""
 "${user}が${node}のOCIオブジェクトストレージ(for "
 "Institutions)から${path_type}(${path})を削除しました"
 
+<<<<<<< HEAD
 #: website/static/js/logActionsList_extract.js:265
+=======
+#: website/static/js/logActionsList_extract.js:281
+>>>>>>> feature/wiki-import-dev
 msgid ""
 "${user} updated file ${path} in Oracle Cloud Infrastructure for "
 "Institutions in ${node}"
 msgstr "${user}が${node}のOCIオブジェクトストレージ(for Institutions)のファイル(${path})を更新しました"
 
+<<<<<<< HEAD
 #: website/static/js/logActionsList_extract.js:266
+=======
+#: website/static/js/logActionsList_extract.js:282
+>>>>>>> feature/wiki-import-dev
 msgid ""
 "${user} created folder ${path} in Oracle Cloud Infrastructure for "
 "Institutions in ${node}"
 msgstr "${user}が${node}のOCIオブジェクトストレージ(for Institutions)にフォルダ(${path})を作成しました"
 
+<<<<<<< HEAD
 #: website/static/js/logActionsList_extract.js:267
+=======
+#: website/static/js/logActionsList_extract.js:283
+>>>>>>> feature/wiki-import-dev
 msgid ""
 "${user} linked Oracle Cloud Infrastructure for Institutions folder "
 "${folder} to ${node}"
 msgstr "${user}がOCIオブジェクトストレージ(for Institutions)のフォルダ(${folder})を${node}にリンクしました"
 
+<<<<<<< HEAD
 #: website/static/js/logActionsList_extract.js:268
+=======
+#: website/static/js/logActionsList_extract.js:284
+>>>>>>> feature/wiki-import-dev
 msgid ""
 "${user} authorized the Oracle Cloud Infrastructure for Institutions addon"
 " for ${node}"
 msgstr "${user}が${node}のOCIオブジェクトストレージ(for Institutions)アドオンを承認しました"
 
+<<<<<<< HEAD
 #: website/static/js/logActionsList_extract.js:269
+=======
+#: website/static/js/logActionsList_extract.js:285
+>>>>>>> feature/wiki-import-dev
 msgid ""
 "${user} deauthorized the Oracle Cloud Infrastructure for Institutions "
 "addon for ${node}"
 msgstr "${user}が${node}のOCIオブジェクトストレージ(for Institutions)アドオンの認証を解除しました"
 
+<<<<<<< HEAD
 #: website/static/js/logActionsList_extract.js:270
+=======
+#: website/static/js/logActionsList_extract.js:286
+>>>>>>> feature/wiki-import-dev
 msgid ""
 "Oracle Cloud Infrastructure for Institutions addon for ${node} "
 "deauthorized"
 msgstr "${node}のOCIオブジェクトストレージ(for Institutions)アドオンの認証が解除されました"
 
+<<<<<<< HEAD
 #: website/static/js/logActionsList_extract.js:271
 msgid "${user} added file ${path} to Nextcloud in ${node}"
 msgstr "${user}が${node}のNextcloudにファイル(${path})を追加しました"
@@ -8475,6 +8918,8 @@ msgstr ""
 msgid "${user} deleted metadata ${path} in ${node}"
 msgstr ""
 
+=======
+>>>>>>> feature/wiki-import-dev
 #: website/static/js/logTextParser.js:829
 msgid "unknown format"
 msgstr "不明な形式"
@@ -9536,8 +9981,15 @@ msgid "Linked "
 msgstr ""
 
 #: website/static/js/render-nodes.js:46
+<<<<<<< HEAD
 msgid "Component"
 msgstr ""
+=======
+#, fuzzy
+#| msgid "component"
+msgid "Component"
+msgstr "コンポーネント"
+>>>>>>> feature/wiki-import-dev
 
 #: website/static/js/requestAccess.js:17
 msgid "Request access"
@@ -10042,14 +10494,24 @@ msgstr "タグを追加してファイルを発見しやすくする"
 #: website/static/js/pages/file-page.js:23
 #: website/static/js/pages/file-page.js:58
 #: website/static/js/pages/file-page.js:60
+<<<<<<< HEAD
 #: website/static/js/pages/project-dashboard-page.js:681
 #: website/static/js/pages/project-dashboard-page.js:765
 #: website/static/js/pages/project-dashboard-page.js:798
+=======
+#: website/static/js/pages/project-dashboard-page.js:692
+#: website/static/js/pages/project-dashboard-page.js:776
+#: website/static/js/pages/project-dashboard-page.js:809
+>>>>>>> feature/wiki-import-dev
 msgid "Removing tag"
 msgstr "タグを削除"
 
 #: website/static/js/pages/file-page.js:24
+<<<<<<< HEAD
 #: website/static/js/pages/project-dashboard-page.js:682
+=======
+#: website/static/js/pages/project-dashboard-page.js:693
+>>>>>>> feature/wiki-import-dev
 msgid "Add a tag"
 msgstr "タグを追加"
 
@@ -10058,7 +10520,11 @@ msgid "Could not add tag."
 msgstr "タグを追加できませんでした"
 
 #: website/static/js/pages/file-page.js:29
+<<<<<<< HEAD
 #: website/static/js/pages/project-dashboard-page.js:705
+=======
+#: website/static/js/pages/project-dashboard-page.js:716
+>>>>>>> feature/wiki-import-dev
 msgid "Failed to add tag"
 msgstr "タグの追加に失敗しました"
 
@@ -10067,7 +10533,11 @@ msgid "Could not remove tag."
 msgstr "タグを削除できませんでした。"
 
 #: website/static/js/pages/file-page.js:44
+<<<<<<< HEAD
 #: website/static/js/pages/project-dashboard-page.js:741
+=======
+#: website/static/js/pages/project-dashboard-page.js:752
+>>>>>>> feature/wiki-import-dev
 msgid "Failed to remove tag"
 msgstr "タグの削除に失敗しました。"
 
@@ -10149,6 +10619,7 @@ msgstr "このアドオンを無効にしますか？"
 msgid "Disable"
 msgstr "無効にする"
 
+<<<<<<< HEAD
 #: website/static/js/pages/project-dashboard-page.js:119
 msgid "Filter by users"
 msgstr "ユーザでフィルタ"
@@ -10194,6 +10665,53 @@ msgid "Add a project tag to enhance discoverability"
 msgstr "タグを追加してプロジェクトを発見しやすくする"
 
 #: website/static/js/pages/project-dashboard-page.js:740
+=======
+#: website/static/js/pages/project-dashboard-page.js:121
+msgid "Filter by users"
+msgstr "ユーザでフィルタ"
+
+#: website/static/js/pages/project-dashboard-page.js:122
+msgid "Select from current contributors"
+msgstr "現在のメンバーから選択"
+
+#: website/static/js/pages/project-dashboard-page.js:123
+msgid "Select including past contributors"
+msgstr "過去のメンバーも含めて選択"
+
+#: website/static/js/pages/project-dashboard-page.js:124
+msgid "Include past project contributors in your search"
+msgstr "過去のプロジェクトメンバーも含めて検索する"
+
+#: website/static/js/pages/project-dashboard-page.js:125
+msgid "Use dropdown menu"
+msgstr "ドロップダウンメニュー使用"
+
+#: website/static/js/pages/project-dashboard-page.js:453
+msgid "Add Component"
+msgstr "コンポーネントを追加"
+
+#: website/static/js/pages/project-dashboard-page.js:455
+msgid "Create new component"
+msgstr "新しいコンポーネントを作成する"
+
+#: website/static/js/pages/project-dashboard-page.js:523
+msgid "Downloading"
+msgstr "ダウンロード中"
+
+#: website/static/js/pages/project-dashboard-page.js:545
+msgid "Download failed."
+msgstr "ダウンロードが失敗されました。"
+
+#: website/static/js/pages/project-dashboard-page.js:673
+msgid "Error retrieving filebrowser"
+msgstr "ファイルブラウザの取得エラー"
+
+#: website/static/js/pages/project-dashboard-page.js:690
+msgid "Add a project tag to enhance discoverability"
+msgstr "タグを追加してプロジェクトを発見しやすくする"
+
+#: website/static/js/pages/project-dashboard-page.js:751
+>>>>>>> feature/wiki-import-dev
 msgid "Could not remove tag"
 msgstr "タグを削除できませんでした"
 
@@ -10296,8 +10814,10 @@ msgid "An unexpected error occurred. Please try again."
 msgstr "予期しないエラーが発生しました。 もう一度やり直してください。"
 
 #: website/static/js/pages/wiki-edit-page.js:108
-msgid "<p>Could not retrieve wiki pages. If this issue persists, "
-msgstr "<p>wikiページを取得できませんでした。 この問題が解決しない場合、"
+msgid ""
+"<p>Could not retrieve wiki pages. Please reload the page. If this issue "
+"persists, "
+msgstr "<p>wikiページを取得できませんでした。ページを再読込みしてください。この問題が解決しない場合、"
 
 #: website/static/js/pages/wiki-edit-page.js:109
 msgid "please report it to %1$s"
