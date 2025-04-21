@@ -402,6 +402,8 @@ class RegistrationMetadataMapping(BaseModel):
         max_length=64, blank=True, null=True
     )
 
+    filename = models.CharField(max_length=256, blank=True, null=True)
+
     rules = DateTimeAwareJSONField(default=dict, blank=True)
 
 
