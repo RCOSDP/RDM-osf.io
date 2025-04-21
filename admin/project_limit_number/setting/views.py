@@ -1,7 +1,9 @@
 from __future__ import unicode_literals
 
+import csv
 import json
 import math
+from datetime import datetime
 from http import HTTPStatus
 
 from django.core.exceptions import PermissionDenied
@@ -21,7 +23,7 @@ from osf.models import Institution, ProjectLimitNumberSetting, ProjectLimitNumbe
     ProjectLimitNumberTemplateAttribute, ProjectLimitNumberDefault, AbstractNode, UserExtendedData
 from django.db.models import F, Max, Value, Count
 from admin.base import settings
-from django.http import Http404, JsonResponse
+from django.http import Http404, JsonResponse, HttpResponse
 import logging
 
 logger = logging.getLogger(__name__)
@@ -1043,3 +1045,234 @@ class UserListView(RdmPermissionMixin, UserPassesTestMixin, View):
             keys = ['guid', 'id', 'username', 'fullname', 'eppn']
             user_list = [dict(zip(keys, t)) for t in user_list]
         return user_list
+
+
+class ExportUserListCSVView(RdmPermissionMixin, UserPassesTestMixin, View):
+    """ Export user list match project limit number settings to CSV. """
+    institution_id = None
+    raise_exception = True
+
+    def test_func(self):
+        """check user permissions"""
+        if not self.is_authenticated:
+            # If user is not authenticated then redirect to login page
+            self.raise_exception = False
+            return False
+        return self.is_super_admin or self.is_institutional_admin
+
+    def handle_no_permission(self):
+        """ Handle user has no permission """
+        if not self.raise_exception:
+            # If user is not authenticated then return HTTP 401
+            return JsonResponse(
+                {'error_message': 'Authentication credentials were not provided.'},
+                status=HTTPStatus.UNAUTHORIZED
+            )
+        return super(ExportUserListCSVView, self).handle_no_permission()
+
+    def post(self, request, *args, **kwargs):
+        try:
+            request_body = json.loads(request.body)
+            is_request_valid, error_message = utils.validate_file_json(request_body,
+                                                                       'export-project-limit-user-list-csv-schema.json')
+            if not is_request_valid:
+                return JsonResponse({'error_message': error_message}, status=HTTPStatus.BAD_REQUEST)
+
+            institution_id = request_body.get('institution_id')
+            attribute_list = request_body.get('attribute_list', [])
+
+            # If institution_id is not exist then return HTTP 400
+            if not Institution.objects.filter(id=institution_id, is_deleted=False).exists():
+                return JsonResponse({'error_message': 'The institution not exist.'}, status=HTTPStatus.BAD_REQUEST)
+
+            # Handle admin permissions
+            if self.is_admin:
+                first_affiliated_institution = self.request.user.affiliated_institutions.filter(
+                    is_deleted=False).first()
+                if not first_affiliated_institution or first_affiliated_institution.id != institution_id:
+                    return JsonResponse({'error_message': 'Forbidden'}, status=HTTPStatus.FORBIDDEN)
+
+            # Combine logic condition in attribute list
+            logic_condition_query_string = ''
+            include_osf_user_query_string = ''
+            logic_condition_params = []
+            include_osf_user_params = []
+            for attribute in attribute_list:
+                if attribute.get('attribute_name') not in settings.ATTRIBUTE_NAME_LIST:
+                    return JsonResponse({'error_message': 'attribute_name is invalid.'}, status=HTTPStatus.BAD_REQUEST)
+                if attribute.get('attribute_name') == utils.MAIL_GRDM:
+                    # Get query from osf_user table instead
+                    if len(include_osf_user_query_string) > 0:
+                        include_osf_user_query_string += ' AND '
+                    query_string, params = utils.generate_logic_condition_from_attribute(attribute)
+                    include_osf_user_query_string += query_string
+                    include_osf_user_params.extend(params)
+                else:
+                    # Get query from osf_userextendeddata table
+                    if len(logic_condition_query_string) > 0:
+                        logic_condition_query_string += ' AND '
+                    query_string, params = utils.generate_logic_condition_from_attribute(attribute)
+                    logic_condition_query_string += query_string
+                    logic_condition_params.extend(params)
+
+            user_list = self.get_user_list_met_logic_condition(institution_id, logic_condition_query_string,
+                                                               include_osf_user_query_string, logic_condition_params,
+                                                               include_osf_user_params)
+            if len(user_list) == 0:
+                return self.create_csv_from_user_list([])
+
+            # Get the list setting for institution
+            setting_list = ProjectLimitNumberSetting.objects.filter(
+                institution_id=institution_id,
+                is_availability=True,
+                is_deleted=False
+            ).order_by('priority').all()
+            setting_id_list = [s.id for s in setting_list]
+            # Get setting list attribute by setting
+            all_setting_attribute_list = (ProjectLimitNumberSettingAttribute.objects.select_related(
+                'attribute'
+            ).filter(
+                setting_id__in=setting_id_list,
+                is_deleted=False
+            ).annotate(
+                setting_type=F('attribute__setting_type'),
+                attribute_name=F('attribute__attribute_name'),
+                setting_id=F('setting_id')
+            ).order_by('id').values(
+                'id',
+                'attribute_name',
+                'setting_type',
+                'attribute_value',
+                'setting_id'
+            ))
+
+            setting_attributes_dict = {}
+            for setting_attribute in all_setting_attribute_list:
+                setting_id = setting_attribute.get('setting_id')
+                setting_attributes_dict.setdefault(setting_id, []).append(setting_attribute)
+
+            user_list_met_condition = []
+            user_list_response = []
+            user_extended_data_attributes = UserExtendedData.objects.filter(
+                user_id__in=[user.get('id') for user in user_list])
+            # Check if user met any logic condition from setting list
+            for setting in setting_list:
+                if len(user_list) > 0:
+                    project_limit_number = setting.project_limit_number
+                    for user in user_list:
+                        user_extended_data_attribute = next(
+                            (p for p in user_extended_data_attributes if p.user_id == user.get('id')), None)
+                        # Check if user met the logic condition from this setting
+                        is_user_met_condition = utils.check_logic_condition(user,
+                                                                            setting_attributes_dict.get(setting.id, []),
+                                                                            user_extended_data_attribute)
+                        if is_user_met_condition:
+                            user['project_limit_number'] = project_limit_number
+                            user_list_met_condition.append(user.get('guid'))
+                            user_list_response.append(user)
+                    # Remove user that met condition
+                    user_list = [item for item in user_list if item.get('guid') not in user_list_met_condition]
+
+            if len(user_list) > 0:
+                # Use project limit number default value for remaining users that does not met any conditions
+                project_limit_number_default = ProjectLimitNumberDefault.objects.filter(
+                    institution_id=institution_id).first()
+                project_limit_number_default_value = (project_limit_number_default.project_limit_number
+                                                      if project_limit_number_default is not None else utils.NO_LIMIT)
+                for user in user_list:
+                    user['project_limit_number'] = project_limit_number_default_value
+                    user_list_response.append(user)
+
+            # Get created project number list by user id list
+            user_id_list = [user.get('id') for user in user_list_response]
+            created_project_number_list = (
+                AbstractNode.objects.filter(
+                    type='osf.node',
+                    creator_id__in=user_id_list,
+                    is_deleted=False
+                )
+                .values('creator_id')
+                .annotate(
+                    user_id=F('creator_id'),
+                    created_project_number=Count('creator_id')
+                )
+                .values('user_id', 'created_project_number'))
+
+            # Set created_project_number for each user if have (default is 0)
+            created_project_number_map = {item.get('user_id'): item.get('created_project_number') for item in
+                                          created_project_number_list}
+            for user in user_list_response:
+                user['created_project_number'] = created_project_number_map.get(user.get('id'), 0)
+
+            return self.create_csv_from_user_list(user_list_response)
+        except json.JSONDecodeError:
+            return JsonResponse(
+                {'error_message': 'The request body is invalid.'},
+                status=HTTPStatus.BAD_REQUEST
+            )
+
+    def get_user_list_met_logic_condition(self, institution_id, logic_condition_query_string,
+                                          include_osf_user_query, logic_condition_params, include_osf_user_params):
+        query = ''
+        if len(logic_condition_query_string) > 0:
+            query += f"""
+                WITH userextendeddata AS (
+                    SELECT DISTINCT user_id
+                    FROM osf_userextendeddata
+                    WHERE {logic_condition_query_string} )
+            """
+
+        query += """
+            SELECT g._id AS guid, u.id, u.username, u.fullname, u.eppn
+            FROM osf_osfuser AS u
+            JOIN osf_guid AS g
+                ON u.id = g.object_id
+                AND g.content_type_id = 1
+            JOIN osf_osfuser_affiliated_institutions AS ui
+                ON u.id = ui.osfuser_id
+            """
+        if len(logic_condition_query_string) > 0:
+            query += ' JOIN userextendeddata ux ON u.id = ux.user_id'
+        query += """
+            WHERE ui.institution_id = %s
+                {}
+                ORDER BY guid ASC
+            """
+
+        if len(include_osf_user_query) > 0:
+            include_osf_user_query = f' AND {include_osf_user_query}'
+
+        # Format the query with the logic condition
+        formatted_query = query.format(include_osf_user_query)
+
+        # Execute the raw query
+        params = logic_condition_params + [institution_id] + include_osf_user_params
+        with connection.cursor() as cursor:
+            cursor.execute(formatted_query, params)
+            user_list = cursor.fetchall()
+            keys = ['guid', 'id', 'username', 'fullname', 'eppn']
+            user_list = [dict(zip(keys, t)) for t in user_list]
+        return user_list
+
+    def create_csv_from_user_list(self, user_list):
+        """ Create CSV file from user list """
+        response = HttpResponse(content_type='text/csv')
+        writer = csv.writer(response, quoting=csv.QUOTE_NONNUMERIC)
+        writer.writerow(
+            ['GUID', 'ePPN', 'Username', 'Fullname', 'Created Project Number', 'Project Limit Number']
+        )
+
+        for user in user_list:
+            project_limit_number = user.get('project_limit_number')
+            writer.writerow([
+                user.get('guid'),
+                user.get('eppn'),
+                user.get('username'),
+                user.get('fullname'),
+                user.get('created_project_number'),
+                project_limit_number if project_limit_number != utils.NO_LIMIT else 'No Limit'
+            ])
+
+        time_now = datetime.today().strftime('%Y%m%d%H%M%S')
+        response['Content-Disposition'] = f'attachment; filename=export_user_list_{time_now}.csv'
+        return response
