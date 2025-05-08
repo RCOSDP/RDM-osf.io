@@ -81,6 +81,10 @@
         .disabled {
             pointer-events: none;
         }
+
+        #updateProjectLimitNumberSettingForm {
+            overflow: auto;
+        }
     </style>
 {% endblock %}
 
@@ -94,7 +98,7 @@
     <h2>{% trans 'Project Limit Number Setting' %}<small>({{ institution_name }})</small></h2>
     <form id="updateProjectLimitNumberSettingForm" class="form-horizontal">
         {% csrf_token %}
-		<div class="clearfix" style="margin-top: 20px;">
+        <div class="clearfix" style="padding-top: 10px;">
             <label for="setting_name_id" class="col-md-2" style="width: 10%; padding-top: 6px;">{% trans 'Setting Name' %}</label>
             <div class="col-md-10">
                 <input id="setting_name_id" type="text" name="setting_name" class="form-control"
