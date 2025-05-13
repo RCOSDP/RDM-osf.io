@@ -2817,11 +2817,8 @@ var FGToolbar = {
                         var isRecursiveCancelled = false;
                         var resolveResult = {
                             item,
-                            // file count of folder
                             totalFile: null,
-                            // size of current folder/file
                             totalSize: 0,
-                            // update user
                             updatedBy: null
                         };
 
