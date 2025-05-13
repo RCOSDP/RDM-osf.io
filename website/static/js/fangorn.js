@@ -2816,7 +2816,7 @@ var FGToolbar = {
                         // timeout of recusive api
                         var isRecursiveCancelled = false;
                         var resolveResult = {
-                            item,
+                            item: item,
                             totalFile: null,
                             totalSize: 0,
                             updatedBy: null
