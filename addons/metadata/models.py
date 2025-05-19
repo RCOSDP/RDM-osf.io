@@ -284,7 +284,7 @@ class NodeSettings(BaseNodeSettings):
     def get_report_formats_for(self, schemas):
         formats = []
         for schema in schemas:
-            for format in RegistrationReportFormat.objects\
+            for format in RegistrationReportFormat.objects \
                     .filter(registration_schema_id=schema._id) \
                     .order_by('order'):
                 formats.append({
@@ -292,7 +292,6 @@ class NodeSettings(BaseNodeSettings):
                     'schema_id': schema._id,
                     'name': format.name,
                 })
-
         destinations = []
         for addon in self.owner.get_addons():
             if not hasattr(addon, 'has_metadata') or not addon.has_metadata:
@@ -649,7 +648,8 @@ class MetadataAssetPool(BaseModel):
 
 class ImportedAddonSettings(BaseModel):
     node_settings = models.ForeignKey(NodeSettings, related_name='imported_addon_settings',
-    db_index=True, null=True, blank=True, on_delete=models.CASCADE)
+                                      db_index=True, null=True, blank=True,
+                                      on_delete=models.CASCADE)
 
     name = models.TextField(blank=True, null=True)
 
