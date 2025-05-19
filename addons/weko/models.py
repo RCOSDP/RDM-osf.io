@@ -29,17 +29,13 @@ from .apps import SHORT_NAME, FULL_NAME
 from .deposit import ROCRATE_FILENAME_PATTERN
 from . import settings
 
-
 logger = logging.getLogger(__name__)
-
 
 class WEKOFileNode(BaseFileNode):
     _provider = 'weko'
 
-
 class WEKOFolder(WEKOFileNode, Folder):
     pass
-
 
 class WEKOFile(WEKOFileNode, File):
     version_identifier = 'version'
@@ -47,7 +43,6 @@ class WEKOFile(WEKOFileNode, File):
 class UserSettings(BaseOAuthUserSettings):
     oauth_provider = WEKOProvider
     serializer = WEKOSerializer
-
 
 class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
     oauth_provider = WEKOProvider
@@ -206,6 +201,7 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
             'url': provider.sword_url,
             'index_id': self.index_id,
             'index_title': self.index_title,
+            'default_storage_provider': default_provider.short_name,
             'default_storage': default_provider.serialize_waterbutler_settings(),
         }
 
@@ -376,12 +372,12 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
         )
         q.delete()
 
-
 class RegistrationMetadataMapping(BaseModel):
     registration_schema_id = models.CharField(max_length=64, blank=True, null=True)
 
-    rules = DateTimeAwareJSONField(default=dict, blank=True)
+    packaging_type = models.CharField(max_length=256, blank=True, null=True)
 
+    rules = DateTimeAwareJSONField(default=dict, blank=True)
 
 class PublishTask(BaseModel):
     project = models.ForeignKey(NodeSettings, related_name='publish_task',
@@ -393,7 +389,6 @@ class PublishTask(BaseModel):
     updated = NonNaiveDateTimeField(blank=True, null=True)
 
     last_task_id = models.CharField(max_length=128, blank=True, null=True)
-
 
 @receiver(post_save, sender=NodeLog)
 def node_post_save(sender, instance, created, **kwargs):

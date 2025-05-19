@@ -82,6 +82,14 @@ class BaseFileNode(TypedModel, CommentableMixin, OptionalGuidMixin, Taggable, Ob
     # The User that has this file "checked out"
     # Should only be used for OsfStorage
     checkout = models.ForeignKey('osf.OSFUser', blank=True, null=True, on_delete=models.CASCADE)
+    # The User that has locked this file
+    locked = models.ForeignKey(
+        'osf.OSFUser',
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+        related_name='locked_by',
+    )
     # The last time the touch method was called on this FileNode
     last_touched = NonNaiveDateTimeField(null=True, blank=True)
     # A list of dictionaries sorted by the 'modified' key

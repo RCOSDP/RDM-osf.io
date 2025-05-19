@@ -1043,6 +1043,7 @@ def addon_view_file(auth, node, file_node, version):
         'file_id': file_node._id,
         'allow_comments': file_node.provider in settings.ADDONS_COMMENTABLE,
         'checkout_user': file_node.checkout._id if file_node.checkout else None,
+        'locked_user': file_node.locked._id if file_node.locked else None,
         'version_names': list(version_names),
         'wopi_onlyoffice': onlyoffice_settings.WOPI_CLIENT_ONLYOFFICE,
     })

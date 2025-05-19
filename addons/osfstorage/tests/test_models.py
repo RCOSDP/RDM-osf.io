@@ -9,7 +9,7 @@ from django.utils import timezone
 from nose.tools import *  # noqa
 
 from framework.auth import Auth
-from addons.osfstorage.models import OsfStorageFile, OsfStorageFileNode, OsfStorageFolder
+from addons.osfstorage.models import OsfStorageFile, OsfStorageFileNode, OsfStorageFolder, exceptions
 from osf.models import BaseFileNode
 from osf.exceptions import ValidationError
 from osf.utils.permissions import WRITE, ADMIN
@@ -687,6 +687,95 @@ class TestOsfstorageFileNode(StorageTestCase):
         all_guids = OsfStorageFileNode.get_file_guids(
             '/' + folder._id, provider='osfstorage', target=node)
         assert [] == all_guids
+
+    def test_lock_file(self):
+        creator = factories.AuthUserFactory()
+        node = ProjectFactory(creator=creator)
+        osfstorage = node.get_addon('osfstorage')
+        root_node = osfstorage.get_root()
+        file = root_node.append_file('test_file')
+
+        file.lock(creator, True, save=True)
+        assert_true(file.locked == creator)
+
+        file.lock(creator, False, save=True)
+        assert_is(file.locked, None)
+
+    def test_lock_file_no_permission(self):
+        creator = factories.AuthUserFactory()
+        user = factories.AuthUserFactory()
+        node = ProjectFactory(creator=creator)
+        osfstorage = node.get_addon('osfstorage')
+        root_node = osfstorage.get_root()
+        file = root_node.append_file('testfile')
+
+        with assert_raises(exceptions.FileNodeLockedError):
+          file.lock(user, True, save=True)
+
+    def test_lock_file_checked_out(self):
+        creator = factories.AuthUserFactory()
+        node = ProjectFactory(creator=creator)
+        osfstorage = node.get_addon('osfstorage')
+        root_node = osfstorage.get_root()
+        file = root_node.append_file('testfile')
+        file.check_in_or_out(creator, creator, save=True)
+
+        with assert_raises(exceptions.FileNodeCheckedOutError):
+          file.lock(creator, True, save=True)
+
+    def test_delete_locked_file(self):
+        creator = factories.AuthUserFactory()
+        node = ProjectFactory(creator=creator)
+        osfstorage = node.get_addon('osfstorage')
+        root_node = osfstorage.get_root()
+        file = root_node.append_file('testfile')
+        file.lock(creator, True, save=True)
+
+        with assert_raises(exceptions.FileNodeLockedError):
+          file.delete()
+
+    def test_move_locked_file(self):
+        creator = factories.AuthUserFactory()
+        node = ProjectFactory(creator=creator)
+        osfstorage = node.get_addon('osfstorage')
+        root_node = osfstorage.get_root()
+        file = root_node.append_file('testfile')
+        file.lock(creator, True, save=True)
+        folder = root_node.append_folder('testfolder')
+
+        with assert_raises(exceptions.FileNodeLockedError):
+          file.move_under(folder)
+
+    def test_check_in_or_out_locked_file(self):
+        creator = factories.AuthUserFactory()
+        node = ProjectFactory(creator=creator)
+        osfstorage = node.get_addon('osfstorage')
+        root_node = osfstorage.get_root()
+        file = root_node.append_file('testfile')
+        file.lock(creator, True, save=True)
+
+        with assert_raises(exceptions.FileNodeLockedError):
+          file.check_in_or_out(creator, None, save=True)
+
+    def test_is_readonly_locked_file(self):
+        creator = factories.AuthUserFactory()
+        node = ProjectFactory(creator=creator)
+        osfstorage = node.get_addon('osfstorage')
+        root_node = osfstorage.get_root()
+        file = root_node.append_file('test_file')
+
+        file.lock(creator, True, save=True)
+        assert_true(file.is_readonly)
+
+    def test_is_readonly_locked_folder(self):
+        creator = factories.AuthUserFactory()
+        node = ProjectFactory(creator=creator)
+        osfstorage = node.get_addon('osfstorage')
+        root_node = osfstorage.get_root()
+        folder = root_node.append_folder('testfolder')
+
+        folder.lock(creator, True, save=True)
+        assert_true(folder.is_readonly)
 
 
 @pytest.mark.django_db

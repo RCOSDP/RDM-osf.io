@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  0.6.0\n"
 "Report-Msgid-Bugs-To: rocs-office@nii.ac.jp\n"
-"POT-Creation-Date: 2024-02-21 06:53+0000\n"
+"POT-Creation-Date: 2025-03-28 07:48+0000\n"
 "PO-Revision-Date: 2020-11-16 20:17+0900\n"
 "Last-Translator: Hiroki Ohashi\n"
 "Language: en\n"
@@ -16,209 +16,226 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.9.1\n"
+"Generated-By: Babel 2.5.1\n"
+
+#: addons/datasteward/static/datastewardUserConfig.js:96
+#: addons/datasteward/static/datastewardUserConfig.js:97
+msgid "You do not have permission to perform this action."
+msgstr ""
+
+#: addons/datasteward/static/datastewardUserConfig.js:130
+#: addons/datasteward/static/datastewardUserConfig.js:131
+msgid "Cannot disable DataSteward add-on"
+msgstr ""
+
+#: addons/datasteward/static/datastewardUserConfig.js:167
+#: addons/datasteward/static/datastewardUserConfig.js:168
+msgid "Cannot get DataSteward add-on settings"
+msgstr ""
 
 #: addons/jupyterhub/static/files.js:96
 msgid "Launch"
 msgstr ""
 
-#: addons/metadata/static/files.js:331
+#: addons/metadata/static/files.js:337
 msgid "Metadata Schema:"
 msgstr ""
 
-#: addons/metadata/static/files.js:528
+#: addons/metadata/static/files.js:534
 msgid "Paste from Clipboard"
 msgstr ""
 
-#: addons/metadata/static/files.js:637 addons/metadata/static/files.js:651
-#: website/static/js/fangorn.js:1853
+#: addons/metadata/static/files.js:645 addons/metadata/static/files.js:646
+#: addons/metadata/static/files.js:660 addons/metadata/static/files.js:661
+#: website/static/js/fangorn.js:1860
 msgid "Could not copy text"
 msgstr ""
 
-#: addons/metadata/static/files.js:649 website/static/js/clipboard.js:27
-#: website/static/js/fangorn.js:1847 website/static/js/fangorn.js:1851
+#: addons/metadata/static/files.js:658 website/static/js/clipboard.js:27
+#: website/static/js/fangorn.js:1854 website/static/js/fangorn.js:1858
 msgid "Copied!"
 msgstr ""
 
-#: addons/metadata/static/files.js:675 addons/metadata/static/files.js:690
+#: addons/metadata/static/files.js:685 addons/metadata/static/files.js:686
+#: addons/metadata/static/files.js:705 addons/metadata/static/files.js:706
 msgid "Could not paste text"
 msgstr ""
 
-#: addons/metadata/static/files.js:740 addons/metadata/static/files.js:754
-#: addons/metadata/static/files.js:1095
+#: addons/metadata/static/files.js:756 addons/metadata/static/files.js:770
+#: addons/metadata/static/files.js:1119
 msgid "Loading..."
 msgstr ""
 
-#: addons/metadata/static/files.js:752
+#: addons/metadata/static/files.js:768
 msgid "Select the destination of the file metadata."
 msgstr ""
 
-#: addons/metadata/static/files.js:757
+#: addons/metadata/static/files.js:773
 msgid "Current Metadata:"
 msgstr ""
 
-#: addons/metadata/static/files.js:813
+#: addons/metadata/static/files.js:829
 msgid "Delete metadata"
 msgstr ""
 
-#: addons/metadata/static/files.js:816
+#: addons/metadata/static/files.js:832 addons/metadata/static/files.js:833
 msgid "Could not list hashes"
 msgstr ""
 
-#: addons/metadata/static/files.js:824
-#: addons/metadata/static/metadata-fields.js:1041
+#: addons/metadata/static/files.js:841 addons/metadata/static/files.js:842
+#: addons/metadata/static/metadata-fields.js:1159
 msgid "Could not list files"
 msgstr ""
 
-#: addons/metadata/static/files.js:913 addons/metadata/static/files.js:920
+#: addons/metadata/static/files.js:937 addons/metadata/static/files.js:944
 msgid "No name"
 msgstr ""
 
-#: addons/metadata/static/files.js:1005
+#: addons/metadata/static/files.js:1029
 msgid ""
 "There is no draft project metadata compliant with the schema. Create new "
 "draft project metadata from the Metadata tab:"
 msgstr ""
 
-#: addons/metadata/static/files.js:1007 addons/metadata/static/files.js:1175
-#: addons/metadata/static/files.js:1189
+#: addons/metadata/static/files.js:1031 addons/metadata/static/files.js:1199
+#: addons/metadata/static/files.js:1213
 msgid "Open"
 msgstr ""
 
-#: addons/metadata/static/files.js:1070
+#: addons/metadata/static/files.js:1094
 msgid "There are errors in some fields."
 msgstr ""
 
-#: addons/metadata/static/files.js:1106 addons/metadata/static/files.js:2149
-#: addons/metadata/static/files.js:2175 website/static/js/folderpicker.js:105
+#: addons/metadata/static/files.js:1130 addons/metadata/static/files.js:2297
+#: addons/metadata/static/files.js:2323 website/static/js/folderpicker.js:105
 msgid "Select"
 msgstr ""
 
-#: addons/metadata/static/files.js:1110
+#: addons/metadata/static/files.js:1134
 msgid "Select the destination for the file metadata."
 msgstr ""
 
-#: addons/metadata/static/files.js:1161
+#: addons/metadata/static/files.js:1185
 msgid "Registering..."
 msgstr ""
 
-#: addons/metadata/static/files.js:1161
+#: addons/metadata/static/files.js:1185
 msgid "Deleting..."
 msgstr ""
 
-#: addons/metadata/static/files.js:1255 addons/metadata/static/files.js:1994
-#: addons/metadata/static/files.js:2072 addons/metadata/static/files.js:2119
-#: addons/metadata/static/files.js:2147 addons/metadata/static/files.js:2173
-#: addons/metadata/static/files.js:2229
-#: addons/metadata/static/metadataImportDatasetButton.js:23
-#: website/static/js/accountSettings.js:267 website/static/js/fangorn.js:2777
+#: addons/metadata/static/files.js:1279 addons/metadata/static/files.js:2138
+#: addons/metadata/static/files.js:2216 addons/metadata/static/files.js:2263
+#: addons/metadata/static/files.js:2295 addons/metadata/static/files.js:2321
+#: addons/metadata/static/files.js:2377
+#: addons/metadata/static/metadataImportDatasetButton.js:24
+#: website/static/js/accountSettings.js:267 website/static/js/fangorn.js:2811
 #: website/static/js/folderPickerNodeConfig.js:591
 #: website/static/js/pages/profile-settings-addons-page.js:72
 #: website/static/js/pages/project-settings-page.js:118
 msgid "Close"
 msgstr ""
 
-#: addons/metadata/static/files.js:1321
+#: addons/metadata/static/files.js:1346
 msgid "View Metadata"
 msgstr ""
 
-#: addons/metadata/static/files.js:1332
+#: addons/metadata/static/files.js:1357
 msgid "Edit Metadata"
 msgstr ""
 
-#: addons/metadata/static/files.js:1343
+#: addons/metadata/static/files.js:1368
 msgid "Register Metadata"
 msgstr ""
 
-#: addons/metadata/static/files.js:1353
+#: addons/metadata/static/files.js:1378
 msgid "Delete Metadata"
 msgstr ""
 
-#: addons/metadata/static/files.js:1407
+#: addons/metadata/static/files.js:1432
 msgid "Edit Multiple Metadata"
 msgstr ""
 
-#: addons/metadata/static/files.js:1417
+#: addons/metadata/static/files.js:1442
 msgid "Loading Metadata"
 msgstr ""
 
-#: addons/metadata/static/files.js:1556
+#: addons/metadata/static/files.js:1584
 msgid "Metadata is defined"
 msgstr ""
 
-#: addons/metadata/static/files.js:1565
+#: addons/metadata/static/files.js:1592
 msgid "Some of the children have metadata."
 msgstr ""
 
-#: addons/metadata/static/files.js:1575
+#: addons/metadata/static/files.js:1602
 msgid "File not found: "
 msgstr ""
 
-#: addons/metadata/static/files.js:1998 addons/metadata/static/files.js:2074
+#: addons/metadata/static/files.js:2142 addons/metadata/static/files.js:2218
 #: website/static/js/contribManager.js:440
 #: website/static/js/filepage/editor.js:180
 msgid "Save"
 msgstr ""
 
-#: addons/metadata/static/files.js:2010 addons/metadata/static/files.js:2195
+#: addons/metadata/static/files.js:2154 addons/metadata/static/files.js:2343
 msgid "Copy to clipboard"
 msgstr ""
 
-#: addons/metadata/static/files.js:2026
+#: addons/metadata/static/files.js:2170
 msgid ""
 "Renaming, moving the file/directory, or changing the directory hierarchy "
 "can break the association of the metadata you have added."
 msgstr ""
 
-#: addons/metadata/static/files.js:2032
+#: addons/metadata/static/files.js:2176
 msgid "Edit File Metadata"
 msgstr ""
 
-#: addons/metadata/static/files.js:2032
+#: addons/metadata/static/files.js:2176
 msgid "View File Metadata"
 msgstr ""
 
-#: addons/metadata/static/files.js:2053 addons/metadata/static/files.js:2106
+#: addons/metadata/static/files.js:2197 addons/metadata/static/files.js:2250
 #: website/static/js/saveManager.js:24
 msgid "You have unsaved changes."
 msgstr ""
 
-#: addons/metadata/static/files.js:2089
+#: addons/metadata/static/files.js:2233
 msgid "Edit Multiple File Metadata"
 msgstr ""
 
-#: addons/metadata/static/files.js:2121 website/static/js/fangorn.js:1551
-#: website/static/js/fangorn.js:1574 website/static/js/fangorn.js:2469
-#: website/static/js/fangorn.js:2505 website/static/js/filepage/index.js:204
-#: website/static/js/filepage/index.js:519 website/static/js/myProjects.js:1637
+#: addons/metadata/static/files.js:2269 website/static/js/fangorn.js:1558
+#: website/static/js/fangorn.js:1581 website/static/js/fangorn.js:2476
+#: website/static/js/fangorn.js:2512 website/static/js/filepage/index.js:204
+#: website/static/js/filepage/index.js:736 website/static/js/myProjects.js:1637
 msgid "Delete"
 msgstr ""
 
-#: addons/metadata/static/files.js:2134
+#: addons/metadata/static/files.js:2282
 msgid "Delete File Metadata"
 msgstr ""
 
-#: addons/metadata/static/files.js:2139
+#: addons/metadata/static/files.js:2287
 msgid "Do you want to delete metadata? This operation cannot be undone."
 msgstr ""
 
-#: addons/metadata/static/files.js:2156
+#: addons/metadata/static/files.js:2304
 msgid "Select a destination for file metadata registration"
 msgstr ""
 
-#: addons/metadata/static/files.js:2205
+#: addons/metadata/static/files.js:2353
 msgid "Fix file metadata"
 msgstr ""
 
-#: addons/metadata/static/files.js:2234
+#: addons/metadata/static/files.js:2382
 msgid "Paste Metadata"
 msgstr ""
 
-#: addons/metadata/static/files.js:2239
+#: addons/metadata/static/files.js:2387
 msgid "Press Ctrl-V (Command-V) to paste."
 msgstr ""
 
-#: addons/metadata/static/files.js:2241
+#: addons/metadata/static/files.js:2389
 msgid ""
 "[Why is this needed?] In this browser, retrieving clipboard values with "
 "button operations is prohibited. Therefore, you must explicitly indicate "
@@ -226,141 +243,116 @@ msgid ""
 "browser menu."
 msgstr ""
 
-#: addons/metadata/static/metadata-fields.js:896
-#, python-format
-msgid "One of this field or \"%s\" field must be filled."
+#: addons/metadata/static/metadata-fields.js:243
+#: addons/metadata/static/metadata-fields.js:253
+msgid "Show Items"
 msgstr ""
 
-msgid "File size exceeds the maximum allowed size."
+#: addons/metadata/static/metadata-fields.js:250
+msgid "Hide Items"
 msgstr ""
 
-#: addons/metadata/static/metadata-fields.js:911
-msgid "This field can't be blank."
-msgstr ""
-
-#: addons/metadata/static/metadata-fields.js:875
-msgid "Please enter the correct value. "
-msgstr ""
-
-#: addons/metadata/static/metadata-fields.js:252
-msgid ""
-"Contacts of data manager can't be blank. Please fill mail address, or "
-"organization name, address and phone number."
-msgstr ""
-
-#: addons/metadata/static/metadata-fields.js:577
-msgid "(Not Modified)"
-msgstr ""
-
-#: addons/metadata/static/metadata-fields.js:580
-msgid "Choose..."
-msgstr ""
-
-#: addons/metadata/static/metadata-fields.js:213
+#: addons/metadata/static/metadata-fields.js:271
 msgid "Clear"
 msgstr ""
 
-#: addons/metadata/static/metadata-fields.js:235
-#: addons/metadata/static/metadata-fields.js:244
+#: addons/metadata/static/metadata-fields.js:293
+#: addons/metadata/static/metadata-fields.js:302
 msgid "Show example"
 msgstr ""
 
-#: addons/metadata/static/metadata-fields.js:248
+#: addons/metadata/static/metadata-fields.js:306
 msgid "Hide example"
 msgstr ""
 
-#: addons/metadata/static/metadata-fields.js:564
-msgid "Calculate"
+#: addons/metadata/static/metadata-fields.js:642
+msgid "(Not Modified)"
 msgstr ""
 
-#: addons/metadata/static/metadata-fields.js:624
-#: addons/metadata/static/metadata-fields.js:672
-msgid "Fill"
+#: addons/metadata/static/metadata-fields.js:645
+msgid "Choose..."
 msgstr ""
 
-#: addons/metadata/static/metadata-fields.js:694
-msgid "Could not generate Data No."
-msgstr ""
-
-#: addons/metadata/static/metadata-fields.js:728
-msgid "No members"
-msgstr ""
-
-#: addons/metadata/static/metadata-fields.js:795
-msgid "e-Rad Researcher Number"
-msgstr ""
-
-#: addons/metadata/static/metadata-fields.js:796
-msgid "Name (Japanese)"
-msgstr ""
-
-#: addons/metadata/static/metadata-fields.js:797
-msgid "Name (English)"
-msgstr ""
-
-#: addons/metadata/static/metadata-fields.js:656
+#: addons/metadata/static/metadata-fields.js:738
 msgid "No data"
 msgstr ""
 
-#: addons/metadata/static/metadata-fields.js:667
+#: addons/metadata/static/metadata-fields.js:749
 #: website/static/js/myProjects.js:1565
 msgid "Add"
 msgstr ""
 
-#: addons/metadata/static/metadata-fields.js:1027
+#: addons/metadata/static/metadata-fields.js:980
+msgid "Please enter the correct value. "
+msgstr ""
+
+#: addons/metadata/static/metadata-fields.js:1004
+#, python-format
+msgid "One of this field or \"%s\" field must be filled."
+msgstr ""
+
+#: addons/metadata/static/metadata-fields.js:1019
+msgid "This field can't be blank."
+msgstr ""
+
+#: addons/metadata/static/metadata-fields.js:1135
 msgid "Overwrite already entered value?"
 msgstr ""
 
-#: addons/metadata/static/metadataImportDatasetButton.js:25
-#: addons/metadata/static/metadataImportDatasetButton.js:56
-#: addons/metadata/static/metadataImportDatasetButton.js:234
+#: addons/metadata/static/metadata-fields.js:1151
+msgid "File size exceeds the maximum allowed size."
+msgstr ""
+
+#: addons/metadata/static/metadataImportDatasetButton.js:26
+#: addons/metadata/static/metadataImportDatasetButton.js:57
+#: addons/metadata/static/metadataImportDatasetButton.js:261
 msgid "Import Dataset"
 msgstr ""
 
-#: addons/metadata/static/metadataImportDatasetButton.js:41
+#: addons/metadata/static/metadataImportDatasetButton.js:42
 msgid "Enter URL to import dataset"
 msgstr ""
 
-#: addons/metadata/static/metadataImportDatasetButton.js:44
+#: addons/metadata/static/metadataImportDatasetButton.js:45
 msgid "Importing..."
 msgstr ""
 
-#: addons/metadata/static/metadataImportDatasetButton.js:48
-#: addons/metadata/static/metadataImportDatasetButton.js:164
-#: addons/metadata/static/metadataImportDatasetButton.js:189
+#: addons/metadata/static/metadataImportDatasetButton.js:49
+#: addons/metadata/static/metadataImportDatasetButton.js:165
+#: addons/metadata/static/metadataImportDatasetButton.js:190
 msgid "Error importing dataset: "
 msgstr ""
 
-#: addons/metadata/static/metadataImportDatasetButton.js:58
+#: addons/metadata/static/metadataImportDatasetButton.js:59
 msgid "Enter the URL of the dataset you would like to import."
 msgstr ""
 
-#: addons/metadata/static/metadataImportDatasetButton.js:126
+#: addons/metadata/static/metadataImportDatasetButton.js:127
 msgid "Downloaded!"
 msgstr ""
 
-#: addons/metadata/static/metadataNodeConfig.js:112
+#: addons/metadata/static/metadataNodeConfig.js:113
 msgid "Could not GET metadata settings"
 msgstr ""
 
-#: addons/metadata/static/metadataNodeConfig.js:155
+#: addons/metadata/static/metadataNodeConfig.js:156
 msgid "Add-on settings configured."
 msgstr ""
 
-#: addons/metadata/static/metadataNodeConfig.js:161
+#: addons/metadata/static/metadataNodeConfig.js:162
 msgid "Failed to configure add-on settings."
 msgstr ""
 
 #: addons/twofactor/static/twoFactorUserConfig.js:148
 #: addons/twofactor/static/twoFactorUserConfig.js:190
-#: addons/weko/static/wekoFangornConfig.js:611
+#: addons/weko/static/wekoFangornConfig.js:621
 #: admin/static/js/rdm_addons/rdm-addons-page.js:80
 #: website/static/js/accountSettings.js:249
 #: website/static/js/accountSettings.js:327
 #: website/static/js/accountSettings.js:392
 #: website/static/js/accountSettings.js:518
 #: website/static/js/accountSettings.js:590
-#: website/static/js/addProjectPlugin.js:346
+#: website/static/js/addProjectPlugin.js:347
 #: website/static/js/addonPermissions.js:55
 #: website/static/js/addonSettings.js:71 website/static/js/addonSettings.js:134
 #: website/static/js/apiApplication.js:249
@@ -371,11 +363,12 @@ msgstr ""
 #: website/static/js/apiPersonalToken.js:438
 #: website/static/js/citationsNodeConfig.js:169
 #: website/static/js/citationsNodeConfig.js:187
-#: website/static/js/contribManager.js:444 website/static/js/fangorn.js:562
-#: website/static/js/fangorn.js:567 website/static/js/fangorn.js:1553
-#: website/static/js/fangorn.js:1576 website/static/js/fangorn.js:1629
-#: website/static/js/fangorn.js:1648 website/static/js/fangorn.js:2457
+#: website/static/js/contribManager.js:444 website/static/js/fangorn.js:566
+#: website/static/js/fangorn.js:571 website/static/js/fangorn.js:1557
+#: website/static/js/fangorn.js:1580 website/static/js/fangorn.js:1633
+#: website/static/js/fangorn.js:1652 website/static/js/fangorn.js:2486
 #: website/static/js/filepage/index.js:208
+#: website/static/js/filepage/index.js:302
 #: website/static/js/folderPickerNodeConfig.js:510
 #: website/static/js/folderPickerNodeConfig.js:566
 #: website/static/js/institutionProjectSettings.js:102
@@ -413,70 +406,70 @@ msgstr ""
 msgid "Enable"
 msgstr ""
 
-#: addons/weko/static/wekoFangornConfig.js:42
-#: addons/weko/static/wekoFangornConfig.js:62 website/static/js/fangorn.js:2367
-#: website/static/js/fangorn.js:2459 website/static/js/filepage/index.js:542
-#: website/static/js/filepage/index.js:544
+#: addons/weko/static/wekoFangornConfig.js:40
+#: addons/weko/static/wekoFangornConfig.js:60 website/static/js/fangorn.js:2466
+#: website/static/js/filepage/index.js:761
 msgid "View"
 msgstr ""
 
-#: addons/weko/static/wekoFangornConfig.js:86
-#: addons/weko/static/wekoFangornConfig.js:788
+#: addons/weko/static/wekoFangornConfig.js:87
+#: addons/weko/static/wekoFangornConfig.js:743
 msgid "Deposit"
 msgstr ""
 
-#: addons/weko/static/wekoFangornConfig.js:255
-#: addons/weko/static/wekoFangornConfig.js:276
-#: addons/weko/static/wekoFangornConfig.js:316
+#: addons/weko/static/wekoFangornConfig.js:265
+#: addons/weko/static/wekoFangornConfig.js:286
+#: addons/weko/static/wekoFangornConfig.js:326
 msgid "Error occurred: "
 msgstr ""
 
-#: addons/weko/static/wekoFangornConfig.js:289
+#: addons/weko/static/wekoFangornConfig.js:299
 msgid "Deposit was successful."
 msgstr ""
 
-#: addons/weko/static/wekoFangornConfig.js:550
+#: addons/weko/static/wekoFangornConfig.js:553
 msgid "Error occurred while "
 msgstr ""
 
-#: addons/weko/static/wekoFangornConfig.js:574
+#: addons/weko/static/wekoFangornConfig.js:564
+msgid ""
+"No file metadata is defined for the schema available for depositting to "
+"WEKO."
+msgstr ""
+
+#: addons/weko/static/wekoFangornConfig.js:584
 msgid "Schema"
 msgstr ""
 
-#: addons/weko/static/wekoFangornConfig.js:577
+#: addons/weko/static/wekoFangornConfig.js:587
 msgid "Select a schema for the file."
 msgstr ""
 
-#: addons/weko/static/wekoFangornConfig.js:579
+#: addons/weko/static/wekoFangornConfig.js:589
 msgid "Project Metadata"
 msgstr ""
 
-msgid "No file metadata is defined for the schema available for depositting to WEKO."
+#: addons/weko/static/wekoFangornConfig.js:593
+msgid ""
+"Select a registration for the file. You can also select a draft "
+"registration."
 msgstr ""
 
-#: addons/weko/static/wekoFangornConfig.js:583
-msgid "Select a registration for the file. You can also select a draft registration."
-msgstr ""
-
-#: addons/weko/static/wekoFangornConfig.js:583
-msgid "Select a registration for the file."
-msgstr ""
-
-#: addons/weko/static/wekoFangornConfig.js:607
+#: addons/weko/static/wekoFangornConfig.js:617
 msgid ""
 "Do you want to deposit the file/folder \"%1$s\" to WEKO? This operation "
 "is irreversible."
 msgstr ""
 
-#: addons/weko/static/wekoFangornConfig.js:617
+#: addons/weko/static/wekoFangornConfig.js:627
 msgid "OK"
 msgstr ""
 
-#: addons/weko/static/wekoFangornConfig.js:631
+#: addons/weko/static/wekoFangornConfig.js:642
 msgid "Deposit files"
 msgstr ""
 
-#: addons/weko/static/wekoFangornConfig.js:880
+#: addons/weko/static/wekoFangornConfig.js:837
 msgid "Save and Deposit to WEKO"
 msgstr ""
 
@@ -574,7 +567,7 @@ msgstr ""
 #: admin/static/js/rdm_addons/dataverse/dataverseRdmConfig.js:155
 #: admin/static/js/rdm_addons/figshare/rdm-cfg.js:34
 #: admin/static/js/rdm_addons/s3/s3RdmConfig.js:124
-#: admin/static/js/rdm_addons/weko/wekoRdmConfig.js:116
+#: admin/static/js/rdm_addons/weko/wekoRdmConfig.js:118
 #: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:469
 #: website/static/js/addonSettings.js:130
 #: website/static/js/folderPickerNodeConfig.js:562
@@ -742,23 +735,20 @@ msgstr ""
 msgid "Modify Collection Provider"
 msgstr ""
 
-#: admin/static/js/rdm_addons/rdm-addons-page.js:64
-#, python-format
-msgid "Disallow %s?"
-msgstr ""
-
-#: admin/static/js/rdm_addons/rdm-addons-page.js:65
+#: admin/static/js/rdm_addons/rdm-addons-page.js:63
+#: admin/static/js/rdm_addons/rdm-addons-page.js:68
 msgid "Are you sure you want to disallow the %1$s?<br>"
 msgstr ""
 
-#: admin/static/js/rdm_addons/rdm-addons-page.js:66
+#: admin/static/js/rdm_addons/rdm-addons-page.js:64
 msgid ""
 "This will revoke access to %1$s for all projects using the "
 "accounts.<br><br>"
 msgstr ""
 
-#: admin/static/js/rdm_addons/rdm-addons-page.js:67
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:491
+#: admin/static/js/rdm_addons/rdm-addons-page.js:65
+#: admin/static/js/rdm_addons/rdm-addons-page.js:71
+#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:453
 msgid "Type the following to continue: <strong>%1$s</strong><br><br>"
 msgstr ""
 
@@ -774,27 +764,17 @@ msgid ""
 "until you reallow it.<br><br>"
 msgstr ""
 
-#: admin/static/js/rdm_addons/rdm-addons-page.js:74
+#: admin/static/js/rdm_addons/rdm-addons-page.js:75
+#, python-format
+msgid "Disallow %s?"
+msgstr ""
+
+#: admin/static/js/rdm_addons/rdm-addons-page.js:83
 msgid "Disallow"
 msgstr ""
 
-#: admin/static/js/rdm_addons/rdm-addons-page.js:85
+#: admin/static/js/rdm_addons/rdm-addons-page.js:94
 msgid "Strings did not match"
-msgstr ""
-
-#: addons/datasteward/static/datastewardUserConfig.js:88
-#: addons/datasteward/static/datastewardUserConfig.js:89
-msgid "You do not have permission to perform this action."
-msgstr ""
-
-#: addons/datasteward/static/datastewardUserConfig.js:120
-#: addons/datasteward/static/datastewardUserConfig.js:121
-msgid "Cannot disable DataSteward add-on"
-msgstr ""
-
-#: addons/datasteward/static/datastewardUserConfig.js:157
-#: addons/datasteward/static/datastewardUserConfig.js:158
-msgid "Cannot get DataSteward add-on settings"
 msgstr ""
 
 #: admin/static/js/rdm_addons/dataverse/dataverseRdmConfig.js:26
@@ -837,7 +817,7 @@ msgstr ""
 
 #: admin/static/js/rdm_addons/dataverse/dataverseRdmConfig.js:173
 #: admin/static/js/rdm_addons/s3/s3RdmConfig.js:142
-#: admin/static/js/rdm_addons/weko/wekoRdmConfig.js:134
+#: admin/static/js/rdm_addons/weko/wekoRdmConfig.js:136
 #: website/static/js/addonSettings.js:150
 msgid "Error while removing addon authorization for %1$s"
 msgstr ""
@@ -985,30 +965,30 @@ msgid ""
 "account."
 msgstr ""
 
-#: admin/static/js/rdm_addons/weko/wekoRdmConfig.js:68
+#: admin/static/js/rdm_addons/weko/wekoRdmConfig.js:70
 msgid "Error while retrieving addon account"
 msgstr ""
 
-#: admin/static/js/rdm_addons/weko/wekoRdmConfig.js:89
+#: admin/static/js/rdm_addons/weko/wekoRdmConfig.js:91
 msgid "Could not set accounts for WEKO"
 msgstr ""
 
-#: admin/static/js/rdm_addons/weko/wekoRdmConfig.js:105
+#: admin/static/js/rdm_addons/weko/wekoRdmConfig.js:107
 msgid "Delete WEKO Application?"
 msgstr ""
 
-#: admin/static/js/rdm_addons/weko/wekoRdmConfig.js:107
+#: admin/static/js/rdm_addons/weko/wekoRdmConfig.js:109
 msgid ""
 "Are you sure you want to delete the WEKO application "
-"<strong>%1$s</strong>? WEKO add-on connections already set up for "
-"the projects will be preserved."
+"<strong>%1$s</strong>? WEKO add-on connections already set up for the "
+"projects will be preserved."
 msgstr ""
 
 #: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:84
 msgid "Are you sure you want to change institutional storage?"
 msgstr ""
 
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:93
+#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:85
 msgid ""
 "<p>The previous storage will no longer be available to all contributors "
 "on the project.</p>"
@@ -1021,18 +1001,13 @@ msgstr ""
 msgid "Change"
 msgstr ""
 
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:120
-msgid "Are you sure you want to add this Export Data Storage Location?"
-msgstr ""
-
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:358
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:592
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:726
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:832
+#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:322
+#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:554
+#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:688
 msgid "Some errors occurred"
 msgstr ""
 
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:405
+#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:369
 msgid "Institutional Storage set successfully"
 msgstr ""
 
@@ -1042,111 +1017,10 @@ msgid ""
 "<strong>%2$s</strong>?<br>"
 msgstr ""
 
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:490
+#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:452
 msgid ""
 "This will revoke access to %1$s for all projects using this "
 "account.<br><br>"
-msgstr ""
-
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:775
-msgid "Unable to delete location %1$s"
-msgstr ""
-
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:784
-msgid "Are you sure you want to delete this export data storage location?"
-msgstr ""
-
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:970
-msgid "Export Data"
-msgstr ""
-
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:971
-msgid "Stop Export Data"
-msgstr ""
-
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:974
-msgid "Export data successfully."
-msgstr ""
-
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:975
-msgid "Cannot export data."
-msgstr ""
-
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:976
-msgid "Error occurred while exporting data."
-msgstr ""
-
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:977
-msgid "Export data failed."
-msgstr ""
-
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:978
-msgid "Export data in background."
-msgstr ""
-
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:979
-msgid "Stop exporting successfully."
-msgstr ""
-
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:980
-msgid "Cannot stop exporting data."
-msgstr ""
-
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:981
-msgid "Error occurred while stopping export data."
-msgstr ""
-
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:982
-msgid "Stop exporting in background."
-msgstr ""
-
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:1442
-msgid "Are you sure you want to permanently delete these export data?"
-msgstr ""
-
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:1448
-msgid "Delete Permanently"
-msgstr "Delete"
-
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:1597
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:1599
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:1612
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:1668
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:1720
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:1727
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:1740
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:1775
-msgid "Restore Export Data"
-msgstr ""
-
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:1612
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:1646
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:1731
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:1775
-msgid "message"
-msgstr ""
-
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:1634
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:1638
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:1646
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:1706
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:1729
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:1742
-msgid "Stop Restore Export Data"
-msgstr ""
-
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:1634
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:1706
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:1722
-msgid "Stopped restoring data process."
-msgstr ""
-
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:1668
-msgid "Restore completed."
-msgstr ""
-
-#: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:1744
-msgid "result"
 msgstr ""
 
 #: scripts/translations/messages_addonsJson.js:3
@@ -1752,6 +1626,7 @@ msgid ""
 msgstr ""
 
 #: scripts/translations/messages_addonsJson.js:23
+#: scripts/translations/messages_addonsJson.js:25
 msgid ""
 "\n"
 "\n"
@@ -1815,7 +1690,7 @@ msgid ""
 "</ul>\n"
 msgstr ""
 
-#: scripts/translations/messages_addonsJson.js:25
+#: scripts/translations/messages_addonsJson.js:27
 msgid ""
 "\n"
 "\n"
@@ -1880,7 +1755,7 @@ msgid ""
 "</ul>\n"
 msgstr ""
 
-#: scripts/translations/messages_addonsJson.js:27
+#: scripts/translations/messages_addonsJson.js:29
 msgid ""
 "\n"
 "\n"
@@ -1945,7 +1820,8 @@ msgid ""
 "</ul>\n"
 msgstr ""
 
-#: scripts/translations/messages_addonsJson.js:29
+#: scripts/translations/messages_addonsJson.js:31
+#: scripts/translations/messages_addonsJson.js:37
 msgid ""
 "\n"
 "\n"
@@ -2008,7 +1884,7 @@ msgid ""
 "</ul>\n"
 msgstr ""
 
-#: scripts/translations/messages_addonsJson.js:31
+#: scripts/translations/messages_addonsJson.js:33
 msgid ""
 "\n"
 "\n"
@@ -2074,10 +1950,11 @@ msgid ""
 msgstr ""
 
 #: scripts/translations/messages_addonsJson.js:35
+#: scripts/translations/messages_addonsJson.js:51
 msgid ""
 "\n"
 "\n"
-"<h3>JupyterHub Add-on Terms</h3>\n"
+"<h3>Nextcloud Add-on Terms</h3>\n"
 "\n"
 "<table class=\"table table-bordered table-addon-terms\">\n"
 "\n"
@@ -2089,36 +1966,40 @@ msgid ""
 "    </thead>\n"
 "\n"
 "    <tbody>\n"
-"            <tr class=\"danger\">\n"
+"            <tr class=\"warning\">\n"
 "                <td>Permissions</td>\n"
-"                <td>The GakuNin RDM does not affect the permissions of "
-"JupyterHub.</td>\n"
+"                <td>Making a GakuNin RDM project public or private is "
+"independent of Nextcloud privacy. The GakuNin RDM does not alter the "
+"permissions of linked Nextcloud folders.</td>\n"
 "            </tr>\n"
-"            <tr class=\"danger\">\n"
+"            <tr class=\"warning\">\n"
 "                <td>View / download file versions</td>\n"
-"                <td>The JupyterHub add-on does not provide Storage "
-"Features.</td>\n"
+"                <td>Nextcloud files can be viewed/downloaded via GakuNin "
+"RDM, but version history is not supported by the Nextcloud WebDAV "
+"API.</td>\n"
 "            </tr>\n"
-"            <tr class=\"danger\">\n"
+"            <tr class=\"success\">\n"
 "                <td>Add / update files</td>\n"
-"                <td>The JupyterHub add-on does not provide Storage "
-"Features.</td>\n"
+"                <td>Adding/updating files in the project via GakuNin RDM "
+"will be reflected in Nextcloud.</td>\n"
 "            </tr>\n"
-"            <tr class=\"danger\">\n"
+"            <tr class=\"success\">\n"
 "                <td>Delete files</td>\n"
-"                <td>The JupyterHub add-on does not provide Storage "
-"Features.</td>\n"
+"                <td>Files deleted via GakuNin RDM will be deleted in "
+"Nextcloud.</td>\n"
 "            </tr>\n"
-"            <tr class=\"danger\">\n"
+"            <tr class=\"warning\">\n"
 "                <td>Logs</td>\n"
-"                <td>The JupyterHub add-on does not provide Storage "
-"Features.</td>\n"
+"                <td>GakuNin RDM keeps track of changes you make to your "
+"Nextcloud content through GakuNin RDM, but not for changes made using "
+"Nextcloud directly.</td>\n"
 "            </tr>\n"
 "            <tr class=\"warning\">\n"
 "                <td>Forking</td>\n"
-"                <td>Forking a project or component copies information "
-"about linked JupyterHub but the GakuNin RDM does not affect "
-"authentication of JupyterHub.</td>\n"
+"                <td>Forking a project or component does not copy "
+"Nextcloud authorization unless the user forking the project is the same "
+"user who authorized the Nextcloud add-on in the source project being "
+"forked.</td>\n"
 "            </tr>\n"
 "    </tbody>\n"
 "\n"
@@ -2135,7 +2016,8 @@ msgid ""
 "</ul>\n"
 msgstr ""
 
-#: scripts/translations/messages_addonsJson.js:37
+#: scripts/translations/messages_addonsJson.js:39
+#: scripts/translations/messages_addonsJson.js:47
 msgid ""
 "\n"
 "\n"
@@ -2201,7 +2083,8 @@ msgid ""
 "</ul>\n"
 msgstr ""
 
-#: scripts/translations/messages_addonsJson.js:39
+#: scripts/translations/messages_addonsJson.js:41
+#: scripts/translations/messages_addonsJson.js:49
 msgid ""
 "\n"
 "\n"
@@ -2269,7 +2152,7 @@ msgid ""
 "</ul>\n"
 msgstr ""
 
-#: scripts/translations/messages_addonsJson.js:39
+#: scripts/translations/messages_addonsJson.js:43
 msgid ""
 "\n"
 "\n"
@@ -2317,11 +2200,11 @@ msgid ""
 "</ul>\n"
 msgstr ""
 
-#: scripts/translations/messages_addonsJson.js:41
+#: scripts/translations/messages_addonsJson.js:45
 msgid ""
 "\n"
 "\n"
-"<h3>Nextcloud Add-on Terms</h3>\n"
+"<h3>JupyterHub Add-on Terms</h3>\n"
 "\n"
 "<table class=\"table table-bordered table-addon-terms\">\n"
 "\n"
@@ -2333,40 +2216,36 @@ msgid ""
 "    </thead>\n"
 "\n"
 "    <tbody>\n"
-"            <tr class=\"warning\">\n"
+"            <tr class=\"danger\">\n"
 "                <td>Permissions</td>\n"
-"                <td>Making a GakuNin RDM project public or private is "
-"independent of Nextcloud privacy. The GakuNin RDM does not alter the "
-"permissions of linked Nextcloud folders.</td>\n"
+"                <td>The GakuNin RDM does not affect the permissions of "
+"JupyterHub.</td>\n"
 "            </tr>\n"
-"            <tr class=\"warning\">\n"
+"            <tr class=\"danger\">\n"
 "                <td>View / download file versions</td>\n"
-"                <td>Nextcloud files can be viewed/downloaded via GakuNin "
-"RDM, but version history is not supported by the Nextcloud WebDAV "
-"API.</td>\n"
+"                <td>The JupyterHub add-on does not provide Storage "
+"Features.</td>\n"
 "            </tr>\n"
-"            <tr class=\"success\">\n"
+"            <tr class=\"danger\">\n"
 "                <td>Add / update files</td>\n"
-"                <td>Adding/updating files in the project via GakuNin RDM "
-"will be reflected in Nextcloud.</td>\n"
+"                <td>The JupyterHub add-on does not provide Storage "
+"Features.</td>\n"
 "            </tr>\n"
-"            <tr class=\"success\">\n"
+"            <tr class=\"danger\">\n"
 "                <td>Delete files</td>\n"
-"                <td>Files deleted via GakuNin RDM will be deleted in "
-"Nextcloud.</td>\n"
+"                <td>The JupyterHub add-on does not provide Storage "
+"Features.</td>\n"
 "            </tr>\n"
-"            <tr class=\"warning\">\n"
+"            <tr class=\"danger\">\n"
 "                <td>Logs</td>\n"
-"                <td>GakuNin RDM keeps track of changes you make to your "
-"Nextcloud content through GakuNin RDM, but not for changes made using "
-"Nextcloud directly.</td>\n"
+"                <td>The JupyterHub add-on does not provide Storage "
+"Features.</td>\n"
 "            </tr>\n"
 "            <tr class=\"warning\">\n"
 "                <td>Forking</td>\n"
-"                <td>Forking a project or component does not copy "
-"Nextcloud authorization unless the user forking the project is the same "
-"user who authorized the Nextcloud add-on in the source project being "
-"forked.</td>\n"
+"                <td>Forking a project or component copies information "
+"about linked JupyterHub but the GakuNin RDM does not affect "
+"authentication of JupyterHub.</td>\n"
 "            </tr>\n"
 "    </tbody>\n"
 "\n"
@@ -2383,7 +2262,7 @@ msgid ""
 "</ul>\n"
 msgstr ""
 
-#: scripts/translations/messages_addonsJson.js:43
+#: scripts/translations/messages_addonsJson.js:53
 msgid ""
 "\n"
 "\n"
@@ -2448,7 +2327,7 @@ msgid ""
 "</ul>\n"
 msgstr ""
 
-#: scripts/translations/messages_addonsJson.js:45
+#: scripts/translations/messages_addonsJson.js:55
 msgid ""
 "\n"
 "\n"
@@ -2511,7 +2390,7 @@ msgid ""
 "</ul>\n"
 msgstr ""
 
-#: scripts/translations/messages_addonsJson.js:47
+#: scripts/translations/messages_addonsJson.js:57
 msgid ""
 "\n"
 "\n"
@@ -2621,11 +2500,11 @@ msgstr ""
 "\n"
 "</table>\n"
 
-#: scripts/translations/messages_addonsJson.js:49
+#: scripts/translations/messages_addonsJson.js:59
 msgid ""
 "\n"
 "\n"
-"<h3>ONLYOFFICE Add-on Terms</h3>\n"
+"<h3>Onlyoffice Add-on Terms</h3>\n"
 "\n"
 "<table class=\"table table-bordered table-addon-terms\">\n"
 "\n"
@@ -2640,33 +2519,33 @@ msgid ""
 "            <tr class=\"danger\">\n"
 "                <td>Permissions</td>\n"
 "                <td>The GakuNin RDM does not affect the permissions of "
-"ONLYOFFICE.</td>\n"
+"Onlyoffice.</td>\n"
 "            </tr>\n"
 "            <tr class=\"danger\">\n"
 "                <td>View / download file versions</td>\n"
-"                <td>The ONLYOFFICE add-on does not provide Storage "
+"                <td>The Onlyoffice add-on does not provide Storage "
 "Features.</td>\n"
 "            </tr>\n"
 "            <tr class=\"danger\">\n"
 "                <td>Add / update files</td>\n"
-"                <td>The ONLYOFFICE add-on does not provide Storage "
+"                <td>The Onlyoffice add-on does not provide Storage "
 "Features.</td>\n"
 "            </tr>\n"
 "            <tr class=\"danger\">\n"
 "                <td>Delete files</td>\n"
-"                <td>The ONLYOFFICE add-on does not provide Storage "
+"                <td>The Onlyoffice add-on does not provide Storage "
 "Features.</td>\n"
 "            </tr>\n"
 "            <tr class=\"danger\">\n"
 "                <td>Logs</td>\n"
-"                <td>The ONLYOFFICE add-on does not provide Storage "
+"                <td>The Onlyoffice add-on does not provide Storage "
 "Features.</td>\n"
 "            </tr>\n"
 "            <tr class=\"warning\">\n"
 "                <td>Forking</td>\n"
 "                <td>Forking a project or component copies information "
-"about linked ONLYOFFICE but the GakuNin RDM does not affect "
-"authentication of ONLYOFFICE.</td>\n"
+"about linked Onlyoffice but the GakuNin RDM does not affect "
+"authentication of Onlyoffice.</td>\n"
 "            </tr>\n"
 "    </tbody>\n"
 "\n"
@@ -3026,84 +2905,88 @@ msgstr ""
 msgid " This component will inherit the same license as "
 msgstr ""
 
-#: website/static/js/addProjectPlugin.js:281
+#: website/static/js/addProjectPlugin.js:273
+msgid "Learn more."
+msgstr ""
+
+#: website/static/js/addProjectPlugin.js:282
 msgid " More"
 msgstr ""
 
-#: website/static/js/addProjectPlugin.js:285
+#: website/static/js/addProjectPlugin.js:286
 msgid "Description"
 msgstr ""
 
-#: website/static/js/addProjectPlugin.js:294
+#: website/static/js/addProjectPlugin.js:295
 msgid "Enter %1$s description"
 msgstr ""
 
-#: website/static/js/addProjectPlugin.js:298 website/static/js/conference.js:31
+#: website/static/js/addProjectPlugin.js:299 website/static/js/conference.js:31
 msgid "Category"
 msgstr ""
 
-#: website/static/js/addProjectPlugin.js:299
+#: website/static/js/addProjectPlugin.js:300
 msgid " (for descriptive purposes)"
 msgstr ""
 
-#: website/static/js/addProjectPlugin.js:306
+#: website/static/js/addProjectPlugin.js:307
 msgid "Uncategorized"
 msgstr ""
 
-#: website/static/js/addProjectPlugin.js:319
+#: website/static/js/addProjectPlugin.js:320
 msgid "(Empty category)"
 msgstr ""
 
-#: website/static/js/addProjectPlugin.js:329
+#: website/static/js/addProjectPlugin.js:330
 msgid "Template (optional)"
 msgstr ""
 
-#: website/static/js/addProjectPlugin.js:330
+#: website/static/js/addProjectPlugin.js:331
 msgid ""
 "Start typing to search your projects. Selecting project as template will "
 "duplicate its "
 msgstr ""
 
-#: website/static/js/addProjectPlugin.js:331
+#: website/static/js/addProjectPlugin.js:332
 msgid ""
 "structure in the new project without importing the content of that "
 "project."
 msgstr ""
 
-#: website/static/js/addProjectPlugin.js:350
+#: website/static/js/addProjectPlugin.js:351
 #: website/static/js/nodeControl.js:224
 #: website/static/js/privateLinkManager.js:31 website/static/js/project.js:140
 msgid "Create"
 msgstr ""
 
-#: website/static/js/addProjectPlugin.js:361
+#: website/static/js/addProjectPlugin.js:362
 #, python-format
 msgid "Saving your %s..."
 msgstr ""
 
-#: website/static/js/addProjectPlugin.js:375
+#: website/static/js/addProjectPlugin.js:376
 msgid "New %1$s created successfully!"
 msgstr ""
 
-#: website/static/js/addProjectPlugin.js:385
-#: website/static/js/addProjectPlugin.js:433 website/static/js/project.js:62
+#: website/static/js/addProjectPlugin.js:386
+#: website/static/js/addProjectPlugin.js:434 website/static/js/project.js:62
 msgid "Keep working here"
 msgstr ""
 
-#: website/static/js/addProjectPlugin.js:391
-#: website/static/js/addProjectPlugin.js:436
+#: website/static/js/addProjectPlugin.js:392
+#: website/static/js/addProjectPlugin.js:437
 msgid "Go to new %1$s"
 msgstr ""
 
-#: website/static/js/addProjectPlugin.js:404
+#: website/static/js/addProjectPlugin.js:405
 msgid "Couldn't create your %1$s"
 msgstr ""
 
-#: website/static/js/addProjectPlugin.js:423
+#: website/static/js/addProjectPlugin.js:424
 msgid "Could not add institution affiliation to your new %1$s"
 msgstr ""
 
-#: website/static/js/addProjectPlugin.js:470
+#: website/static/js/addProjectPlugin.js:471
 msgid "Select a project to use as a template"
 msgstr ""
 
@@ -3192,7 +3075,7 @@ msgid "Could not fetch alerts for this page. Please refresh page and try again."
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:2
-#: website/static/js/anonymousLogActionsList_extract.js:75
+#: website/static/js/anonymousLogActionsList_extract.js:77
 msgid "A user created a project"
 msgstr ""
 
@@ -3399,972 +3282,988 @@ msgid "A user checked in a file to a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:53
-msgid "A user added a comment to a project"
+msgid "A user locked a file in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:54
-msgid "A user deleted a comment from a project"
+msgid "A user unlocked a file in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:55
-msgid "A user restored a comment in a project"
+msgid "A user added a comment to a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:56
-msgid "A user updated a comment on a project"
+msgid "A user deleted a comment from a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:57
-msgid "A user initiated an embargoed registration of a project"
+msgid "A user restored a comment in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:58
-msgid "A user approved an embargoed registration of a project"
+msgid "A user updated a comment on a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:59
-msgid "Embargo of registration of a project approved"
+msgid "A user initiated an embargoed registration of a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:60
-msgid "A user cancelled an embargoed registration of a project"
+msgid "A user approved an embargoed registration of a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:61
-msgid "A user completed an embargo of a project"
+msgid "Embargo of registration of a project approved"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:62
-msgid "Embargo for a project completed"
+msgid "A user cancelled an embargoed registration of a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:63
-msgid "Embargo for a project ended"
+msgid "A user completed an embargo of a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:64
-msgid "A user initiated a withdrawal of a registration of a project"
+msgid "Embargo for a project completed"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:65
-msgid "A withdrawal of a registration of a project was proposed"
+msgid "Embargo for a project ended"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:66
-msgid "A user approved a withdrawal of a registration of a project"
+msgid "A user initiated a withdrawal of a registration of a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:67
-#: website/static/js/logActionsList_extract.js:68
-msgid "A withdrawal of a registration of ${node} was approved"
+msgid "A withdrawal of a registration of a project was proposed"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:68
-msgid "A user cancelled a withdrawal of a registration of a project"
+msgid "A user approved a withdrawal of a registration of a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:69
-msgid "Registration was created on an external registry."
+#: website/static/js/logActionsList_extract.js:70
+msgid "A withdrawal of a registration of ${node} was approved"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:70
-msgid "Registration was imported to OSF from an external registry."
+msgid "A user cancelled a withdrawal of a registration of a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:71
-msgid "A user initiated a registration of a project"
+msgid "Registration was created on an external registry."
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:72
-msgid "A user approved a registration of a project"
+msgid "Registration was imported to OSF from an external registry."
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:73
-msgid "Registration of a project was approved"
+msgid "A user initiated a registration of a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:74
-msgid "A user cancelled a registration of a project"
+msgid "A user approved a registration of a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js:75
+msgid "Registration of a project was approved"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:76
-msgid "A user created fork from a project"
-msgstr ""
-
-#: website/static/js/anonymousLogActionsList_extract.js:77
-msgid "A user removed a project"
+msgid "A user cancelled a registration of a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:78
-msgid "A user enabled access requests for a project"
+msgid "A user created fork from a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:79
-msgid "A user disabled access requests for a project"
+msgid "A user removed a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:80
-msgid "A user updated the license of a project"
+msgid "A user enabled access requests for a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:81
-msgid "A user added a tag to a file in NII Storage in a project"
+msgid "A user disabled access requests for a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:82
-msgid "A user removed tag from a file in NII Storage in a project"
+msgid "A user updated the license of a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:83
-msgid "A user added a file to NII Storage in a project"
+msgid "A user added a tag to a file in NII Storage in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:84
-msgid "A user created a folder in NII Storage in a project"
+msgid "A user removed tag from a file in NII Storage in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:85
-msgid "A user updated a file in NII Storage in a project"
+msgid "A user added a file to NII Storage in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:86
-msgid "A user removed a file from NII Storage in a project"
+msgid "A user created a folder in NII Storage in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:87
-msgid "A user added an affiliation to a project"
+msgid "A user updated a file in NII Storage in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:88
-msgid "A user removed an affiliation from a project"
+msgid "A user removed a file from NII Storage in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:89
-msgid "A user made a project a preprint"
+msgid "A user added an affiliation to a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:90
-msgid "A user updated the primary file of a preprint"
+msgid "A user removed an affiliation from a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:91
-msgid "A user updated the license of a preprint"
+msgid "A user made a project a preprint"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:92
-msgid "A user updated the subjects"
+msgid "A user updated the primary file of a preprint"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:93
-msgid "A user created a view-only link to a project"
+msgid "A user updated the license of a preprint"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:94
-msgid "A user removed a view-only link to a project"
+msgid "A user updated the subjects"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:95
-msgid "A user added a file to Box in a project"
+msgid "A user created a view-only link to a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:96
-msgid "A user removed a file from Box in a project"
+msgid "A user removed a view-only link to a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:97
-msgid "A user updated a file in Box in a project"
+msgid "A user added a file to Box in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:98
-msgid "A user created a folder in Box in a project"
+msgid "A user removed a file from Box in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:99
-msgid "A user linked a Box folder to a project"
+msgid "A user updated a file in Box in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:100
-msgid "A user authorized the Box addon for a project"
+msgid "A user created a folder in Box in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:101
-msgid "A user deauthorized the Box addon for a project"
+msgid "A user linked a Box folder to a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:102
-msgid "Box addon for a project deauthorized"
+msgid "A user authorized the Box addon for a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:103
-msgid "A user added a file to a Dataverse dataset in a project"
+msgid "A user deauthorized the Box addon for a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:104
-msgid "A user removed a file from a Dataverse dataset in a project"
+msgid "Box addon for a project deauthorized"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:105
+msgid "A user added a file to a Dataverse dataset in a project"
+msgstr ""
+
 #: website/static/js/anonymousLogActionsList_extract.js:106
-msgid "A user linked a Dataverse dataset to a project"
+msgid "A user removed a file from a Dataverse dataset in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:107
 #: website/static/js/anonymousLogActionsList_extract.js:108
-msgid "A user published a new version of a Dataverse dataset to a project"
+msgid "A user linked a Dataverse dataset to a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:109
-msgid "A user authorized the Dataverse addon for a project"
-msgstr ""
-
 #: website/static/js/anonymousLogActionsList_extract.js:110
-msgid "A user deauthorized the Dataverse addon for a project"
+msgid "A user published a new version of a Dataverse dataset to a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:111
-msgid "Dataverse addon for a project deauthorized"
+msgid "A user authorized the Dataverse addon for a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:112
-msgid "A user added a file to Dropbox in a project"
+msgid "A user deauthorized the Dataverse addon for a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:113
-msgid "A user removed a file from Dropbox in a project"
+msgid "Dataverse addon for a project deauthorized"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:114
-msgid "A user  updated a file in Dropbox in a project"
+msgid "A user added a file to Dropbox in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:115
-msgid "A user created a folder in Dropbox in a project"
+msgid "A user removed a file from Dropbox in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:116
-msgid "A user linked a Dropbox folder in a project"
+msgid "A user  updated a file in Dropbox in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:117
-msgid "A user authorized the Dropbox addon for a project"
+msgid "A user created a folder in Dropbox in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:118
-msgid "A user deauthorized the Dropbox addon for a project"
+msgid "A user linked a Dropbox folder in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:119
-msgid "Dropbox addon for a project deauthorized"
+msgid "A user authorized the Dropbox addon for a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:120
-msgid "A user linked content from figshare in a project"
+msgid "A user deauthorized the Dropbox addon for a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:121
-msgid "A user unlinked content from figshare in a project"
+msgid "Dropbox addon for a project deauthorized"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:122
-msgid "A user added a file to figshare in a project"
+msgid "A user linked content from figshare in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:123
-msgid "A user removed a file or folder from figshare in a project"
+msgid "A user unlinked content from figshare in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:124
-msgid "A user created a folder in figshare in a project"
+msgid "A user added a file to figshare in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:125
-msgid "A user authorized the figshare addon for a project"
+msgid "A user removed a file or folder from figshare in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:126
-msgid "A user deauthorized the figshare addon for a project"
+msgid "A user created a folder in figshare in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:127
-msgid "figshare addon for a project deauthorized"
+msgid "A user authorized the figshare addon for a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:128
-msgid "A user changed the forward URL in a project"
+msgid "A user deauthorized the figshare addon for a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:129
-msgid "A user added a file to a GitHub repo in a project"
+msgid "figshare addon for a project deauthorized"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:130
-msgid "A user removed a file in a GitHub repo in a project"
+msgid "A user changed the forward URL in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:131
-msgid "A user updated a file in a GitHub repo in a project"
+msgid "A user added a file to a GitHub repo in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:132
-msgid "A user created a folder in a GitHub repo in a project"
+msgid "A user removed a file in a GitHub repo in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:133
-msgid "A user authorized the GitHub addon for a project"
+msgid "A user updated a file in a GitHub repo in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:134
-msgid "A user deauthorized the GitHub addon for a project"
+msgid "A user created a folder in a GitHub repo in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:135
-msgid "GitHub addon for a project deauthorized"
+msgid "A user authorized the GitHub addon for a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:136
-msgid "A user linked a GitHub repo in a project"
+msgid "A user deauthorized the GitHub addon for a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:137
-msgid "A user selected a folder in Mendeley in a project"
+msgid "GitHub addon for a project deauthorized"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:138
-msgid "A user authorized the Mendeley addon for a project"
+msgid "A user linked a GitHub repo in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:139
-msgid "A user deauthorized the Mendeley addon for a project"
+msgid "A user selected a folder in Mendeley in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:140
-msgid "A user linked a Zotero folder to a project"
+msgid "A user authorized the Mendeley addon for a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:141
-msgid "A user linked a Zotero library to a project"
+msgid "A user deauthorized the Mendeley addon for a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:142
-msgid "A user authorized the Zotero addon for a project"
+msgid "A user linked a Zotero folder to a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:143
-msgid "A user deauthorized the Zotero addon for a project"
+msgid "A user linked a Zotero library to a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:144
-msgid "A user added a file to ownCloud in a project"
+msgid "A user authorized the Zotero addon for a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:145
-msgid "A user removed a file from ownCloud in a project"
+msgid "A user deauthorized the Zotero addon for a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:146
-msgid "A user updated a file in ownCloud in a project"
+msgid "A user added a file to ownCloud in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:147
-msgid "A user created a folder in ownCloud in a project"
+msgid "A user removed a file from ownCloud in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:148
-msgid "A user linked a ownCloud folder in a project"
+msgid "A user updated a file in ownCloud in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:149
-msgid "A user authorized the ownCloud addon for a project"
+msgid "A user created a folder in ownCloud in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:150
-msgid "A user deauthorized the ownCloud addon for a project"
+msgid "A user linked a ownCloud folder in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:151
-msgid "ownCloud addon for a project deauthorized"
+msgid "A user authorized the ownCloud addon for a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:152
-msgid "A user added a file to Microsoft OneDrive in a project"
+msgid "A user deauthorized the ownCloud addon for a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:153
-msgid "A user removed a file from Microsoft OneDrive in a project"
+msgid "ownCloud addon for a project deauthorized"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:154
-msgid "A user updated a file in Microsoft OneDrive in a project"
+msgid "A user added a file to Microsoft OneDrive in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:155
-msgid "A user created a folder in Microsoft OneDrive in a project"
+msgid "A user removed a file from Microsoft OneDrive in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:156
-msgid "A user linked a Microsoft OneDrive folder to a project"
+msgid "A user updated a file in Microsoft OneDrive in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:157
-msgid "A user authorized the Microsoft OneDrive addon for a project"
+msgid "A user created a folder in Microsoft OneDrive in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:158
-msgid "A user deauthorized the Microsoft OneDrive addon for a project"
+msgid "A user linked a Microsoft OneDrive folder to a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:159
-msgid "Microsoft OneDrive addon for a project deauthorized"
+msgid "A user authorized the Microsoft OneDrive addon for a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:160
-msgid "A user linked an Amazon S3 bucket to a project"
+msgid "A user deauthorized the Microsoft OneDrive addon for a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:161
-msgid "A user unselected an Amazon S3 bucket in a project"
+msgid "Microsoft OneDrive addon for a project deauthorized"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:162
-msgid "A user added a file to an Amazon S3 bucket in a project"
+msgid "A user linked an Amazon S3 bucket to a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:163
-msgid "A user removed a file in an Amazon S3 bucket in a project"
+msgid "A user unselected an Amazon S3 bucket in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:164
-msgid "A user updated a file in an Amazon S3 bucket in a project"
+msgid "A user added a file to an Amazon S3 bucket in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:165
-msgid "A user created a folder in an Amazon S3 in a project"
+msgid "A user removed a file in an Amazon S3 bucket in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:166
-msgid "A user authorized the Amazon S3 addon for a project"
+msgid "A user updated a file in an Amazon S3 bucket in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:167
-msgid "A user deauthorized the Amazon S3 addon for a project"
+msgid "A user created a folder in an Amazon S3 in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:168
-msgid "Amazon S3 addon for a project deauthorized"
+msgid "A user authorized the Amazon S3 addon for a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:169
-msgid "A user added a file to Google Drive in a project"
+msgid "A user deauthorized the Amazon S3 addon for a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:170
-msgid "A user removed a file from Google Drive in a project"
+msgid "Amazon S3 addon for a project deauthorized"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:171
-msgid "A user updated a file in Google Drive in a project"
+msgid "A user added a file to Google Drive in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:172
-msgid "A user created a folder in Google Drive in a project"
+msgid "A user removed a file from Google Drive in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:173
-msgid "A user linked a Google Drive folder to a project"
+msgid "A user updated a file in Google Drive in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:174
-msgid "A user authorized the Google Drive addon for a project"
+msgid "A user created a folder in Google Drive in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:175
-msgid "A user deauthorized the Google Drive addon for a project"
+msgid "A user linked a Google Drive folder to a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:176
-msgid "Google Drive addon for a project deauthorized"
+msgid "A user authorized the Google Drive addon for a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:177
-msgid "A user added a file to a Bitbucket repo in a project"
+msgid "A user deauthorized the Google Drive addon for a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:178
-msgid "A user removed a file in a Bitbucket repo in a project"
+msgid "Google Drive addon for a project deauthorized"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:179
-msgid "A user updated a file in a Bitbucket repo in a project"
+msgid "A user added a file to a Bitbucket repo in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:180
-msgid "A user created a folder in a Bitbucket repo in a project"
+msgid "A user removed a file in a Bitbucket repo in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:181
-msgid "A user authorized the Bitbucket addon for a project"
+msgid "A user updated a file in a Bitbucket repo in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:182
-msgid "A user deauthorized the Bitbucket addon for a project"
+msgid "A user created a folder in a Bitbucket repo in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:183
-msgid "Bitbucket addon for a project deauthorized"
+msgid "A user authorized the Bitbucket addon for a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:184
-msgid "A user linked a Bitbucket repo in a project"
+msgid "A user deauthorized the Bitbucket addon for a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:185
-msgid "A user linked an Swift container to a project"
+msgid "Bitbucket addon for a project deauthorized"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:186
-msgid "A user unselected an Swift container in a project"
+msgid "A user linked a Bitbucket repo in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:187
-msgid "A user added a file to an Swift container in a project"
+msgid "A user linked an Swift container to a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:188
-msgid "A user removed a file in an Swift container in a project"
+msgid "A user unselected an Swift container in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:189
-msgid "A user updated a file in an Swift container in a project"
+msgid "A user added a file to an Swift container in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:190
-msgid "A user created a folder in an Swift in a project"
+msgid "A user removed a file in an Swift container in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:191
-msgid "A user authorized the Swift addon for a project"
+msgid "A user updated a file in an Swift container in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:192
-msgid "A user deauthorized the Swift addon for a project"
+msgid "A user created a folder in an Swift in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:193
-msgid "Swift addon for a project deauthorized"
+msgid "A user authorized the Swift addon for a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:194
-msgid "A user linked an Azure Blob Storage container to a project"
+msgid "A user deauthorized the Swift addon for a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:195
-msgid "A user unselected an Azure Blob Storage container in a project"
+msgid "Swift addon for a project deauthorized"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:196
-msgid "A user added a file to an Azure Blob Storage container in a project"
+msgid "A user linked an Azure Blob Storage container to a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:197
-msgid "A user removed a file in an Azure Blob Storage container in a project"
+msgid "A user unselected an Azure Blob Storage container in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:198
-msgid "A user updated a file in an Azure Blob Storage container in a project"
+msgid "A user added a file to an Azure Blob Storage container in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:199
-msgid "A user created a folder in an Azure Blob Storage in a project"
+msgid "A user removed a file in an Azure Blob Storage container in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:200
-msgid "A user authorized the Azure Blob Storage addon for a project"
+msgid "A user updated a file in an Azure Blob Storage container in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:201
-msgid "A user deauthorized the Azure Blob Storage addon for a project"
+msgid "A user created a folder in an Azure Blob Storage in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:202
-msgid "Azure Blob Storage addon for a project deauthorized"
+msgid "A user authorized the Azure Blob Storage addon for a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:203
-msgid "A user added a file to a WEKO index in a project"
+msgid "A user deauthorized the Azure Blob Storage addon for a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:204
-msgid "A user removed a file from a WEKO index in a project"
+msgid "Azure Blob Storage addon for a project deauthorized"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:205
-msgid "A user linked a WEKO index to a project"
+msgid "A user added a draft file to a WEKO index in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:206
-msgid "A user created an index to a project"
+msgid "A user removed a draft file from a WEKO index in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:207
-msgid "A user created an item to a project"
+msgid "A user linked a WEKO index to a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:208
-msgid "A user created a folder in WEKO in a project"
+msgid "A user created a draft folder in WEKO in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:209
-msgid "A user authorized the WEKO addon for a project"
+msgid "A user deposit item in a WEKO index in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:210
-msgid "A user deauthorized the WEKO addon for a project"
+msgid "A user authorized the WEKO addon for a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:211
-msgid "WEKO addon for a project deauthorized"
+msgid "A user deauthorized the WEKO addon for a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:212
-msgid "A user linked an S3 Compatible Storage bucket to a project"
+msgid "WEKO addon for a project deauthorized"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:213
-msgid "A user unselected an S3 Compatible Storage bucket in a project"
+msgid "A user linked an S3 Compatible Storage bucket to a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:214
-msgid "A user added a file to an S3 Compatible Storage bucket in a project"
+msgid "A user unselected an S3 Compatible Storage bucket in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:215
-msgid "A user removed a file in an S3 Compatible Storage bucket in a project"
+msgid "A user added a file to an S3 Compatible Storage bucket in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:216
-msgid "A user updated a file in an S3 Compatible Storage bucket in a project"
+msgid "A user removed a file in an S3 Compatible Storage bucket in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:217
-msgid "A user created a folder in an S3 Compatible Storage in a project"
+msgid "A user updated a file in an S3 Compatible Storage bucket in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:218
-msgid "A user authorized the S3 Compatible Storage addon for a project"
+msgid "A user created a folder in an S3 Compatible Storage in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:219
-msgid "A user deauthorized the S3 Compatible Storage addon for a project"
+msgid "A user authorized the S3 Compatible Storage addon for a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:220
-msgid "S3 Compatible Storage addon for a project deauthorized"
+msgid "A user deauthorized the S3 Compatible Storage addon for a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:221
-msgid "A user added a file to S3compat (for Institutions) in a project"
+msgid "S3 Compatible Storage addon for a project deauthorized"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:222
-msgid "A user removed a file from S3compat (for Institutions) in a project"
+msgid "A user added a file to S3compat (for Institutions) in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:223
-msgid "A user updated a file in S3compat (for Institutions) in a project"
+msgid "A user removed a file from S3compat (for Institutions) in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:224
-msgid "A user created a folder in S3compat (for Institutions) in a project"
+msgid "A user updated a file in S3compat (for Institutions) in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:225
-msgid "A user linked a S3compat (for Institutions) folder in a project"
+msgid "A user created a folder in S3compat (for Institutions) in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:226
-msgid "A user authorized the S3compat (for Institutions) addon for a project"
+msgid "A user linked a S3compat (for Institutions) folder in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:227
-msgid "A user deauthorized the S3compat (for Institutions) addon for a project"
+msgid "A user authorized the S3compat (for Institutions) addon for a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:228
-msgid "S3compat (for Institutions) addon for a project deauthorized"
+msgid "A user deauthorized the S3compat (for Institutions) addon for a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js:229
+msgid "S3compat (for Institutions) addon for a project deauthorized"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js:230
 msgid ""
 "A user linked an Oracle Cloud Infrastructure Object Storage bucket to a "
 "project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:230
+#: website/static/js/anonymousLogActionsList_extract.js:231
 msgid ""
 "A user unselected an Oracle Cloud Infrastructure Object Storage bucket in"
 " a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:231
+#: website/static/js/anonymousLogActionsList_extract.js:232
 msgid ""
 "A user added a file to an Oracle Cloud Infrastructure Object Storage "
 "bucket in a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:232
+#: website/static/js/anonymousLogActionsList_extract.js:233
 msgid ""
 "A user removed a file in an Oracle Cloud Infrastructure Object Storage "
 "bucket in a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:233
+#: website/static/js/anonymousLogActionsList_extract.js:234
 msgid ""
 "A user updated a file in an Oracle Cloud Infrastructure Object Storage "
 "bucket in a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:234
+#: website/static/js/anonymousLogActionsList_extract.js:235
 msgid ""
 "A user created a folder in an Oracle Cloud Infrastructure Object Storage "
 "in a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:235
+#: website/static/js/anonymousLogActionsList_extract.js:236
 msgid ""
 "A user authorized the Oracle Cloud Infrastructure Object Storage addon "
 "for a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:236
+#: website/static/js/anonymousLogActionsList_extract.js:237
 msgid ""
 "A user deauthorized the Oracle Cloud Infrastructure Object Storage addon "
 "for a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:237
+#: website/static/js/anonymousLogActionsList_extract.js:238
 msgid ""
 "Oracle Cloud Infrastructure Object Storage addon for a project "
 "deauthorized"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:238
+#: website/static/js/anonymousLogActionsList_extract.js:239
 msgid ""
 "A user added a file to Oracle Cloud Infrastructure (for Institutions) in "
 "a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:239
+#: website/static/js/anonymousLogActionsList_extract.js:240
 msgid ""
 "A user removed a file from Oracle Cloud Infrastructure (for Institutions)"
 " in a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:240
+#: website/static/js/anonymousLogActionsList_extract.js:241
 msgid ""
 "A user updated a file in Oracle Cloud Infrastructure (for Institutions) "
 "in a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:241
+#: website/static/js/anonymousLogActionsList_extract.js:242
 msgid ""
 "A user created a folder in Oracle Cloud Infrastructure (for Institutions)"
 " in a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:242
+#: website/static/js/anonymousLogActionsList_extract.js:243
 msgid ""
 "A user linked a Oracle Cloud Infrastructure (for Institutions) folder in "
 "a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:243
+#: website/static/js/anonymousLogActionsList_extract.js:244
 msgid ""
 "A user authorized the Oracle Cloud Infrastructure (for Institutions) "
 "addon for a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:244
+#: website/static/js/anonymousLogActionsList_extract.js:245
 msgid ""
 "A user deauthorized the Oracle Cloud Infrastructure (for Institutions) "
 "addon for a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:245
+#: website/static/js/anonymousLogActionsList_extract.js:246
 msgid ""
 "Oracle Cloud Infrastructure (for Institutions) addon for a project "
 "deauthorized"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:246
+#: website/static/js/anonymousLogActionsList_extract.js:247
 msgid "A user added a file to Nextcloud in a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:247
+#: website/static/js/anonymousLogActionsList_extract.js:248
 msgid "A user removed a file from Nextcloud in a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:248
+#: website/static/js/anonymousLogActionsList_extract.js:249
 msgid "A user updated a file in Nextcloud in a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:249
+#: website/static/js/anonymousLogActionsList_extract.js:250
 msgid "A user created a folder in Nextcloud in a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:250
+#: website/static/js/anonymousLogActionsList_extract.js:251
 msgid "A user linked a Nextcloud folder in a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:251
+#: website/static/js/anonymousLogActionsList_extract.js:252
 msgid "A user authorized the Nextcloud addon for a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:252
+#: website/static/js/anonymousLogActionsList_extract.js:253
 msgid "A user deauthorized the Nextcloud addon for a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:253
+#: website/static/js/anonymousLogActionsList_extract.js:254
 msgid "Nextcloud addon for a project deauthorized"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:254
+#: website/static/js/anonymousLogActionsList_extract.js:255
 msgid "A user added a file to Nextcloud (for Institutions) in a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:255
+#: website/static/js/anonymousLogActionsList_extract.js:256
 msgid "A user removed a file from Nextcloud (for Institutions) in a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:256
+#: website/static/js/anonymousLogActionsList_extract.js:257
 msgid "A user updated a file in Nextcloud (for Institutions) in a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:257
+#: website/static/js/anonymousLogActionsList_extract.js:258
 msgid "A user created a folder in Nextcloud (for Institutions) in a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:258
+#: website/static/js/anonymousLogActionsList_extract.js:259
 msgid "A user linked a Nextcloud (for Institutions) folder in a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:259
+#: website/static/js/anonymousLogActionsList_extract.js:260
 msgid "A user authorized the Nextcloud (for Institutions) addon for a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:260
+#: website/static/js/anonymousLogActionsList_extract.js:261
 msgid "A user deauthorized the Nextcloud (for Institutions) addon for a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:261
+#: website/static/js/anonymousLogActionsList_extract.js:262
 msgid "Nextcloud (for Institutions) addon for a project deauthorized"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:262
+#: website/static/js/anonymousLogActionsList_extract.js:263
 msgid "A user added a file to IQB-RIMS in a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:263
+#: website/static/js/anonymousLogActionsList_extract.js:264
 msgid "A user removed a file from IQB-RIMS in a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:264
+#: website/static/js/anonymousLogActionsList_extract.js:265
 msgid "A user updated a file in IQB-RIMS in a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:265
+#: website/static/js/anonymousLogActionsList_extract.js:266
 msgid "A user created a folder in IQB-RIMS in a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:266
+#: website/static/js/anonymousLogActionsList_extract.js:267
 msgid "A user linked a IQB-RIMS folder to a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:267
+#: website/static/js/anonymousLogActionsList_extract.js:268
 msgid "A user authorized the IQB-RIMS addon for a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:268
+#: website/static/js/anonymousLogActionsList_extract.js:269
 msgid "A user deauthorized the IQB-RIMS addon for a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:269
+#: website/static/js/anonymousLogActionsList_extract.js:270
 msgid "IQB-RIMS addon for a project deauthorized"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:270
+#: website/static/js/anonymousLogActionsList_extract.js:271
 msgid "A user added a file to Dropbox Business in a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:271
+#: website/static/js/anonymousLogActionsList_extract.js:272
 msgid "A user removed a file from Dropbox Business in a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:272
+#: website/static/js/anonymousLogActionsList_extract.js:273
 msgid "A user  updated a file in Dropbox Business in a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:273
+#: website/static/js/anonymousLogActionsList_extract.js:274
 msgid "A user created a folder in Dropbox Business in a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:274
+#: website/static/js/anonymousLogActionsList_extract.js:275
 msgid "A user linked a Dropbox Business folder in a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:275
+#: website/static/js/anonymousLogActionsList_extract.js:276
 msgid "A user authorized the Dropbox Business addon for a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:276
+#: website/static/js/anonymousLogActionsList_extract.js:277
 msgid "A user deauthorized the Dropbox Business addon for a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:277
+#: website/static/js/anonymousLogActionsList_extract.js:278
 msgid "Dropbox Business addon for a project deauthorized"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:278
+#: website/static/js/anonymousLogActionsList_extract.js:279
 msgid "A user added a file to an OneDrive team folder in a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:279
+#: website/static/js/anonymousLogActionsList_extract.js:280
 msgid "A user removed a file in an OneDrive team folder in a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:280
+#: website/static/js/anonymousLogActionsList_extract.js:281
 msgid "A user updated a file in an OneDrive team folder in a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:281
+#: website/static/js/anonymousLogActionsList_extract.js:282
 msgid "A user created a folder in an OneDrive team folder in a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:282
+#: website/static/js/anonymousLogActionsList_extract.js:283
 msgid "A user authorized the OneDrive for Office365 addon for a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:283
+#: website/static/js/anonymousLogActionsList_extract.js:284
 msgid "A user deauthorized the OneDrive for Office365 addon for a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:284
+#: website/static/js/anonymousLogActionsList_extract.js:285
 msgid "OneDrive for Office365 addon for a project deauthorized"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:285
+#: website/static/js/anonymousLogActionsList_extract.js:286
 msgid "A user added a metadata in a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:286
+#: website/static/js/anonymousLogActionsList_extract.js:287
 msgid "A user added a metadata to a ${path} in a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:287
+#: website/static/js/anonymousLogActionsList_extract.js:288
 msgid "A user updated a metadata for a ${path} in a project"
 msgstr ""
 
-#: website/static/js/anonymousLogActionsList_extract.js:288
+#: website/static/js/anonymousLogActionsList_extract.js:289
 msgid "A user deleted a metadata for a ${path} in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js:290
+msgid "A user created a workflow"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js:291
+msgid "A user updated a workflow"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js:292
+msgid "A user deleted a workflow"
 msgstr ""
 
 #: website/static/js/apiApplication.js:215
@@ -4456,7 +4355,7 @@ msgstr ""
 msgid "View original document"
 msgstr ""
 
-#: website/static/js/citationGrid.js:202 website/static/js/fangorn.js:2492
+#: website/static/js/citationGrid.js:202 website/static/js/fangorn.js:2521
 msgid "View on %1$s"
 msgstr ""
 
@@ -4649,7 +4548,7 @@ msgstr ""
 msgid "Date Created"
 msgstr ""
 
-#: website/static/js/conference.js:43 website/static/js/fangorn.js:2083
+#: website/static/js/conference.js:43 website/static/js/fangorn.js:2112
 msgid "Downloads"
 msgstr ""
 
@@ -4813,258 +4712,258 @@ msgstr ""
 msgid "Renaming "
 msgstr ""
 
-#: website/static/js/fangorn.js:473
+#: website/static/js/fangorn.js:477
 msgid "Not allowed: Private folder"
 msgstr ""
 
-#: website/static/js/fangorn.js:517 website/static/js/fangorn.js:547
+#: website/static/js/fangorn.js:521 website/static/js/fangorn.js:551
 msgid "You cannot replace the Wiki images folder"
 msgstr ""
 
-#: website/static/js/fangorn.js:522 website/static/js/fangorn.js:555
+#: website/static/js/fangorn.js:526 website/static/js/fangorn.js:559
 msgid "An item named \"%1$s\" already exists in this location."
 msgstr ""
 
-#: website/static/js/fangorn.js:524 website/static/js/fangorn.js:533
-#: website/static/js/fangorn.js:557
+#: website/static/js/fangorn.js:528 website/static/js/fangorn.js:537
+#: website/static/js/fangorn.js:561
 msgid "Keep Both"
 msgstr ""
 
-#: website/static/js/fangorn.js:524 website/static/js/fangorn.js:557
+#: website/static/js/fangorn.js:528 website/static/js/fangorn.js:561
 msgid " will retain both files (and their version histories) in this location."
 msgstr ""
 
-#: website/static/js/fangorn.js:526 website/static/js/fangorn.js:534
-#: website/static/js/fangorn.js:559
+#: website/static/js/fangorn.js:530 website/static/js/fangorn.js:538
+#: website/static/js/fangorn.js:563
 msgid "Replace"
 msgstr ""
 
-#: website/static/js/fangorn.js:526 website/static/js/fangorn.js:559
+#: website/static/js/fangorn.js:530 website/static/js/fangorn.js:563
 msgid " will overwrite the existing file in this location. "
 msgstr ""
 
-#: website/static/js/fangorn.js:527 website/static/js/fangorn.js:560
+#: website/static/js/fangorn.js:531 website/static/js/fangorn.js:564
 msgid "You will lose previous versions of the overwritten file. "
 msgstr ""
 
-#: website/static/js/fangorn.js:528 website/static/js/fangorn.js:561
+#: website/static/js/fangorn.js:532 website/static/js/fangorn.js:565
 msgid "You will keep previous versions of the moved file."
 msgstr ""
 
-#: website/static/js/fangorn.js:529
+#: website/static/js/fangorn.js:533
 msgid "\"Skip\" will skip the current file."
 msgstr ""
 
-#: website/static/js/fangorn.js:530
+#: website/static/js/fangorn.js:534
 msgid "\"Stop\" will only move files with no conflicts."
 msgstr ""
 
-#: website/static/js/fangorn.js:535
+#: website/static/js/fangorn.js:539
 msgid "Skip"
 msgstr ""
 
-#: website/static/js/fangorn.js:536
+#: website/static/js/fangorn.js:540
 msgid "Stop"
 msgstr ""
 
-#: website/static/js/fangorn.js:538
+#: website/static/js/fangorn.js:542
 #, python-format
 msgid "Replace \"%s\"?"
 msgstr ""
 
-#: website/static/js/fangorn.js:562
+#: website/static/js/fangorn.js:566
 msgid " will cancel the move."
 msgstr ""
 
-#: website/static/js/fangorn.js:571
+#: website/static/js/fangorn.js:575
 msgid "Replace \"%1$s\"?"
 msgstr ""
 
-#: website/static/js/fangorn.js:601
+#: website/static/js/fangorn.js:605
 msgid "%1$s conflicts left to resolve."
 msgid_plural "%1$s conflict left to resolve."
 msgstr[0] ""
 
-#: website/static/js/fangorn.js:686
+#: website/static/js/fangorn.js:690
 msgid "Successfully %1$s."
 msgstr ""
 
-#: website/static/js/fangorn.js:734
+#: website/static/js/fangorn.js:738
 msgid "Please refresh the page or contact %1$s if the problem persists."
 msgstr ""
 
-#: website/static/js/fangorn.js:739
+#: website/static/js/fangorn.js:743
 msgid "Failed to move or copy file"
 msgstr ""
 
-#: website/static/js/fangorn.js:1034
+#: website/static/js/fangorn.js:1038
 msgid "Could not upload file. The file may be invalid "
 msgstr ""
 
-#: website/static/js/fangorn.js:1035
+#: website/static/js/fangorn.js:1039
 msgid "or the file folder has been deleted."
 msgstr ""
 
-#: website/static/js/fangorn.js:1043 website/static/js/fangorn.js:1048
+#: website/static/js/fangorn.js:1047 website/static/js/fangorn.js:1052
 msgid "Cannot upload folders."
 msgstr ""
 
-#: website/static/js/fangorn.js:1050
+#: website/static/js/fangorn.js:1054
 msgid "Cannot upload file due to insufficient storage."
 msgstr ""
 
-#: website/static/js/fangorn.js:1055
+#: website/static/js/fangorn.js:1059
 msgid "Could not upload file. Possible reasons: <br>"
 msgstr ""
 
-#: website/static/js/fangorn.js:1056
+#: website/static/js/fangorn.js:1060
 msgid "1. Cannot upload folders. <br>2. "
 msgstr ""
 
-#: website/static/js/fangorn.js:1058
+#: website/static/js/fangorn.js:1062
 msgid "Unable to reach the provider, please try again later. "
 msgstr ""
 
-#: website/static/js/fangorn.js:1059
+#: website/static/js/fangorn.js:1063
 msgid "If the problem persists, please contact %1$s."
 msgstr ""
 
-#: website/static/js/fangorn.js:1172
+#: website/static/js/fangorn.js:1176
 msgid "The folder that wants to upload is empty."
 msgstr ""
 
-#: website/static/js/fangorn.js:1204
+#: website/static/js/fangorn.js:1208
 msgid "Not enough quota to upload. The total size of the folder %1$s."
 msgstr ""
 
-#: website/static/js/fangorn.js:1348 website/static/js/fangorn.js:1426
+#: website/static/js/fangorn.js:1352 website/static/js/fangorn.js:1430
 msgid "Folder creation failed."
 msgstr ""
 
-#: website/static/js/fangorn.js:1390
+#: website/static/js/fangorn.js:1394
 msgid "Please enter a folder name."
 msgstr ""
 
-#: website/static/js/fangorn.js:1394
+#: website/static/js/fangorn.js:1398
 msgid "Folder name contains illegal characters."
 msgstr ""
 
-#: website/static/js/fangorn.js:1417
+#: website/static/js/fangorn.js:1421
 msgid "New folder created!"
 msgstr ""
 
-#: website/static/js/fangorn.js:1440
+#: website/static/js/fangorn.js:1444
 msgid "Please enter a file name."
 msgstr ""
 
-#: website/static/js/fangorn.js:1444
+#: website/static/js/fangorn.js:1448
 msgid "File name contains illegal characters."
 msgstr ""
 
-#: website/static/js/fangorn.js:1473
+#: website/static/js/fangorn.js:1477
 msgid "New file created!"
 msgstr ""
 
-#: website/static/js/fangorn.js:1486
+#: website/static/js/fangorn.js:1490
 msgid "File creation failed."
 msgstr ""
 
-#: website/static/js/fangorn.js:1506
+#: website/static/js/fangorn.js:1510
 msgid "<i> Deleting...</i>"
 msgstr ""
 
-#: website/static/js/fangorn.js:1528
+#: website/static/js/fangorn.js:1532
 msgid "Delete failed."
 msgstr ""
 
-#: website/static/js/fangorn.js:1543
+#: website/static/js/fangorn.js:1547
 msgid ""
 "This folder and all of its contents will be deleted. This folder is "
 "linked to "
 msgstr ""
 
-#: website/static/js/fangorn.js:1544
+#: website/static/js/fangorn.js:1548
 msgid "your wiki(s). Deleting it will remove images embedded in your wiki(s). "
 msgstr ""
 
-#: website/static/js/fangorn.js:1545 website/static/js/fangorn.js:1573
-#: website/static/js/fangorn.js:1596 website/static/js/pages/base-page.js:132
+#: website/static/js/fangorn.js:1549 website/static/js/fangorn.js:1577
+#: website/static/js/fangorn.js:1600 website/static/js/pages/base-page.js:132
 msgid "This action is irreversible."
 msgstr ""
 
-#: website/static/js/fangorn.js:1548
+#: website/static/js/fangorn.js:1552
 msgid ""
 "This folder and ALL its contents will be deleted. This action is "
 "irreversible."
 msgstr ""
 
-#: website/static/js/fangorn.js:1556 website/static/js/fangorn.js:1581
+#: website/static/js/fangorn.js:1560 website/static/js/fangorn.js:1585
 msgid "Delete \"%1$s\"?"
 msgstr ""
 
-#: website/static/js/fangorn.js:1558
+#: website/static/js/fangorn.js:1562
 msgid "You don't have permission to delete this file."
 msgstr ""
 
-#: website/static/js/fangorn.js:1566
+#: website/static/js/fangorn.js:1570
 msgid "This file may be linked to your wiki(s). Deleting it will remove the"
 msgstr ""
 
-#: website/static/js/fangorn.js:1567
+#: website/static/js/fangorn.js:1571
 msgid " image embedded in your wiki(s). "
 msgstr ""
 
-#: website/static/js/fangorn.js:1607
+#: website/static/js/fangorn.js:1611
 msgid ""
 "Some of the selected items are folders. This will delete the folder(s) "
 "and ALL of their content."
 msgstr ""
 
-#: website/static/js/fangorn.js:1621
+#: website/static/js/fangorn.js:1625
 msgid " may be linked to"
 msgstr ""
 
-#: website/static/js/fangorn.js:1622
+#: website/static/js/fangorn.js:1626
 msgid " your wiki(s). Deleting them will remove images embedded in your wiki(s). "
 msgstr ""
 
-#: website/static/js/fangorn.js:1630
+#: website/static/js/fangorn.js:1634
 msgid "Delete All"
 msgstr ""
 
-#: website/static/js/fangorn.js:1634
+#: website/static/js/fangorn.js:1638
 msgid ""
 "Some of these files can't be deleted but you can delete the ones "
 "highlighted with green. This action is irreversible."
 msgstr ""
 
-#: website/static/js/fangorn.js:1649
+#: website/static/js/fangorn.js:1653
 msgid "Delete Some"
 msgstr ""
 
-#: website/static/js/fangorn.js:1652
+#: website/static/js/fangorn.js:1656
 msgid "Delete multiple files?"
 msgstr ""
 
-#: website/static/js/fangorn.js:1678
+#: website/static/js/fangorn.js:1682
 msgid ""
 "Unable to check out file. This is most likely due to the file being "
 "already checked-out"
 msgstr ""
 
-#: website/static/js/fangorn.js:1679
+#: website/static/js/fangorn.js:1683
 msgid " by another user."
 msgstr ""
 
-#: website/static/js/fangorn.js:1994
+#: website/static/js/fangorn.js:2001
 msgid "%1$s is not configured"
 msgstr ""
 
-#: website/static/js/fangorn.js:1997
+#: website/static/js/fangorn.js:2004
 msgid " Restore Add-ons"
 msgstr " Configure"
 
-#: website/static/js/fangorn.js:2008 website/static/js/fileViewTreebeard.js:63
+#: website/static/js/fangorn.js:2099 website/static/js/fileViewTreebeard.js:63
 #: website/static/js/filesWidget.js:34 website/static/js/meetings.js:18
 #: website/static/js/pages/project-dashboard-page.js:549
 #: website/static/js/project-organizer.js:192
@@ -5072,232 +4971,232 @@ msgstr " Configure"
 msgid "Name"
 msgstr ""
 
-#: website/static/js/fangorn.js:2075
+#: website/static/js/fangorn.js:2104
 msgid "Size"
 msgstr ""
 
-#: website/static/js/fangorn.js:2079
+#: website/static/js/fangorn.js:2108
 msgid "Version"
 msgstr ""
 
-#: website/static/js/fangorn.js:2087
+#: website/static/js/fangorn.js:2116
 #: website/static/js/pages/project-dashboard-page.js:555
 #: website/static/js/project-organizer.js:201
 msgid "Modified"
 msgstr ""
 
-#: website/static/js/fangorn.js:2198
+#: website/static/js/fangorn.js:2227
 msgid "Unable to retrieve components."
 msgstr ""
 
-#: website/static/js/fangorn.js:2200
+#: website/static/js/fangorn.js:2229
 msgid "Unable to retrieve components for node %1$s"
 msgstr ""
 
-#: website/static/js/fangorn.js:2282
+#: website/static/js/fangorn.js:2311
 msgid "You cannot rename your Wiki images folder."
 msgstr ""
 
-#: website/static/js/fangorn.js:2392
+#: website/static/js/fangorn.js:2421
 msgid "Upload Folder"
 msgstr ""
 
-#: website/static/js/fangorn.js:2397
+#: website/static/js/fangorn.js:2426
 msgid "Upload"
 msgstr ""
 
-#: website/static/js/fangorn.js:2404
+#: website/static/js/fangorn.js:2433
 msgid "Create Folder"
 msgstr ""
 
-#: website/static/js/fangorn.js:2406
+#: website/static/js/fangorn.js:2440
 msgid "Create File"
 msgstr ""
 
-#: website/static/js/fangorn.js:2348
+#: website/static/js/fangorn.js:2447
 msgid "Delete Folder"
 msgstr ""
 
-#: website/static/js/fangorn.js:2427 website/static/js/filepage/index.js:522
+#: website/static/js/fangorn.js:2456 website/static/js/filepage/index.js:739
 #: website/static/js/filepage/revisions.js:111
 msgid "Download"
 msgstr ""
 
-#: website/static/js/fangorn.js:2383 website/static/js/filepage/index.js:216
+#: website/static/js/fangorn.js:2482 website/static/js/filepage/index.js:216
 msgid "This would mean "
 msgstr ""
 
-#: website/static/js/fangorn.js:2454 website/static/js/filepage/index.js:217
+#: website/static/js/fangorn.js:2483 website/static/js/filepage/index.js:217
 msgid ""
 "other contributors cannot edit, delete or upload new versions of this "
 "file "
 msgstr ""
 
-#: website/static/js/fangorn.js:2455
+#: website/static/js/fangorn.js:2484
 msgid "as long as it is checked-out. You can check it back in at anytime."
 msgstr ""
 
-#: website/static/js/fangorn.js:2460 website/static/js/fangorn.js:2465
+#: website/static/js/fangorn.js:2489 website/static/js/fangorn.js:2494
 #: website/static/js/filepage/index.js:243
 msgid "Check out file"
 msgstr ""
 
-#: website/static/js/fangorn.js:2461
+#: website/static/js/fangorn.js:2490
 msgid "Confirm file check-out?"
 msgstr ""
 
-#: website/static/js/fangorn.js:2474
+#: website/static/js/fangorn.js:2503
 msgid "Check in file"
 msgstr ""
 
-#: website/static/js/fangorn.js:2502
+#: website/static/js/fangorn.js:2531
 msgid "Download as zip"
 msgstr ""
 
-#: website/static/js/fangorn.js:2513 website/static/js/myProjects.js:1613
+#: website/static/js/fangorn.js:2542 website/static/js/myProjects.js:1613
 msgid "Rename"
 msgstr ""
 
-#: website/static/js/fangorn.js:2522
+#: website/static/js/fangorn.js:2551
 msgid "copy link"
 msgstr ""
 
-#: website/static/js/fangorn.js:2607
+#: website/static/js/fangorn.js:2636
 msgid "New folder name"
 msgstr ""
 
-#: website/static/js/fangorn.js:2635
+#: website/static/js/fangorn.js:2664
 msgid "Enter name"
 msgstr ""
 
-#: website/static/js/fangorn.js:2660
+#: website/static/js/fangorn.js:2694
 msgid "New file name"
 msgstr ""
 
-#: website/static/js/fangorn.js:2599
+#: website/static/js/fangorn.js:2756
 msgid "Cancel Pending Uploads"
 msgstr ""
 
-#: website/static/js/fangorn.js:2756
+#: website/static/js/fangorn.js:2785
 msgid "Delete Multiple"
 msgstr ""
 
-#: website/static/js/fangorn.js:2768 website/static/js/fangorn.js:3616
+#: website/static/js/fangorn.js:2797 website/static/js/fangorn.js:3648
 msgid "Filter"
 msgstr ""
 
-#: website/static/js/fangorn.js:2773
+#: website/static/js/fangorn.js:2802
 msgid "Select rows:"
 msgstr ""
 
-#: website/static/js/fangorn.js:2773
+#: website/static/js/fangorn.js:2802
 msgid ""
 " Click on a row (outside the add-on, file, or folder name) to show "
 "further actions in the toolbar. Use Command or Shift keys to select "
 "multiple files."
 msgstr ""
 
-#: website/static/js/fangorn.js:2774
+#: website/static/js/fangorn.js:2803
 msgid "Open files:"
 msgstr ""
 
-#: website/static/js/fangorn.js:2774
+#: website/static/js/fangorn.js:2803
 msgid " Click a file name to go to view the file in the GakuNin RDM."
 msgstr ""
 
-#: website/static/js/fangorn.js:2775
+#: website/static/js/fangorn.js:2804
 msgid "Open files in new tab:"
 msgstr ""
 
-#: website/static/js/fangorn.js:2775
+#: website/static/js/fangorn.js:2804
 msgid ""
 " Press Command (Ctrl in Windows) and click a file name to open it in a "
 "new tab."
 msgstr ""
 
-#: website/static/js/fangorn.js:2776
+#: website/static/js/fangorn.js:2805
 msgid "Download as zip:"
 msgstr ""
 
-#: website/static/js/fangorn.js:2776
+#: website/static/js/fangorn.js:2805
 msgid ""
 " Click on the row of an add-on or folder and click the Download as Zip "
 "button in the toolbar."
 msgstr ""
 
-#: website/static/js/fangorn.js:2776
+#: website/static/js/fangorn.js:2805
 msgid " Not available for all storage add-ons."
 msgstr ""
 
-#: website/static/js/fangorn.js:2777
+#: website/static/js/fangorn.js:2806
 msgid "Copy files:"
 msgstr ""
 
-#: website/static/js/fangorn.js:2777
+#: website/static/js/fangorn.js:2806
 msgid ""
 " Press Option (Alt in Windows) while dragging a file to a new folder or "
 "component."
 msgstr ""
 
-#: website/static/js/fangorn.js:2777
+#: website/static/js/fangorn.js:2806
 msgid " Only for contributors with write access."
 msgstr ""
 
-#: website/static/js/fangorn.js:2783
+#: website/static/js/fangorn.js:2812
 msgid "How to Use the File Browser"
 msgstr ""
 
-#: website/static/js/fangorn.js:2847
+#: website/static/js/fangorn.js:2876
 msgid "Please wait for current action to complete"
 msgstr ""
 
-#: website/static/js/fangorn.js:3028
+#: website/static/js/fangorn.js:3057
 msgid "Upload Status"
 msgstr ""
 
-#: website/static/js/fangorn.js:3028
+#: website/static/js/fangorn.js:3057
 msgid " files succeeded."
 msgstr ""
 
-#: website/static/js/fangorn.js:3139
+#: website/static/js/fangorn.js:3168
 msgid "Done"
 msgstr ""
 
-#: website/static/js/fangorn.js:3141
+#: website/static/js/fangorn.js:3170
 msgid "Move Status"
 msgstr ""
 
-#: website/static/js/fangorn.js:3143
+#: website/static/js/fangorn.js:3172
 msgid " files successfully moved."
 msgstr ""
 
-#: website/static/js/fangorn.js:3144
+#: website/static/js/fangorn.js:3173
 msgid " Skipped %1$s/%2$s files."
 msgstr ""
 
-#: website/static/js/fangorn.js:3530
+#: website/static/js/fangorn.js:3562
 msgid "You have pending uploads, if you leave this page they may not complete."
 msgstr ""
 
-#: website/static/js/fangorn.js:3533
+#: website/static/js/fangorn.js:3565
 msgid ""
 "You have pending file operations, if you leave this page they may not "
 "complete."
 msgstr ""
 
-#: website/static/js/fangorn.js:3577
+#: website/static/js/fangorn.js:3609
 msgid "This file is too large (%1$s). Max file size is %2$s."
 msgstr ""
 
-#: website/static/js/fangorn.js:3593
+#: website/static/js/fangorn.js:3625
 msgid "Not enough quota to upload the file."
 msgstr ""
 
-#: website/static/js/fangorn.js:3600
+#: website/static/js/fangorn.js:3632
 msgid "Quota usage alert"
 msgstr ""
 
-#: website/static/js/fangorn.js:3601
+#: website/static/js/fangorn.js:3633
 #, python-format
 msgid "You have used more than %1$s% of your quota."
 msgstr ""
@@ -5897,7 +5796,7 @@ msgid "Code - Other:"
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js:3
-#: website/static/js/logActionsList_extract.js:76
+#: website/static/js/logActionsList_extract.js:78
 msgid "${user} created ${node}"
 msgstr ""
 
@@ -6108,1172 +6007,1172 @@ msgid "${user} checked in ${kind} ${path} to ${node}"
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js:54
-msgid "${user} added a comment ${comment_location} in ${node}"
+msgid "${user} locked ${kind} ${path} in ${node}"
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js:55
-msgid "${user} deleted a comment ${comment_location} in ${node}"
+msgid "${user} unlocked ${kind} ${path} in ${node}"
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js:56
-msgid "${user} restored a comment ${comment_location}  in ${node}"
+msgid "${user} added a comment ${comment_location} in ${node}"
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js:57
-msgid "${user} updated a comment ${comment_location} in ${node}"
+msgid "${user} deleted a comment ${comment_location} in ${node}"
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js:58
-msgid "${user} initiated an embargoed registration of ${node}"
+msgid "${user} restored a comment ${comment_location}  in ${node}"
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js:59
-msgid "${user} approved embargoed registration of ${node}"
+msgid "${user} updated a comment ${comment_location} in ${node}"
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js:60
-msgid "Embargo of registration of ${node} approved"
+msgid "${user} initiated an embargoed registration of ${node}"
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js:61
-msgid "${user} cancelled embargoed registration of ${node}"
+msgid "${user} approved embargoed registration of ${node}"
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js:62
-msgid "${user} completed embargo of ${node}"
+msgid "Embargo of registration of ${node} approved"
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js:63
-msgid "Embargo for ${node} completed"
+msgid "${user} cancelled embargoed registration of ${node}"
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js:64
-msgid "Embargo for ${node} ended"
+msgid "${user} completed embargo of ${node}"
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js:65
-msgid "${user} initiated withdrawal of a registration of ${node}"
+msgid "Embargo for ${node} completed"
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js:66
-msgid "A withdrawal of a registration of ${node} was proposed"
+msgid "Embargo for ${node} ended"
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js:67
-msgid "${user} approved a withdrawal of a registration of ${node}"
+msgid "${user} initiated withdrawal of a registration of ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js:68
+msgid "A withdrawal of a registration of ${node} was proposed"
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js:69
-msgid "${user} cancelled withdrawal of a registration of ${node}"
-msgstr ""
-
-#: website/static/js/logActionsList_extract.js:70
-msgid "A registration of ${node} was created on an external registry."
+msgid "${user} approved a withdrawal of a registration of ${node}"
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js:71
-msgid "A registration of ${node} was imported to OSF from an external registry."
+msgid "${user} cancelled withdrawal of a registration of ${node}"
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js:72
-msgid "${user} initiated a registration of ${node}"
+msgid "A registration of ${node} was created on an external registry."
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js:73
-msgid "${user} approved a registration of ${node}"
+msgid "A registration of ${node} was imported to OSF from an external registry."
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js:74
-msgid "Registration of ${node} was approved"
+msgid "${user} initiated a registration of ${node}"
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js:75
-msgid "${user} cancelled a registration of ${node}"
+msgid "${user} approved a registration of ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js:76
+msgid "Registration of ${node} was approved"
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js:77
-msgid "${user} created fork from ${forked_from}"
-msgstr ""
-
-#: website/static/js/logActionsList_extract.js:78
-msgid "${user} removed ${node}"
+msgid "${user} cancelled a registration of ${node}"
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js:79
-msgid "${user} enabled access requests for ${node}"
+msgid "${user} created fork from ${forked_from}"
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js:80
-msgid "${user} disabled access requests for ${node}"
+msgid "${user} removed ${node}"
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js:81
-msgid "${user} updated the license of ${node} ${license}"
+msgid "${user} enabled access requests for ${node}"
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js:82
-msgid "${user} added tag ${tag} to ${path} in ${storage_name} in ${node}"
+msgid "${user} disabled access requests for ${node}"
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js:83
-msgid "${user} removed tag ${tag} from ${path} in ${storage_name} in ${node}"
+msgid "${user} updated the license of ${node} ${license}"
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js:84
-msgid "${user} added file ${path} to ${storage_name} in ${node}"
+msgid "${user} added tag ${tag} to ${path} in ${storage_name} in ${node}"
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js:85
-msgid "${user} created folder ${path} in ${storage_name} in ${node}"
+msgid "${user} removed tag ${tag} from ${path} in ${storage_name} in ${node}"
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js:86
-msgid "${user} updated file ${path} in ${storage_name} in ${node}"
+msgid "${user} added file ${path} to ${storage_name} in ${node}"
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js:87
-msgid "${user} removed ${path_type} ${path} from ${storage_name} in ${node}"
+msgid "${user} created folder ${path} in ${storage_name} in ${node}"
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js:88
-msgid "${user} added ${institution} affiliation to ${node}"
+msgid "${user} updated file ${path} in ${storage_name} in ${node}"
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js:89
-msgid "${user} removed ${institution} affiliation from ${node}"
+msgid "${user} removed ${path_type} ${path} from ${storage_name} in ${node}"
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js:90
-msgid "${user} made ${node} a ${preprint} on ${preprint_provider} Preprints"
+msgid "${user} added ${institution} affiliation to ${node}"
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js:91
+msgid "${user} removed ${institution} affiliation from ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js:92
+msgid "${user} made ${node} a ${preprint} on ${preprint_provider} Preprints"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js:93
 msgid ""
 "${user} updated the primary file of this ${preprint} on "
 "${preprint_provider} Preprints"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:92
+#: website/static/js/logActionsList_extract.js:94
 msgid ""
 "${user} updated the license of this ${preprint} on ${preprint_provider} "
 "Preprints ${license}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:93
+#: website/static/js/logActionsList_extract.js:95
 msgid "${user} updated the subjects on ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:94
+#: website/static/js/logActionsList_extract.js:96
 msgid "${user} created ${anonymous_link} view-only link to ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:95
+#: website/static/js/logActionsList_extract.js:97
 msgid "${user} removed ${anonymous_link} view-only link to ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:96
+#: website/static/js/logActionsList_extract.js:98
 msgid ""
 "${user} changed the conflict of interest statement availability for "
 "${preprint}."
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:97
+#: website/static/js/logActionsList_extract.js:99
 msgid "${user} changed the conflict of interest statement for ${preprint}."
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:98
+#: website/static/js/logActionsList_extract.js:100
 msgid "${user} has updated the has links to data field to ${value}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:99
+#: website/static/js/logActionsList_extract.js:101
 msgid "${user} has updated their data links"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:100
+#: website/static/js/logActionsList_extract.js:102
 msgid "${user} has updated their data statement"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:101
+#: website/static/js/logActionsList_extract.js:103
 msgid ""
 "${user} has updated their preregistration data link availability to "
 "${value}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:102
+#: website/static/js/logActionsList_extract.js:104
 msgid "${user} has updated their preregistration data links"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:103
+#: website/static/js/logActionsList_extract.js:105
 msgid "${user} has updated their preregistration data availability statement"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:104
+#: website/static/js/logActionsList_extract.js:106
 msgid "${user} has updated their preregistration links to ${value}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:105
+#: website/static/js/logActionsList_extract.js:107
 msgid "${user} verified timestamp"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:106
+#: website/static/js/logActionsList_extract.js:108
 msgid "${user} requested trusted timestamp"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:107
+#: website/static/js/logActionsList_extract.js:109
 msgid "${user} requested trusted timestamp file ${path}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:108
+#: website/static/js/logActionsList_extract.js:110
 msgid ""
 "${user} downloaded a file of timestamp errors as a "
 "${timestamp_errors_file_format}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:109
+#: website/static/js/logActionsList_extract.js:111
 msgid ""
 "[MAPCORE_SYNC:ERROR] ${user} cannot create a new mAP group for GRDM "
 "project <${node}> (See logs for details)"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:110
+#: website/static/js/logActionsList_extract.js:112
 msgid ""
 "[MAPCORE_SYNC:ERROR] mAP group for GRDM project <${node}> cannot be "
 "updated (See logs for details)"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:111
+#: website/static/js/logActionsList_extract.js:113
 msgid ""
 "[MAPCORE_SYNC:ERROR] GRDM project <${node}> cannot be updated with mAP "
 "group (See logs for details)"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:112
+#: website/static/js/logActionsList_extract.js:114
 msgid ""
 "[MAPCORE_SYNC:NOTICE] Unknown (unregistered in GRDM) users belong to mAP "
 "group <${node}> (ignored) (See logs for details)"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:113
+#: website/static/js/logActionsList_extract.js:115
 msgid "${user} added file ${path} to Box in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:114
+#: website/static/js/logActionsList_extract.js:116
 msgid "${user} removed ${path_type} ${path} from Box in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:115
+#: website/static/js/logActionsList_extract.js:117
 msgid "${user} updated file ${path} in Box in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:116
+#: website/static/js/logActionsList_extract.js:118
 msgid "${user} created folder ${path} in Box in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:117
+#: website/static/js/logActionsList_extract.js:119
 msgid "${user} linked Box folder ${box_folder} to ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:118
+#: website/static/js/logActionsList_extract.js:120
 msgid "${user} authorized the Box addon in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:119
+#: website/static/js/logActionsList_extract.js:121
 msgid "${user} deauthorized the Box addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:120
+#: website/static/js/logActionsList_extract.js:122
 msgid "Box addon for ${node} deauthorized"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:121
+#: website/static/js/logActionsList_extract.js:123
 msgid "${user} added file ${filename} to Dataverse dataset ${dataset} in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:122
+#: website/static/js/logActionsList_extract.js:124
 msgid ""
 "${user} removed file ${filename} from Dataverse dataset ${dataset} in "
 "${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:123
+#: website/static/js/logActionsList_extract.js:125
 msgid "${user} linked Dataverse dataset ${dataset} to ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:124
+#: website/static/js/logActionsList_extract.js:126
 msgid "${user} linked Dataverse dataset ${study} to ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:125
+#: website/static/js/logActionsList_extract.js:127
 msgid "${user} published a new version of Dataverse dataset ${dataset} on ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:126
+#: website/static/js/logActionsList_extract.js:128
 msgid "${user} published a new version of Dataverse dataset ${study} to ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:127
+#: website/static/js/logActionsList_extract.js:129
 msgid "${user} authorized the Dataverse addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:128
+#: website/static/js/logActionsList_extract.js:130
 msgid "${user} deauthorized the Dataverse addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:129
+#: website/static/js/logActionsList_extract.js:131
 msgid "Dataverse addon for ${node} deauthorized"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:130
+#: website/static/js/logActionsList_extract.js:132
 msgid "${user} added file ${path} to Dropbox in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:131
+#: website/static/js/logActionsList_extract.js:133
 msgid "${user} removed ${path_type} ${path} from Dropbox in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:132
+#: website/static/js/logActionsList_extract.js:134
 msgid "${user} updated file ${path} in Dropbox in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:133
+#: website/static/js/logActionsList_extract.js:135
 msgid "${user} created folder ${path} in Dropbox in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:134
+#: website/static/js/logActionsList_extract.js:136
 msgid "${user} linked Dropbox folder ${dropbox_folder} to ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:135
+#: website/static/js/logActionsList_extract.js:137
 msgid "${user} authorized the Dropbox addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:136
+#: website/static/js/logActionsList_extract.js:138
 msgid "${user} deauthorized the Dropbox addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:137
+#: website/static/js/logActionsList_extract.js:139
 msgid "Dropbox addon for ${node} deauthorized"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:138
+#: website/static/js/logActionsList_extract.js:140
 msgid "${user} linked figshare ${folder} ${folder_name} to ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:139
+#: website/static/js/logActionsList_extract.js:141
 msgid "${user} unlinked content from figshare in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:140
+#: website/static/js/logActionsList_extract.js:142
 msgid "${user} added file ${path} to figshare in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:141
+#: website/static/js/logActionsList_extract.js:143
 msgid "${user} removed ${path_type} ${path} from figshare in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:142
+#: website/static/js/logActionsList_extract.js:144
 msgid "${user} created folder ${path} in figshare in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:143
+#: website/static/js/logActionsList_extract.js:145
 msgid "${user} authorized the figshare addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:144
+#: website/static/js/logActionsList_extract.js:146
 msgid "${user} deauthorized the figshare addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:145
+#: website/static/js/logActionsList_extract.js:147
 msgid "figshare addon for ${node} deauthorized"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:146
+#: website/static/js/logActionsList_extract.js:148
 msgid "${user} changed external link to ${forward_url} in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:147
+#: website/static/js/logActionsList_extract.js:149
 msgid "${user} added file ${path} to GitHub repo ${repo} in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:148
+#: website/static/js/logActionsList_extract.js:150
 msgid "${user} removed ${path_type} ${path} in GitHub repo ${repo} in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:149
+#: website/static/js/logActionsList_extract.js:151
 msgid "${user} updated file ${path} in GitHub repo ${repo} in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:150
+#: website/static/js/logActionsList_extract.js:152
 msgid "${user} created folder ${path} in GitHub repo ${repo} in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:151
+#: website/static/js/logActionsList_extract.js:153
 msgid "${user} authorized the GitHub addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:152
+#: website/static/js/logActionsList_extract.js:154
 msgid "${user} deauthorized the GitHub addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:153
+#: website/static/js/logActionsList_extract.js:155
 msgid "GitHub addon for ${node} deauthorized"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:154
+#: website/static/js/logActionsList_extract.js:156
 msgid "${user} linked GitHub repo ${repo} to ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:155
+#: website/static/js/logActionsList_extract.js:157
 msgid "${user} added file ${path} to GitLab repo ${gitlab_repo} in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:156
+#: website/static/js/logActionsList_extract.js:158
 msgid "${user} removed file ${path} in GitLab repo ${gitlab_repo} in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:157
+#: website/static/js/logActionsList_extract.js:159
 msgid "${user} updated file ${path} in GitLab repo ${gitlab_repo} in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:158
+#: website/static/js/logActionsList_extract.js:160
 msgid "${user} created folder ${path} in GitLab repo ${gitlab_repo} in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:159
+#: website/static/js/logActionsList_extract.js:161
 msgid "${user} authorized the GitLab addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:160
+#: website/static/js/logActionsList_extract.js:162
 msgid "${user} deauthorized the GitLab addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:161
+#: website/static/js/logActionsList_extract.js:163
 msgid "GitLab addon for ${node} deauthorized"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:162
+#: website/static/js/logActionsList_extract.js:164
 msgid "${user} linked GitLab repo ${gitlab_repo} to ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:163
+#: website/static/js/logActionsList_extract.js:165
 msgid "${user} linked Mendeley folder ${folder_name} to ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:164
+#: website/static/js/logActionsList_extract.js:166
 msgid "${user} authorized the Mendeley addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:165
+#: website/static/js/logActionsList_extract.js:167
 msgid "${user} deauthorized the Mendeley addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:166
+#: website/static/js/logActionsList_extract.js:168
 msgid "${user} linked Zotero folder ${folder_name} to ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:167
+#: website/static/js/logActionsList_extract.js:169
 msgid "${user} linked Zotero library ${library_name} to ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:168
+#: website/static/js/logActionsList_extract.js:170
 msgid "${user} authorized the Zotero addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:169
+#: website/static/js/logActionsList_extract.js:171
 msgid "${user} deauthorized the Zotero addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:170
+#: website/static/js/logActionsList_extract.js:172
 msgid "${user} added file ${path} to ownCloud in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:171
+#: website/static/js/logActionsList_extract.js:173
 msgid "${user} removed ${path_type} ${path} from ownCloud in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:172
+#: website/static/js/logActionsList_extract.js:174
 msgid "${user} updated file ${path} in ownCloud in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:173
+#: website/static/js/logActionsList_extract.js:175
 msgid "${user} created folder ${path} in ownCloud in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:174
+#: website/static/js/logActionsList_extract.js:176
 msgid "${user} linked ownCloud folder ${folder} to ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:175
+#: website/static/js/logActionsList_extract.js:177
 msgid "${user} authorized the ownCloud addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:176
+#: website/static/js/logActionsList_extract.js:178
 msgid "${user} deauthorized the ownCloud addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:177
+#: website/static/js/logActionsList_extract.js:179
 msgid "ownCloud addon for ${node} deauthorized"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:178
+#: website/static/js/logActionsList_extract.js:180
 msgid "${user} added file ${path} to Microsoft OneDrive in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:179
+#: website/static/js/logActionsList_extract.js:181
 msgid "${user} removed ${path_type} ${path} from Microsoft OneDrive in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:180
+#: website/static/js/logActionsList_extract.js:182
 msgid "${user} updated file ${path} in Microsoft OneDrive in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:181
+#: website/static/js/logActionsList_extract.js:183
 msgid "${user} created folder ${path} in Microsoft OneDrive in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:182
+#: website/static/js/logActionsList_extract.js:184
 msgid "${user} linked Microsoft OneDrive folder ${onedrive_folder} to ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:183
+#: website/static/js/logActionsList_extract.js:185
 msgid "${user} authorized the Microsoft OneDrive addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:184
+#: website/static/js/logActionsList_extract.js:186
 msgid "${user} deauthorized the Microsoft OneDrive addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:185
+#: website/static/js/logActionsList_extract.js:187
 msgid "Microsoft OneDrive addon for ${node} deauthorized"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:186
+#: website/static/js/logActionsList_extract.js:188
 msgid "${user} linked the Amazon S3 bucket ${bucket} to ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:187
+#: website/static/js/logActionsList_extract.js:189
 msgid "${user} unselected the Amazon S3 bucket ${bucket} in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:188
+#: website/static/js/logActionsList_extract.js:190
 msgid "${user} added file ${path} to Amazon S3 bucket ${bucket} in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:189
+#: website/static/js/logActionsList_extract.js:191
 msgid "${user} removed ${path} in Amazon S3 bucket ${bucket} in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:190
+#: website/static/js/logActionsList_extract.js:192
 msgid "${user} updated file ${path} in Amazon S3 bucket ${bucket} in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:191
+#: website/static/js/logActionsList_extract.js:193
 msgid "${user} created folder ${path} in Amazon S3 bucket ${bucket} in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:192
+#: website/static/js/logActionsList_extract.js:194
 msgid "${user} authorized the Amazon S3 addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:193
+#: website/static/js/logActionsList_extract.js:195
 msgid "${user} deauthorized the Amazon S3 addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:194
+#: website/static/js/logActionsList_extract.js:196
 msgid "Amazon S3 addon for ${node} deauthorized"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:195
+#: website/static/js/logActionsList_extract.js:197
 msgid "${user} added file ${googledrive_path} to Google Drive in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:196
+#: website/static/js/logActionsList_extract.js:198
 msgid ""
 "${user} removed ${path_type} ${googledrive_path} from Google Drive in "
 "${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:197
+#: website/static/js/logActionsList_extract.js:199
 msgid "${user} updated file ${googledrive_path} in Google Drive in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:198
+#: website/static/js/logActionsList_extract.js:200
 msgid "${user} created folder ${googledrive_path} in Google Drive in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:199
+#: website/static/js/logActionsList_extract.js:201
 msgid "${user} linked Google Drive folder ${googledrive_folder} to ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:200
+#: website/static/js/logActionsList_extract.js:202
 msgid "${user} authorized the Google Drive addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:201
+#: website/static/js/logActionsList_extract.js:203
 msgid "${user} deauthorized the Google Drive addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:202
+#: website/static/js/logActionsList_extract.js:204
 msgid "Google Drive addon for ${node} deauthorized"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:203
+#: website/static/js/logActionsList_extract.js:205
 msgid "${user} added file ${path} to Bitbucket repo ${bitbucket_repo} in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:204
+#: website/static/js/logActionsList_extract.js:206
 msgid ""
 "${user} removed ${path_type} ${path} in Bitbucket repo ${bitbucket_repo} "
 "in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:205
+#: website/static/js/logActionsList_extract.js:207
 msgid ""
 "${user} updated file ${path} in Bitbucket repo ${bitbucket_repo} in "
 "${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:206
+#: website/static/js/logActionsList_extract.js:208
 msgid ""
 "${user} created folder ${path} in Bitbucket repo ${bitbucket_repo} in "
 "${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:207
+#: website/static/js/logActionsList_extract.js:209
 msgid "${user} authorized the Bitbucket addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:208
+#: website/static/js/logActionsList_extract.js:210
 msgid "${user} deauthorized the Bitbucket addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:209
+#: website/static/js/logActionsList_extract.js:211
 msgid "Bitbucket addon for ${node} deauthorized"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:210
+#: website/static/js/logActionsList_extract.js:212
 msgid "${user} linked Bitbucket repo ${bitbucket_repo} to ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:211
+#: website/static/js/logActionsList_extract.js:213
 msgid "${user} linked the Swift container ${bucket} to ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:212
+#: website/static/js/logActionsList_extract.js:214
 msgid "${user} unselected the Swift container ${bucket} in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:213
+#: website/static/js/logActionsList_extract.js:215
 msgid "${user} added file ${path} to Swift container ${bucket} in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:214
+#: website/static/js/logActionsList_extract.js:216
 msgid "${user} removed ${path} in Swift container ${bucket} in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:215
+#: website/static/js/logActionsList_extract.js:217
 msgid "${user} updated file ${path} in Swift container ${bucket} in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:216
+#: website/static/js/logActionsList_extract.js:218
 msgid "${user} created folder ${path} in Swift container ${bucket} in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:217
+#: website/static/js/logActionsList_extract.js:219
 msgid "${user} authorized the Swift addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:218
+#: website/static/js/logActionsList_extract.js:220
 msgid "${user} deauthorized the Swift addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:219
+#: website/static/js/logActionsList_extract.js:221
 msgid "Swift addon for ${node} deauthorized"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:220
+#: website/static/js/logActionsList_extract.js:222
 msgid "${user} linked the Azure Blob Storage container ${bucket} to ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:221
+#: website/static/js/logActionsList_extract.js:223
 msgid "${user} unselected the Azure Blob Storage container ${bucket} in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:222
+#: website/static/js/logActionsList_extract.js:224
 msgid ""
 "${user} added file ${path} to Azure Blob Storage container ${bucket} in "
 "${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:223
+#: website/static/js/logActionsList_extract.js:225
 msgid ""
 "${user} removed ${path} in Azure Blob Storage container ${bucket} in "
 "${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:224
+#: website/static/js/logActionsList_extract.js:226
 msgid ""
 "${user} updated file ${path} in Azure Blob Storage container ${bucket} in"
 " ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:225
+#: website/static/js/logActionsList_extract.js:227
 msgid ""
 "${user} created folder ${path} in Azure Blob Storage container ${bucket} "
 "in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:226
+#: website/static/js/logActionsList_extract.js:228
 msgid "${user} authorized the Azure Blob Storage addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:227
+#: website/static/js/logActionsList_extract.js:229
 msgid "${user} deauthorized the Azure Blob Storage addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:228
+#: website/static/js/logActionsList_extract.js:230
 msgid "Azure Blob Storage addon for ${node} deauthorized"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:229
-msgid "${user} added file ${filename} to WEKO index ${dataset} in ${node}"
-msgstr ""
-
-#: website/static/js/logActionsList_extract.js:230
-msgid "${user} removed file ${filename} from WEKO index ${dataset} in ${node}"
-msgstr ""
-
 #: website/static/js/logActionsList_extract.js:231
-msgid "${user} linked WEKO index ${dataset} to ${node}"
-msgstr ""
-
-#: website/static/js/logActionsList_extract.js:232
-msgid "${user} created an index ${filename} on ${node}"
-msgstr ""
-
-#: website/static/js/logActionsList_extract.js:233
-msgid "${user} created an item ${filename} on ${node}"
-msgstr ""
-
-#: website/static/js/logActionsList_extract.js:234
-msgid "${user} created folder ${filename} in WEKO index ${dataset} in ${node}"
-msgstr ""
-
-#: website/static/js/logActionsList_extract.js:235
-msgid "${user} authorized the WEKO addon for ${node}"
-msgstr ""
-
-#: website/static/js/logActionsList_extract.js:236
-msgid "${user} deauthorized the WEKO addon for ${node}"
-msgstr ""
-
-#: website/static/js/logActionsList_extract.js:237
-msgid "WEKO addon for ${node} deauthorized"
-msgstr ""
-
-#: website/static/js/logActionsList_extract.js:238
-msgid "${user} linked the S3 Compatible Storage bucket ${bucket} to ${node}"
-msgstr ""
-
-#: website/static/js/logActionsList_extract.js:239
-msgid "${user} unselected the S3 Compatible Storage bucket ${bucket} in ${node}"
-msgstr ""
-
-#: website/static/js/logActionsList_extract.js:240
-msgid ""
-"${user} added file ${path} to S3 Compatible Storage bucket ${bucket} in "
-"${node}"
-msgstr ""
-
-#: website/static/js/logActionsList_extract.js:241
-msgid ""
-"${user} removed ${path} in S3 Compatible Storage bucket ${bucket} in "
-"${node}"
-msgstr ""
-
-#: website/static/js/logActionsList_extract.js:242
-msgid ""
-"${user} updated file ${path} in S3 Compatible Storage bucket ${bucket} in"
-" ${node}"
-msgstr ""
-
-#: website/static/js/logActionsList_extract.js:243
-msgid ""
-"${user} created folder ${path} in S3 Compatible Storage bucket ${bucket} "
-"in ${node}"
-msgstr ""
-
-#: website/static/js/logActionsList_extract.js:244
-msgid "${user} authorized the S3 Compatible Storage addon for ${node}"
-msgstr ""
-
-#: website/static/js/logActionsList_extract.js:245
-msgid "${user} deauthorized the S3 Compatible Storage addon for ${node}"
-msgstr ""
-
-#: website/static/js/logActionsList_extract.js:246
-msgid "S3 Compatible Storage addon for ${node} deauthorized"
-msgstr ""
-
-#: website/static/js/logActionsList_extract.js:229
 msgid "${user} added draft file ${filename} to WEKO index ${dataset} in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:230
+#: website/static/js/logActionsList_extract.js:232
 msgid ""
 "${user} removed draft file ${filename} from WEKO index ${dataset} in "
 "${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:232
+#: website/static/js/logActionsList_extract.js:233
+msgid "${user} linked WEKO index ${dataset} to ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js:234
 msgid ""
 "${user} created draft folder ${filename} in WEKO index ${dataset} in "
 "${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:233
+#: website/static/js/logActionsList_extract.js:235
 msgid "${user} deposit item ${path} in WEKO index ${dataset} in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:272
+#: website/static/js/logActionsList_extract.js:236
+msgid "${user} authorized the WEKO addon for ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js:237
+msgid "${user} deauthorized the WEKO addon for ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js:238
+msgid "WEKO addon for ${node} deauthorized"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js:239
+msgid "${user} linked the S3 Compatible Storage bucket ${bucket} to ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js:240
+msgid "${user} unselected the S3 Compatible Storage bucket ${bucket} in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js:241
+msgid ""
+"${user} added file ${path} to S3 Compatible Storage bucket ${bucket} in "
+"${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js:242
+msgid ""
+"${user} removed ${path} in S3 Compatible Storage bucket ${bucket} in "
+"${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js:243
+msgid ""
+"${user} updated file ${path} in S3 Compatible Storage bucket ${bucket} in"
+" ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js:244
+msgid ""
+"${user} created folder ${path} in S3 Compatible Storage bucket ${bucket} "
+"in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js:245
+msgid "${user} authorized the S3 Compatible Storage addon for ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js:246
+msgid "${user} deauthorized the S3 Compatible Storage addon for ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js:247
+msgid "S3 Compatible Storage addon for ${node} deauthorized"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js:248
 msgid ""
 "${user} added file ${path} to S3 Compatible Storage for Institutions in "
 "${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:248
+#: website/static/js/logActionsList_extract.js:249
 msgid ""
 "${user} removed ${path_type} ${path} from S3 Compatible Storage for "
 "Institutions in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:249
+#: website/static/js/logActionsList_extract.js:250
 msgid ""
 "${user} updated file ${path} in S3 Compatible Storage for Institutions in"
 " ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:250
+#: website/static/js/logActionsList_extract.js:251
 msgid ""
 "${user} created folder ${path} in S3 Compatible Storage for Institutions "
 "in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:251
+#: website/static/js/logActionsList_extract.js:252
 msgid ""
 "${user} linked S3 Compatible Storage for Institutions folder ${folder} to"
 " ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:252
+#: website/static/js/logActionsList_extract.js:253
 msgid ""
 "${user} authorized the S3 Compatible Storage for Institutions addon for "
 "${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:253
+#: website/static/js/logActionsList_extract.js:254
 msgid ""
 "${user} deauthorized the S3 Compatible Storage for Institutions addon for"
 " ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:254
+#: website/static/js/logActionsList_extract.js:255
 msgid "S3 Compatible Storage for Institutions addon for ${node} deauthorized"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:255
+#: website/static/js/logActionsList_extract.js:256
 msgid ""
 "${user} linked the Oracle Cloud Infrastructure Object Storage bucket "
 "${bucket} to ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:256
+#: website/static/js/logActionsList_extract.js:257
 msgid ""
 "${user} unselected the Oracle Cloud Infrastructure Object Storage bucket "
 "${bucket} in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:257
+#: website/static/js/logActionsList_extract.js:258
 msgid ""
 "${user} added file ${path} to Oracle Cloud Infrastructure Object Storage "
 "bucket ${bucket} in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:258
+#: website/static/js/logActionsList_extract.js:259
 msgid ""
 "${user} removed ${path} in Oracle Cloud Infrastructure Object Storage "
 "bucket ${bucket} in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:259
+#: website/static/js/logActionsList_extract.js:260
 msgid ""
 "${user} updated file ${path} in Oracle Cloud Infrastructure Object "
 "Storage bucket ${bucket} in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:260
+#: website/static/js/logActionsList_extract.js:261
 msgid ""
 "${user} created folder ${path} in Oracle Cloud Infrastructure Object "
 "Storage bucket ${bucket} in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:261
+#: website/static/js/logActionsList_extract.js:262
 msgid ""
 "${user} authorized the Oracle Cloud Infrastructure Object Storage addon "
 "for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:262
+#: website/static/js/logActionsList_extract.js:263
 msgid ""
 "${user} deauthorized the Oracle Cloud Infrastructure Object Storage addon"
 " for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:263
+#: website/static/js/logActionsList_extract.js:264
 msgid "Oracle Cloud Infrastructure Object Storage addon for ${node} deauthorized"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:264
+#: website/static/js/logActionsList_extract.js:265
 msgid ""
 "${user} added file ${path} to Oracle Cloud Infrastructure for "
 "Institutions in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:265
+#: website/static/js/logActionsList_extract.js:266
 msgid ""
 "${user} removed ${path_type} ${path} from Oracle Cloud Infrastructure for"
 " Institutions in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:266
+#: website/static/js/logActionsList_extract.js:267
 msgid ""
 "${user} updated file ${path} in Oracle Cloud Infrastructure for "
 "Institutions in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:267
+#: website/static/js/logActionsList_extract.js:268
 msgid ""
 "${user} created folder ${path} in Oracle Cloud Infrastructure for "
 "Institutions in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:268
+#: website/static/js/logActionsList_extract.js:269
 msgid ""
 "${user} linked Oracle Cloud Infrastructure for Institutions folder "
 "${folder} to ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:269
+#: website/static/js/logActionsList_extract.js:270
 msgid ""
 "${user} authorized the Oracle Cloud Infrastructure for Institutions addon"
 " for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:270
+#: website/static/js/logActionsList_extract.js:271
 msgid ""
 "${user} deauthorized the Oracle Cloud Infrastructure for Institutions "
 "addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:271
+#: website/static/js/logActionsList_extract.js:272
 msgid ""
 "Oracle Cloud Infrastructure for Institutions addon for ${node} "
 "deauthorized"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:272
+#: website/static/js/logActionsList_extract.js:273
 msgid "${user} added file ${path} to Nextcloud in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:273
+#: website/static/js/logActionsList_extract.js:274
 msgid "${user} removed ${path_type} ${path} from Nextcloud in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:274
+#: website/static/js/logActionsList_extract.js:275
 msgid "${user} updated file ${path} in Nextcloud in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:275
+#: website/static/js/logActionsList_extract.js:276
 msgid "${user} created folder ${path} in Nextcloud in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:276
+#: website/static/js/logActionsList_extract.js:277
 msgid "${user} linked Nextcloud folder ${folder} to ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:277
+#: website/static/js/logActionsList_extract.js:278
 msgid "${user} authorized the Nextcloud addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:278
+#: website/static/js/logActionsList_extract.js:279
 msgid "${user} deauthorized the Nextcloud addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:279
+#: website/static/js/logActionsList_extract.js:280
 msgid "Nextcloud addon for ${node} deauthorized"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:280
+#: website/static/js/logActionsList_extract.js:281
 msgid "${user} added file ${path} to Nextcloud (for Institutions) in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:281
+#: website/static/js/logActionsList_extract.js:282
 msgid ""
 "${user} removed ${path_type} ${path} from Nextcloud (for Institutions) in"
 " ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:282
+#: website/static/js/logActionsList_extract.js:283
 msgid "${user} updated file ${path} in Nextcloud (for Institutions) in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:283
+#: website/static/js/logActionsList_extract.js:284
 msgid "${user} created folder ${path} in Nextcloud (for Institutions) in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:284
+#: website/static/js/logActionsList_extract.js:285
 msgid "${user} linked Nextcloud (for Institutions) folder ${folder} to ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:285
+#: website/static/js/logActionsList_extract.js:286
 msgid "${user} authorized the Nextcloud (for Institutions) addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:286
+#: website/static/js/logActionsList_extract.js:287
 msgid "${user} deauthorized the Nextcloud (for Institutions) addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:287
+#: website/static/js/logActionsList_extract.js:288
 msgid "Nextcloud (for Institutions) addon for ${node} deauthorized"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:288
+#: website/static/js/logActionsList_extract.js:289
 msgid "${user} added file ${iqbrims_path} to IQB-RIMS in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:289
+#: website/static/js/logActionsList_extract.js:290
 msgid "${user} removed ${path_type} ${iqbrims_path} from IQB-RIMS in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:290
+#: website/static/js/logActionsList_extract.js:291
 msgid "${user} updated file ${iqbrims_path} in IQB-RIMS in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:291
+#: website/static/js/logActionsList_extract.js:292
 msgid "${user} created folder ${iqbrims_path} in IQB-RIMS in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:292
+#: website/static/js/logActionsList_extract.js:293
 msgid "${user} linked IQB-RIMS folder ${iqbrims_folder} to ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:293
+#: website/static/js/logActionsList_extract.js:294
 msgid "${user} authorized the IQB-RIMS addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:294
+#: website/static/js/logActionsList_extract.js:295
 msgid "${user} deauthorized the IQB-RIMS addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:295
-msgid "IQB-RIMS addon for ${node} deauthorized"
-msgstr ""
-
 #: website/static/js/logActionsList_extract.js:296
-#: website/static/js/logActionsList_extract.js:298
-msgid "${user} started IQB-RIMS workflow for ${node}"
+msgid "IQB-RIMS addon for ${node} deauthorized"
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js:297
 #: website/static/js/logActionsList_extract.js:299
+msgid "${user} started IQB-RIMS workflow for ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js:298
+#: website/static/js/logActionsList_extract.js:300
 msgid "Finished workflow of ${user} for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:300
+#: website/static/js/logActionsList_extract.js:301
 msgid "${user} added file ${path} to Dropbox Business in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:301
+#: website/static/js/logActionsList_extract.js:302
 msgid "${user} removed ${path_type} ${path} from Dropbox Business in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:302
+#: website/static/js/logActionsList_extract.js:303
 msgid "${user} updated file ${path} in Dropbox Business in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:303
+#: website/static/js/logActionsList_extract.js:304
 msgid "${user} created folder ${path} in Dropbox Business in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:304
+#: website/static/js/logActionsList_extract.js:305
 msgid ""
 "${user} linked Dropbox Business folder ${dropboxbusiness_folder} to "
 "${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:305
+#: website/static/js/logActionsList_extract.js:306
 msgid "${user} authorized the Dropbox Business addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:306
+#: website/static/js/logActionsList_extract.js:307
 msgid "${user} deauthorized the Dropbox Business addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:307
+#: website/static/js/logActionsList_extract.js:308
 msgid "Dropbox Business addon for ${node} deauthorized"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:308
+#: website/static/js/logActionsList_extract.js:309
 msgid ""
 "${user} added file ${path} to the OneDrive team folder ${folder} in "
 "${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:309
+#: website/static/js/logActionsList_extract.js:310
 msgid "${user} removed ${path} in the OneDrive team folder ${folder} in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:310
+#: website/static/js/logActionsList_extract.js:311
 msgid ""
 "${user} updated file ${path} in the OneDrive team folder ${folder} in "
 "${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:311
+#: website/static/js/logActionsList_extract.js:312
 msgid ""
 "${user} created folder ${path} in the OneDrive team folder ${folder} in "
 "${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:312
+#: website/static/js/logActionsList_extract.js:313
 msgid "${user} authorized the OneDrive for Office365 addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:313
+#: website/static/js/logActionsList_extract.js:314
 msgid "${user} deauthorized the OneDrive for Office365 addon for ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:314
+#: website/static/js/logActionsList_extract.js:315
 msgid "OneDrive for Office365 addon for ${node} deauthorized"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:315
+#: website/static/js/logActionsList_extract.js:316
 msgid "${user} added metadata in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:316
+#: website/static/js/logActionsList_extract.js:317
 msgid "${user} added metadata ${path} in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:317
+#: website/static/js/logActionsList_extract.js:318
 msgid "${user} updated metadata ${path} in ${node}"
 msgstr ""
 
-#: website/static/js/logActionsList_extract.js:318
+#: website/static/js/logActionsList_extract.js:319
 msgid "${user} deleted metadata ${path} in ${node}"
 msgstr ""
 
-#: website/static/js/logTextParser.js:828
+#: website/static/js/logActionsList_extract.js:320
+msgid "${user} created a ${filename} workflow in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js:321
+msgid "${user} updated a ${filename} workflow in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js:322
+msgid "${user} deleted a ${filename} workflow in ${node}"
+msgstr ""
+
+#: website/static/js/logTextParser.js:830
 msgid "unknown format"
 msgstr ""
 
@@ -8613,74 +8512,131 @@ msgstr ""
 msgid "Unable to check out file"
 msgstr ""
 
+#: website/static/js/filepage/index.js:253
+msgid "Workflow Project ID"
+msgstr ""
+
+#: website/static/js/filepage/index.js:255
+msgid "Workflow Process Project ID"
+msgstr ""
+
+#: website/static/js/filepage/index.js:257
+msgid "Workflow User ID"
+msgstr ""
+
+#: website/static/js/filepage/index.js:259
+msgid "Workflow Valid User ID"
+msgstr ""
+
+#: website/static/js/filepage/index.js:261
+msgid "Workfllow Startup User ID"
+msgstr ""
+
+#: website/static/js/filepage/index.js:263
+msgid "File Path"
+msgstr ""
+
 #: website/static/js/filepage/index.js:265
+msgid "Admin Mail Address"
+msgstr ""
+
+#: website/static/js/filepage/index.js:267
+msgid "Researcher Mail Address"
+msgstr ""
+
+#: website/static/js/filepage/index.js:294
+#: website/static/js/filepage/index.js:298
+msgid "Workflow Start"
+msgstr ""
+
+#: website/static/js/filepage/index.js:320
+msgid "Check the workflow data again."
+msgstr ""
+
+#: website/static/js/filepage/index.js:325
+msgid "Processing..."
+msgstr ""
+
+#: website/static/js/filepage/index.js:451
+msgid "The workflow process is complete."
+msgstr ""
+
+#: website/static/js/filepage/index.js:455
+msgid "The workflow process has failed."
+msgstr ""
+
+#: website/static/js/filepage/index.js:482
 msgid "Unable to check in file"
 msgstr ""
 
-#: website/static/js/filepage/index.js:270
+#: website/static/js/filepage/index.js:487
 msgid "Force check in file?"
 msgstr ""
 
-#: website/static/js/filepage/index.js:271
+#: website/static/js/filepage/index.js:488
 msgid ""
 "This will check in the file for all users, allowing it to be edited. Are "
 "you sure?"
 msgstr ""
 
-#: website/static/js/filepage/index.js:274
+#: website/static/js/filepage/index.js:491
 msgid "Force check in"
 msgstr ""
 
-#: website/static/js/filepage/index.js:297
+#: website/static/js/filepage/index.js:514
 msgid "Unable to force check in file. Make sure you have admin privileges."
 msgstr ""
 
-#: website/static/js/filepage/index.js:338
+#: website/static/js/filepage/index.js:555
 msgid "Live editing mode "
 msgstr ""
 
-#: website/static/js/filepage/index.js:339
+#: website/static/js/filepage/index.js:556
 msgid "Attempting to connect "
 msgstr ""
 
-#: website/static/js/filepage/index.js:340
+#: website/static/js/filepage/index.js:557
 msgid "Unsupported browser "
 msgstr ""
 
-#: website/static/js/filepage/index.js:341
+#: website/static/js/filepage/index.js:558
 msgid "Saving... "
 msgstr ""
 
-#: website/static/js/filepage/index.js:342
+#: website/static/js/filepage/index.js:559
 msgid "Unavailable: Live editing "
 msgstr ""
 
-#: website/static/js/filepage/index.js:465
+#: website/static/js/filepage/index.js:682
 msgid "View this file on "
 msgstr ""
 
-#: website/static/js/filepage/index.js:502
+#: website/static/js/filepage/index.js:719
 msgid "Check out"
 msgstr ""
 
-#: website/static/js/filepage/index.js:505
+#: website/static/js/filepage/index.js:722
 msgid "Check in"
 msgstr ""
 
-#: website/static/js/filepage/index.js:511
+#: website/static/js/filepage/index.js:728
 msgid "Request Trusted Timestamp"
 msgstr ""
 
-#: website/static/js/filepage/index.js:528
+#: website/static/js/filepage/index.js:745
 msgid "Toggle view: "
 msgstr ""
 
-#: website/static/js/filepage/index.js:567
+#: website/static/js/filepage/index.js:784
 #: website/static/js/filepage/revisions.js:173
 msgid "Revisions"
 msgstr ""
 
-#: website/static/js/filepage/index.js:572
+#: website/static/js/filepage/index.js:788
+msgid "Request for administrator approval to publish"
+msgstr ""
+
+#: website/static/js/filepage/index.js:794
 msgid "Edit(ONLYOFFICE)"
 msgstr ""
 
@@ -9231,3 +9187,204 @@ msgstr ""
 
 #~ msgid "${user} removed a citation ${citation} in ${node}"
 #~ msgstr ""
+
+#~ msgid ""
+#~ "Contacts of data manager can't be "
+#~ "blank. Please fill mail address, or "
+#~ "organization name, address and phone "
+#~ "number."
+#~ msgstr ""
+
+#~ msgid "Calculate"
+#~ msgstr ""
+
+#~ msgid "Fill"
+#~ msgstr ""
+
+#~ msgid "Could not generate Data No."
+#~ msgstr ""
+
+#~ msgid "No members"
+#~ msgstr ""
+
+#~ msgid "e-Rad Researcher Number"
+#~ msgstr ""
+
+#~ msgid "Name (Japanese)"
+#~ msgstr ""
+
+#~ msgid "Name (English)"
+#~ msgstr ""
+
+#~ msgid "Select a registration for the file."
+#~ msgstr ""
+
+#~ msgid "Are you sure you want to add this Export Data Storage Location?"
+#~ msgstr ""
+
+#~ msgid "Unable to delete location %1$s"
+#~ msgstr ""
+
+#~ msgid "Are you sure you want to delete this export data storage location?"
+#~ msgstr ""
+
+#~ msgid "Export Data"
+#~ msgstr ""
+
+#~ msgid "Stop Export Data"
+#~ msgstr ""
+
+#~ msgid "Export data successfully."
+#~ msgstr ""
+
+#~ msgid "Cannot export data."
+#~ msgstr ""
+
+#~ msgid "Error occurred while exporting data."
+#~ msgstr ""
+
+#~ msgid "Export data failed."
+#~ msgstr ""
+
+#~ msgid "Export data in background."
+#~ msgstr ""
+
+#~ msgid "Stop exporting successfully."
+#~ msgstr ""
+
+#~ msgid "Cannot stop exporting data."
+#~ msgstr ""
+
+#~ msgid "Error occurred while stopping export data."
+#~ msgstr ""
+
+#~ msgid "Stop exporting in background."
+#~ msgstr ""
+
+#~ msgid "Are you sure you want to permanently delete these export data?"
+#~ msgstr ""
+
+#~ msgid "Delete Permanently"
+#~ msgstr "Delete"
+
+#~ msgid "Restore Export Data"
+#~ msgstr ""
+
+#~ msgid "message"
+#~ msgstr ""
+
+#~ msgid "Stop Restore Export Data"
+#~ msgstr ""
+
+#~ msgid "Stopped restoring data process."
+#~ msgstr ""
+
+#~ msgid "Restore completed."
+#~ msgstr ""
+
+#~ msgid "result"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "\n"
+#~ "\n"
+#~ "<h3>ONLYOFFICE Add-on Terms</h3>\n"
+#~ "\n"
+#~ "<table class=\"table table-bordered table-addon-terms\">\n"
+#~ "\n"
+#~ "    <thead>\n"
+#~ "        <tr>\n"
+#~ "            <th>Function</th>\n"
+#~ "            <th>Status</th>\n"
+#~ "        </tr>\n"
+#~ "    </thead>\n"
+#~ "\n"
+#~ "    <tbody>\n"
+#~ "            <tr class=\"danger\">\n"
+#~ "                <td>Permissions</td>\n"
+#~ "                <td>The GakuNin RDM does "
+#~ "not affect the permissions of "
+#~ "ONLYOFFICE.</td>\n"
+#~ "            </tr>\n"
+#~ "            <tr class=\"danger\">\n"
+#~ "                <td>View / download file versions</td>\n"
+#~ "                <td>The ONLYOFFICE add-on "
+#~ "does not provide Storage Features.</td>\n"
+#~ ""
+#~ "            </tr>\n"
+#~ "            <tr class=\"danger\">\n"
+#~ "                <td>Add / update files</td>\n"
+#~ "                <td>The ONLYOFFICE add-on "
+#~ "does not provide Storage Features.</td>\n"
+#~ ""
+#~ "            </tr>\n"
+#~ "            <tr class=\"danger\">\n"
+#~ "                <td>Delete files</td>\n"
+#~ "                <td>The ONLYOFFICE add-on "
+#~ "does not provide Storage Features.</td>\n"
+#~ ""
+#~ "            </tr>\n"
+#~ "            <tr class=\"danger\">\n"
+#~ "                <td>Logs</td>\n"
+#~ "                <td>The ONLYOFFICE add-on "
+#~ "does not provide Storage Features.</td>\n"
+#~ ""
+#~ "            </tr>\n"
+#~ "            <tr class=\"warning\">\n"
+#~ "                <td>Forking</td>\n"
+#~ "                <td>Forking a project or "
+#~ "component copies information about linked "
+#~ "ONLYOFFICE but the GakuNin RDM does "
+#~ "not affect authentication of ONLYOFFICE.</td>"
+#~ "\n"
+#~ "            </tr>\n"
+#~ "    </tbody>\n"
+#~ "\n"
+#~ "</table>\n"
+#~ "\n"
+#~ "<ul>\n"
+#~ "        <li>This add-on connects your"
+#~ " GakuNin RDM project to an external"
+#~ " service. Use of this service is "
+#~ "bound by its terms and conditions. "
+#~ "The GakuNin RDM is not responsible "
+#~ "for the service or for your use"
+#~ " thereof.</li>\n"
+#~ "        <li>This add-on allows you "
+#~ "to store files using an external "
+#~ "service. Files added to this add-"
+#~ "on are not stored within the "
+#~ "GakuNin RDM.</li>\n"
+#~ "</ul>\n"
+#~ msgstr ""
+
+#~ msgid "A user added a file to a WEKO index in a project"
+#~ msgstr ""
+
+#~ msgid "A user removed a file from a WEKO index in a project"
+#~ msgstr ""
+
+#~ msgid "A user created an index to a project"
+#~ msgstr ""
+
+#~ msgid "A user created an item to a project"
+#~ msgstr ""
+
+#~ msgid "A user created a folder in WEKO in a project"
+#~ msgstr ""
+
+#~ msgid "${user} added file ${filename} to WEKO index ${dataset} in ${node}"
+#~ msgstr ""
+
+#~ msgid "${user} removed file ${filename} from WEKO index ${dataset} in ${node}"
+#~ msgstr ""
+
+#~ msgid "${user} created an index ${filename} on ${node}"
+#~ msgstr ""
+
+#~ msgid "${user} created an item ${filename} on ${node}"
+#~ msgstr ""
+
+#~ msgid "${user} created folder ${filename} in WEKO index ${dataset} in ${node}"
+#~ msgstr ""
+

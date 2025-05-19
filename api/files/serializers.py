@@ -167,6 +167,7 @@ class BaseFileSerializer(JSONAPISerializer):
         help_text='OSF GUID for this file (if one has been assigned)',
     )
     checkout = CheckoutField()
+    locked = ser.BooleanField(help_text='Whether this file is locked', required=False)
     name = ser.CharField(read_only=True, help_text='Display name used in the general user interface')
     kind = ser.CharField(read_only=True, help_text='Either folder or file')
     path = ser.CharField(read_only=True, help_text='The unique path used to reference this object')
@@ -332,6 +333,9 @@ class BaseFileSerializer(JSONAPISerializer):
             if attr == 'checkout':
                 user = self.context['request'].user
                 instance.check_in_or_out(user, value)
+            elif attr == 'locked':
+                user = self.context['request'].user
+                instance.lock(user, value)
             else:
                 setattr(instance, attr, value)
         instance.save()

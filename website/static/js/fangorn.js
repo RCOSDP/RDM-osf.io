@@ -437,6 +437,7 @@ function _fangornResolveToggle(item) {
     // padding added so that this overlaps the toggle-icon div and prevent cursor change into pointer for checkout icons.
         checkedByUser = m('i.fa.fa-sign-out.text-muted[style="font-size: 120%; cursor: default; padding-top: 10px; padding-bottom: 10px; padding-right: 4px;"]', ''),
         checkedByOther = m('i.fa.fa-sign-out[style="color: #d9534f; font-size: 120%; cursor: default; padding-top: 10px; padding-bottom: 10px; padding-right: 4px;"]', '');
+    var locked = m('i.fa.fa-lock.text-muted[style="font-size: 120%; cursor: default; padding-top: 10px; padding-bottom: 10px; padding-right: 4px;"]', '');
     // check if folder has children whether it's lazyloaded or not.
     if (item.kind === 'folder' && item.depth > 1) {
         if(!item.data.permissions.view){
@@ -453,6 +454,9 @@ function _fangornResolveToggle(item) {
                 return checkedByUser;
             }
             return checkedByOther;
+        }
+        if (item.data.extra && item.data.extra.locked) {
+            return locked;
         }
     }
     return '';
@@ -2463,7 +2467,7 @@ var FGItemButtons = {
                 }
                 if (item.data.permissions && item.data.permissions.edit) {
                     if (item.data.provider === 'osfstorage') {
-                        if (!item.data.extra.checkout){
+                        if (!item.data.extra.checkout && !item.data.extra.locked){
                             rowButtons.push(
                                 m.component(FGButton, {
                                     onclick: function(event) { _removeEvent.call(tb, event, [item]); },
@@ -2488,7 +2492,7 @@ var FGItemButtons = {
                                     icon: 'fa fa-sign-out',
                                     className : 'text-warning'
                                 }, gettext('Check out file')));
-                        } else if (item.data.extra.checkout && item.data.extra.checkout._id === window.contextVars.currentUser.id) {
+                        } else if (item.data.extra.checkout && item.data.extra.checkout._id === window.contextVars.currentUser.id && !item.data.extra.locked) {
                             rowButtons.push(
                                 m.component(FGButton, {
                                     onclick: function(event) {
@@ -2527,7 +2531,7 @@ var FGItemButtons = {
                     }, gettext('Download as zip'))
                 );
             }
-            if (item.data.provider && !item.data.isAddonRoot && item.data.permissions && item.data.permissions.edit && (item.data.provider !== 'osfstorage' || !item.data.extra.checkout)) {
+            if (item.data.provider && !item.data.isAddonRoot && item.data.permissions && item.data.permissions.edit && (item.data.provider !== 'osfstorage' || !(item.data.extra.checkout || item.data.extra.locked))) {
                 rowButtons.push(
                     m.component(FGButton, {
                         onclick: function () {

@@ -128,6 +128,7 @@ INSTALLED_APPS = (
     'addons.metadata',
     'addons.datasteward',
     'addons.onlyoffice',
+    'addons.workflow',
 )
 
 # local development using https

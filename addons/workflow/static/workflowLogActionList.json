@@ -1,0 +1,5 @@
+{
+    "workflow_file_added": "${user} created a ${filename} workflow in ${node}",
+    "workflow_file_updated": "${user} updated a ${filename} workflow in ${node}",
+    "workflow_file_deleted": "${user} deleted a ${filename} workflow in ${node}"
+}

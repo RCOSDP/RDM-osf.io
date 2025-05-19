@@ -1,6 +1,6 @@
 import logging
 import pytest
-from addons.metadata.suggestion import suggestion_file_metadata_auto_value
+from addons.metadata.suggestion import suggestion_file_metadata_get_value
 from osf_tests.factories import ProjectFactory
 from osf_tests import factories
 from tests.base import OsfTestCase
@@ -54,23 +54,23 @@ class TestSuggestionFileMetadataAutoValue(StorageTestCase, OsfTestCase):
 
         testpath = f'osfstorage/{self.file.name}'
 
-        data = suggestion_file_metadata_auto_value('auto-file-number-of-rows-text', '', testpath, self.node)
+        data = suggestion_file_metadata_get_value('auto-file-number-of-rows-text', '', testpath, self.node)
         assert data[0]['key'] == 'auto-file-number-of-rows-text'
         assert data[0]['error'] == ''
 
-        data = suggestion_file_metadata_auto_value('auto-file-number-of-columns-text', '', testpath, self.node)
+        data = suggestion_file_metadata_get_value('auto-file-number-of-columns-text', '', testpath, self.node)
         assert data[0]['key'] == 'auto-file-number-of-columns-text'
         assert data[0]['error'] == ''
 
-        data = suggestion_file_metadata_auto_value('auto-file-delimiter', '', testpath, self.node)
+        data = suggestion_file_metadata_get_value('auto-file-delimiter', '', testpath, self.node)
         assert data[0]['key'] == 'auto-file-delimiter'
         assert data[0]['error'] == ''
 
-        data = suggestion_file_metadata_auto_value('auto-file-character-code', '', testpath, self.node)
+        data = suggestion_file_metadata_get_value('auto-file-character-code', '', testpath, self.node)
         assert data[0]['key'] == 'auto-file-character-code'
         assert data[0]['error'] == ''
 
-        data = suggestion_file_metadata_auto_value('auto-file-text/binary', '', testpath, self.node)
+        data = suggestion_file_metadata_get_value('auto-file-text/binary', '', testpath, self.node)
         assert data[0]['key'] == 'auto-file-text/binary'
         assert data[0]['error'] == ''
 
@@ -97,11 +97,11 @@ class TestSuggestionFileMetadataAutoValue(StorageTestCase, OsfTestCase):
 
         testpath = f'osfstorage/{self.file.name}'
 
-        data = suggestion_file_metadata_auto_value('auto-file-number-of-rows-excel', '', testpath, self.node)
+        data = suggestion_file_metadata_get_value('auto-file-number-of-rows-excel', '', testpath, self.node)
         assert data[0]['key'] == 'auto-file-number-of-rows-excel'
         assert data[0]['error'] == ''
 
-        data = suggestion_file_metadata_auto_value('auto-file-number-of-columns-excel', '', testpath, self.node)
+        data = suggestion_file_metadata_get_value('auto-file-number-of-columns-excel', '', testpath, self.node)
         assert data[0]['key'] == 'auto-file-number-of-columns-excel'
         assert data[0]['error'] == ''
 
@@ -128,22 +128,22 @@ class TestSuggestionFileMetadataAutoValue(StorageTestCase, OsfTestCase):
 
         testpath = f'osfstorage/{self.file.name}'
 
-        data = suggestion_file_metadata_auto_value('auto-file-image-type', '', testpath, self.node)
+        data = suggestion_file_metadata_get_value('auto-file-image-type', '', testpath, self.node)
         assert data[0]['key'] == 'auto-file-image-type'
         assert data[0]['error'] == ''
 
-        data = suggestion_file_metadata_auto_value('auto-file-color-b&w', '', testpath, self.node)
+        data = suggestion_file_metadata_get_value('auto-file-color-b&w', '', testpath, self.node)
         assert data[0]['key'] == 'auto-file-color-b&w'
         assert data[0]['error'] == ''
 
-        data = suggestion_file_metadata_auto_value('auto-file-resolution', '', testpath, self.node)
+        data = suggestion_file_metadata_get_value('auto-file-resolution', '', testpath, self.node)
         assert data[0]['key'] == 'auto-file-resolution'
         assert data[0]['error'] == ''
 
-        data = suggestion_file_metadata_auto_value('auto-file-data-size', '', testpath, self.node)
+        data = suggestion_file_metadata_get_value('auto-file-data-size', '', testpath, self.node)
         assert data[0]['key'] == 'auto-file-data-size'
         assert data[0]['error'] == ''
 
-        data = suggestion_file_metadata_auto_value('auto-file-text/binary', '', testpath, self.node)
+        data = suggestion_file_metadata_get_value('auto-file-text/binary', '', testpath, self.node)
         assert data[0]['key'] == 'auto-file-text/binary'
         assert data[0]['error'] == ''

@@ -47,7 +47,7 @@
                         <!-- Add-on tabs  -->
                         % for addon in addons_enabled:
 
-                            % if addon not in ['binderhub', 'metadata'] and addons[addon]['has_page']:
+                            % if addon not in ['binderhub', 'metadata', 'workflow'] and addons[addon]['has_page']:
                                 <li>
                                     <a href="${node['url']}${addons[addon]['short_name']}">
 
@@ -88,6 +88,18 @@
                                         <img src="${addons['binderhub']['icon']}" class="addon-logo"/>
                                     % endif
                                     ${_("Computation")}
+                                </a>
+                            </li>
+                        % endif
+
+                        % if 'workflow' in addons_enabled and addons['workflow']['has_page']:
+                            <li>
+                                <a href="${node['url']}${addons['workflow']['short_name']}">
+
+                                    % if addons['workflow']['icon'] and addons['workflow']['has_page_icon']:
+                                        <img src="${addons['workflow']['icon']}" class="addon-logo"/>
+                                    % endif
+                                    ${addons['workflow']['full_name']}
                                 </a>
                             </li>
                         % endif

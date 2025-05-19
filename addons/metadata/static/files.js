@@ -474,30 +474,6 @@ function MetadataButtons() {
    * Start editing metadata.
    */
   self.editMetadata = function(context, filepath, item) {
-    window.context = context;
-    window.item = item;
-
-    var file_total_size = 0;
-    var file_total_number_of_files = 0;
-    var file_total_number_of_folders = 0;
-    var file_maximum_number_of_layers = 0;
-    var root = '';
-    getFile(filepath);
-
-    function getFile(filepath) {
-      context.wbcache.searchFile(filepath, function (file) {
-          if (file.hasOwnProperty('links')) {
-            window.filepath = file.links.download;
-            root = file.attributes.materialized;
-            window.filesize = file.attributes.size;
-          }
-          else {
-            window.filepath = '';
-            root = '/'+ file.data.provider;
-          }
-      });
-    }
-
     var dialog = null;
     const extraMetadata = self.getExtraMetadata(item);
     if ((context.projectMetadata || {}).editable && !extraMetadata) {

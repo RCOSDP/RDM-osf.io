@@ -457,7 +457,7 @@ class TestStorageAddonBase(ArchiverTestCase):
     # @pytest.mark.skip('Unskip when figshare addon is implemented')
     def test_addons(self):
         #  Test that each addon in settings.ADDONS_ARCHIVABLE other than wiki/forward implements the StorageAddonBase interface
-        for addon in [a for a in settings.ADDONS_ARCHIVABLE if a not in ['wiki', 'forward']]:
+        for addon in [a for a in settings.ADDONS_ARCHIVABLE if a not in ['wiki', 'forward', 'workflow']]:
             self._test_addon(addon)
 
 class TestArchiverTasks(ArchiverTestCase):

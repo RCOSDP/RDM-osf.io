@@ -25,6 +25,7 @@ class WEKOAddonAppConfig(BaseAddonAppConfig):
     categories = ['storage']
     has_hgrid_files = True
     max_file_size = 128  # MB
+
     node_settings_template = os.path.join(TEMPLATE_PATH, 'weko_node_settings.mako')
     user_settings_template = os.path.join(TEMPLATE_PATH, 'weko_user_settings.mako')
 
