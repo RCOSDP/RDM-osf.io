@@ -13,6 +13,7 @@ from flask import make_response
 from flask import redirect
 from flask import request
 import furl
+import json
 import jwe
 import jwt
 import waffle
@@ -969,9 +970,17 @@ def addon_view_or_download_file(auth, path, provider, **kwargs):
 
     # TODO clean up these urls and unify what is used as a version identifier
     if request.method == 'HEAD':
-        return make_response(('', http_status.HTTP_302_FOUND, {
+        headers = {
             'Location': file_node.generate_waterbutler_url(**dict(extras, direct=None, version=version.identifier, _internal=extras.get('mode') == 'render'))
-        }))
+        }
+        if hasattr(version, 'metadata') and version.metadata:
+            try:
+                # Convert metadata to JSON string and add to header
+                metadata_json = json.dumps(version.metadata, default=str)
+                headers['X-File-Metadata'] = metadata_json
+            except (TypeError, ValueError) as e:
+                logger.warning(f"Failed to serialize metadata to JSON: {e}")
+        return make_response(('', http_status.HTTP_302_FOUND, headers))
 
     if action == 'download':
         format = extras.get('format')
@@ -1088,6 +1097,7 @@ def addon_view_file(auth, node, file_node, version):
             'mode': 'render',
             'action': 'download',
             'public_file': node.is_public,
+            'version': 'Latest',
         })
     )
 
