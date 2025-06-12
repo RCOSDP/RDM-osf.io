@@ -19,9 +19,6 @@ from osf.models import Institution, Node, AbstractNode, TimestampTask
 from website.util import timestamp
 import json
 import csv
-import logging
-
-logger = logging.getLogger(__name__)
 
 
 class InstitutionList(RdmPermissionMixin, UserPassesTestMixin, ListView):
@@ -130,7 +127,6 @@ class InstitutionNodeListExportCsv(RdmPermissionMixin, UserPassesTestMixin, List
         writer = csv.writer(response, delimiter=',')
         writer.writerow(['Node id', 'GUID', 'Title', 'Parent', 'Root', 'Date created', 'Public', 'Withdrawn', 'Embargo',
                          'Contributors'])
-        logger.info(f'node_list is {node_list}')
         for node in node_list:
             parent = getattr(node, 'parent', None)
             if parent:

@@ -1308,23 +1308,23 @@ class TestExportFileTSV(AdminTestCase):
         # Setup
         mock_institution = mock.Mock(spec=Institution)
         mock_institution.id = 1
-        mock_institution.name = "Test Institution"
+        mock_institution.name = 'Test Institution'
         mock_institution.is_deleted = False
         mock_institution.get_user_quota_type_for_nii_storage.return_value = None
         request = RequestFactory().get(
             'institutions:tsvexport',
-            kwargs={'institution_id':mock_institution.id})
+            kwargs={'institution_id': mock_institution.id})
         request.user = self.user
         view = setup_view(self.view, request,
                           institution_id=mock_institution.id)
-        
+
         with mock.patch('osf.models.Institution.objects.filter') as mock_filter:
             mock_filter.return_value.first.return_value = mock_institution
-            
+
             # Execute and Assert
             with pytest.raises(Http404) as exc_info:
                 view.get(mock_request)
-            
+
             assert str(exc_info.value) == 'Institution with id "1" not using NII storage. Please double check.'
             mock_institution.get_user_quota_type_for_nii_storage.assert_called_once()
 
@@ -1440,10 +1440,10 @@ class TestRecalculateQuota(AdminTestCase):
 @pytest.fixture
 def mock_user():
     user = mock.Mock(spec=OSFUser)
-    user._id = "test123"
-    user.username = "testuser"
-    user.fullname = "Test User"
-    user.guid_id = "guid123"
+    user._id = 'test123'
+    user.username = 'testuser'
+    user.fullname = 'Test User'
+    user.guid_id = 'guid123'
     user.has_quota = True
     user.quota_max = 100
     user.quota_used = 50 * 1000 ** 3  # 50GB in bytes
@@ -1454,8 +1454,8 @@ def mock_user():
 def mock_institution():
     institution = mock.Mock()
     institution.id = 1
-    institution.get_user_quota_type_for_nii_storage.return_value = "nii_storage"
-    institution.name = "Test Institution"
+    institution.get_user_quota_type_for_nii_storage.return_value = 'nii_storage'
+    institution.name = 'Test Institution'
     institution.is_deleted = False
     return institution
 
@@ -1513,7 +1513,6 @@ class TestStatisticalExportFileTSV:
         with pytest.raises(PermissionDenied):
             assert view_instance.handle_no_permission() is not None
 
-
     def test_non_affiliated_admin(self, view_instance):
         """Test permission check with invalid authorization"""
         request = RequestFactory().get('/tsvexport/')
@@ -1567,8 +1566,7 @@ class TestStatisticalExportFileTSV:
 
         assert float(data[4]) == 50.0  # Usage ratio
         assert float(data[5]) == mock_user.quota_used  # Used quota
-        assert float(data[6]) == (
-                    mock_user.quota_max * api_settings_mock.SIZE_UNIT_GB - mock_user.quota_used)  # Remaining
+        assert float(data[6]) == (mock_user.quota_max * api_settings_mock.SIZE_UNIT_GB - mock_user.quota_used)
 
     def test_user_with_default_quota(self, view_instance, mock_request, mock_user, api_settings_mock):
         """Test calculations for user with default quota"""

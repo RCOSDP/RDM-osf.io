@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 from datetime import datetime
 from http import HTTPStatus
 import json
-import logging
 from operator import itemgetter
 
 from django.db import connection, transaction, IntegrityError
@@ -29,8 +28,6 @@ from website.util import quota
 from addons.osfstorage.models import Region
 from api.base import settings as api_settings
 import csv
-
-logger = logging.getLogger(__name__)
 
 
 class InstitutionList(PermissionRequiredMixin, ListView):
@@ -614,7 +611,7 @@ class StatisticalExportFileTSV(RdmPermissionMixin, UserPassesTestMixin, QuotaUse
         response = HttpResponse(content_type='text/tsv')
         writer = csv.writer(response, delimiter='\t')
         writer.writerow(
-            ['GUID','eduPersonPrincipleName ' ,'Username', 'Fullname', 'Ratio (%)', 'Usage (Byte)', 'Remaining (Byte)', 'Quota (Byte)'])
+            ['GUID', 'eduPersonPrincipleName', 'Username', 'Fullname', 'Ratio (%)', 'Usage (Byte)', 'Remaining (Byte)', 'Quota (Byte)'])
 
         for user in self.get_userlist(institution, user_quota_type):
             if user.has_quota:
@@ -647,7 +644,7 @@ class StatisticalExportFileTSV(RdmPermissionMixin, UserPassesTestMixin, QuotaUse
     def get_userlist(self, institution, user_quota_type):
         """Get list of users' quota info using efficient subqueries"""
         from django.db.models import (
-            Prefetch, F, Subquery, OuterRef, Value,
+            F, Subquery, OuterRef, Value,
             Case, When, IntegerField, BooleanField
         )
 

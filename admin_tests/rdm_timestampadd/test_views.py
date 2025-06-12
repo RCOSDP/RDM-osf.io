@@ -517,7 +517,7 @@ class TestInstitutionNodeListExportCsv:
                 filename = content_disposition.split('export_nodes_')[1].replace('.csv', '')
                 datetime.strptime(filename, '%Y%m%d%H%M%S')  # Should not raise exception
 
-        @pytest.mark.parametrize("node_attribute,expected_value", [
+        @pytest.mark.parametrize('node_attribute,expected_value', [
             ('public', True),
             ('retraction', False),
             ('embargo', None),
