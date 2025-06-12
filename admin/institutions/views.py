@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+from datetime import datetime
+from http import HTTPStatus
 import json
 import logging
 from operator import itemgetter
@@ -371,8 +373,17 @@ class ExportFileTSV(PermissionRequiredMixin, QuotaUserList):
 
     def get(self, request, **kwargs):
         institution_id = self.kwargs.get('institution_id')
-        if not Institution.objects.filter(id=institution_id, is_deleted=False).exists():
+        # Get institution by institution_id
+        institution = Institution.objects.filter(id=institution_id, is_deleted=False).first()
+        if not institution:
+            # If institution is not found, redirect to HTTP 404 page
             raise Http404(f'Institution with id "{institution_id}" not found. Please double check.')
+
+        # Get user quota type for institution if using NII Storage
+        user_quota_type = institution.get_user_quota_type_for_nii_storage()
+        if not user_quota_type:
+            # Institution is not using NII storage, redirect to HTTP 404 page
+            raise Http404(f'Institution with id "{institution_id}" not using NII storage. Please double check.')
 
         response = HttpResponse(content_type='text/tsv')
         writer = csv.writer(response, delimiter='\t')
@@ -559,6 +570,112 @@ class StatisticalStatusDefaultStorage(RdmPermissionMixin, UserPassesTestMixin, Q
         # Get user quota for each user in the institution
         for user in OSFUser.objects.filter(affiliated_institutions=institution.id):
             user_list.append(self.get_user_quota_info(user, user_quota_type))
+        return user_list
+
+    def get_institution(self):
+        """ Get logged in user's first affiliated institution """
+        return self.request.user.affiliated_institutions.filter(is_deleted=False).first()
+
+
+class StatisticalExportFileTSV(RdmPermissionMixin, UserPassesTestMixin, QuotaUserList):
+    permission_required = 'osf.view_institution'
+    raise_exception = True
+
+    def test_func(self):
+        """ Check user permissions """
+        if not self.is_authenticated:
+            # If user is not authenticated then redirect to login page
+            self.raise_exception = False
+            return False
+        return not self.is_super_admin and self.is_admin \
+            and self.request.user.affiliated_institutions.exists()
+
+    def handle_no_permission(self):
+        """ Handle user has no permission """
+        if not self.raise_exception:
+            # If user is not authenticated then return HTTP 401
+            return JsonResponse(
+                {'error_message': 'Authentication credentials were not provided.'},
+                status=HTTPStatus.UNAUTHORIZED
+            )
+        return super(StatisticalExportFileTSV, self).handle_no_permission()
+
+    def get(self, request, **kwargs):
+        institution = self.get_institution()
+        if not institution:
+            # If institution is not found, redirect to HTTP 404 page
+            raise Http404
+
+        # Get user quota type for institution if using NII Storage
+        user_quota_type = institution.get_user_quota_type_for_nii_storage()
+        if not user_quota_type:
+            # Institution is not using NII storage, redirect to 404 page
+            raise Http404
+        response = HttpResponse(content_type='text/tsv')
+        writer = csv.writer(response, delimiter='\t')
+        writer.writerow(
+            ['GUID','eduPersonPrincipleName ' ,'Username', 'Fullname', 'Ratio (%)', 'Usage (Byte)', 'Remaining (Byte)', 'Quota (Byte)'])
+
+        for user in self.get_userlist(institution, user_quota_type):
+            if user.has_quota:
+                max_quota = user.quota_max
+                used_quota = user.quota_used
+            else:
+                max_quota = api_settings.DEFAULT_MAX_QUOTA
+                used_quota = quota.used_quota(user._id, user_quota_type)
+            max_quota_bytes = max_quota * api_settings.SIZE_UNIT_GB
+            remaining_quota = max_quota_bytes - used_quota
+            if max_quota == 0:
+                writer.writerow([user.guid_id, user.eppn, user.username,
+                                 user.fullname,
+                                 round(100, 1),
+                                 round(used_quota, 0),
+                                 round(remaining_quota, 0),
+                                 round(max_quota_bytes, 0)])
+            else:
+                writer.writerow([user.guid_id, user.eppn, user.username,
+                                 user.fullname,
+                                 round(float(used_quota) / max_quota_bytes * 100, 1),
+                                 round(used_quota, 0),
+                                 round(remaining_quota, 0),
+                                 round(max_quota_bytes, 0)])
+        time_now = datetime.today().strftime('%Y%m%d%H%M%S')
+        query = 'attachment; filename= export_users_{}.tsv'.format(time_now)
+        response['Content-Disposition'] = query
+        return response
+
+    def get_userlist(self, institution, user_quota_type):
+        """Get list of users' quota info using efficient subqueries"""
+        from django.db.models import (
+            Prefetch, F, Subquery, OuterRef, Value,
+            Case, When, IntegerField, BooleanField
+        )
+
+        # Subquery to get the first quota record for each user
+        first_quota = UserQuota.objects.filter(
+            user=OuterRef('pk'),
+            storage_type=user_quota_type
+        ).order_by('id')
+
+        user_list = OSFUser.objects.filter(
+            affiliated_institutions=institution.id
+        ).annotate(
+            guid_id=F('guids___id'),
+            # Specify output_field for the subqueries
+            quota_max=Subquery(
+                first_quota.values('max_quota')[:1],
+                output_field=IntegerField()
+            ),
+            quota_used=Subquery(
+                first_quota.values('used')[:1],
+                output_field=IntegerField()
+            ),
+            has_quota=Case(
+                When(userquota__storage_type=user_quota_type, then=Value(True)),
+                default=Value(False),
+                output_field=BooleanField()
+            )
+        )
         return user_list
 
     def get_institution(self):

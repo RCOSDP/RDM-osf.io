@@ -15,8 +15,84 @@
     <h2>{% blocktrans with institutionName=institution.name %}List of Nodes for {{ institutionName }}{% endblocktrans %}
         <img class="institution-logo" src="{{ logohost }}/static/img/institutions/shields/{{ institution.logo_name }}">
     </h2>
+    <style>
+/* Utility Classes */
+.nowrap {
+    white-space: nowrap;
+}
+
+/* Form Components */
+.form-group.flex-item {
+    max-width: 20em !important;
+}
+
+/* Flex Layout System */
+.flex-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.flex-container .form-group.flex-item {
+    display: flex;
+    align-items: center;
+}
+
+/* Row Layouts */
+.row.flex-container {
+    padding-inline: 15px;
+}
+
+/* Flex Items */
+.flex-container .flex-item {
+    flex: 1 1 0;
+    white-space: nowrap;
+    margin: 0;
+}
+
+/* Nested Containers */
+.flex-item .flex-container,
+.flex-item .flex-container .flex-item {
+    margin-bottom: 0;
+}
+
+/* Pagination Components */
+.pagination-extra-div .pagination {
+    margin: 0;
+}
+
+.pagination-extra-div > .flex-item {
+    margin-bottom: 15px;
+}
+
+/* Adjacent Item Spacing */
+.flex-item + .flex-item {
+    margin-left: 2px;
+}
+
+/* Search Form Spacing */
+.search-form .flex-item > label {
+    margin-right: 2px;
+}
+
+.search-form .flex-item + .flex-item > label {
+    margin-left: 2px;
+}
+    </style>
     {% load node_extras %}
-    {% include "util/pagination.html" with items=page status=status %}
+    <div class="row flex-container pagination-extra-div">
+    <div class="flex-item" style="flex-grow: 0; margin-left: 2em;">
+        {% include "util/pagination.html" with items=page status=direction %}
+    </div>
+    <div class="flex-item" style="flex-grow: 0; margin-left: auto">
+        <div>
+            <a class="btn btn-primary" style="padding-left: 6px; padding-right: 6px;"
+               href="{% url 'timestampadd:csvexport' institution_id=institution.id%}">
+               {% trans "Export All Nodes (CSV)" %}
+            </a>
+        </div>
+    </div>
+    </div>
     {% if form_action %}
     <form action={{form_action}} method="POST">
         {% csrf_token %}

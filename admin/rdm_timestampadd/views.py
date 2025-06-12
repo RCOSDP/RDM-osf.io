@@ -1,16 +1,27 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals
+
+from datetime import datetime
+from http import HTTPStatus
+
+from django.contrib.postgres.aggregates import StringAgg
+from django.db.models import F
+
 from admin.base import settings
 from admin.rdm.utils import RdmPermissionMixin, get_dummy_institution
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect
 from django.views.generic import ListView, View, TemplateView
 from osf.models import Institution, Node, AbstractNode, TimestampTask
 from website.util import timestamp
 import json
+import csv
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class InstitutionList(RdmPermissionMixin, UserPassesTestMixin, ListView):
@@ -80,6 +91,62 @@ class InstitutionNodeList(RdmPermissionMixin, UserPassesTestMixin, ListView):
         kwargs.setdefault('page', page)
         kwargs.setdefault('logohost', settings.OSF_URL)
         return super(InstitutionNodeList, self).get_context_data(**kwargs)
+
+
+class InstitutionNodeListExportCsv(RdmPermissionMixin, UserPassesTestMixin, ListView):
+    ordering = '-modified'
+    raise_exception = True
+
+    def test_func(self):
+        """validate user permissions"""
+        if not self.is_authenticated:
+            # If user is not authenticated throw 401 error
+            self.raise_exception = False
+            return False
+        institution_id = int(self.kwargs.get('institution_id'))
+        return self.has_auth(institution_id)
+
+    def handle_no_permission(self):
+        """ Handle user has no permission """
+        if not self.raise_exception:
+            # If user is not authenticated then return HTTP 401
+            return JsonResponse(
+                {'error_message': 'Authentication credentials were not provided.'},
+                status=HTTPStatus.UNAUTHORIZED
+            )
+        return super(InstitutionNodeListExportCsv, self).handle_no_permission()
+
+    def get_queryset(self):
+        inst = self.kwargs['institution_id']
+        return Node.objects.filter(
+            affiliated_institutions=inst).annotate(
+            root_title=F('root__title'),
+            contributor_names=StringAgg('_contributors__username', delimiter=', ')
+        ).order_by(self.ordering)
+
+    def get(self, request, **kwargs):
+        node_list = self.get_queryset().all()
+        response = HttpResponse(content_type='text/csv')
+        writer = csv.writer(response, delimiter=',')
+        writer.writerow(['Node id', 'GUID', 'Title', 'Parent', 'Root', 'Date created', 'Public', 'Withdrawn', 'Embargo',
+                         'Contributors'])
+        logger.info(f'node_list is {node_list}')
+        for node in node_list:
+            parent = getattr(node, 'parent', None)
+            if parent:
+                parent = parent.title
+            root = getattr(node, 'root_title', None)
+            public = getattr(node, 'public', None)
+            created = getattr(node, 'created', None).strftime('%Y-%m-%d') if getattr(node, 'created', None) else None
+            contributors = getattr(node, 'contributor_names', None)
+            writer.writerow(
+                [node.id, node.guid, node.title, parent, root, created, public, node.retraction, node.embargo,
+                 contributors])
+        time_now = datetime.today().strftime('%Y%m%d%H%M%S')
+        query = 'attachment; filename= export_nodes_{}.csv'.format(time_now)
+        response['Content-Disposition'] = query
+        return response
+
 
 class TimeStampAddList(RdmPermissionMixin, UserPassesTestMixin, TemplateView):
     template_name = 'rdm_timestampadd/timestampadd.html'

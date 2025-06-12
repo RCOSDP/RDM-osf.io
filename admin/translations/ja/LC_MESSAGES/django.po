@@ -4005,3 +4005,6 @@ msgstr "作成したプロジェクト数が作成可能なプロジェクトの
 
 msgid "attribute_value is required."
 msgstr "プロジェクト制限数が不正です。"
+
+msgid "Export All Nodes (CSV)"
+msgstr "全ノードの出力 (CSV)"

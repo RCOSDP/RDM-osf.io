@@ -1,4 +1,12 @@
+import csv
+from datetime import datetime
+from io import StringIO
+
+import pytest
+from django.http import HttpResponse
+from django.core.exceptions import PermissionDenied
 from admin.rdm_timestampadd import views
+from admin.rdm_timestampadd.views import InstitutionNodeListExportCsv
 from admin_tests.utilities import setup_user_view
 from api.base import settings as api_settings
 from django.test import RequestFactory
@@ -309,3 +317,228 @@ class TestAddTimestampData(AdminTestCase):
         res_addtimestamp = self.view_addtimestamp.post(self, **kwargs)
         logging.info(res_addtimestamp)
         nt.assert_equal(res_addtimestamp.status_code, 200)
+
+
+@pytest.fixture
+def mock_request():
+    return RequestFactory().get('/export-csv/')
+
+
+@pytest.fixture
+def mock_node():
+    node = mock.Mock()
+    node.id = 1
+    node.guid = 'abc123'
+    node.title = 'Test Node'
+    node.parent = mock.Mock(title='Parent Node')
+    node.root_title = 'Root Node'
+    node.public = True
+    node.retraction = False
+    node.embargo = None
+    node.created = datetime(2023, 1, 1)
+    node.contributor_names = 'user1, user2'
+    return node
+
+
+@pytest.fixture
+def mock_institution():
+    institution = mock.Mock()
+    institution.id = 1
+    return institution
+
+
+class TestInstitutionNodeListExportCsv:
+
+    @pytest.fixture
+    def view_instance(self):
+        view = InstitutionNodeListExportCsv()
+        view.kwargs = {'institution_id': 1}
+        request = RequestFactory().get('/tsvexport/')
+        request.user = mock.Mock()
+        request.user.is_authenticated = True
+        request.user.is_superuser = False
+        request.user.is_staff = True
+        request.user.affiliated_institutions.exists.return_value = False
+        view.request = request
+        return view
+
+    class TestPermissions:
+        def test_test_func_without_login(self):
+            """Test permission check with valid authorization"""
+            view = InstitutionNodeListExportCsv()
+            view.kwargs = {'institution_id': 1}
+            request = RequestFactory().get('/tsvexport/')
+            request.user = mock.Mock()
+            request.user.is_authenticated = False
+            request.user.is_superuser = False
+            request.user.is_staff = False
+            request.user.affiliated_institutions.exists.return_value = False
+            view.request = request
+            assert view.test_func() is False
+            res = view.handle_no_permission()
+            nt.assert_equal(res.status_code, 401)
+
+        def test_test_func_with_valid_auth(self, view_instance):
+            """Test permission check with valid authorization"""
+            with mock.patch.object(view_instance, 'has_auth', return_value=True):
+                assert view_instance.test_func() is True
+
+        def test_test_func_with_invalid_auth(self, view_instance):
+            """Test permission check with invalid authorization"""
+            with mock.patch.object(view_instance, 'has_auth', return_value=False):
+                assert view_instance.test_func() is False
+            with pytest.raises(PermissionDenied):
+                assert view_instance.handle_no_permission() is not None
+
+        def test_test_func_with_invalid_institution_id(self, view_instance):
+            """Test permission check with invalid institution ID"""
+            view_instance.kwargs = {'institution_id': 'invalid'}
+            with pytest.raises(ValueError):
+                view_instance.test_func()
+
+    class TestQuerySet:
+        def test_get_queryset_basic(self, view_instance):
+            """Test basic queryset generation"""
+            with mock.patch('osf.models.Node.objects.filter') as mock_filter:
+                mock_filter.return_value.annotate.return_value.order_by.return_value = []
+                result = view_instance.get_queryset()
+
+                mock_filter.assert_called_once_with(affiliated_institutions=1)
+                assert isinstance(result, list)
+
+        def test_get_queryset_ordering(self, view_instance):
+            """Test queryset ordering"""
+            with mock.patch('osf.models.Node.objects.filter') as mock_filter:
+                view_instance.get_queryset()
+
+                # Verify ordering is applied
+                mock_filter.return_value.annotate.return_value.order_by.assert_called_once_with('-modified')
+
+    class TestCSVGeneration:
+        def test_csv_generation_with_complete_data(self, view_instance, mock_request, mock_node):
+            """Test CSV generation with complete node data"""
+            with mock.patch.object(view_instance, 'get_queryset') as mock_get_queryset:
+                mock_get_queryset.return_value.all.return_value = [mock_node]
+
+                response = view_instance.get(mock_request)
+
+                assert isinstance(response, HttpResponse)
+                assert response['Content-Type'] == 'text/csv'
+
+                # Parse CSV content
+                content = response.content.decode('utf-8')
+                csv_reader = csv.reader(StringIO(content))
+                rows = list(csv_reader)
+
+                # Check header row
+                assert rows[0] == ['Node id', 'GUID', 'Title', 'Parent', 'Root',
+                                   'Date created', 'Public', 'Withdrawn', 'Embargo',
+                                   'Contributors']
+
+                # Check data row
+                assert rows[1][0] == '1'  # Node id
+                assert rows[1][1] == 'abc123'  # GUID
+                assert rows[1][2] == 'Test Node'  # Title
+                assert rows[1][3] == 'Parent Node'  # Parent
+                assert rows[1][4] == 'Root Node'  # Root
+                assert rows[1][5] == '2023-01-01'  # Date created
+
+        def test_csv_generation_with_minimal_data(self, view_instance, mock_request):
+            """Test CSV generation with minimal node data"""
+            minimal_node = mock.Mock()
+            minimal_node.id = 1
+            minimal_node.guid = 'abc123'
+            minimal_node.title = 'Test Node'
+            minimal_node.parent = None
+            minimal_node.root_title = None
+            minimal_node.public = None
+            minimal_node.retraction = None
+            minimal_node.embargo = None
+            minimal_node.created = None
+            minimal_node.contributor_names = None
+
+            with mock.patch.object(view_instance, 'get_queryset') as mock_get_queryset:
+                mock_get_queryset.return_value.all.return_value = [minimal_node]
+
+                response = view_instance.get(mock_request)
+                content = response.content.decode('utf-8')
+                csv_reader = csv.reader(StringIO(content))
+                rows = list(csv_reader)
+
+                # Verify handling of None values
+                assert rows[1][3] == ''  # Parent should be empty
+                assert rows[1][4] == ''  # Root should be empty
+                assert rows[1][5] == ''  # Date created should be empty
+
+        def test_csv_generation_with_special_characters(self, view_instance, mock_request, mock_node):
+            """Test CSV generation with special characters in data"""
+            mock_node.title = 'Test, Node; with "special" characters'
+            mock_node.contributor_names = 'user1; user2, user3'
+
+            with mock.patch.object(view_instance, 'get_queryset') as mock_get_queryset:
+                mock_get_queryset.return_value.all.return_value = [mock_node]
+
+                response = view_instance.get(mock_request)
+                content = response.content.decode('utf-8')
+                csv_reader = csv.reader(StringIO(content))
+                rows = list(csv_reader)
+
+                # Verify special characters are properly escaped
+                assert rows[1][2] == 'Test, Node; with "special" characters'
+
+        def test_csv_generation_with_empty_queryset(self, view_instance, mock_request):
+            """Test CSV generation with no nodes"""
+            with mock.patch.object(view_instance, 'get_queryset') as mock_get_queryset:
+                mock_get_queryset.return_value.all.return_value = []
+
+                response = view_instance.get(mock_request)
+                content = response.content.decode('utf-8')
+                csv_reader = csv.reader(StringIO(content))
+                rows = list(csv_reader)
+
+                # Should only have header row
+                assert len(rows) == 1
+                assert rows[0] == ['Node id', 'GUID', 'Title', 'Parent', 'Root',
+                                   'Date created', 'Public', 'Withdrawn', 'Embargo',
+                                   'Contributors']
+
+        def test_filename_format(self, view_instance, mock_request, mock_node):
+            """Test generated filename format"""
+            with mock.patch.object(view_instance, 'get_queryset') as mock_get_queryset:
+                mock_get_queryset.return_value.all.return_value = [mock_node]
+
+                response = view_instance.get(mock_request)
+
+                content_disposition = response['Content-Disposition']
+                assert 'attachment; filename= export_nodes_' in content_disposition
+                assert '.csv' in content_disposition
+
+                # Verify timestamp format in filename
+                filename = content_disposition.split('export_nodes_')[1].replace('.csv', '')
+                datetime.strptime(filename, '%Y%m%d%H%M%S')  # Should not raise exception
+
+        @pytest.mark.parametrize("node_attribute,expected_value", [
+            ('public', True),
+            ('retraction', False),
+            ('embargo', None),
+            ('created', datetime(2023, 1, 1)),
+            ('contributor_names', 'user1, user2')
+        ])
+        def test_specific_node_attributes(self, view_instance, mock_request, mock_node,
+                                          node_attribute, expected_value):
+            """Test handling of specific node attributes"""
+            setattr(mock_node, node_attribute, expected_value)
+
+            with mock.patch.object(view_instance, 'get_queryset') as mock_get_queryset:
+                mock_get_queryset.return_value.all.return_value = [mock_node]
+
+                response = view_instance.get(mock_request)
+                content = response.content.decode('utf-8')
+                csv_reader = csv.reader(StringIO(content))
+                rows = list(csv_reader)
+
+                # Verify specific attribute handling
+                if node_attribute == 'created':
+                    assert rows[1][5] == '2023-01-01'
+                elif node_attribute == 'contributor_names':
+                    assert rows[1][9] == expected_value
