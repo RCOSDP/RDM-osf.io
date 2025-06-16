@@ -330,7 +330,7 @@ def mock_node():
     node.id = 1
     node.guid = 'abc123'
     node.title = 'Test Node'
-    node.parent = mock.Mock(title='Parent Node')
+    node.parent_title = 'Parent Node'
     node.root_title = 'Root Node'
     node.public = True
     node.retraction = False
@@ -449,7 +449,7 @@ class TestInstitutionNodeListExportCsv:
             minimal_node.id = 1
             minimal_node.guid = 'abc123'
             minimal_node.title = 'Test Node'
-            minimal_node.parent = None
+            minimal_node.parent_title = None
             minimal_node.root_title = None
             minimal_node.public = None
             minimal_node.retraction = None

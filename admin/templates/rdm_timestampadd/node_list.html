@@ -150,11 +150,11 @@
                     </a>
                 </td>
                 <td>
-                    {% if not node.parent %}
-                    {{ node.parent }}
+                    {% if not node.parent_node %}
+                    {{ node.parent_node|transValue }}
                     {% else %}
-                    <a href="{% url 'timestampadd:timestamp_add' institution_id=institution.id guid=node.parent.id %}">
-                        {{ node.parent.title }}
+                    <a href="{% url 'timestampadd:timestamp_add' institution_id=institution.id guid=node.parent_node.id %}">
+                        {{ node.parent_node.title }}
                     </a>
                     {% endif %}
                 </td>
@@ -171,7 +171,7 @@
                     {{ node.created|date }}
                 </td>
                 <td>
-                    {{ node.public }}
+                    {{ node.is_public }}
                 </td>
                 <td>
                     {{ node.retraction|transValue }}

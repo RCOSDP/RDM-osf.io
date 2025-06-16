@@ -117,6 +117,7 @@ class InstitutionNodeListExportCsv(RdmPermissionMixin, UserPassesTestMixin, List
         inst = self.kwargs['institution_id']
         return Node.objects.filter(
             affiliated_institutions=inst).annotate(
+            parent_title=F('_parents__parent__title'),
             root_title=F('root__title'),
             contributor_names=StringAgg('_contributors__username', delimiter=', ')
         ).order_by(self.ordering)
@@ -128,11 +129,9 @@ class InstitutionNodeListExportCsv(RdmPermissionMixin, UserPassesTestMixin, List
         writer.writerow(['Node id', 'GUID', 'Title', 'Parent', 'Root', 'Date created', 'Public', 'Withdrawn', 'Embargo',
                          'Contributors'])
         for node in node_list:
-            parent = getattr(node, 'parent', None)
-            if parent:
-                parent = parent.title
+            parent = getattr(node, 'parent_title', None)
             root = getattr(node, 'root_title', None)
-            public = getattr(node, 'public', None)
+            public = getattr(node, 'is_public', None)
             created = getattr(node, 'created', None).strftime('%Y-%m-%d') if getattr(node, 'created', None) else None
             contributors = getattr(node, 'contributor_names', None)
             writer.writerow(
