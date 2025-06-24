@@ -94,9 +94,24 @@ def _get_wiki_pages_latest(node):
             'name': page.wiki_page.page_name,
             'url': node.web_url_for('project_wiki_view', wname=page.wiki_page.page_name, _guid=True),
             'wiki_id': page.wiki_page._primary_key,
-            'wiki_content': _wiki_page_content(page.wiki_page.page_name, node=node)
+            'id': page.wiki_page.id,
+            'wiki_content': _wiki_page_content(page.wiki_page.page_name, node=node),
+            'sort_order': page.wiki_page.sort_order
         }
-        for page in WikiPage.objects.get_wiki_pages_latest(node).order_by(F('name'))
+        for page in WikiPage.objects.get_wiki_pages_latest(node).order_by(F('wiki_page__sort_order'), F('name'))
+    ]
+
+def _get_wiki_child_pages_latest(node, parent):
+    return [
+        {
+            'name': page.wiki_page.page_name,
+            'url': node.web_url_for('project_wiki_view', wname=page.wiki_page.page_name, _guid=True),
+            'wiki_id': page.wiki_page._primary_key,
+            'id': page.wiki_page.id,
+            'wiki_content': _wiki_page_content(page.wiki_page.page_name, node=node),
+            'sort_order': page.wiki_page.sort_order
+        }
+        for page in WikiPage.objects.get_wiki_child_pages_latest(node, parent).order_by(F('wiki_page__sort_order'), F('name'))
     ]
 
 def _get_wiki_api_urls(node, name, additional_urls=None):
@@ -106,7 +121,8 @@ def _get_wiki_api_urls(node, name, additional_urls=None):
         'rename': node.api_url_for('project_wiki_rename', wname=name),
         'content': node.api_url_for('wiki_page_content', wname=name),
         'settings': node.api_url_for('edit_wiki_settings'),
-        'grid': node.api_url_for('project_wiki_grid_data', wname=name)
+        'grid': node.api_url_for('project_wiki_grid_data', wname=name),
+        'sort': node.api_url_for('project_update_wiki_page_sort')
     }
     if additional_urls:
         urls.update(additional_urls)
@@ -182,6 +198,7 @@ def project_wiki_view(auth, wname, path=None, **kwargs):
     wiki_page = WikiPage.objects.get_for_node(node, wiki_name)
     wiki_version = WikiVersion.objects.get_for_node(node, wiki_name)
     wiki_settings = node.get_addon('wiki')
+    parent_wiki_page = WikiPage.objects.get(id=wiki_page.parent_id) if wiki_page and wiki_page.parent else None
     can_edit = (
         auth.logged_in and not
         node.is_registration and (
@@ -256,11 +273,16 @@ def project_wiki_view(auth, wname, path=None, **kwargs):
         'view': view or ('preview' if 'edit' in panels_used else 'current'),
         'compare': compare or 'previous',
     }
+    sortable_pages_ctn = node.wikis.filter(deleted__isnull=True).exclude(page_name='home').count()
 
+    wiki_page_fullpath = wiki_utils.get_wiki_fullpath(node, wiki_name)
+    breadcrumbs_list = wiki_page_fullpath.split('/')
     ret = {
         'wiki_id': wiki_page._primary_key if wiki_page else None,
         'wiki_name': wiki_page.page_name if wiki_page else wiki_name,
         'wiki_content': content,
+        'parent_wiki_name': parent_wiki_page.page_name if parent_wiki_page else '',
+        'breadcrumbs_list': breadcrumbs_list,
         'rendered_before_update': rendered_before_update,
         'page': wiki_page,
         'version': version,
@@ -270,6 +292,7 @@ def project_wiki_view(auth, wname, path=None, **kwargs):
         'is_current': is_current,
         'version_settings': version_settings,
         'pages_current': _get_wiki_pages_latest(node),
+        'sortable_pages_ctn': sortable_pages_ctn,
         'category': node.category,
         'panels_used': panels_used,
         'num_columns': num_columns,
@@ -442,7 +465,7 @@ def project_wiki_rename(auth, wname, **kwargs):
 @must_have_permission(WRITE)  # returns user, project
 @must_not_be_registration
 @must_have_addon('wiki', 'node')
-def project_wiki_validate_name(wname, auth, node, **kwargs):
+def project_wiki_validate_name(wname, auth, node, p_wname=None, **kwargs):
     wiki_name = wname.strip()
     wiki = WikiPage.objects.get_for_node(node, wiki_name)
 
@@ -451,8 +474,23 @@ def project_wiki_validate_name(wname, auth, node, **kwargs):
             message_short='Wiki page name conflict.',
             message_long='A wiki page with that name already exists.'
         ))
-    else:
-        WikiPage.objects.create_for_node(node, wiki_name, '', auth)
+
+    parent_wiki = None
+    if p_wname:
+        parent_wiki_name = p_wname.strip()
+        parent_wiki = WikiPage.objects.get_for_node(node, parent_wiki_name)
+        if not parent_wiki:
+            if parent_wiki_name.lower() == 'home':
+                # Create a wiki
+                parent_wiki = WikiPage.objects.create_for_node(node, parent_wiki_name, '', auth)
+            else:
+                raise HTTPError(http_status.HTTP_404_NOT_FOUND, data=dict(
+                    message_short='Parent Wiki page nothing.',
+                    message_long='The parent wiki page does not exist.'
+                ))
+        parent_wiki = parent_wiki
+
+    WikiPage.objects.create_for_node(node, wiki_name, '', auth, parent_wiki)
     return {'message': wiki_name}
 
 @must_be_valid_project
@@ -496,6 +534,10 @@ def format_home_wiki_page(node):
                 'id': home_wiki._primary_key,
             }
         }
+        child_wiki_pages = _format_child_wiki_pages(node, home_wiki.id)
+        if child_wiki_pages:
+            home_wiki_page['children'] = child_wiki_pages
+            home_wiki_page['kind'] = 'folder'
     return home_wiki_page
 
 
@@ -513,10 +555,41 @@ def format_project_wiki_pages(node, auth):
                     'url': wiki_page['url'],
                     'name': wiki_page['name'],
                     'id': wiki_page['wiki_id'],
+                    'sort_order': wiki_page['sort_order']
                 }
             }
+            child_wiki_pages = _format_child_wiki_pages(node, wiki_page['id'])
+            page['children'] = child_wiki_pages
+            if child_wiki_pages:
+                page['kind'] = 'folder'
+
             if can_edit or has_content:
                 pages.append(page)
+    return pages
+
+
+def _format_child_wiki_pages(node, parent):
+    pages = []
+    child_wiki_pages = _get_wiki_child_pages_latest(node, parent)
+    if not child_wiki_pages:
+        return pages
+
+    for wiki_page in child_wiki_pages:
+        if wiki_page['name'] != 'home':
+            page = {
+                'page': {
+                    'url': wiki_page['url'],
+                    'name': wiki_page['name'],
+                    'id': wiki_page['wiki_id'],
+                    'sort_order': wiki_page['sort_order']
+                }
+            }
+            grandchild_wiki_pages = _format_child_wiki_pages(node, wiki_page['id'])
+            page['children'] = grandchild_wiki_pages
+            if grandchild_wiki_pages:
+                page['kind'] = 'folder'
+
+            pages.append(page)
     return pages
 
 
@@ -545,6 +618,12 @@ def serialize_component_wiki(node, auth):
             'id': node._id
         }
     }
+    home_wiki = WikiPage.objects.get_for_node(node, 'home')
+    if home_wiki:
+        child_wiki_pages = _format_child_wiki_pages(node, home_wiki.id)
+        if child_wiki_pages:
+            component_home_wiki['children'] = child_wiki_pages
+            component_home_wiki['kind'] = 'folder'
 
     can_edit = node.has_permission(auth.user, WRITE) and not node.is_registration
     if can_edit or home_has_content:
@@ -558,8 +637,13 @@ def serialize_component_wiki(node, auth):
                     'url': page['url'],
                     'name': page['name'],
                     'id': page['wiki_id'],
+                    'sort_order': page['sort_order']
                 }
             }
+            child_wiki_pages = _format_child_wiki_pages(node, page['id'])
+            component_page['children'] = child_wiki_pages
+            if child_wiki_pages:
+                component_page['kind'] = 'folder'
             if can_edit or has_content:
                 children.append(component_page)
 
@@ -576,3 +660,44 @@ def serialize_component_wiki(node, auth):
         }
         return component
     return None
+
+@must_be_valid_project  # returns project
+@must_have_addon('wiki', 'node')
+def project_update_wiki_page_sort(node, **kwargs):
+    data = request.get_json()
+    sorted_data = data['sortedData']
+    sort_id_list, sort_num_list, sort_parent_wiki_id_list = _get_sorted_list(sorted_data, None)
+    _bulk_update_wiki_sort(node, sort_id_list, sort_num_list, sort_parent_wiki_id_list)
+
+def _get_sorted_list(sorted_data, parent_wiki_id):
+    id_list = []
+    sort_list = []
+    parent_wiki_id_list = []
+    child_id_list = []
+    child_sort_list = []
+    child_parent_wiki_id_list = []
+    for data in sorted_data:
+        id_list.append(data['id'])
+        sort_list.append(data['sortOrder'])
+        parent_wiki_id_list.append(parent_wiki_id)
+        if len(data['children']) > 0:
+            child_id_list, child_sort_list, child_parent_wiki_id_list = _get_sorted_list(data['children'], data['id'])
+            id_list.extend(child_id_list)
+            sort_list.extend(child_sort_list)
+            parent_wiki_id_list.extend(child_parent_wiki_id_list)
+    return id_list, sort_list, parent_wiki_id_list
+
+def _bulk_update_wiki_sort(node, sort_id_list, sort_num_list, parent_wiki_id_list):
+    wiki_pages = node.wikis.filter(deleted__isnull=True).exclude(page_name='home')
+
+    for page in wiki_pages:
+        idx = sort_id_list.index(page._primary_key)
+        sort_order_number = sort_num_list[idx]
+        parent_wiki_id = parent_wiki_id_list[idx]
+        setattr(page, 'sort_order', sort_order_number)
+        if parent_wiki_id is not None:
+            parent = WikiPage.objects.get(guids___id=parent_wiki_id)
+            setattr(page, 'parent', parent)
+        else:
+            setattr(page, 'parent', None)
+    bulk_update(wiki_pages)
