@@ -1,5 +1,6 @@
 import logging
 
+from future.moves.urllib.parse import unquote
 import requests
 from rest_framework import status as http_status
 
@@ -416,8 +417,10 @@ def download_file(url, cookies):
     return response
 
 def suggestion_file_data_number(key, filepath, node):
-    parts = filepath.split('/')
+    decoded_filepath = unquote(filepath)
+    parts = decoded_filepath.split('/')
     is_dir = parts[0] == 'dir'
+
     if is_dir:
         value = 'files/{}'.format(filepath)
     else:
