@@ -1,7 +1,7 @@
 # Japanese translations for .
-# Copyright (C) 2024 ORGANIZATION
+# Copyright (C) 2023 ORGANIZATION
 # This file is distributed under the same license as the  project.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2024.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
 #
 msgid ""
 msgstr ""
@@ -12,11 +12,11 @@ msgstr ""
 "Last-Translator: Hidetoshi Yoshimoto\n"
 "Language: ja\n"
 "Language-Team: RCOS <rocs-office@nii.ac.jp>\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
+"Plural-Forms: nplurals=1; plural=0\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.11.0\n"
+"Generated-By: Babel 2.5.1\n"
 
 #: addons/github/static/githubFangornConfig.js:215
 #: website/static/js/fangorn.js:2427
@@ -1022,7 +1022,6 @@ msgid ""
 "account.<br><br>"
 msgstr "これにより、このアカウントを使用するすべてのプロジェクトの%1$sへのアクセスが取り消されます。"
 
-# rdm-institutional-storage-page.js
 #: admin/static/js/rdm_custom_storage_location/rdm-institutional-storage-page.js:786
 msgid "Unable to delete location %1$s"
 msgstr "場所%1$sを削除できません"
@@ -6238,11 +6237,11 @@ msgstr "選択したアイテムの一部はフォルダーです。 これに�
 
 #: website/static/js/fangorn.js:1630
 msgid " may be linked to"
-msgstr "Wikiにリンクされている可能性があります。"
+msgstr "ウィキにリンクされている可能性があります。"
 
 #: website/static/js/fangorn.js:1631
 msgid " your wiki(s). Deleting them will remove images embedded in your wiki(s). "
-msgstr "これらを削除すると、Wikiに埋め込まれた画像が削除されます。"
+msgstr "れらを削除すると、ウィキに埋め込まれた画像が削除されます。"
 
 #: website/static/js/fangorn.js:1639
 msgid "Delete All"
@@ -6284,8 +6283,7 @@ msgstr " 設定"
 #: website/static/js/filesWidget.js:34 website/static/js/meetings.js:18
 #: website/static/js/pages/project-dashboard-page.js:582
 #: website/static/js/project-organizer.js:192
-#: website/static/js/project-organizer.js:208 website/static/js/wikiMenu.js:59
-#: website/static/js/wikiMenu_copy.js:64
+#: website/static/js/project-organizer.js:208 website/static/js/wikiMenu.js:58
 msgid "Name"
 msgstr "名前"
 
@@ -6314,10 +6312,6 @@ msgstr "ノード%1$sのコンポーネントを取得できません"
 #: website/static/js/fangorn.js:2317
 msgid "You cannot rename your Wiki images folder."
 msgstr "Wiki画像フォルダの名前を変更することはできません。"
-
-#: website/static/js/fangorn.js:2354
-msgid "Upload Folder"
-msgstr "フォルダのアップロード"
 
 #: website/static/js/fangorn.js:2432
 msgid "Upload"
@@ -6431,6 +6425,7 @@ msgstr "ファイル名をクリックして、GakuNin RDMでファイルを表�
 msgid "Open files in new tab:"
 msgstr "新しいタブでファイルを開く："
 
+#: website/static/js/fangorn.js:2810
 msgid ""
 " Press Command (Ctrl in Windows) and click a file name to open it in a "
 "new tab."
@@ -8519,7 +8514,6 @@ msgstr ""
 msgid "${user} deleted metadata ${path} in ${node}"
 msgstr ""
 
-
 #: website/static/js/logTextParser.js:829
 msgid "unknown format"
 msgstr "不明な形式"
@@ -9581,10 +9575,8 @@ msgid "Linked "
 msgstr ""
 
 #: website/static/js/render-nodes.js:46
-#, fuzzy
-#| msgid "component"
 msgid "Component"
-msgstr "コンポーネント"
+msgstr ""
 
 #: website/static/js/requestAccess.js:17
 msgid "Request access"
@@ -10250,11 +10242,11 @@ msgstr "通知設定を取得できませんでした。"
 
 #: website/static/js/pages/project-settings-page.js:54
 msgid "Could not retrieve wiki settings."
-msgstr "Wiki設定を取得できませんでした。"
+msgstr "ウィキ設定を取得できませんでした。"
 
 #: website/static/js/pages/project-settings-page.js:55
 msgid "Could not GET wiki settings."
-msgstr "Wiki設定を取得できませんでした。"
+msgstr "ウィキ設定を取得できませんでした。"
 
 #: website/static/js/pages/project-settings-page.js:104
 msgid "Successfully updated settings."
@@ -10347,10 +10339,8 @@ msgid "A server error occurred. Please contact %1$s."
 msgstr "サーバーエラーが発生しました。%1$sにお問い合わせください。"
 
 #: website/static/js/pages/wiki-edit-page.js:108
-msgid ""
-"<p>Could not retrieve wiki pages. Please reload the page. If this issue "
-"persists, "
-msgstr "<p>wikiページを取得できませんでした。ページを再読込みしてください。この問題が解決しない場合、"
+msgid "<p>Could not retrieve wiki pages. If this issue persists, "
+msgstr "<p>wikiページを取得できませんでした。 この問題が解決しない場合、"
 
 #: website/static/js/pages/wiki-edit-page.js:109
 msgid "please report it to %1$s"
