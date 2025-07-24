@@ -1341,7 +1341,7 @@ class ContributorMixin(models.Model):
         return self.contributor_class.objects.select_related('user').filter(**query_dict)
 
     def add_contributor(self, contributor, permissions=None, visible=True,
-                        send_email=None, auth=None, log=True, save=False):
+                        send_email=None, auth=None, log=True, save=False, is_admin=False):
         """Add a contributor to the project.
 
         :param User contributor: The contributor to be added
@@ -1386,7 +1386,16 @@ class ContributorMixin(models.Model):
             self.add_permission(contrib_to_add, permissions, save=True)
             contributor_obj.save()
 
-            if log:
+            if log and is_admin:
+                params = self.log_params
+                params['contributors'] = [contrib_to_add._id]
+                self.add_log(
+                    action=self.log_class.ADMIN_CONTRIB_ADDED,
+                    params=params,
+                    auth=None,
+                    save=False,
+                )
+            elif log:
                 params = self.log_params
                 params['contributors'] = [contrib_to_add._id]
                 self.add_log(
@@ -1493,7 +1502,7 @@ class ContributorMixin(models.Model):
 
     def add_contributor_registered_or_not(self, auth, user_id=None,
                                           full_name=None, email=None, send_email=None,
-                                          permissions=None, bibliographic=True, index=None, save=False):
+                                          permissions=None, bibliographic=True, index=None, save=False, is_admin=False):
         OSFUser = apps.get_model('osf.OSFUser')
         send_email = send_email or self.contributor_email_template
 
@@ -1507,7 +1516,8 @@ class ContributorMixin(models.Model):
 
             if contributor.is_registered:
                 contributor = self.add_contributor(contributor=contributor, auth=auth, visible=bibliographic,
-                                     permissions=permissions, send_email=send_email, save=True)
+                                                   permissions=permissions, send_email=send_email, save=True,
+                                                   is_admin=is_admin)
             else:
                 if not full_name:
                     raise ValueError(
@@ -1527,7 +1537,7 @@ class ContributorMixin(models.Model):
 
             if contributor and contributor.is_registered:
                 self.add_contributor(contributor=contributor, auth=auth, visible=bibliographic,
-                                    send_email=send_email, permissions=permissions, save=True)
+                                     send_email=send_email, permissions=permissions, save=True, is_admin=is_admin)
             else:
                 contributor = self.add_unregistered_contributor(
                     fullname=full_name, email=email, auth=auth,

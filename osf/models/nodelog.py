@@ -48,6 +48,7 @@ class NodeLog(ObjectIDMixin, BaseModel):
     MADE_WIKI_PRIVATE = 'made_wiki_private'
 
     CONTRIB_ADDED = 'contributor_added'
+    ADMIN_CONTRIB_ADDED = 'admin_contributor_added'
     CONTRIB_REMOVED = 'contributor_removed'
     CONTRIB_REJECTED = 'contributor_rejected'
     CONTRIB_REORDERED = 'contributors_reordered'
