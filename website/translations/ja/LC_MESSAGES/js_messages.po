@@ -10541,5 +10541,5 @@ msgstr "プロジェクト制限数が不正な値です。"
 msgid "The new project cannot be created due to the created project number is greater than or equal the project number can create."
 msgstr "作成したプロジェクト数が作成可能なプロジェクトの数の上限に達しているため、新規プロジェクトを作成できません。"
 
-msgid "The 'Integrated Admin Delegate Account' added ${contributors} as contributor(s) to ${node}"
+msgid "The Integrated Admin added ${contributors} as contributor(s) to ${node}"
 msgstr "統合管理者代理アカウントが${contributors}をコントリビューターとして${node}に追加しました"

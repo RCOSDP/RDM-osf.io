@@ -25,7 +25,7 @@
     "external_ids_added":   "${user} created external identifier(s) ${identifiers} on ${node}",
     "custom_citation_added" : "${user} created a custom citation for ${node}",
     "custom_citation_edited" : "${user} edited a custom citation for ${node}",
-    "admin_contributor_added": "The Integrated Admin Delegate Account added ${contributors} as contributor(s) to ${node}",
+    "admin_contributor_added": "The Integrated Admin added ${contributors} as contributor(s) to ${node}",
     "custom_citation_removed" : "${user} removed a custom citation from ${node}",
     "contributor_added":    "${user} added ${contributors} as contributor(s) to ${node}",
     "contributor_removed":  "${user} removed ${contributors} as contributor(s) from ${node}",
