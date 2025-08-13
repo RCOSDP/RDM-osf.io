@@ -310,6 +310,37 @@
                 "grdm-file:page-end": "page_end",
                 "grdm-file:authors": "authors_common_metadata_format"
               }
+            },
+            {
+              "key": "pubmed:doi",
+              "button": "PubMedから取得|Fetch from PubMed",
+              "autofill": {
+                "grdm-file:doi": "doi",
+                "grdm-file:manuscript-type": "manuscript_type_common_metadata_format",
+                "grdm-file:title-en": "title",
+                "grdm-file:journal-name-en": "journal_title",
+                "grdm-file:date-published": "publication_year_month",
+                "grdm-file:volume": "volume",
+                "grdm-file:issue": "issue",
+                "grdm-file:page-start": "page_start",
+                "grdm-file:page-end": "page_end",
+                "grdm-file:authors": "authors_common_metadata_format"
+              }
+            },
+            {
+              "key": "arxiv:doi",
+              "button": "arXivから取得|Fetch from arXiv",
+              "autofill": {
+                "grdm-file:doi": "doi",
+                "grdm-file:manuscript-type": "manuscript_type_common_metadata_format",
+                "grdm-file:title-en": "title",
+                "grdm-file:journal-name-en": "journal_title",
+                "grdm-file:date-published": "publication_year_month",
+                "grdm-file:volume": "volume",
+                "grdm-file:page-start": "page_start",
+                "grdm-file:page-end": "page_end",
+                "grdm-file:authors": "authors_common_metadata_format"
+              }
             }
           ]
         },
@@ -408,6 +439,7 @@
           "nav": "著者名",
           "title": "著者名|Author Name",
           "type": "array",
+          "display_template": "{{number}}|{{name-ja.last}} {{name-ja.middle}} {{name-ja.first}}|{{name-en.last}}, {{name-en.first}} {{name-en.middle}}|{{affiliation-name-ja}}|{{affiliation-name-en}}",
           "required": true,
           "enabled_if": {
             "grdm-file:file-type": "manuscript"
@@ -429,7 +461,9 @@
                   "autofill": {
                     "number": "kenkyusha_no",
                     "name-ja": "kenkyusha_shimei_ja",
-                    "name-en": "kenkyusha_shimei_en"
+                    "name-en": "kenkyusha_shimei_en",
+                    "affiliation-name-ja": "kenkyukikan_mei_ja",
+                    "affiliation-name-en": "kenkyukikan_mei_en"
                   }
                 },
                 {
@@ -438,7 +472,9 @@
                   "autofill": {
                     "number": "erad",
                     "name-ja": "name-ja",
-                    "name-en": "name-en"
+                    "name-en": "name-en",
+                    "affiliation-name-ja": "affiliation-name-ja",
+                    "affiliation-name-en": "affiliation-name-en"
                   }
                 }
               ]
@@ -464,7 +500,9 @@
                       "autofill": {
                         "../number": "kenkyusha_no",
                         "../name-ja": "kenkyusha_shimei_ja",
-                        "../name-en": "kenkyusha_shimei_en"
+                        "../name-en": "kenkyusha_shimei_en",
+                        "../affiliation-name-ja": "kenkyukikan_mei_ja",
+                        "../affiliation-name-en": "kenkyukikan_mei_en"
                       }
                     },
                     {
@@ -473,7 +511,9 @@
                       "autofill": {
                         "../number": "erad",
                         "../name-ja": "name-ja",
-                        "../name-en": "name-en"
+                        "../name-en": "name-en",
+                        "../affiliation-name-ja": "affiliation-name-ja",
+                        "../affiliation-name-en": "affiliation-name-en"
                       }
                     }
                   ]
@@ -492,7 +532,9 @@
                       "autofill": {
                         "../number": "kenkyusha_no",
                         "../name-ja": "kenkyusha_shimei_ja",
-                        "../name-en": "kenkyusha_shimei_en"
+                        "../name-en": "kenkyusha_shimei_en",
+                        "../affiliation-name-ja": "kenkyukikan_mei_ja",
+                        "../affiliation-name-en": "kenkyukikan_mei_en"
                       }
                     },
                     {
@@ -501,7 +543,9 @@
                       "autofill": {
                         "../number": "erad",
                         "../name-ja": "name-ja",
-                        "../name-en": "name-en"
+                        "../name-en": "name-en",
+                        "../affiliation-name-ja": "affiliation-name-ja",
+                        "../affiliation-name-en": "affiliation-name-en"
                       }
                     }
                   ]
@@ -520,7 +564,9 @@
                       "autofill": {
                         "../number": "kenkyusha_no",
                         "../name-ja": "kenkyusha_shimei_ja",
-                        "../name-en": "kenkyusha_shimei_en"
+                        "../name-en": "kenkyusha_shimei_en",
+                        "../affiliation-name-ja": "kenkyukikan_mei_ja",
+                        "../affiliation-name-en": "kenkyukikan_mei_en"
                       }
                     },
                     {
@@ -529,7 +575,9 @@
                       "autofill": {
                         "../number": "erad",
                         "../name-ja": "name-ja",
-                        "../name-en": "name-en"
+                        "../name-en": "name-en",
+                        "../affiliation-name-ja": "affiliation-name-ja",
+                        "../affiliation-name-en": "affiliation-name-en"
                       }
                     }
                   ]
@@ -557,7 +605,9 @@
                       "autofill": {
                         "../number": "kenkyusha_no",
                         "../name-ja": "kenkyusha_shimei_ja",
-                        "../name-en": "kenkyusha_shimei_en"
+                        "../name-en": "kenkyusha_shimei_en",
+                        "../affiliation-name-ja": "kenkyukikan_mei_ja",
+                        "../affiliation-name-en": "kenkyukikan_mei_en"
                       }
                     },
                     {
@@ -566,7 +616,9 @@
                       "autofill": {
                         "../number": "erad",
                         "../name-ja": "name-ja",
-                        "../name-en": "name-en"
+                        "../name-en": "name-en",
+                        "../affiliation-name-ja": "affiliation-name-ja",
+                        "../affiliation-name-en": "affiliation-name-en"
                       }
                     }
                   ]
@@ -585,7 +637,9 @@
                       "autofill": {
                         "../number": "kenkyusha_no",
                         "../name-ja": "kenkyusha_shimei_ja",
-                        "../name-en": "kenkyusha_shimei_en"
+                        "../name-en": "kenkyusha_shimei_en",
+                        "../affiliation-name-ja": "kenkyukikan_mei_ja",
+                        "../affiliation-name-en": "kenkyukikan_mei_en"
                       }
                     },
                     {
@@ -594,7 +648,9 @@
                       "autofill": {
                         "../number": "erad",
                         "../name-ja": "name-ja",
-                        "../name-en": "name-en"
+                        "../name-en": "name-en",
+                        "../affiliation-name-ja": "affiliation-name-ja",
+                        "../affiliation-name-en": "affiliation-name-en"
                       }
                     }
                   ]
@@ -613,7 +669,9 @@
                       "autofill": {
                         "../number": "kenkyusha_no",
                         "../name-ja": "kenkyusha_shimei_ja",
-                        "../name-en": "kenkyusha_shimei_en"
+                        "../name-en": "kenkyusha_shimei_en",
+                        "../affiliation-name-ja": "kenkyukikan_mei_ja",
+                        "../affiliation-name-en": "kenkyukikan_mei_en"
                       }
                     },
                     {
@@ -622,12 +680,30 @@
                       "autofill": {
                         "../number": "erad",
                         "../name-ja": "name-ja",
-                        "../name-en": "name-en"
+                        "../name-en": "name-en",
+                        "../affiliation-name-ja": "affiliation-name-ja",
+                        "../affiliation-name-en": "affiliation-name-en"
                       }
                     }
                   ]
                 }
               ]
+            },
+            {
+              "id": "affiliation-name-ja",
+              "title": "所属機関名(日本語)|Affiliation (Japanese)",
+              "type": "string",
+              "format": "text",
+              "required": false,
+              "space_normalization": true
+            },
+            {
+              "id": "affiliation-name-en",
+              "title": "所属機関名(英語)|Affiliation (English)",
+              "type": "string",
+              "format": "text",
+              "required": false,
+              "space_normalization": true
             }
           ]
         },
