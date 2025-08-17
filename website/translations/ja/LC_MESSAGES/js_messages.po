@@ -278,6 +278,14 @@ msgstr "データはありません"
 msgid "Add"
 msgstr "追加"
 
+#: addons/metadata/static/metadata-fields.js:892
+msgid "Move up"
+msgstr "上へ移動"
+
+#: addons/metadata/static/metadata-fields.js:899
+msgid "Move down"
+msgstr "下へ移動"
+
 #: addons/metadata/static/metadata-fields.js:916
 msgid "Please enter the correct value. "
 msgstr "正しい値を入力してください。 "

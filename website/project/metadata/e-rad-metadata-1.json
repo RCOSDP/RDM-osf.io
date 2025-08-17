@@ -1259,6 +1259,32 @@
           }
         },
         {
+          "qid": "grdm-file:version",
+          "nav": "版情報",
+          "title": "版情報|Version Information",
+          "type": "choose",
+          "format": "singleselect",
+          "help": "このファイルが以下のいずれに該当するかを選択:\n出版社版: 早期公開を含む出版社の最終版。\n著者最終稿: 査読を経て出版雑誌に受理された原稿。内容とレイアウトは出版社の投稿様式に沿ったもの。\nプレプリント: 著者が査読に提出した原稿。|Select which of the following this file corresponds to:\nVersion of Record: Publisher's final version, including early release.\nAccepted Manuscript: Manuscript accepted for publication after peer review. Content and layout follow the publisher's submission format.\nAuthor's Original: Manuscript submitted by the author for peer review.",
+          "options": [
+            {
+              "text": "VoR",
+              "tooltip": "出版社版|Version of Record"
+            },
+            {
+              "text": "AM",
+              "tooltip": "著者最終稿|Accepted Manuscript"
+            },
+            {
+              "text": "AO",
+              "tooltip": "プレプリント|Author's Original"
+            }
+          ],
+          "required": true,
+          "enabled_if": {
+            "grdm-file:file-type": "manuscript"
+          }
+        },
+        {
           "qid": "grdm-file:repo-url-doi-link",
           "nav": "リポジトリURL・DOIリンク",
           "title": "リポジトリURL・DOIリンク|Repository URL/ DOI link",

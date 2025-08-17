@@ -223,7 +223,7 @@ def remove_schemas(*args):
 def create_schema_block(state, schema_id, block_type, display_text='', required=False, help_text='',
         registration_response_key=None, schema_block_group_key='', example_text='',
         default=False, pattern=None, space_normalization=False, required_if=None,
-        message_required_if=None, enabled_if=None, suggestion=None, auto_value=False, auto_date=False, auto_title=False, hide_projectmetadata=False, retrieval_title='', retrieval_date='', concealment_page_navigator=False, multi_language=False, retrieval_version='', readonly=False, sentence=False, required_all_check=None, row_addition_caption=''):
+        message_required_if=None, enabled_if=None, suggestion=None, display_template=None, auto_value=False, auto_date=False, auto_title=False, hide_projectmetadata=False, retrieval_title='', retrieval_date='', concealment_page_navigator=False, multi_language=False, retrieval_version='', readonly=False, sentence=False, required_all_check=None, row_addition_caption=''):
     """
     For mapping schemas to schema blocks: creates a given block from the specified parameters
     """
@@ -265,6 +265,7 @@ def create_schema_block(state, schema_id, block_type, display_text='', required=
         'message_required_if': message_required_if,
         'enabled_if': enabled_if,
         'suggestion': suggestion,
+        'display_template': display_template,
         'auto_value': auto_value,
         'auto_date': auto_date,
         'auto_title': auto_title,
@@ -416,6 +417,7 @@ def create_schema_blocks_for_question(state, rs, question, sub=False):
                     message_required_if=question.get('message_required_if', None),
                     enabled_if=question.get('enabled_if', None),
                     suggestion=question.get('suggestion', None),
+                    display_template=question.get('display_template', None),
                     row_addition_caption=question.get('row_addition_caption', ''),
                 )
             else:
@@ -433,6 +435,7 @@ def create_schema_blocks_for_question(state, rs, question, sub=False):
                     message_required_if=question.get('message_required_if', None),
                     enabled_if=question.get('enabled_if', None),
                     suggestion=question.get('suggestion', None),
+                    display_template=question.get('display_template', None),
                 )
         else:
             # the first subquestion has no text, so the "section" heading is better interpreted as a question label
@@ -488,6 +491,7 @@ def create_schema_blocks_for_question(state, rs, question, sub=False):
             message_required_if=question.get('message_required_if', None),
             enabled_if=question.get('enabled_if', None),
             suggestion=question.get('suggestion', None),
+            display_template=question.get('display_template', None),
             auto_value=question.get('auto_value', False),
             auto_date=question.get('auto_date', False),
             auto_title=question.get('auto_title', False),
