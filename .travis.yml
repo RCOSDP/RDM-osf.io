@@ -124,6 +124,10 @@ before_install:
               break
           fi
       done
+    # 54677 test
+    - |
+      echo "[nodeenv]" > ~/.nodeenvrc
+      echo "node = 8.17.0" >> ~/.nodeenvrc
 
 
 install:
