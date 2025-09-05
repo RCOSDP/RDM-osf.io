@@ -1091,55 +1091,22 @@ class TestExportAndImport(OsfTestCase):
                 'agent': {'@id': '#creator0'},
                 'name': 'metadata_file_added',
             },
-        )
-        assert_true(
-            'startTime' in _find_entity_by_id(json_entities, '#action#0')
-        )
-        assert_equals(
-            remove_fields(
-                _find_entity_by_id(json_entities, '#action#1'),
-                fields=['startTime'],
-            ),
-            {
-                '@id': '#action#1',
-                '@type': 'Action',
-                'agent': {'@id': '#creator0'},
-                'name': 'metadata_file_added',
+            'name': 'metadata_file_added',
+        })
+        assert_true('startTime' in _find_entity_by_id(json_entities, '#action#1'))
+        # GRDM-54077: metadata addon is enabled by default, no addon_added event
+        assert_equals(remove_fields(
+            _find_entity_by_id(json_entities, '#action#2'),
+            fields=['startTime'],
+        ), {
+            '@id': '#action#2',
+            '@type': 'Action',
+            'agent': {
+                '@id': '#creator0'
             },
-        )
-        assert_true(
-            'startTime' in _find_entity_by_id(json_entities, '#action#1')
-        )
-        assert_equals(
-            remove_fields(
-                _find_entity_by_id(json_entities, '#action#2'),
-                fields=['startTime'],
-            ),
-            {
-                '@id': '#action#2',
-                '@type': 'Action',
-                'agent': {'@id': '#creator0'},
-                'name': 'addon_added',
-            },
-        )
-        assert_true(
-            'startTime' in _find_entity_by_id(json_entities, '#action#2')
-        )
-        assert_equals(
-            remove_fields(
-                _find_entity_by_id(json_entities, '#action#3'),
-                fields=['startTime'],
-            ),
-            {
-                '@id': '#action#3',
-                '@type': 'Action',
-                'agent': {'@id': '#creator0'},
-                'name': 'project_created',
-            },
-        )
-        assert_true(
-            'startTime' in _find_entity_by_id(json_entities, '#action#3')
-        )
+            'name': 'project_created',
+        })
+        assert_true('startTime' in _find_entity_by_id(json_entities, '#action#2'))
 
     # TC-A-2023-7-004
     def test_wiki_only(self):
