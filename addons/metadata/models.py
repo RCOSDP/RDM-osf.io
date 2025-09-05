@@ -336,6 +336,8 @@ class NodeSettings(BaseNodeSettings):
             dest = payload['metadata']
         else:
             return
+        if 'nid' not in src or 'nid' not in dest:
+            return
         if src['nid'] == dest['nid']:
             source_addon = self
         else:
@@ -970,6 +972,12 @@ def update_metadata_asset_pool_when_file_changed(
 def sync_all_metadata_set_pool_when_enabled(
     sender, instance, created, **kwargs
 ):
+    # Skip in test environment where tasks run synchronously
+    # and WaterButler is not available
+    if celery_app.conf.task_always_eager:
+        logger.debug('Skipping metadata sync in test environment')
+        return
+
     node = instance.owner
     if node is None:
         return
