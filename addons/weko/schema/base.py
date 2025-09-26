@@ -257,8 +257,11 @@ def _has_serializable_attr(object, k):
         return False
 
 def get_sources_for_key(
-    user, target_index, file_metadatas, download_file_names, project_metadatas, schema, key,
+    user, target_index, file_metadata_or_list, download_file_names, project_metadatas, schema, key,
 ):
+    # For formats supporting multiple items per payload (e.g., RO-Crate), file_metadata_or_list is a single dict.
+    # For formats requiring one item per payload (e.g., CSV), file_metadata_or_list is a list.
+    file_metadatas = file_metadata_or_list if isinstance(file_metadata_or_list, list) else [file_metadata_or_list]
     common_file_metadata_datas = sum([
         [item['data'] for item in file_metadata['items'] if item['schema'] == schema._id]
         for file_metadata in file_metadatas
@@ -279,10 +282,14 @@ def get_sources_for_key(
         skip_empty=True,
     )
     if key == '@files':
-        if len(file_metadatas) != len(download_file_names):
-            raise ValueError(f'File metadata count mismatch: {len(file_metadatas)} != {len(download_file_names)}')
+        if isinstance(file_metadata_or_list, list):
+            file_metadatas_for_files = file_metadata_or_list
+        else:
+            file_metadatas_for_files = [file_metadata_or_list] * len(download_file_names)
+        if len(file_metadatas_for_files) != len(download_file_names):
+            raise ValueError(f'File metadata count mismatch: {len(file_metadatas_for_files)} != {len(download_file_names)}')
         r = []
-        for file_metadata, (download_file_name, download_file_type) in zip(file_metadatas, download_file_names):
+        for file_metadata, (download_file_name, download_file_type) in zip(file_metadatas_for_files, download_file_names):
             file_metadata_items = [item for item in file_metadata['items'] if item['schema'] == schema._id]
             if len(file_metadata_items) == 0:
                 raise ValueError(f'Schema not found: {file_metadata}, {schema._id}')

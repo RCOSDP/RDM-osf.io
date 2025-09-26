@@ -1,276 +1,205 @@
-# WEKO SWORD プロトコル デポジット仕様書
+# WEKO SWORD Protocol Specification
 
-## 概要
+## Overview
 
-WEKOアドオンは、OSFからWEKOリポジトリへのメタデータとファイルのデポジットのためにSWORD（Simple Web-service Offering Repository Deposit）プロトコルを実装しています。この仕様では、CSVとRO-Crateの2つのメタデータ形式をサポートし、BagIt標準を使用してパッケージ化されます。
+The WEKO addon implements the SWORD (Simple Web-service Offering Repository Deposit) protocol for depositing metadata and files from OSF to WEKO repositories. It supports two metadata formats (CSV and RO-Crate) packaged using the BagIt standard.
 
-## SWORD プロトコル実装
+## SWORD Protocol Implementation
 
-### サービスエンドポイント
-- **エンドポイント**: `sword/service-document`
-- **メソッド**: POST
-- **認証**: OAuth2 Bearerトークンまたは基本認証
+### Service Endpoint
+- **Endpoint**: `sword/service-document`
+- **Method**: POST
+- **Authentication**: OAuth2 Bearer token or Basic authentication
 
-### パッケージ形式
+### Package Formats
 - **SimpleZip**: `http://purl.org/net/sword/3.0/package/SimpleZip`
 - **SWORDBagIt**: `http://purl.org/net/sword/3.0/package/SWORDBagIt`
 
-## メタデータマッピング管理オブジェクト
+## Metadata Format Support
 
-### 1. 基本構造
+### CSV Format
+- **Mapping File**: `addons/weko/mappings/e-rad-metadata-mappings-csv.json`
+- **Output**: `index.csv` (WEKO item type 30002 format)
+- Maps OSF metadata to WEKO's tabular format
 
-マッピング設定ファイルは以下の3つのセクションで構成されます：
+### RO-Crate Format
+- **Mapping File**: `addons/weko/mappings/e-rad-metadata-mappings-ro-crate.json`
+- **Output**: `ro-crate-metadata.json` (JSON-LD, JPCOAR 2.0 compliant)
+- Supports rich semantic metadata with conditional field mapping
 
+## RO-Crate: Manuscript/Dataset Conditional Mapping
+
+The RO-Crate mapping uses `grdm-file:file-type` to output different metadata fields for manuscripts vs. datasets.
+
+### Conditional Syntax
+```json
+"@createIf": "{% if grdm_file_file_type_value == \"manuscript\" %}{{value}}{% endif %}"  // Manuscript-only
+"@createIf": "{% if grdm_file_file_type_value != \"manuscript\" %}{{value}}{% endif %}" // Dataset-only
+```
+
+### Manuscript-Only Fields (JPCOAR 2.0)
+
+When `grdm-file:file-type` = `"manuscript"`:
+
+| Source Field | JPCOAR Output | Description |
+|--------------|---------------|-------------|
+| `grdm-file:doi` | `jpcoar:relation[]` (relationType: `isVersionOf`) | Published article DOI |
+| `grdm-file:manuscript-type` | `dc:type` | Manuscript type |
+| `grdm-file:authors` | `jpcoar:creator[]` (with familyName/givenName) | Author details (split name fields) |
+| `grdm-file:journal-name-ja/en` | `jpcoar:sourceTitle[]` | Journal name (bilingual) |
+| `grdm-file:date-published` | `datacite:date[ISSUED]` | Publication date |
+| `grdm-file:volume` | `jpcoar:volume` (PropertyValue) | Volume number |
+| `grdm-file:issue` | `jpcoar:issue` (PropertyValue) | Issue number |
+| `grdm-file:page-start/end` | `jpcoar:pageStart/pageEnd` (PropertyValue) | Page range |
+| `grdm-file:version`, `grdm-file:reviewed` | `oaire:version` (PropertyValue) | Manuscript version (AM/VoR/AO) with COAR URI and peer review status |
+| `grdm-file:dataset-link` | `jpcoar:relation[]` (relationType: `isSupplementedBy`) | Related dataset DOI |
+
+**Note**: Volume, issue, and page fields use PropertyValue format to comply with WEKO's item schema validation.
+
+### Dataset-Only Fields
+
+When `grdm-file:file-type` ≠ `"manuscript"`:
+
+- `grdm-file:data-number`, `data-description-ja/en`, `data-research-field`, `data-type`
+- `grdm-file:access-rights`, `data-policy-*`, `available-date`
+- `grdm-file:creators` (simple format), `hosting-inst-*`, `data-man-*`
+- `grdm-file:publication-link` (`jpcoar:relation[]`, relationType: `isSupplementTo`)
+
+### Common Fields
+
+Both manuscript and dataset include:
+- `grdm-file:title-ja/en` → `dc:title`
+- Project funding information → `jpcoar:fundingReference`
+- User feedback → `wk:feedbackMail`
+
+## RO-Crate: Item Relationships (wk:itemLinks)
+
+When multiple items with different `grdm-file:file-type` values are present, the system automatically generates bidirectional relationship links between manuscripts and datasets.
+
+### Link Generation
+
+**Manuscripts** (`file-type: manuscript`):
+- Creates `wk:itemLinks` with `isSupplementedBy` relation to each dataset item
+- Links reference internal RO-Crate item IDs (e.g., `#dataset-2`)
+
+**Datasets** (`file-type: dataset` or other):
+- Creates `wk:itemLinks` with `isSupplementTo` relation to each manuscript item
+- Links reference internal RO-Crate item IDs (e.g., `#dataset-1`)
+
+### Structure
+
+Each link is represented as a PropertyValue entity:
 ```json
 {
-  "@metadata": {
-    "itemtype": {
-      "name": "デフォルトアイテムタイプ（フル）(30002)",
-      "schema": "https://localhost:8443/items/jsonschema/30002"
-    },
-    "filename": "index.csv"
-  },
-  "@files": { ... },
-  "@projects": { ... }
+  "@id": "_:itemLink1",
+  "@type": "PropertyValue",
+  "value": "isSupplementedBy",
+  "identifier": "#dataset-2"
 }
 ```
 
-### 2. @metadataセクション
-
-WEKOアイテムタイプとスキーマの定義を管理します。
-
-#### 構造
+Items reference these links via `wk:itemLinks`:
 ```json
-"@metadata": {
-  "itemtype": {
-    "name": "デフォルトアイテムタイプ（フル）(30002)",
-    "schema": "https://localhost:8443/items/jsonschema/30002"
-  },
-  "filename": "index.csv"  // CSV形式の場合のみ
-}
+"wk:itemLinks": [
+  {"@id": "_:itemLink1"}
+]
 ```
 
-#### 技術詳細
-- **itemtype.name**: WEKOのアイテムタイプ名称
-- **itemtype.schema**: JSONスキーマのURL
-- **filename**: CSVエクスポート時のファイル名（オプション）
+**Note**: These links represent internal RO-Crate relationships, distinct from external DOI-based `jpcoar:relation` references. Link generation only occurs when multiple items are split into separate entities (`wk:isSplited: true`).
 
-### 3. @filesセクション
+## Updating Mappings
 
-ファイル固有のメタデータマッピングを管理します。
+**Important**: After modifying mapping files (`addons/weko/mappings/*.json`), you must register them to the database:
 
-#### 主要機能
-- **動的アクセス権限マッピング**: `object_grdm_file_access_rights`に基づく
-- **条件付き日付埋め込み**: エンバーゴ付きコンテンツ用
-- **テンプレート変数**: `{{object_filename}}`、`{{object_format}}`
-- **アクセスロールマッピング**: `open_access`、`open_login`、`open_date`、`open_no`
-
-#### 例：アクセス権限マッピング
-```json
-"metadata.item_30002_file_access_right7[]": {
-  "@type": "string",
-  "@value": "{% if object_grdm_file_access_rights == \"open access\" %}open_access{% elif object_grdm_file_access_rights == \"restricted access\" %}open_login{% elif object_grdm_file_access_rights == \"embargoed access\" %}open_date{% else %}open_no{% endif %}"
-}
+```bash
+docker compose run --rm web \
+  python3 -m scripts.register_metadata_mapping \
+  "公的資金による研究データのメタデータ登録" \
+  addons/weko/mappings/e-rad-metadata-mappings-ro-crate.json
 ```
 
-### 4. @projectsセクション
+Without this step, updates will not be reflected in generated payloads. After registration, generate a test payload using the script below to verify the output.
 
-OSFプロジェクトの資金情報をWEKOの資金参照フィールドにマッピングします。
+## Testing Utilities
 
-#### 主要マッピング
-- **e-Rad資金機関識別子と名称**（二言語対応）
-- **Japan Grant Numbers (JGN)**
-- **資金ストリーム情報**
-- **助成タイトルと番号**
-- **プロジェクト名**（日本語・英語）
+### Payload Generation Script
 
-#### 例：資金機関マッピング
-```json
-"metadata.item_30002_fundref_funder_identifier12[FUNDER_IDENTIFIER]": {
-  "@type": "string",
-  "@value": "{{japan_grant_number_funder_identifier_value}}"
-},
-"metadata.item_30002_fundref_funder_name_ja13[FUNDER_NAME_JA]": {
-  "@type": "string",
-  "@value": "{{japan_grant_number_funder_name_ja_value}}"
-}
-```
+Test metadata mappings locally using `addons/weko/scripts/export_sword_payload.py`:
 
-### 5. フィールドマッピングメカニズム
-
-#### テンプレートシステム
-- **Jinja2テンプレート**: カスタムフィルター付き
-- **変数補間**: `{{value}}`、`{{grdm_file_data_research_field_value}}`
-- **条件レンダリング**: `{% if condition %}...{% endif %}`
-- **カスタムフィルター**: `has_license_def_for_jpcoar2`、`to_normalized_ja_license_name_for_jpcoar2`
-
-#### 条件付き作成
-```json
-"@createIf": "{% if object_grdm_file_access_rights == \"embargoed access\" %}{{object_grdm_file_available_date}}{% endif %}"
-```
-
-#### 配列インデックスシステム
-- **動的配列インデックス**: `[RESEARCH_FIELD_JA]`、`[FUNDER_NAME_EN]`
-- **番号付きインデックス**: `[0]`、`[1]`
-- **名前付きインデックス**: `[CREATOR_NAME]`、`[DESCRIPTION_JA]`
-
-### 6. 利用可能なマッピング設定
-
-#### 1. E-Rad標準マッピング (`e-rad-metadata-mappings.json`)
-```json
-{
-  "@metadata": {
-    "itemtype": {
-      "name": "デフォルトアイテムタイプ（フル）(30002)",
-      "schema": "https://localhost:8443/items/jsonschema/30002"
-    }
-  }
-}
-```
-
-#### 2. E-Rad CSVマッピング (`e-rad-metadata-mappings-csv.json`)
-```json
-{
-  "@metadata": {
-    "filename": "index.csv",
-    "itemtype": {
-      "name": "デフォルトアイテムタイプ（フル）(30002)",
-      "schema": "https://localhost:8443/items/jsonschema/30002"
-    }
-  }
-}
-```
-
-#### 3. E-Rad RO-Crateマッピング (`e-rad-metadata-mappings-ro-crate.json`)
-```json
-{
-  "@metadata": {
-    "filename": "ro-crate-metadata.json",
-    "itemtype": {
-      "name": "RO-Crate Metadata",
-      "schema": "https://w3id.org/ro/crate/1.1"
-    }
-  }
-}
-```
-
-#### 4. MIBYODB RO-Crateマッピング (`ms2-mibyodb-metadata-mappings-ro-crate.json`)
-```json
-{
-  "@metadata": {
-    "filename": "ro-crate-metadata.json",
-    "itemtype": {
-      "name": "Medical/Biomedical RO-Crate",
-      "schema": "https://w3id.org/ro/crate/1.1"
-    }
-  }
-}
-```
-
-### 7. データ型システム
-
-#### 基本データ型
-```json
-"@type": "string"    // 文字列
-"@type": "array"     // 配列
-"@type": "object"    // オブジェクト
-```
-
-#### 複合構造
-```json
-"metadata.item_30002_creator2[]": {
-  "@type": "object",
-  "creator_name": {
-    "@type": "string",
-    "@value": "{{creator_name_value}}"
-  },
-  "creator_name_ja": {
-    "@type": "string", 
-    "@value": "{{creator_name_ja_value}}"
-  }
-}
-```
-
-### 8. 変数解決システム
-
-#### 基本変数
-- `{{value}}`: 基本値
-- `{{nowdate}}`: 現在日時
-- `{{object_filename}}`: ファイル名
-- `{{object_format}}`: ファイル形式
-
-#### スキーマ固有変数
-- `{{grdm_file_*_value}}`: GRDMファイルメタデータ
-- `{{japan_grant_number_value}}`: 科研費番号
-- `{{research_field_*_value}}`: 研究分野情報
-
-### 9. WEKOスキーマ統合
-
-#### フィールド命名規則
-```
-metadata.item_{type_id}_{field_name}{field_id}[]
-```
-
-#### 例
-```json
-"metadata.item_30002_title0[]": "タイトル",
-"metadata.item_30002_creator2[]": "作成者",
-"metadata.item_30002_description3[]": "説明"
-```
-
-#### 特殊マッピングキー
-- `_`: 静的メタデータ（公開日など）
-- `@agent`: ユーザー固有情報（フィードバックメール）
-- `null`: 未使用フィールド
-
-### 10. 多言語サポート
-
-#### 言語コード管理
-- **日本語**: `ja`
-- **英語**: `en`
-- **言語固有フィールド作成**
-- **条件付き言語選択ロジック**
-
-#### ライセンス管理
-- **定義済みライセンス**: `utils.py`内
-- **Creative Commons、MIT、Apache、GPL等の標準ライセンス**
-- **二言語ライセンス名とURL**
-- **カスタムライセンス処理**
-
-この高度なマッピングシステムにより、OSFの研究データ管理システムとWEKOのリポジトリ構造間での洗練された変換レイヤーが提供され、適切なメタデータ保存と発見可能性が確保されます。
-
-## 開発者向けユーティリティ
-
-e-Radマッピングや`ro_crate.py`の挙動をローカルで検証したい場合は、`addons/weko/scripts/export_sword_payload.py`を利用すると、実際のデポジット処理と同じ`_build_payload_zip`ルートを通って成果物を生成できます。
-
-```
+```bash
 docker compose run --rm web python3 -m addons.weko.scripts.export_sword_payload \
     /code/path/to/config.json \
     /code/path/to/output/payload.zip
 ```
 
-`web`コンテナを使うのは、`addons/metadata/suggestions/kaken/README.md` の開発手順と揃えるためです。
-モジュール形式（`-m`）で呼び出すので、追加の `PYTHONPATH` 指定は不要です。`--format {zip|ro-crate|csv}` を指定すれば、BagIt一式に加えて単独のRO-Crate JSONやCSVのみを出力することも可能です（デフォルトは`zip`）。
-RO-Crateをデバッグしやすいネスト構造で確認したい場合は、`--format=ro-crate --skip-flatten`を指定してください（RO-Crate出力のフラット化をスキップします）。
+**Options**:
+- `--format {zip|ro-crate|csv}`: Output format (default: `zip`)
+- `--skip-flatten`: Keep RO-Crate JSON nested (debug mode, use with `--format=ro-crate`)
+- `--skip-csv`: Skip CSV generation (recommended for manuscript testing to avoid field conflicts)
 
-設定ファイルは以下を含みます。
-
-```json
-{
-  "user": {
-    "username": "contact@example.org",
-    "fullname": "Demo User",
-    "institution": "Demo Institute"
-  },
-  "schema_name": "公的資金による研究データのメタデータ登録",
-  "node_id": "<node id>",
-  "index": {"id": "1000", "title": "Demo Index"},
-  "files": [{"path": "./data.csv", "name": "data.csv", "type": "text/csv"}],
-  "file_metadatas": [...],
-  "project_metadatas": [...],
-  "additional_files": []
-}
+**Manuscript Testing Example**:
+```bash
+docker compose run --rm web python3 -m addons.weko.scripts.export_sword_payload \
+    addons/weko/scripts/example-manuscript-metadata.json \
+    /code/manuscript-payload.zip \
+    --format zip \
+    --skip-csv
 ```
 
-`file_metadatas`の`items[].schema`は、指定した`schema_name`に対応する最新バージョンの`RegistrationSchema` `_id`と一致している必要があります。簡単なテンプレートとして `addons/weko/scripts/example-metadata.json` を用意してあるので、GUID等を書き換えて利用してください。生成された成果物はWEKOへの実デポジットで利用される変換結果と同じ構成です。
-サンプルデータファイル（`addons/weko/scripts/example-data.txt`）も配置してあるので、そのまま試す場合はテンプレートを指定し、必要に応じて `--format` や `--skip-flatten` を切り替えてください（`--skip-flatten`は`--format=ro-crate`時のみ使用可能）。`config`や`output`に`-`を渡すと、それぞれ標準入力／標準出力を利用できます。
+### Database Export Mode
+
+Export SWORD payload directly from the database using the `--project` option:
+
+```bash
+docker compose run --rm web python3 -m addons.weko.scripts.export_sword_payload \
+    /code/output.zip \
+    --project <node_id> \
+    --file-metadata <provider>/<path> \
+    --file-metadata <provider>/<path> \
+    --project-metadata draft-registration/<draft_id> \
+    --format zip \
+    --skip-csv
+```
+
+**Required Parameters**:
+- `--project`: OSF project/node ID
+- `--file-metadata`: File path(s) in `<provider>/<path>` format (can be specified multiple times)
+- `--project-metadata`: Draft registration ID in `draft-registration/<id>` or `registration/<id>` format
+
+**Example**:
+```bash
+docker compose run --rm web python3 -m addons.weko.scripts.export_sword_payload \
+    /code/test-export.zip \
+    --project rekxj \
+    --file-metadata osfstorage/dataset.zip \
+    --file-metadata osfstorage/journal_paper.pdf \
+    --project-metadata draft-registration/68f16b2eb9d46d002db720d8 \
+    --format zip \
+    --skip-csv
+```
+
+**Important Notes**:
+- Files are downloaded from WaterButler before payload generation
+- Use `--skip-csv` when exporting manuscripts + datasets together (CSV format cannot merge different file types)
+- File metadata is loaded from the database using the specified file paths
+
+### Configuration Format (JSON Mode)
+
+See sample files for structure details:
+- `addons/weko/scripts/example-metadata.json` (dataset template)
+- `addons/weko/scripts/example-manuscript-metadata.json` (manuscript + dataset template)
+
+Configuration requires:
+- `user`: username, fullname, institution
+- `schema_name`: "公的資金による研究データのメタデータ登録"
+- `node_id`, `index`, `files`, `file_metadatas`, `project_metadatas`
+
+The `file_metadatas[].items[].schema` field must match the latest `RegistrationSchema` `_id` for the specified `schema_name`.
+
+## Sample Files
+
+- **`example-metadata.json`**: Dataset template
+- **`example-manuscript-metadata.json`**: Manuscript template (1 manuscript + 2 datasets)
+- **`example-data.txt`, `sample-manuscript.pdf`, `sample-supporting-data*.csv`**: Test data files
+
+Generated artifacts use the same transformation process as actual SWORD deposits.

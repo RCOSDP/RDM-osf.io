@@ -68,7 +68,7 @@
               "value": "free"
             },
             "grdm-file:data-policy-license": {
-              "value": "CC-BY-4.0"
+              "value": "CCBY"
             },
             "grdm-file:data-policy-cite-ja": {
               "value": "引用時は著者名を明記"
@@ -80,7 +80,7 @@
               "value": "open access"
             },
             "grdm-file:available-date": {
-              "value": ""
+              "value": "2025-07-14"
             },
             "grdm-file:repo-information-ja": {
               "value": "サンプルリポジトリ"
@@ -92,6 +92,64 @@
               "value": {
                 "absolute_url": "http://example.com/manuscript"
               }
+            },
+            "grdm-file:doi": {
+              "value": "10.1234/example.manuscript.2025"
+            },
+            "grdm-file:manuscript-type": {
+              "value": "journal article"
+            },
+            "grdm-file:authors": {
+              "value": [
+                {
+                  "number": "MANU001",
+                  "name-ja-last": "論文",
+                  "name-ja-middle": "",
+                  "name-ja-first": "太郎",
+                  "name-en-last": "Manuscript",
+                  "name-en-middle": "",
+                  "name-en-first": "Taro"
+                },
+                {
+                  "number": "MANU002",
+                  "name-ja-last": "山田",
+                  "name-ja-middle": "",
+                  "name-ja-first": "花子",
+                  "name-en-last": "Yamada",
+                  "name-en-middle": "",
+                  "name-en-first": "Hanako"
+                }
+              ]
+            },
+            "grdm-file:journal-name-ja": {
+              "value": "サンプル学術誌"
+            },
+            "grdm-file:journal-name-en": {
+              "value": "Sample Academic Journal"
+            },
+            "grdm-file:date-published": {
+              "value": "2025-06-15"
+            },
+            "grdm-file:volume": {
+              "value": "15"
+            },
+            "grdm-file:issue": {
+              "value": "3"
+            },
+            "grdm-file:page-start": {
+              "value": "123"
+            },
+            "grdm-file:page-end": {
+              "value": "145"
+            },
+            "grdm-file:reviewed": {
+              "value": "yes"
+            },
+            "grdm-file:version": {
+              "value": "AM"
+            },
+            "grdm-file:dataset-link": {
+              "value": "10.1234/example.dataset.2025"
             },
             "grdm-file:creators": {
               "value": [
@@ -205,7 +263,7 @@
               "value": "open access"
             },
             "grdm-file:available-date": {
-              "value": ""
+              "value": "2025-07-14"
             },
             "grdm-file:repo-information-ja": {
               "value": "サンプルリポジトリ"
@@ -218,12 +276,15 @@
                 "absolute_url": "http://example.com/supporting-data"
               }
             },
+            "grdm-file:publication-link": {
+              "value": "10.1234/example.manuscript.2025"
+            },
             "grdm-file:creators": {
               "value": [
                 {
-                  "number": "MANU001",
-                  "name-ja": "論文 太郎",
-                  "name-en": "Taro Manuscript"
+                  "number": "DATA001",
+                  "name-ja": "データ 太郎",
+                  "name-en": "Taro Data"
                 }
               ]
             },
@@ -330,7 +391,7 @@
               "value": "open access"
             },
             "grdm-file:available-date": {
-              "value": ""
+              "value": "2025-07-14"
             },
             "grdm-file:repo-information-ja": {
               "value": "サンプルリポジトリ"
@@ -342,6 +403,9 @@
               "value": {
                 "absolute_url": "http://example.com/supporting-data"
               }
+            },
+            "grdm-file:publication-link": {
+              "value": "10.1234/example.manuscript.2025"
             },
             "grdm-file:creators": {
               "value": [

@@ -45,24 +45,42 @@ class ROCrateFactory(BaseROCrateFactory):
         return crate, files
 
 
-def _download(node, file, tmp_dir, total_size):
+def _download_file(node, file, tmp_dir, total_size, relative_path=''):
+    _check_file_size(total_size + int(file.size))
+    download_file_name = os.path.join(relative_path, file.name) if relative_path else file.name
+    download_file_path = os.path.join(tmp_dir, download_file_name)
+    os.makedirs(os.path.dirname(download_file_path), exist_ok=True)
+    with open(download_file_path, 'wb') as f:
+        file.download_to(f)
+    if ROCRATE_FILENAME_PATTERN.match(file.name):
+        mtype = ROCRATE_PROJECT_MIME_TYPE
+    else:
+        mtype, _ = mimetypes.guess_type(download_file_path)
+    filesize = os.path.getsize(download_file_path)
+    if filesize != int(file.size):
+        raise IOError(f'File size mismatch: {filesize} != {file.size}')
+    return download_file_path, mtype
+
+def _download(node, file, tmp_dir, total_size, relative_path=''):
     if file.kind == 'file':
-        _check_file_size(total_size + int(file.size))
-        download_file_path = os.path.join(tmp_dir, file.name)
-        with open(os.path.join(download_file_path), 'wb') as f:
-            file.download_to(f)
-        if ROCRATE_FILENAME_PATTERN.match(file.name):
-            mtype = ROCRATE_PROJECT_MIME_TYPE
+        download_file_path, mtype = _download_file(node, file, tmp_dir, total_size, relative_path)
+        return [(download_file_path, mtype)]
+
+    files = file.get_files()
+    downloaded = []
+    current_size = total_size
+    for child_file in files:
+        if child_file.kind == 'folder':
+            child_relative_path = os.path.join(relative_path, child_file.name) if relative_path else child_file.name
+            subdir_files = _download(node, child_file, tmp_dir, current_size, child_relative_path)
+            for child_path, child_type in subdir_files:
+                current_size += os.path.getsize(child_path)
+            downloaded.extend(subdir_files)
         else:
-            mtype, _ = mimetypes.guess_type(download_file_path)
-        filesize = os.path.getsize(download_file_path)
-        if filesize != int(file.size):
-            raise IOError(f'File size mismatch: {filesize} != {file.size}')
-        return download_file_path, mtype
-    rocrate = ROCrateFactory(node, tmp_dir, file)
-    download_file_path = os.path.join(tmp_dir, 'rocrate.zip')
-    rocrate.download_to(download_file_path)
-    return download_file_path, ROCRATE_DATASET_MIME_TYPE
+            child_path, child_type = _download_file(node, child_file, tmp_dir, current_size, relative_path)
+            current_size += os.path.getsize(child_path)
+            downloaded.append((child_path, child_type))
+    return downloaded
 
 def _check_file_size(total_size):
     if total_size <= settings.MAX_UPLOAD_SIZE:
@@ -96,6 +114,7 @@ def _build_payload_zip(
     tmp_dir,
     node_id,
     flatten_ro_crate=True,
+    skip_csv_generation=False,
 ):
 
     from .models import RegistrationMetadataMapping
@@ -110,28 +129,31 @@ def _build_payload_zip(
         bagit_metadata['Source-Organization'] = user.affiliated_institutions.first().name
     bag = bagit.make_bag(bagit_dir, bagit_metadata)
 
-    staged_files = download_file_names + additional_download_file_names
+    all_files_from_metadata = [file for files in download_file_names for file in files]
+    staged_files = all_files_from_metadata + additional_download_file_names
 
     for download_file_name, _ in staged_files:
-        file_in_bagit_path = os.path.join(bagit_dir, 'data', 'files', download_file_name)
+        file_in_bagit_path = os.path.join(bagit_dir, 'data', download_file_name)
         os.makedirs(os.path.dirname(file_in_bagit_path), exist_ok=True)
         shutil.copyfile(os.path.join(tmp_dir, download_file_name), file_in_bagit_path)
 
-    mapping_def_csv = RegistrationMetadataMapping.objects.filter(
-        registration_schema_id=schema_id,
-        filename__in=['index.csv', None],
-    ).first()
-    if mapping_def_csv is not None:
-        with open(os.path.join(bagit_dir, 'data', 'index.csv'), 'w', encoding='utf8') as f:
-            schema.write_csv(
-                user,
-                f,
-                target_index,
-                download_file_names,
-                schema_id,
-                file_metadatas,
-                project_metadatas,
-            )
+    mapping_def_csv = None
+    if not skip_csv_generation:
+        mapping_def_csv = RegistrationMetadataMapping.objects.filter(
+            registration_schema_id=schema_id,
+            filename__in=['index.csv', None],
+        ).first()
+        if mapping_def_csv is not None:
+            with open(os.path.join(bagit_dir, 'data', 'index.csv'), 'w', encoding='utf8') as f:
+                schema.write_csv(
+                    user,
+                    f,
+                    target_index,
+                    download_file_names,
+                    schema_id,
+                    file_metadatas,
+                    project_metadatas,
+                )
 
     mapping_def_ro_crate_json = RegistrationMetadataMapping.objects.filter(
         registration_schema_id=schema_id,
@@ -201,16 +223,19 @@ def _deposit_metadata(
                 })
             materialized_path = path[path.index('/'):]
             file = wb.get_file_by_materialized_path(path)
-            logger.debug(f'File: {file}, size={file.size}')
+            logger.debug(f'File: {file}, size={file.size if file.kind == "file" else "folder"}')
             if file is None:
                 raise KeyError(f'File not found: {materialized_path}')
-            download_file_path, download_file_type = _download(node, file, tmp_dir, total_size)
-            filesize = os.path.getsize(download_file_path)
-            total_size += filesize
-            _, download_file_name = os.path.split(download_file_path)
-            download_file_names.append((download_file_name, download_file_type))
+            downloaded_files = _download(node, file, tmp_dir, total_size)
+            files_for_metadata = []
+            for download_file_path, download_file_type in downloaded_files:
+                filesize = os.path.getsize(download_file_path)
+                total_size += filesize
+                download_file_name = os.path.relpath(download_file_path, tmp_dir)
+                files_for_metadata.append((download_file_name, download_file_type))
+                logger.info(f'Downloaded: {download_file_path} {filesize}')
+            download_file_names.append(files_for_metadata)
             download_files.append(file)
-            logger.info(f'Downloaded: {download_file_path} {filesize}')
         if update_task_state:
             update_task_state(state='packaging', meta={
                 'progress': 50,
@@ -239,14 +264,15 @@ def _deposit_metadata(
                 })
             materialized_path = path[path.index('/'):]
             file = wb.get_file_by_materialized_path(path)
-            logger.debug(f'File: {file}, size={file.size}')
+            logger.debug(f'File: {file}, size={file.size if file.kind == "file" else "folder"}')
             if file is None:
                 raise KeyError(f'File not found: {materialized_path}')
-            download_file_path, download_file_type = _download(node, file, tmp_dir, ad_metadata_total_size)
-            filesize = os.path.getsize(download_file_path)
-            ad_metadata_total_size += filesize
-            _, download_file_name = os.path.split(download_file_path)
-            ad_metadata_download_file_names.append((download_file_name, download_file_type))
+            downloaded_files = _download(node, file, tmp_dir, ad_metadata_total_size)
+            for download_file_path, download_file_type in downloaded_files:
+                filesize = os.path.getsize(download_file_path)
+                ad_metadata_total_size += filesize
+                download_file_name = os.path.relpath(download_file_path, tmp_dir)
+                ad_metadata_download_file_names.append((download_file_name, download_file_type))
             ad_metadata_download_files.append(file)
         if update_task_state:
             update_task_state(state='packaging', meta={

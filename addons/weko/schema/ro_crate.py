@@ -422,12 +422,12 @@ def _collect_graph_entities(object):
     return graph
 
 
-def _build_hierarchical_object(user, target_index, file_metadatas, download_file_names, project_metadatas, schema, mappings, node_id):
+def _build_hierarchical_object(user, target_index, file_metadata, download_file_names, project_metadatas, schema, mappings, node_id):
     weko_key_counts = {}
     hierarchical_object = {}
     for key in sorted(mappings.keys()):
         for source, commonvars in get_sources_for_key(
-            user, target_index, file_metadatas, download_file_names, project_metadatas, schema, key
+            user, target_index, file_metadata, download_file_names, project_metadatas, schema, key
         ):
 
             if key not in mappings:
@@ -546,25 +546,20 @@ def _build_hierarchical_object(user, target_index, file_metadatas, download_file
     return hierarchical_object
 
 
-def _group_file_metadatas(file_metadatas, download_file_names, schema_id):
-    groups = []
-    index_map = {}
-    for metadata, download in zip(file_metadatas, download_file_names):
+def _prepare_file_metadata_entries(file_metadatas, download_file_names, schema_id):
+    entries = []
+    for metadata, downloads in zip(file_metadatas, download_file_names):
         items = [item for item in metadata['items'] if item['schema'] == schema_id]
         if len(items) == 0:
             raise ValueError(f'Schema not found: {metadata}, {schema_id}')
         key_data = items[0]['data']
-        normalized = json.dumps(key_data, sort_keys=True, ensure_ascii=False)
-        if normalized not in index_map:
-            index_map[normalized] = {
-                'file_metadatas': [],
-                'download_file_names': [],
-            }
-            groups.append(index_map[normalized])
-        group = index_map[normalized]
-        group['file_metadatas'].append(metadata)
-        group['download_file_names'].append(download)
-    return groups
+        file_type = key_data.get('grdm-file:file-type', {}).get('value', '')
+        entries.append({
+            'file_metadata': metadata,
+            'download_file_names': downloads,
+            'file_type': file_type,
+        })
+    return entries
 
 def write_ro_crate_json(user, f, target_index, download_file_names, schema_id, file_metadatas, project_metadatas, node_id, flatten=True):
     from ..models import RegistrationMetadataMapping
@@ -583,22 +578,22 @@ def write_ro_crate_json(user, f, target_index, download_file_names, schema_id, f
         logger.debug(f'Project metadata #{i}: {project_metadata}')
 
     mappings = expand_listed_key(mapping_def.rules)
-    grouped = _group_file_metadatas(file_metadatas, download_file_names, schema._id)
-    if not grouped:
+    entries = _prepare_file_metadata_entries(file_metadatas, download_file_names, schema._id)
+    if not entries:
         raise ValueError('No file metadata available to build RO-Crate dataset')
 
-    should_split = len(grouped) > 1
+    should_split = len(entries) > 1
 
     graph_entities = []
     counts = {}
     dataset_records = []
     ro_crate_metadata_entity = None
-    for index, group in enumerate(grouped):
-        group_object = _build_hierarchical_object(
+    for index, entry in enumerate(entries):
+        entry_object = _build_hierarchical_object(
             user,
             target_index,
-            group['file_metadatas'],
-            group['download_file_names'],
+            entry['file_metadata'],
+            entry['download_file_names'],
             project_metadatas,
             schema,
             mappings,
@@ -606,11 +601,11 @@ def write_ro_crate_json(user, f, target_index, download_file_names, schema_id, f
         )
 
         root_id = f'#dataset-{index + 1}' if should_split else './'
-        root = group_object.get('root')
+        root = entry_object.get('root')
         if root is not None:
             root['@id'] = root_id
 
-        ro_crate_metadata = group_object.pop('ro_crate_metadata', None)
+        ro_crate_metadata = entry_object.pop('ro_crate_metadata', None)
         if ro_crate_metadata is not None:
             if 'about' in ro_crate_metadata:
                 ro_crate_metadata['about']['@id'] = root_id
@@ -620,22 +615,22 @@ def write_ro_crate_json(user, f, target_index, download_file_names, schema_id, f
             else:
                 graph_entities.append(ro_crate_metadata)
 
-        files = group_object.get('file', [])
-        for (filename, _), entity in zip(group['download_file_names'], files):
-            entity['@id'] = f'files/{filename}'
+        files = entry_object.get('file', [])
+        for (filename, _), entity in zip(entry['download_file_names'], files):
+            entity['@id'] = f'data/{filename}'
 
         if flatten:
-            group_entities = _flatten_json_ld_root(group_object, counts=counts)
+            entry_entities = _flatten_json_ld_root(entry_object, counts=counts)
         else:
-            group_entities = _collect_graph_entities(group_object)
+            entry_entities = _collect_graph_entities(entry_object)
 
         file_ids = [
             entity.get('@id')
-            for entity in group_entities
+            for entity in entry_entities
             if entity.get('@type') == 'File'
         ]
         dataset_entity = next(
-            (entity for entity in group_entities if entity.get('@id') == root_id),
+            (entity for entity in entry_entities if entity.get('@id') == root_id),
             None,
         )
         assert dataset_entity is not None, f'Dataset entity not generated: {root_id}'
@@ -643,6 +638,7 @@ def write_ro_crate_json(user, f, target_index, download_file_names, schema_id, f
             'entity': dataset_entity,
             'files': file_ids,
             'root_id': root_id,
+            'file_type': entry['file_type'],
         })
 
         if should_split:
@@ -654,7 +650,7 @@ def write_ro_crate_json(user, f, target_index, download_file_names, schema_id, f
                 existing_parts = dataset_entity.get('hasPart', [])
                 dataset_entity['hasPart'] = existing_parts + [{'@id': file_id} for file_id in file_ids]
 
-        graph_entities.extend(group_entities)
+        graph_entities.extend(entry_entities)
 
     if should_split:
         for record in dataset_records:
@@ -688,6 +684,42 @@ def write_ro_crate_json(user, f, target_index, download_file_names, schema_id, f
             {'@id': record['entity']['@id']}
             for record in dataset_records
         ]
+
+        manuscripts = [r for r in dataset_records if r['file_type'] == 'manuscript']
+        datasets = [r for r in dataset_records if r['file_type'] != 'manuscript']
+
+        item_link_counter = 0
+        for manuscript in manuscripts:
+            links = []
+            for dataset in datasets:
+                item_link_counter += 1
+                link_id = f'_:itemLink{item_link_counter}'
+                link_entity = {
+                    '@id': link_id,
+                    '@type': 'PropertyValue',
+                    'value': 'isSupplementedBy',
+                    'identifier': dataset['root_id']
+                }
+                graph_entities.append(link_entity)
+                links.append({'@id': link_id})
+            if links:
+                manuscript['entity']['wk:itemLinks'] = links
+
+        for dataset in datasets:
+            links = []
+            for manuscript in manuscripts:
+                item_link_counter += 1
+                link_id = f'_:itemLink{item_link_counter}'
+                link_entity = {
+                    '@id': link_id,
+                    '@type': 'PropertyValue',
+                    'value': 'isSupplementTo',
+                    'identifier': manuscript['root_id']
+                }
+                graph_entities.append(link_entity)
+                links.append({'@id': link_id})
+            if links:
+                dataset['entity']['wk:itemLinks'] = links
 
         assert ro_crate_metadata_entity is not None, 'ro-crate-metadata.json entity not found'
         ro_crate_metadata_entity['about']['@id'] = './'
