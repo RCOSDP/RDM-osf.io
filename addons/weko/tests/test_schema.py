@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import copy
 import csv
 import io
 import json
@@ -756,6 +757,7 @@ class TestWEKOSchema(OsfTestCase):
       "name": "TEST DATA",
       "wk:index": "1000",
       "wk:publishStatus": "private",
+      "wk:isSplited": false,
       "rdm:accessRightsInformation": [
         {
           "@id": "_:rdm_AccessRights1"
@@ -802,13 +804,18 @@ class TestWEKOSchema(OsfTestCase):
       "dc:type": "experimental data",
       "rdm:name": {
         "@id": "_:Thing3"
-      }
+      },
+      "hasPart": [
+        {
+          "@id": "files/test.jpg"
+        }
+      ]
     },
     {
       "@type": "File",
       "encodingFormat": "image/jpeg",
       "name": "test.jpg",
-      "@id": "_:File1"
+      "@id": "files/test.jpg"
     },
     {
       "@type": "Organization",
@@ -1167,4 +1174,151 @@ class TestWEKOSchema(OsfTestCase):
         for item in actual_json['@graph']:
             item.pop('wk:feedbackMail', None)
             item.pop('datePublished', None)
-        assert_equal(actual_json, json.loads(expected))
+        expected_json = json.loads(expected)
+        actual_json['@graph'] = sorted(actual_json['@graph'], key=lambda entry: entry['@id'])
+        expected_json['@graph'] = sorted(expected_json['@graph'], key=lambda entry: entry['@id'])
+        assert_equal(actual_json, expected_json)
+
+    def test_write_ro_crate_json_grouped_supporting_files(self):
+        buf = io.StringIO()
+        index = mock.MagicMock()
+        index.identifier = '1000'
+        index.title = 'Demo Index'
+        node_id = 'sp3av'
+
+        target_schema = RegistrationSchema.objects \
+            .filter(name='公的資金による研究データのメタデータ登録') \
+            .order_by('-schema_version') \
+            .first()
+
+        with open('addons/weko/scripts/example-manuscript-metadata.json') as sample_file:
+            sample_payload = json.load(sample_file)
+
+        files = [(entry['name'], entry['type']) for entry in sample_payload['files']]
+
+        file_metadatas = copy.deepcopy(sample_payload['file_metadatas'])
+        for metadata in file_metadatas:
+            metadata['items'][0]['schema'] = target_schema._id
+
+        file_metadatas[0]['items'][0]['data']['grdm-file:data-type'] = {
+            'value': 'manuscript'
+        }
+
+        project_metadatas = copy.deepcopy(sample_payload['project_metadatas'])
+
+        schema.write_ro_crate_json(
+            self.user,
+            buf,
+            index,
+            files,
+            target_schema._id,
+            file_metadatas,
+            project_metadatas,
+            node_id
+        )
+
+        actual_json = json.loads(buf.getvalue())
+        graph = {item['@id']: item for item in actual_json['@graph'] if '@id' in item}
+
+        dataset_root = graph['./']
+        assert_true(dataset_root.get('wk:isSplited'))
+        assert_equal(dataset_root['@type'], 'Dataset')
+        assert_not_in('name', dataset_root)
+        assert_not_in('dc:type', dataset_root)
+
+        part_ids = [part['@id'] for part in dataset_root['hasPart']]
+        assert_equal(len(part_ids), 2)
+        assert_equal(sorted(part_ids), ['#dataset-1', '#dataset-2'])
+
+        items = [graph[part_id] for part_id in part_ids]
+        for item in items:
+            assert_true('@type' not in item)
+
+        dataset_primary = next(item for item in items if item.get('dc:type') == 'manuscript')
+        dataset_supporting = next(item for item in items if item.get('dc:type') == 'experimental data')
+
+        assert_equal(dataset_primary['dc:type'], 'manuscript')
+        assert_equal(dataset_supporting['dc:type'], 'experimental data')
+
+        assert_equal(
+            [part['@id'] for part in dataset_primary['hasPart']],
+            ['files/sample-manuscript.pdf']
+        )
+        assert_equal(
+            sorted(part['@id'] for part in dataset_supporting['hasPart']),
+            ['files/supporting-data-1.csv', 'files/supporting-data-2.csv']
+        )
+
+        assert_equal(dataset_primary['name'], 'MAIN ARTICLE')
+        assert_equal(dataset_primary['description'], 'Primary manuscript')
+        assert_equal(dataset_supporting['name'], 'SUPPORTING DATA')
+        assert_equal(dataset_supporting['description'], 'Supporting dataset')
+
+        def collect_lang_values(thing_ref):
+            thing = graph[thing_ref['@id']]
+            assert_equal(thing['@type'], 'Thing')
+            values = {}
+            for value_ref in thing['value']:
+                value_entity = graph[value_ref['@id']]
+                values[value_entity.get('language')] = value_entity['value']
+            return values
+
+        name_langs_primary = collect_lang_values(dataset_primary['rdm:name'])
+        assert_equal(name_langs_primary['en'], 'MAIN ARTICLE')
+        assert_equal(name_langs_primary['ja'], '主論文')
+
+        desc_langs_primary = collect_lang_values(dataset_primary['rdm:description'])
+        assert_equal(desc_langs_primary['en'], 'Primary manuscript')
+        assert_equal(desc_langs_primary['ja'], '論文本文です')
+
+        name_langs_support = collect_lang_values(dataset_supporting['rdm:name'])
+        assert_equal(name_langs_support['en'], 'SUPPORTING DATA')
+        assert_equal(name_langs_support['ja'], '根拠データ')
+
+        desc_langs_support = collect_lang_values(dataset_supporting['rdm:description'])
+        assert_equal(desc_langs_support['en'], 'Supporting dataset')
+        assert_equal(desc_langs_support['ja'], '論文に関連する根拠データ')
+
+        def assert_references(dataset, key):
+            assert_true(key in dataset)
+            references = dataset[key]
+            if isinstance(references, dict):
+                references = [references]
+            for reference in references:
+                if isinstance(reference, dict) and '@id' in reference:
+                    assert_in(reference['@id'], graph)
+
+        expected_reference_keys = [
+            'fundingReference',
+            'creator',
+            'contributor',
+            'rdm:licenseInformation',
+            'rdm:field',
+            'rdm:accessRightsInformation',
+            'license',
+        ]
+
+        for dataset in (dataset_primary, dataset_supporting):
+            for key in expected_reference_keys:
+                assert_references(dataset, key)
+
+        ro_crate_metadata = graph['ro-crate-metadata.json']
+        assert_equal(ro_crate_metadata['about']['@id'], './')
+
+        file_entities = {
+            entity['@id']: entity
+            for entity in actual_json['@graph']
+            if entity.get('@type') == 'File'
+        }
+
+        assert_equal(
+            set(file_entities.keys()),
+            {
+                'files/sample-manuscript.pdf',
+                'files/supporting-data-1.csv',
+                'files/supporting-data-2.csv',
+            }
+        )
+        assert_equal(file_entities['files/sample-manuscript.pdf']['encodingFormat'], 'application/pdf')
+        assert_equal(file_entities['files/supporting-data-1.csv']['encodingFormat'], 'text/csv')
+        assert_equal(file_entities['files/supporting-data-2.csv']['encodingFormat'], 'text/csv')

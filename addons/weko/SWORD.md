@@ -238,3 +238,39 @@ metadata.item_{type_id}_{field_name}{field_id}[]
 - **カスタムライセンス処理**
 
 この高度なマッピングシステムにより、OSFの研究データ管理システムとWEKOのリポジトリ構造間での洗練された変換レイヤーが提供され、適切なメタデータ保存と発見可能性が確保されます。
+
+## 開発者向けユーティリティ
+
+e-Radマッピングや`ro_crate.py`の挙動をローカルで検証したい場合は、`addons/weko/scripts/export_sword_payload.py`を利用すると、実際のデポジット処理と同じ`_build_payload_zip`ルートを通って成果物を生成できます。
+
+```
+docker compose run --rm web python3 -m addons.weko.scripts.export_sword_payload \
+    /code/path/to/config.json \
+    /code/path/to/output/payload.zip
+```
+
+`web`コンテナを使うのは、`addons/metadata/suggestions/kaken/README.md` の開発手順と揃えるためです。
+モジュール形式（`-m`）で呼び出すので、追加の `PYTHONPATH` 指定は不要です。`--format {zip|ro-crate|csv}` を指定すれば、BagIt一式に加えて単独のRO-Crate JSONやCSVのみを出力することも可能です（デフォルトは`zip`）。
+RO-Crateをデバッグしやすいネスト構造で確認したい場合は、`--format=ro-crate --skip-flatten`を指定してください（RO-Crate出力のフラット化をスキップします）。
+
+設定ファイルは以下を含みます。
+
+```json
+{
+  "user": {
+    "username": "contact@example.org",
+    "fullname": "Demo User",
+    "institution": "Demo Institute"
+  },
+  "schema_name": "公的資金による研究データのメタデータ登録",
+  "node_id": "<node id>",
+  "index": {"id": "1000", "title": "Demo Index"},
+  "files": [{"path": "./data.csv", "name": "data.csv", "type": "text/csv"}],
+  "file_metadatas": [...],
+  "project_metadatas": [...],
+  "additional_files": []
+}
+```
+
+`file_metadatas`の`items[].schema`は、指定した`schema_name`に対応する最新バージョンの`RegistrationSchema` `_id`と一致している必要があります。簡単なテンプレートとして `addons/weko/scripts/example-metadata.json` を用意してあるので、GUID等を書き換えて利用してください。生成された成果物はWEKOへの実デポジットで利用される変換結果と同じ構成です。
+サンプルデータファイル（`addons/weko/scripts/example-data.txt`）も配置してあるので、そのまま試す場合はテンプレートを指定し、必要に応じて `--format` や `--skip-flatten` を切り替えてください（`--skip-flatten`は`--format=ro-crate`時のみ使用可能）。`config`や`output`に`-`を渡すと、それぞれ標準入力／標準出力を利用できます。

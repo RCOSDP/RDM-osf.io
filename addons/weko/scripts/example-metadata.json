@@ -1,0 +1,170 @@
+{
+  "user": {
+    "username": "example-user@example.org",
+    "fullname": "Example User",
+    "institution": "Example Institute"
+  },
+  "schema_name": "公的資金による研究データのメタデータ登録",
+  "node_id": "sp3av",
+  "index": {
+    "id": "1000",
+    "title": "Demo Index"
+  },
+  "files": [
+    {
+      "path": "addons/weko/scripts/example-data.txt",
+      "name": "example-data.txt",
+      "type": "text/plain"
+    }
+  ],
+  "additional_files": [],
+  "file_metadatas": [
+    {
+      "items": [
+        {
+          "schema": "68ee14f787ad5e00010c4406",
+          "data": {
+            "grdm-file:data-number": {
+              "value": "00001"
+            },
+            "grdm-file:title-en": {
+              "value": "Sample Dataset"
+            },
+            "grdm-file:title-ja": {
+              "value": "サンプルデータセット"
+            },
+            "grdm-file:date-issued-updated": {
+              "value": "2025-09-26"
+            },
+            "grdm-file:data-description-ja": {
+              "value": "テスト用の説明"
+            },
+            "grdm-file:data-description-en": {
+              "value": "Description for testing"
+            },
+            "grdm-file:data-research-field": {
+              "value": "189"
+            },
+            "grdm-file:data-type": {
+              "value": "dataset"
+            },
+            "grdm-file:file-size": {
+              "value": "12B"
+            },
+            "grdm-file:data-policy-free": {
+              "value": "free"
+            },
+            "grdm-file:data-policy-license": {
+              "value": "CC0"
+            },
+            "grdm-file:data-policy-cite-ja": {
+              "value": "引用は不要です"
+            },
+            "grdm-file:data-policy-cite-en": {
+              "value": "Citation not required"
+            },
+            "grdm-file:access-rights": {
+              "value": "open access"
+            },
+            "grdm-file:available-date": {
+              "value": ""
+            },
+            "grdm-file:repo-information-ja": {
+              "value": "テストリポジトリ"
+            },
+            "grdm-file:repo-information-en": {
+              "value": "Test Repository"
+            },
+            "grdm-file:repo-url-doi-link": {
+              "value": {
+                "absolute_url": "http://example.com/test"
+              }
+            },
+            "grdm-file:creators": {
+              "value": [
+                {
+                  "number": "C0001",
+                  "name-ja": "研究 太郎",
+                  "name-en": "Taro Research"
+                }
+              ]
+            },
+            "grdm-file:hosting-inst-ja": {
+              "value": "国立情報学研究所"
+            },
+            "grdm-file:hosting-inst-en": {
+              "value": "National Institute of Informatics"
+            },
+            "grdm-file:hosting-inst-id": {
+              "value": "https://ror.org/04ksd4g47"
+            },
+            "grdm-file:data-man-type": {
+              "value": "individual"
+            },
+            "grdm-file:data-man-number": {
+              "value": "DM0001"
+            },
+            "grdm-file:data-man-name-ja": {
+              "value": "情報 花子"
+            },
+            "grdm-file:data-man-name-en": {
+              "value": "Hanako Joho"
+            },
+            "grdm-file:data-man-org-ja": {
+              "value": "国立情報学研究所"
+            },
+            "grdm-file:data-man-org-en": {
+              "value": "National Institute of Informatics"
+            },
+            "grdm-file:data-man-address-ja": {
+              "value": "東京都千代田区"
+            },
+            "grdm-file:data-man-address-en": {
+              "value": "Chiyoda-ku, Tokyo"
+            },
+            "grdm-file:data-man-tel": {
+              "value": "03-1234-5678"
+            },
+            "grdm-file:data-man-email": {
+              "value": "manager@example.com"
+            },
+            "grdm-file:remarks-ja": {
+              "value": "テスト用備考"
+            },
+            "grdm-file:remarks-en": {
+              "value": "Test remarks"
+            },
+            "grdm-file:metadata-access-rights": {
+              "value": "open"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "project_metadatas": [
+    {
+      "funder": {
+        "value": "JST"
+      },
+      "funding-stream-code": {
+        "value": "JPTEST"
+      },
+      "program-name-ja": {
+        "value": "テストプログラム"
+      },
+      "program-name-en": {
+        "value": "Test Program"
+      },
+      "japan-grant-number": {
+        "value": "JP123456"
+      },
+      "project-name-ja": {
+        "value": "テストプロジェクト"
+      },
+      "project-name-en": {
+        "value": "Test Project"
+      }
+    }
+  ]
+}

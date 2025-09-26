@@ -1,0 +1,433 @@
+{
+  "user": {
+    "username": "example-user@example.org",
+    "fullname": "Example User",
+    "institution": "Example Institute"
+  },
+  "schema_name": "公的資金による研究データのメタデータ登録",
+  "node_id": "sp3av",
+  "index": {
+    "id": "1000",
+    "title": "Demo Index"
+  },
+  "files": [
+    {
+      "path": "addons/weko/scripts/sample-manuscript.pdf",
+      "name": "sample-manuscript.pdf",
+      "type": "application/pdf"
+    },
+    {
+      "path": "addons/weko/scripts/sample-supporting-data1.csv",
+      "name": "supporting-data-1.csv",
+      "type": "text/csv"
+    },
+    {
+      "path": "addons/weko/scripts/sample-supporting-data2.csv",
+      "name": "supporting-data-2.csv",
+      "type": "text/csv"
+    }
+  ],
+  "additional_files": [],
+  "file_metadatas": [
+    {
+      "items": [
+        {
+          "schema": "68ee14f787ad5e00010c4406",
+          "data": {
+            "grdm-file:data-number": {
+              "value": "MANU-001"
+            },
+            "grdm-file:title-en": {
+              "value": "MAIN ARTICLE"
+            },
+            "grdm-file:title-ja": {
+              "value": "主論文"
+            },
+            "grdm-file:date-issued-updated": {
+              "value": "2025-09-26"
+            },
+            "grdm-file:data-description-ja": {
+              "value": "論文本文です"
+            },
+            "grdm-file:data-description-en": {
+              "value": "Primary manuscript"
+            },
+            "grdm-file:data-research-field": {
+              "value": "189"
+            },
+            "grdm-file:data-type": {
+              "value": "experimental data"
+            },
+            "grdm-file:file-type": {
+              "value": "manuscript"
+            },
+            "grdm-file:file-size": {
+              "value": "12KB"
+            },
+            "grdm-file:data-policy-free": {
+              "value": "free"
+            },
+            "grdm-file:data-policy-license": {
+              "value": "CC-BY-4.0"
+            },
+            "grdm-file:data-policy-cite-ja": {
+              "value": "引用時は著者名を明記"
+            },
+            "grdm-file:data-policy-cite-en": {
+              "value": "Please cite the authors"
+            },
+            "grdm-file:access-rights": {
+              "value": "open access"
+            },
+            "grdm-file:available-date": {
+              "value": ""
+            },
+            "grdm-file:repo-information-ja": {
+              "value": "サンプルリポジトリ"
+            },
+            "grdm-file:repo-information-en": {
+              "value": "Sample Repository"
+            },
+            "grdm-file:repo-url-doi-link": {
+              "value": {
+                "absolute_url": "http://example.com/manuscript"
+              }
+            },
+            "grdm-file:creators": {
+              "value": [
+                {
+                  "number": "MANU001",
+                  "name-ja": "論文 太郎",
+                  "name-en": "Taro Manuscript"
+                }
+              ]
+            },
+            "grdm-file:hosting-inst-ja": {
+              "value": "国立情報学研究所"
+            },
+            "grdm-file:hosting-inst-en": {
+              "value": "National Institute of Informatics"
+            },
+            "grdm-file:hosting-inst-id": {
+              "value": "https://ror.org/04ksd4g47"
+            },
+            "grdm-file:data-man-type": {
+              "value": "individual"
+            },
+            "grdm-file:data-man-number": {
+              "value": "MGR-001"
+            },
+            "grdm-file:data-man-name-ja": {
+              "value": "管理 花子"
+            },
+            "grdm-file:data-man-name-en": {
+              "value": "Hanako Manager"
+            },
+            "grdm-file:data-man-org-ja": {
+              "value": "国立情報学研究所"
+            },
+            "grdm-file:data-man-org-en": {
+              "value": "National Institute of Informatics"
+            },
+            "grdm-file:data-man-address-ja": {
+              "value": "一ツ橋"
+            },
+            "grdm-file:data-man-address-en": {
+              "value": "Hitotsubashi"
+            },
+            "grdm-file:data-man-tel": {
+              "value": "03-1234-5678"
+            },
+            "grdm-file:data-man-email": {
+              "value": "manager@example.com"
+            },
+            "grdm-file:remarks-ja": {
+              "value": "論文本体"
+            },
+            "grdm-file:remarks-en": {
+              "value": "Main manuscript"
+            },
+            "grdm-file:metadata-access-rights": {
+              "value": "open"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "items": [
+        {
+          "schema": "68ee14f787ad5e00010c4406",
+          "data": {
+            "grdm-file:data-number": {
+              "value": "DATA-001"
+            },
+            "grdm-file:title-en": {
+              "value": "SUPPORTING DATA"
+            },
+            "grdm-file:title-ja": {
+              "value": "根拠データ"
+            },
+            "grdm-file:date-issued-updated": {
+              "value": "2025-09-26"
+            },
+            "grdm-file:data-description-ja": {
+              "value": "論文に関連する根拠データ"
+            },
+            "grdm-file:data-description-en": {
+              "value": "Supporting dataset"
+            },
+            "grdm-file:data-research-field": {
+              "value": "189"
+            },
+            "grdm-file:data-type": {
+              "value": "experimental data"
+            },
+            "grdm-file:file-type": {
+              "value": "dataset"
+            },
+            "grdm-file:file-size": {
+              "value": "4KB"
+            },
+            "grdm-file:data-policy-free": {
+              "value": "free"
+            },
+            "grdm-file:data-policy-license": {
+              "value": "CC0"
+            },
+            "grdm-file:data-policy-cite-ja": {
+              "value": "根拠データ引用時は論文を参照"
+            },
+            "grdm-file:data-policy-cite-en": {
+              "value": "Refer to the manuscript when citing"
+            },
+            "grdm-file:access-rights": {
+              "value": "open access"
+            },
+            "grdm-file:available-date": {
+              "value": ""
+            },
+            "grdm-file:repo-information-ja": {
+              "value": "サンプルリポジトリ"
+            },
+            "grdm-file:repo-information-en": {
+              "value": "Sample Repository"
+            },
+            "grdm-file:repo-url-doi-link": {
+              "value": {
+                "absolute_url": "http://example.com/supporting-data"
+              }
+            },
+            "grdm-file:creators": {
+              "value": [
+                {
+                  "number": "MANU001",
+                  "name-ja": "論文 太郎",
+                  "name-en": "Taro Manuscript"
+                }
+              ]
+            },
+            "grdm-file:hosting-inst-ja": {
+              "value": "国立情報学研究所"
+            },
+            "grdm-file:hosting-inst-en": {
+              "value": "National Institute of Informatics"
+            },
+            "grdm-file:hosting-inst-id": {
+              "value": "https://ror.org/04ksd4g47"
+            },
+            "grdm-file:data-man-type": {
+              "value": "individual"
+            },
+            "grdm-file:data-man-number": {
+              "value": "DMGR-001"
+            },
+            "grdm-file:data-man-name-ja": {
+              "value": "補助 花子"
+            },
+            "grdm-file:data-man-name-en": {
+              "value": "Hanako Support"
+            },
+            "grdm-file:data-man-org-ja": {
+              "value": "国立情報学研究所"
+            },
+            "grdm-file:data-man-org-en": {
+              "value": "National Institute of Informatics"
+            },
+            "grdm-file:data-man-address-ja": {
+              "value": "一ツ橋"
+            },
+            "grdm-file:data-man-address-en": {
+              "value": "Hitotsubashi"
+            },
+            "grdm-file:data-man-tel": {
+              "value": "03-2345-6789"
+            },
+            "grdm-file:data-man-email": {
+              "value": "support@example.com"
+            },
+            "grdm-file:remarks-ja": {
+              "value": "根拠データ"
+            },
+            "grdm-file:remarks-en": {
+              "value": "Supporting dataset"
+            },
+            "grdm-file:metadata-access-rights": {
+              "value": "open"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "items": [
+        {
+          "schema": "68ee14f787ad5e00010c4406",
+          "data": {
+            "grdm-file:data-number": {
+              "value": "DATA-001"
+            },
+            "grdm-file:title-en": {
+              "value": "SUPPORTING DATA"
+            },
+            "grdm-file:title-ja": {
+              "value": "根拠データ"
+            },
+            "grdm-file:date-issued-updated": {
+              "value": "2025-09-26"
+            },
+            "grdm-file:data-description-ja": {
+              "value": "論文に関連する根拠データ"
+            },
+            "grdm-file:data-description-en": {
+              "value": "Supporting dataset"
+            },
+            "grdm-file:data-research-field": {
+              "value": "189"
+            },
+            "grdm-file:data-type": {
+              "value": "experimental data"
+            },
+            "grdm-file:file-type": {
+              "value": "dataset"
+            },
+            "grdm-file:file-size": {
+              "value": "4KB"
+            },
+            "grdm-file:data-policy-free": {
+              "value": "free"
+            },
+            "grdm-file:data-policy-license": {
+              "value": "CC0"
+            },
+            "grdm-file:data-policy-cite-ja": {
+              "value": "根拠データ引用時は論文を参照"
+            },
+            "grdm-file:data-policy-cite-en": {
+              "value": "Refer to the manuscript when citing"
+            },
+            "grdm-file:access-rights": {
+              "value": "open access"
+            },
+            "grdm-file:available-date": {
+              "value": ""
+            },
+            "grdm-file:repo-information-ja": {
+              "value": "サンプルリポジトリ"
+            },
+            "grdm-file:repo-information-en": {
+              "value": "Sample Repository"
+            },
+            "grdm-file:repo-url-doi-link": {
+              "value": {
+                "absolute_url": "http://example.com/supporting-data"
+              }
+            },
+            "grdm-file:creators": {
+              "value": [
+                {
+                  "number": "DATA001",
+                  "name-ja": "データ 太郎",
+                  "name-en": "Taro Data"
+                }
+              ]
+            },
+            "grdm-file:hosting-inst-ja": {
+              "value": "国立情報学研究所"
+            },
+            "grdm-file:hosting-inst-en": {
+              "value": "National Institute of Informatics"
+            },
+            "grdm-file:hosting-inst-id": {
+              "value": "https://ror.org/04ksd4g47"
+            },
+            "grdm-file:data-man-type": {
+              "value": "individual"
+            },
+            "grdm-file:data-man-number": {
+              "value": "DMGR-001"
+            },
+            "grdm-file:data-man-name-ja": {
+              "value": "補助 花子"
+            },
+            "grdm-file:data-man-name-en": {
+              "value": "Hanako Support"
+            },
+            "grdm-file:data-man-org-ja": {
+              "value": "国立情報学研究所"
+            },
+            "grdm-file:data-man-org-en": {
+              "value": "National Institute of Informatics"
+            },
+            "grdm-file:data-man-address-ja": {
+              "value": "一ツ橋"
+            },
+            "grdm-file:data-man-address-en": {
+              "value": "Hitotsubashi"
+            },
+            "grdm-file:data-man-tel": {
+              "value": "03-2345-6789"
+            },
+            "grdm-file:data-man-email": {
+              "value": "support@example.com"
+            },
+            "grdm-file:remarks-ja": {
+              "value": "根拠データ"
+            },
+            "grdm-file:remarks-en": {
+              "value": "Supporting dataset"
+            },
+            "grdm-file:metadata-access-rights": {
+              "value": "open"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "project_metadatas": [
+    {
+      "funder": {
+        "value": "JST"
+      },
+      "funding-stream-code": {
+        "value": "JPTEST"
+      },
+      "program-name-ja": {
+        "value": "テストプログラム"
+      },
+      "program-name-en": {
+        "value": "Test Program"
+      },
+      "japan-grant-number": {
+        "value": "JP123456"
+      },
+      "project-name-ja": {
+        "value": "テストプロジェクト"
+      },
+      "project-name-en": {
+        "value": "Test Project"
+      }
+    }
+  ]
+}
