@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import inspect  # noqa
+import logging
 import traceback
 
 from boxsdk import Client as BoxClient, OAuth2
@@ -38,10 +40,15 @@ from addons.base.institutions_utils import (KEYNAME_BASE_FOLDER,
                                             sync_all)
 from framework.exceptions import HTTPError
 from website import settings as osf_settings
+from osf.models import Node, OSFUser, ProjectStorageType, UserQuota
 from osf.models.external import ExternalAccountTemporary, ExternalAccount
 from osf.utils import external_util
 import datetime
 
+from website.util import inspect_info  # noqa
+from website.util.quota import update_node_storage, update_user_used_quota
+
+logger = logging.getLogger(__name__)
 
 providers = None
 
@@ -54,8 +61,8 @@ enabled_providers_forinstitutions_list = [
 ]
 
 enabled_providers_list = [
-    's3', 'box', 'googledrive', 'osfstorage',
-    'nextcloud', 'swift', 'owncloud', 's3compat',
+    's3', 'osfstorage',
+    'swift', 's3compat',
 ]
 enabled_providers_list.extend(enabled_providers_forinstitutions_list)
 
@@ -64,7 +71,8 @@ no_storage_name_providers = ['osfstorage', 'onedrivebusiness']
 def have_storage_name(provider_name):
     return provider_name not in no_storage_name_providers
 
-def get_providers():
+
+def get_providers(available_list=None):
     provider_list = []
     for provider in osf_settings.ADDONS_AVAILABLE:
         if 'storage' in provider.categories and provider.short_name in enabled_providers_list:
@@ -73,6 +81,8 @@ def get_providers():
             provider.modal_path = get_modal_path(provider.short_name)
             provider_list.append(provider)
     provider_list.sort(key=lambda x: x.full_name.lower())
+    if isinstance(available_list, list):
+        return [addon for addon in provider_list if addon.short_name in available_list]
     return provider_list
 
 def get_addon_by_name(addon_short_name):
@@ -161,6 +171,14 @@ def update_storage(institution_id, storage_name, wb_credentials, wb_settings):
         region.waterbutler_settings = wb_settings
         region.save()
     return region
+
+def update_nodes_storage(institution):
+    for node in Node.objects.filter(affiliated_institutions=institution.id):
+        update_node_storage(node)
+        storage_type = ProjectStorageType.objects.filter(node=node)
+        storage_type.update(storage_type=ProjectStorageType.CUSTOM_STORAGE)
+    for user in OSFUser.objects.filter(affiliated_institutions=institution.id):
+        update_user_used_quota(user, storage_type=UserQuota.CUSTOM_STORAGE, is_recalculating_quota=True)
 
 def transfer_to_external_account(user, institution_id, provider_short_name):
     temp_external_account = ExternalAccountTemporary.objects.filter(_id=institution_id, provider=provider_short_name).first()
@@ -600,6 +618,7 @@ def save_s3_credentials(institution_id, storage_name, access_key, secret_key, bu
             'encrypt_uploads': server_side_encryption,
             'bucket': bucket,
             'provider': 's3',
+            'type': Region.INSTITUTIONS,
         },
     }
 
@@ -632,6 +651,7 @@ def save_s3compat_credentials(institution_id, storage_name, host_url, access_key
             'encrypt_uploads': server_side_encryption,
             'bucket': bucket,
             'provider': 's3compat',
+            'type': Region.INSTITUTIONS,
         }
     }
 
@@ -665,6 +685,7 @@ def save_s3compatb3_credentials(institution_id, storage_name, host_url, access_k
             },
             'bucket': bucket,
             'provider': 's3compatb3',
+            'type': Region.INSTITUTIONS,
         }
     }
 
@@ -675,9 +696,7 @@ def save_s3compatb3_credentials(institution_id, storage_name, host_url, access_k
         'message': 'Saved credentials successfully!!'
     }, http_status.HTTP_200_OK)
 
-def save_box_credentials(user, storage_name, folder_id):
-    institution_id = user.affiliated_institutions.first()._id
-
+def save_box_credentials(institution_id, user, storage_name, folder_id):
     test_connection_result = test_box_connection(institution_id, folder_id)
     if test_connection_result[1] != http_status.HTTP_200_OK:
         return test_connection_result
@@ -693,6 +712,7 @@ def save_box_credentials(user, storage_name, folder_id):
             'bucket': '',
             'folder': folder_id,
             'provider': 'box',
+            'type': Region.INSTITUTIONS,
         }
     }
     region = update_storage(institution_id, storage_name, wb_credentials, wb_settings)
@@ -702,9 +722,7 @@ def save_box_credentials(user, storage_name, folder_id):
         'message': 'OAuth was set successfully'
     }, http_status.HTTP_200_OK)
 
-def save_googledrive_credentials(user, storage_name, folder_id):
-    institution_id = user.affiliated_institutions.first()._id
-
+def save_googledrive_credentials(institution_id, user, storage_name, folder_id):
     test_connection_result = test_googledrive_connection(institution_id, folder_id)
     if test_connection_result[1] != http_status.HTTP_200_OK:
         return test_connection_result
@@ -722,6 +740,7 @@ def save_googledrive_credentials(user, storage_name, folder_id):
                 'id': folder_id
             },
             'provider': 'googledrive',
+            'type': Region.INSTITUTIONS,
         }
     }
     region = update_storage(institution_id, storage_name, wb_credentials, wb_settings)
@@ -755,7 +774,8 @@ def save_nextcloud_credentials(institution_id, storage_name, host_url, username,
             'bucket': '',
             'folder': '/{}/'.format(folder.strip('/')),
             'verify_ssl': False,
-            'provider': provider
+            'provider': provider,
+            'type': Region.INSTITUTIONS,
         },
     }
 
@@ -799,6 +819,7 @@ def save_swift_credentials(institution_id, storage_name, auth_version, access_ke
             'folder': '',
             'container': container,
             'provider': 'swift',
+            'type': Region.INSTITUTIONS,
         }
 
     }
@@ -834,7 +855,8 @@ def save_owncloud_credentials(institution_id, storage_name, host_url, username, 
             'bucket': '',
             'folder': '/{}/'.format(folder.strip('/')),
             'verify_ssl': True,
-            'provider': provider
+            'provider': provider,
+            'type': Region.INSTITUTIONS,
         },
     }
 
@@ -845,9 +867,7 @@ def save_owncloud_credentials(institution_id, storage_name, host_url, username, 
         'message': 'Saved credentials successfully!!'
     }, http_status.HTTP_200_OK)
 
-def save_onedrivebusiness_credentials(user, storage_name, provider_name, folder_id_or_path):
-    institution_id = user.affiliated_institutions.first()._id
-
+def save_onedrivebusiness_credentials(institution_id, user, storage_name, provider_name, folder_id_or_path):
     test_connection_result, folder_id = validate_onedrivebusiness_connection(institution_id, folder_id_or_path)
     if test_connection_result[1] != http_status.HTTP_200_OK:
         return test_connection_result
@@ -870,7 +890,8 @@ def wd_info_for_institutions(provider_name, server_side_encryption=False):
     wb_settings = {
         'disabled': True,  # used in rubeus.py
         'storage': {
-            'provider': provider_name
+            'provider': provider_name,
+            'type': Region.INSTITUTIONS,
         },
     }
 
@@ -973,7 +994,7 @@ def save_s3compatinstitutions_credentials(institution, storage_name, host_url, a
         username=access_key, password=secret_key, separator=separator)
 
     return save_basic_storage_institutions_credentials_common(
-        institution, storage_name, bucket, provider_name, provider, separator, server_side_encryption)
+        institution, storage_name, bucket, provider_name, provider, separator, server_side_encryption=server_side_encryption)
 
 def save_ociinstitutions_credentials(institution, storage_name, host_url, access_key, secret_key, bucket, provider_name):
     host = host_url.rstrip('/').replace('https://', '').replace('http://', '')

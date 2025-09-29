@@ -44,6 +44,7 @@ from website.project.model import NodeUpdateError
 from website.util import quota
 from osf.utils import permissions as osf_permissions
 from api.base import settings as api_settings
+from website import settings as website_settings
 
 
 class RegistrationProviderRelationshipField(RelationshipField):
@@ -545,7 +546,10 @@ class NodeSerializer(TaxonomizableSerializerMixin, JSONAPISerializer):
         max_quota, used_quota = quota.get_quota_info(
             obj.creator, quota.get_project_storage_type(obj),
         )
-        return float(used_quota) / (max_quota * api_settings.SIZE_UNIT_GB)
+        if max_quota == 0:
+            return 1.0
+        else:
+            return float(used_quota) / (max_quota * api_settings.SIZE_UNIT_GB)
 
     def get_quota_threshold(self, obj):
         return WARNING_THRESHOLD
@@ -714,9 +718,7 @@ class NodeSerializer(TaxonomizableSerializerMixin, JSONAPISerializer):
         return len(registrations)
 
     def get_draft_registration_count(self, obj):
-        auth = get_user_auth(self.context['request'])
-        if obj.has_permission(auth.user, osf_permissions.ADMIN):
-            return obj.draft_registrations_active.count()
+        return obj.draft_registrations_active.count()
 
     def get_pointers_count(self, obj):
         return obj.linked_nodes.count()
@@ -798,6 +800,7 @@ class NodeSerializer(TaxonomizableSerializerMixin, JSONAPISerializer):
             validated_data.pop('creator')
             changed_data = {template_from: validated_data}
             node = template_node.use_as_template(auth=get_user_auth(request), changes=changed_data)
+            node._parent = validated_data.pop('parent', None)
         else:
             node = Node(**validated_data)
         try:
@@ -920,6 +923,9 @@ class NodeAddonSettingsSerializerBase(JSONAPISerializer):
     external_account_id = ser.CharField(source='external_account._id', required=False, allow_null=True)
     folder_id = ser.CharField(required=False, allow_null=True)
     folder_path = ser.CharField(required=False, allow_null=True)
+
+    # GRDM-44417: features to check abilities of the addon
+    features = ser.DictField(required=False, read_only=True)
 
     # Forward-specific
     label = ser.CharField(required=False, allow_blank=True)
@@ -1390,6 +1396,8 @@ class NodeStorageProviderSerializer(JSONAPISerializer):
     name = ser.CharField(read_only=True)
     path = ser.CharField(read_only=True)
     node = ser.CharField(source='node_id', read_only=True)
+    # GRDM-37149: Attribute value indicating whether it is an institutional storage
+    for_institutions = ser.SerializerMethodField(read_only=True, help_text='Whether the addon is institutional storage')
     provider = ser.CharField(read_only=True)
     files = NodeFileHyperLinkField(
         related_view='nodes:node-files',
@@ -1435,6 +1443,12 @@ class NodeStorageProviderSerializer(JSONAPISerializer):
                 'filter[categories]': 'storage',
             },
         )
+
+    def get_for_institutions(self, obj):
+        # GRDM-37149: Attribute value indicating whether it is an institutional storage
+        if obj.provider not in website_settings.ADDONS_AVAILABLE_DICT:
+            return False
+        return website_settings.ADDONS_AVAILABLE_DICT[obj.provider].for_institutions
 
 class InstitutionRelated(JSONAPIRelationshipSerializer):
     id = ser.CharField(source='_id', required=False, allow_null=True)
@@ -1568,15 +1582,14 @@ class DraftRegistrationLegacySerializer(JSONAPISerializer):
         metadata = validated_data.pop('registration_metadata', None)
         registration_responses = validated_data.pop('registration_responses', None)
         schema = validated_data.pop('registration_schema')
-
-        provider = validated_data.pop('provider', None) or RegistrationProvider.load('osf')
-        # TODO: this
-        # if not provider.schemas_acceptable.filter(id=schema.id).exists():
-        #     raise exceptions.ValidationError('Invalid schema for provider.')
+        provider = validated_data.pop('provider', None)
 
         self.enforce_metadata_or_registration_responses(metadata, registration_responses)
 
-        draft = DraftRegistration.create_from_node(node=node, user=initiator, schema=schema, provider=provider)
+        try:
+            draft = DraftRegistration.create_from_node(node=node, user=initiator, schema=schema, provider=provider)
+        except ValidationError as e:
+            raise exceptions.ValidationError(e.message)
 
         if metadata:
             self.update_metadata(draft, metadata)

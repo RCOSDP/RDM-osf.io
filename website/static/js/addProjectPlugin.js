@@ -123,6 +123,15 @@ var AddProject = {
             var error = function _error (result) {
                 self.viewState('error');
                 self.isAdding(false);
+                var error_detail = '';
+                if (result && result.errors && result.errors.length > 0){
+                    error_detail = result.errors[0].detail;
+                }
+                if (error_detail === 'The new project cannot be created due to the created project number is greater than or equal the project number can create.'){
+                    self.errorMessage = {
+                        'unknown' : _(error_detail)
+                    };
+                }
             };
             var request = m.request({method : 'POST', url : url, data : data, config : mHelpers.apiV2Config()});
             if (self.institutions.length > 0) {
@@ -269,8 +278,7 @@ var AddProject = {
                                 m('p',
                                     m('i', _(' This component will inherit the same license as '),
                                         m('b', options.parentTitle),
-                                        '. ',
-                                        m('a[target="_blank"][href="https://openscience.zendesk.com/hc/en-us/articles/360019737854"]', _('Learn more.') )
+                                        '. '
                                     )
                                 )
                         ]): '',

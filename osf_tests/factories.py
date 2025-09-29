@@ -29,8 +29,10 @@ from osf.models.sanctions import Sanction
 from osf.models.storage import PROVIDER_ASSET_NAME_CHOICES
 from osf.utils.names import impute_names_model
 from osf.utils.workflows import DefaultStates, DefaultTriggers
+from addons.base.institutions_utils import KEYNAME_BASE_FOLDER
 from addons.osfstorage.models import OsfStorageFile, Region
 
+settings = apps.get_app_config('addons_osfstorage')
 fake = Factory.create()
 
 # If tests are run on really old processors without high precision this might fail. Unlikely to occur.
@@ -42,6 +44,7 @@ PROVIDER_ASSET_NAME_CHOICES = tuple([t[0] for t in PROVIDER_ASSET_NAME_CHOICES])
 def get_default_metaschema():
     """This needs to be a method so it gets called after the test database is set up"""
     return models.RegistrationSchema.objects.first()
+
 
 def FakeList(provider, n, *args, **kwargs):
     func = getattr(fake, provider)
@@ -366,6 +369,8 @@ class RegistrationProviderFactory(DjangoModelFactory):
     name = factory.Faker('company')
     description = factory.Faker('bs')
     external_url = factory.Faker('url')
+    access_token = factory.Faker('bs')
+    share_source = factory.Sequence(lambda n: 'share source #{0}'.format(n))
 
     class Meta:
         model = models.RegistrationProvider
@@ -373,7 +378,16 @@ class RegistrationProviderFactory(DjangoModelFactory):
     @classmethod
     def _create(cls, *args, **kwargs):
         user = kwargs.pop('creator', None)
-        obj = cls._build(*args, **kwargs)
+        _id = kwargs.pop('_id', None)
+        try:
+            obj = cls._build(*args, **kwargs)
+        except IntegrityError as e:
+            # This is to ensure legacy tests don't fail when their _ids aren't unique
+            if _id == models.RegistrationProvider.default__id:
+                pass
+            else:
+                raise e
+
         obj._creator = user or models.OSFUser.objects.first() or UserFactory()  # Generates primary_collection
         obj.save()
         return obj
@@ -409,7 +423,7 @@ class RegistrationFactory(BaseNodeFactory):
             user = project.creator
         user = kwargs.pop('user', None) or kwargs.get('creator') or user or UserFactory()
         kwargs['creator'] = user
-        provider = provider or models.RegistrationProvider.objects.first() or RegistrationProviderFactory(_id='osf')
+        provider = provider or models.RegistrationProvider.get_default()
         # Original project to be registered
         project = project or target_class(*args, **kwargs)
         if project.is_admin_contributor(user):
@@ -548,9 +562,9 @@ class DraftRegistrationFactory(DjangoModelFactory):
         provider = kwargs.get('provider')
         branched_from_creator = branched_from.creator if branched_from else None
         initiator = initiator or branched_from_creator or kwargs.get('user', None) or kwargs.get('creator', None) or UserFactory()
-        registration_schema = registration_schema or models.RegistrationSchema.objects.first()
+        registration_schema = registration_schema or get_default_metaschema()
         registration_metadata = registration_metadata or {}
-        provider = provider or models.RegistrationProvider.objects.first() or RegistrationProviderFactory(_id='osf')
+        provider = provider or models.RegistrationProvider.get_default()
         draft = models.DraftRegistration.create_from_node(
             node=branched_from,
             user=initiator,
@@ -639,6 +653,7 @@ class PreprintProviderFactory(DjangoModelFactory):
     name = factory.Faker('company')
     description = factory.Faker('bs')
     external_url = factory.Faker('url')
+    share_source = factory.Sequence(lambda n: 'share source #{0}'.format(n))
 
     class Meta:
         model = models.PreprintProvider
@@ -1017,14 +1032,43 @@ generic_waterbutler_settings = {
         'provider': 'glowcloud',
         'container': 'osf_storage',
         'use_public': True,
-    }
+        'bucket': 'bucket test',
+        'folder': {
+            'encrypt_uploads': 'encrypt upload test',
+        }
+    },
+    'extended': {
+        KEYNAME_BASE_FOLDER: 'base folder',
+    },
+    'admin_dbmid': 'abc',
+    'team_folder_id': '1',
 }
 
 generic_waterbutler_credentials = {
     'storage': {
         'region': 'PartsUnknown',
         'username': 'mankind',
-        'token': 'heresmrsocko'
+        'token': 'heresmrsocko',
+        'access_key': 'abc',
+        'secret_key': '123',
+        'host': 'host test',
+    },
+    'external_account': {
+        'oauth_secret': 'abc',
+        'display_name': 'userA',
+        'oauth_key': '123',
+        'fileaccess_token': 'file_abc',
+    }
+}
+addon_waterbutler_settings = {
+    'storage': {
+        'provider': 'nextcloudinstitutions',
+    }
+}
+
+bulkmount_waterbutler_settings = {
+    'storage': {
+        'provider': 'osfstorage',
     }
 }
 
@@ -1114,3 +1158,99 @@ class BrandFactory(DjangoModelFactory):
 
     primary_color = factory.Faker('hex_color')
     secondary_color = factory.Faker('hex_color')
+
+
+class ExportDataLocationFactory(DjangoModelFactory):
+    class Meta:
+        model = models.ExportDataLocation
+
+    institution_guid = factory.Sequence(lambda n: 'us_east_{0}'.format(n))
+    name = factory.Sequence(lambda n: 'Location {0}'.format(n))
+    waterbutler_credentials = generic_waterbutler_credentials
+    waterbutler_settings = generic_waterbutler_settings
+    waterbutler_url = 'http://123.456.test.woo'
+    mfr_url = 'http://123.456.test.woo'
+
+
+class ExportDataFactory(DjangoModelFactory):
+    class Meta:
+        model = models.ExportData
+
+    location = factory.SubFactory(ExportDataLocationFactory)
+    source = factory.SubFactory(RegionFactory)
+    process_start = datetime.datetime.now()
+    is_deleted = False
+    status = models.ExportData.STATUS_COMPLETED
+    creator = factory.SubFactory(UserFactory)
+
+
+class ExportDataRestoreFactory(DjangoModelFactory):
+    class Meta:
+        model = models.ExportDataRestore
+
+    export = factory.SubFactory(ExportDataFactory)
+    destination = factory.SubFactory(RegionFactory)
+    process_start = datetime.datetime.now()
+    status = models.ExportData.STATUS_COMPLETED
+    creator = factory.SubFactory(UserFactory)
+
+
+class ContentTypeFactory(DjangoModelFactory):
+    class Meta:
+        model = ContentType
+
+
+class OsfStorageFileFactory(DjangoModelFactory):
+    class Meta:
+        model = OsfStorageFile
+    id = 1
+    provider = 'osfstorage'
+    target_content_type = factory.SubFactory(ContentTypeFactory)
+    target_object_id = 1
+    path = 'fake_path'
+
+
+class FileVersionFactory(DjangoModelFactory):
+    class Meta:
+        model = models.FileVersion
+
+    region = factory.SubFactory(RegionFactory)
+    creator = factory.SubFactory(AuthUserFactory)
+    modified = timezone.now()
+    location = {
+        'service': 'cloud',
+        settings.WATERBUTLER_RESOURCE: 'resource',
+        'object': '1615307',
+    }
+    identifier = 1
+
+
+class BaseFileNodeFactory(DjangoModelFactory):
+    class Meta:
+        model = models.BaseFileNode
+
+    id = 1
+    provider = 'osfstorage'
+    path = 'fake_path'
+    name = factory.Faker('company')
+
+
+class BaseFileVersionsThroughFactory(DjangoModelFactory):
+    class Meta:
+        model = models.BaseFileVersionsThrough
+
+
+class RdmFileTimestamptokenVerifyResultFactory(DjangoModelFactory):
+    class Meta:
+        model = models.RdmFileTimestamptokenVerifyResult
+
+
+class ProjectLimitNumberTemplateFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.ProjectLimitNumberTemplate
+
+    template_name = factory.Faker('word')
+    is_availability = factory.Faker('boolean')
+    used_setting_number = factory.Faker('random_int', min=0, max=100)
+    is_deleted = factory.Faker('boolean')
+    modified = factory.Faker('date_this_year')

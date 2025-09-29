@@ -261,7 +261,7 @@ ROOT_URLCONF = 'admin.base.urls'
 WSGI_APPLICATION = 'admin.base.wsgi.application'
 ADMIN_BASE = ''
 STATIC_URL = '/static/'
-LOGIN_URL = 'account/login/'
+LOGIN_URL = '/account/login/'
 LOGIN_REDIRECT_URL = ADMIN_BASE
 
 STATIC_ROOT = os.path.join(os.path.dirname(BASE_DIR), 'static_root')
@@ -349,3 +349,50 @@ BASE_PATH = parent_dir(parent_dir(HERE))  # admin/ directory
 LOCALE_PATHS = (
     os.path.join(BASE_PATH, 'translations'),
 )
+
+# The directory to store data temporarily.
+TEMPORARY_PATH = '/tmp/'
+
+# Time out for calling copy API in Export/Restore processes
+EACH_FILE_EXPORT_RESTORE_TIME_OUT = 1800
+
+# Attribute list
+ATTRIBUTE_NAME_LIST = [
+    'Primary Email from GRDM',
+    'mail',
+    'sn',
+    'o',
+    'ou',
+    'givenName',
+    'displayName',
+    'eduPersonAffiliation',
+    'eduPersonPrincipalName',
+    'eduPersonEntitlement',
+    'eduPersonScopedAffiliation',
+    'eduPersonTargetedID',
+    'eduPersonAssurance',
+    'eduPersonUniqueId',
+    'eduPersonOrcid',
+    'isMemberOf',
+    'jasn',
+    'jaGivenName',
+    'jaDisplayName',
+    'jao',
+    'jaou',
+    'gakuninScopedPersonalUniqueCode',
+    'gakuninIdentityAssuranceOrganization',
+    'gakuninIdentityAssuranceMethodReference',
+]
+
+# Setting type
+SETTING_TYPE = [
+    (1, 'free_value_all_match'),  # 単一の値(自由入力)(完全一致)
+    (2, 'free_value_left_suffix_match'),  # 単一の値(自由入力)(後方一致)
+    (3, 'fixed_value_all_match'),  # 固定値(完全一致)
+    (4, 'fixed_value_left_suffix_match'),  # 固定値(後方一致)
+    (5, 'list_value_all_match'),  # リスト(完全一致)
+    (6, 'list_value_left_suffix_match'),  # リスト(後方一致)
+]
+
+# Project limit number value
+PROJECT_LIMIT_NUMBER = 10

@@ -163,6 +163,7 @@ class ProviderData(object):
         self.size_df = pd.DataFrame(index=[], columns=cols)
         self.number_df = pd.DataFrame(index=[], columns=cols)
         for ext in self.ext_list:
+            ext = ext.replace('$', '\\$')
             size_row_list = []
             number_row_list = []
             for acquired_date in self.left:
@@ -216,7 +217,7 @@ class ProviderData(object):
             statistics_data.graphstyle = 'whitegrid'
             statistics_data.background = '#FFEEEE'
             for ext in self.ext_list:
-                statistics_data.add(ext, self.number_df[self.number_df['type'] == ext].height.values.tolist())
+                statistics_data.add(ext, self.number_df[self.number_df['type'] == ext.replace('$', '\\$')].height.values.tolist())
             statistics_data.image_string = create_image_string(statistics_data.provider, statistics_data=statistics_data)
         return statistics_data
 
@@ -563,6 +564,8 @@ class GatherView(TemplateView):
                     root, ext = os.path.splitext(obj['attributes']['materialized'])
                 if not ext:
                     ext = 'none'
+                if len(ext) > RdmStatistics._meta.get_field('extention_type').max_length:
+                    ext = 'unknown'
                 if obj['attributes']['kind'] == 'file':
                     try:
                         self.count_list.append(['file', obj['id'], int(obj['attributes']['size'] if obj['attributes']['size'] else 0), ext])
