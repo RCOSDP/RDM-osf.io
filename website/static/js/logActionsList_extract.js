@@ -317,3 +317,4 @@ var metadata_added = _('${user} added metadata in ${node}');
 var metadata_file_added = _('${user} added metadata ${path} in ${node}');
 var metadata_file_updated = _('${user} updated metadata ${path} in ${node}');
 var metadata_file_deleted = _('${user} deleted metadata ${path} in ${node}');
+var workflow_notification = _('${title} from workflow ${workflow_name} in ${node}');
