@@ -177,8 +177,7 @@ class TestBitbucketViews(OsfTestCase):
     def test_before_fork(self):
         url = self.project.api_url + 'fork/before/'
         res = self.app.get(url, auth=self.user.auth).maybe_follow()
-        # GRDM-54077: metadata addon is now enabled by default, so we expect 2 prompts
-        assert_equal(len(res.json['prompts']), 2)
+        assert_equal(len(res.json['prompts']), 1)
 
     def test_before_register(self):
         url = self.project.api_url + 'beforeregister/'
