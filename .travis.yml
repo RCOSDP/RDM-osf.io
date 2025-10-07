@@ -3,7 +3,7 @@
 language: python
 
 python:
-    - "3.6"
+    - "3.7"
 
 sudo: false
 dist: trusty
@@ -21,6 +21,14 @@ cache:
     - $HOME/.cache
     - node_modules
     - website/static/vendor/bower_components
+
+# services:
+#   - postgresql
+# addons:
+#   postgresql: "13"
+#   apt:
+#     packages:
+#     - postgresql-13
 
 env:
   global:
@@ -46,6 +54,92 @@ env:
 
 before_install:
 
+    # use python 3.6
+    - |
+      pip list
+      sudo apt-get update
+      sudo apt-get install -y python3-distutils
+      echo 'export PYENV_ROOT="/opt/pyenv"' >> ~/.bashrc
+      echo '[[ -d $PYENV_ROOT/shims ]] && export PATH="$PYENV_ROOT/shims:$PATH"' >> ~/.bashrc
+      echo 'eval "$(pyenv init - bash)"' >> ~/.bashrc
+      echo 'export PYENV_ROOT="/opt/pyenv"' >> ~/.profile
+      echo '[[ -d $PYENV_ROOT/shims ]] && export PATH="$PYENV_ROOT/shims:$PATH"' >> ~/.profile
+      echo 'eval "$(pyenv init - bash)"' >> ~/.profile
+      echo 'export PYENV_ROOT="/opt/pyenv"' >> ~/.bash_profile
+      echo '[[ -d $PYENV_ROOT/shims ]] && export PATH="$PYENV_ROOT/shims:$PATH"' >> ~/.bash_profile
+      echo 'eval "$(pyenv init - bash)"' >> ~/.bash_profile
+      #source ~/.bashrc
+      ls -al ${HOME}/.pyenv/
+      echo "THIS001"
+      which python
+      which python3
+      which python3.6
+      which pip
+      which pip3
+      which pip3.6
+      pip list
+      pip --version
+      echo ${PATH}
+      deactivate
+      echo "THIS002"
+      python --version
+      pip --version
+      ls -al /usr/lib/python3.10/
+      cat /usr/lib/python3.10/sysconfig.py
+      which python
+      which python3
+      which python3.6
+      which pip
+      which pip3
+      which pip3.6
+      #pip freeze > /tmp/pip_list.txt
+      #cat /tmp/pip_list.txt
+      pip list
+      pip --version
+      CC=clang pyenv install 3.6.3
+      #pyenv install 3.6.15
+      pyenv global 3.6.3
+      pyenv versions
+      pyenv --version
+      echo "THIS003"
+      which python
+      which python3
+      which python3.6
+      which pip
+      which pip3
+      which pip3.6
+      python -m venv ~/virtualenv/python3.6
+      echo $?
+      echo "THIS004"
+      ls -al ~/virtualenv/python3.6/
+      ls -al ~/virtualenv/python3.6/bin
+      source ~/virtualenv/python3.6/bin/activate
+      echo ${PATH}
+      pip install --upgrade pip
+      pip --version
+      id
+      ls
+      pwd
+      pip install -r .travis-pip-freeze.txt
+      pip list
+      echo "THIS005"
+      which python
+      which python3
+      which python3.6
+      which pip
+      which pip3
+      which pip3.6
+      echo "THIS006"
+      ls -al /opt/pyenv/shims/
+      ls -al /opt/pyenv/shims/python
+      pyenv --help
+      #find /home/travis/virtualenv/python3.7.17/
+      sudo update-alternatives --get-selections
+      #sudo update-alternatives --install /usr/bin/python python /opt/pyenv/versions/3.6.3/bin/python3 1
+      #sudo update-alternatives --set python /opt/pyenv/versions/3.6.3/bin/python3
+      #sudo update-alternatives --get-selections
+      python --version
+      pip --version
     # cache directories
     - |
       mkdir -p $HOME/.cache/downloads
@@ -55,6 +149,17 @@ before_install:
       rm -rf node_modules  ## TODO remove this later
     # postgres
     - |
+      sudo apt install curl ca-certificates
+      sudo install -d /usr/share/postgresql-common/pgdg
+      sudo curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc --fail https://www.postgresql.org/media/keys/ACCC4CF8.asc
+
+      . /etc/os-release
+      sudo sh -c "echo 'deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $VERSION_CODENAME-pgdg main' > /etc/apt/sources.list.d/pgdg.list"
+
+      sudo apt-get update
+      sudo apt-get --yes remove postgresql\*
+      sudo apt-get install -y postgresql-9.6 postgresql-client-9.6
+    - |
       cd $HOME/.cache/downloads
 
       if [ ! -f "$LIBXML2_DEB" ]; then
@@ -63,12 +168,17 @@ before_install:
 
       dpkg -x $LIBXML2_DEB /tmp/libxml2
     - |
+      ls -al /usr/lib/postgresql/
+      find /usr/lib/postgresql/
       export LD_LIBRARY_PATH=/tmp/libxml2/usr/lib/x86_64-linux-gnu
       /usr/lib/postgresql/9.6/bin/initdb /tmp/postgres/data --nosync -U postgres
+      #/usr/lib/postgresql/14/bin/initdb /tmp/postgres/data --nosync -U postgres
       sed -i -e 's/#fsync.*/fsync = off/' /tmp/postgres/data/postgresql.conf
       sed -i -e 's/#synchronous_commit.*/synchronous_commit = off/' /tmp/postgres/data/postgresql.conf
       sed -i -e 's/#full_page_writes.*/full_page_writes = off/' /tmp/postgres/data/postgresql.conf
+      cat /tmp/postgres/data/postgresql.conf
       /usr/lib/postgresql/9.6/bin/postgres -k /tmp -D /tmp/postgres/data -p 54321 > /dev/null & export POSTGRES_PID=$!
+      #/usr/lib/postgresql/14/bin/postgres -k /tmp -D /tmp/postgres/data -p 54321 > /dev/null & export POSTGRES_PID=$!
     # elasticsearch
     - |
       cd $HOME/.cache/downloads
@@ -170,6 +280,7 @@ after_success:
     - if [[ "$TRAVIS_BRANCH" == "master-w-coverage" ]]; then coveralls; fi
 
 before_cache:
+  - ls -alR /home/travis/.cache/pre-commit/
   # This ensures failed tests are removed from the cache so they can be re-tried.
   - inv remove_failures_from_testmon --db-path=$HOME/.cache/testmon/.testmondata_$TEST_BUILD
   - rm -Rf $HOME/.cache/pip/http
