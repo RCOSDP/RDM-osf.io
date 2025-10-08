@@ -1,0 +1,38 @@
+version: '3.4'
+
+services:
+  elasticsearch:
+    build:
+      context: .github/docker/elasticsearch
+      dockerfile: Dockerfile.ci
+
+  web:
+    image: ${OSF_TEST_IMAGE}
+    env_file:
+      - .github/ci/docker-compose.env
+      - .docker-compose.sharejs.env
+    environment:
+      OSF_DB_HOST: postgres
+      DB_HOST: postgres
+      OSF_DB_PORT: 5432
+      DB_PORT: 5432
+      ELASTIC_URI: elasticsearch:9200
+      ELASTIC6_URI: elasticsearch6:9200
+      BOTO_CONFIG: /dev/null
+  requirements:
+    image: ${OSF_TEST_IMAGE}
+    command:
+      - /bin/bash
+      - -c
+      - apk add --no-cache --virtual .build-deps build-base linux-headers python3-dev musl-dev libxml2-dev libxslt-dev postgresql-dev libffi-dev libpng-dev freetype-dev jpeg-dev &&
+        invoke requirements --all &&
+        (python3 -m compileall /usr/lib/python3.6 || true) &&
+        rm -Rf /python3.6/* &&
+        cp -Rf -p /usr/lib/python3.6 /
+    environment:
+      OSF_DB_HOST: postgres
+      DB_HOST: postgres
+      OSF_DB_PORT: 5432
+      DB_PORT: 5432
+      ELASTIC_URI: elasticsearch:9200
+      ELASTIC6_URI: elasticsearch6:9200
