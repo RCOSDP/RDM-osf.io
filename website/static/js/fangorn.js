@@ -97,27 +97,26 @@ var COMMAND_KEYS = [224, 17, 91, 93];
 var ESCAPE_KEY = 27;
 var ENTER_KEY = 13;
 
-var PROVIDER_SETTINGS = new Map([
-    // ['providerName', { parallelNum: <int>, fileSizeThreshold: <int> }]
+var PROVIDER_SETTINGS = {
     // Bulk mount institution storage settings
-    ['osfstorage', { parallelNum: 4, fileSizeThreshold: 128000000 }], // 128 MB
-
-    // Addon institution storage settings)
-    ['onedrivebusiness', { parallelNum: 4, fileSizeThreshold: 128000000 }],
-    ['nextcloudinstitutions', { parallelNum: 4, fileSizeThreshold: 128000000 }],
-    ['s3compatinstitutions', { parallelNum: 4, fileSizeThreshold: 128000000 }],
-    ['dropboxbusiness', { parallelNum: 4, fileSizeThreshold: 128000000 }],
+    'osfstorage': { parallelNum: 4, fileSizeThreshold: 128000000 }, // 128 MB
 
     // Extend storage settings
-    ['s3', { parallelNum: 4, fileSizeThreshold: 128000000 }],
-    ['s3compat', { parallelNum: 4, fileSizeThreshold: 128000000 }],
-    ['box', { parallelNum: 4, fileSizeThreshold: 128000000 }],
-    ['googledrive', { parallelNum: 4, fileSizeThreshold: 128000000 }],
-    ['nextcloud', { parallelNum: 4, fileSizeThreshold: 128000000 }],
-    ['onedrive', { parallelNum: 4, fileSizeThreshold: 128000000 }],
-    ['dropbox', { parallelNum: 4, fileSizeThreshold: 128000000 }],
-    ['s3compatb3', { parallelNum: 4, fileSizeThreshold: 128000000 }],
-]);
+    's3': { parallelNum: 4, fileSizeThreshold: 128000000 },
+    's3compat': { parallelNum: 4, fileSizeThreshold: 128000000 },
+    'box': { parallelNum: 4, fileSizeThreshold: 128000000 },
+    'googledrive': { parallelNum: 4, fileSizeThreshold: 128000000 },
+    'nextcloud': { parallelNum: 4, fileSizeThreshold: 128000000 },
+    'onedrive': { parallelNum: 4, fileSizeThreshold: 128000000 },
+    'dropbox': { parallelNum: 1, fileSizeThreshold: null },
+    's3compatb3': { parallelNum: 4, fileSizeThreshold: 128000000 },
+    'azureblobstorage': { parallelNum: 1, fileSizeThreshold: null },
+    'dataverse': { parallelNum: 1, fileSizeThreshold: null },
+    'figshare': { parallelNum: 1, fileSizeThreshold: null },
+    'github': { parallelNum: 1, fileSizeThreshold: null },
+    'swift': { parallelNum: 1, fileSizeThreshold: null },
+    'owncloud': { parallelNum: 1, fileSizeThreshold: null }
+};
 
 // Monkey-patch Dropzone.processQueue here (must run before any Dropzone instances are created)
 (function() {
@@ -196,7 +195,7 @@ var PROVIDER_SETTINGS = new Map([
 })();
 
 function getProviderSettings(provider) {
-    return PROVIDER_SETTINGS.get(provider) || null;
+    return PROVIDER_SETTINGS[provider] || null;
 }
 
 function findByTempID(parent, tmpID) {
