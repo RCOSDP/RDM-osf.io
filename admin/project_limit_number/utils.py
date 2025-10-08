@@ -74,7 +74,26 @@ def validate_file_json(file_data, json_schema_file_name):
 
 
 def generate_logic_condition_from_attribute(attribute):
-    """Generate a logic condition string based on an attribute."""
+    """
+    Generate a logic condition string and params for SQL query based on an attribute.
+
+    Args:
+        attribute (dict): A dictionary containing:
+            - attribute_name (str): The name of the attribute to be checked.
+            - attribute_value (str): The value to match (user input, use %s and params for SQL safety).
+            - setting_type (int): The type of matching to perform.
+
+    Returns:
+        tuple: (logic_condition_string, params)
+            - logic_condition_string: SQL query string with column name and %s as placeholder.
+            - params: List of attribute_value(s) for %s in logic_condition_string.
+
+    If logic_condition_string is empty, params will be an empty list.
+
+    Example:
+        logic_condition_string = "data -> 'idp_attr' ->> 'email' = %s"
+        params = ['email@example.com']
+    """
     params = []
     attribute_name = attribute.get('attribute_name')
     attribute_value = attribute.get('attribute_value', '')
@@ -82,21 +101,27 @@ def generate_logic_condition_from_attribute(attribute):
     if setting_type not in SETTING_TYPE_ID_LIST:
         # If setting_type is not in SETTING_TYPE_ID_LIST, return empty string
         return '', params
+
+    # attribute_value was inputed by user so not use direct value but use %s and params list for parameterized query to prevent SQL injection
     use_left_suffix_match = attribute.get('setting_type') in LEFT_SUFFIX_MATCH_SETTING_TYPE_LIST
     if use_left_suffix_match:
+        # If attribute is left_suffix_match, use LIKE %s for query and add % to the front of attribute_value
         params.append(f'%{attribute_value}')
         attribute_value_compare_string = f'LIKE %s'
     else:
+        # Otherwise, use = %s for query
         params.append(attribute_value)
         attribute_value_compare_string = f'= %s'
 
     extended_data_idp_attr = 'data -> \'idp_attr\' ->> \'{attribute_column}\''
 
     # Attributes match with ATTRIBUTE_STRING_QUERY_MAP
+    # Generate query string using attribute_value_compare_string with placeholder %s for parameterized query
     if attribute_name in ATTRIBUTE_STRING_QUERY_MAP.keys():
         return f'{extended_data_idp_attr.format(attribute_column=ATTRIBUTE_STRING_QUERY_MAP[attribute_name])} {attribute_value_compare_string}', params
 
     # Attributes match with ATTRIBUTE_ARRAY_QUERY_MAP
+    # Generate query string using attribute_value_compare_string with placeholder %s for parameterized query
     if attribute_name in ATTRIBUTE_ARRAY_QUERY_MAP.keys():
         return (
             f'EXISTS ('
@@ -107,6 +132,7 @@ def generate_logic_condition_from_attribute(attribute):
         ), params
 
     # Attribute name is EDU_PERSON_PRINCIPAL_NAME
+    # Generate query string using attribute_value_compare_string with placeholder %s for parameterized query
     if attribute_name == EDU_PERSON_PRINCIPAL_NAME:
         return (
             f'( {extended_data_idp_attr.format(attribute_column="eppn")} {attribute_value_compare_string} OR '
@@ -114,6 +140,7 @@ def generate_logic_condition_from_attribute(attribute):
         ), params + params
 
     # Attribute name is MAIL_GRDM
+    # Generate query string using attribute_value_compare_string with placeholder %s for parameterized query
     if attribute_name == MAIL_GRDM:
         # Get query from osf_user table instead
         return f'u.username {attribute_value_compare_string}', params
