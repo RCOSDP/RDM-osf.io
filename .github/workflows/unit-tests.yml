@@ -19,6 +19,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set image owner
+        run: echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_ENV"
+
       - name: Log in to GHCR
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
@@ -29,11 +32,11 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/rdm-osf.io:${{ github.sha }}
+          tags: ghcr.io/${{ env.OWNER_LC }}/rdm-osf.io:${{ github.sha }}
 
       - name: Export image reference
         id: meta
-        run: echo "image=ghcr.io/${{ github.repository_owner }}/rdm-osf.io:${{ github.sha }}" >> "$GITHUB_OUTPUT"
+        run: echo "image=ghcr.io/${OWNER_LC}/rdm-osf.io:${{ github.sha }}" >> "$GITHUB_OUTPUT"
 
   tests:
     runs-on: ubuntu-latest
