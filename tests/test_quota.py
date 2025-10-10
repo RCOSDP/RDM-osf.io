@@ -4,7 +4,7 @@ import mock
 from nose.tools import *  # noqa (PEP8 asserts)
 import pytest
 
-from addons.osfstorage.models import OsfStorageFileNode
+from addons.osfstorage.models import OsfStorageFileNode, Region
 from api.base import settings as api_settings
 from framework.auth import signing
 from tests.base import OsfTestCase
@@ -16,6 +16,7 @@ from osf_tests.factories import (
 )
 from osf.utils.requests import check_select_for_update
 from website.util import web_url_for, quota
+from framework.auth import Auth
 
 
 @pytest.mark.enable_implicit_clean
@@ -1661,3 +1662,61 @@ class TestQuotaApiBrowser(OsfTestCase):
         assert_equal(response.status_code, 200)
         assert_equal(response.json['max'], 200 * api_settings.SIZE_UNIT_GB)
         assert_equal(response.json['used'], 100 * api_settings.SIZE_UNIT_GB)
+
+
+class TestUpdateNodeStorage(OsfTestCase):
+    def setUp(self):
+        super(TestUpdateNodeStorage, self).setUp()
+        self.user = UserFactory()
+        self.node = ProjectFactory(creator=self.user)
+        self.institution = InstitutionFactory()
+        self.region = RegionFactory(_id=self.institution._id)
+        self.node.affiliated_institutions.add(self.institution)
+
+    def test_update_node_storage_sets_region(self):
+        node_settings = self.node.get_addon('osfstorage')
+        node_settings.region = RegionFactory()  # Different region
+        node_settings.save()
+        quota.update_node_storage(self.node)
+        node_settings.refresh_from_db()
+        assert_equal(node_settings.region._id, self.region._id)
+
+    def test_update_node_storage_no_affiliated_institution(self):
+        self.node.affiliated_institutions.clear()
+        node_settings = self.node.get_addon('osfstorage')
+        old_region_id = node_settings.region._id
+        quota.update_node_storage(self.node)
+        node_settings.refresh_from_db()
+        assert_equal(node_settings.region._id, old_region_id)
+
+    def test_update_node_storage_no_region_for_institution(self):
+        Region.objects.filter(_id=self.institution._id).delete()
+        node_settings = self.node.get_addon('osfstorage')
+        old_region_id = node_settings.region._id
+        quota.update_node_storage(self.node)
+        node_settings.refresh_from_db()
+        assert_equal(node_settings.region._id, old_region_id)
+
+    def test_update_node_storage_addon_created_if_missing(self):
+        with mock.patch.object(self.node, 'get_addon', return_value=None) as mock_get_addon:
+           with mock.patch.object(self.node, 'add_addon') as mock_add_addon:
+                quota.update_node_storage(self.node)
+                mock_add_addon.assert_called_once()
+                args, kwargs = mock_add_addon.call_args
+                assert_equal(args[0], 'osfstorage')
+                assert_equal(kwargs['auth'].user, self.node.creator)
+
+    def test_update_node_storage_node_settings_is_none(self):
+        # Simulate node_settings is None by deleting the addon and not recreating
+        # Directly call update_node_storage, should not raise error
+        with mock.patch.object(self.node, 'get_addon', return_value=None):
+            with mock.patch.object(self.node, 'add_addon') as mock_add_addon:
+                try:
+                    quota.update_node_storage(self.node)
+                except Exception as e:
+                    assert False, f"update_node_storage raised an exception when node_settings is None: {e}"
+                # Verify addon creation was attempted
+                mock_add_addon.assert_called_once()
+                args, kwargs = mock_add_addon.call_args
+                assert_equal(args[0], 'osfstorage')
+                assert_equal(kwargs['auth'].user, self.node.creator)

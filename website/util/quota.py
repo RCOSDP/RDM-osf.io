@@ -14,6 +14,7 @@ from osf.models import (
 )
 from django.utils import timezone
 from osf.utils.requests import check_select_for_update
+from framework.auth import Auth
 
 
 PROVIDERS = ['s3compatinstitutions']
@@ -359,7 +360,9 @@ def update_node_storage(node):
     if node is not None:
         node_settings = node.get_addon('osfstorage')
         if node_settings is None:
-            node_settings = node.add_addon('osfstorage')
+            # 機関ストレージを変更しようとすると「いくつかのエラーが発生しました」とのエラーメッセージが出ている修正
+            # 原因：「auth」引数が足りていないバグです。
+            node_settings = node.add_addon('osfstorage', auth=Auth(node.creator))
         institution = node.affiliated_institutions.first()
         if institution is not None:
             try:
