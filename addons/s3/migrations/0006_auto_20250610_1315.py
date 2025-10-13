@@ -24,7 +24,7 @@ def populate_region_field(apps, schema_editor):
 
         except Exception as e:
             print(f'Failed to get region for bucket {node_setting.folder_id}: {e}')
-            node_setting.region = 'us-east-1'  # default region
+            node_setting.region = 'us-east-1'  # aws default region
             node_setting.save()
 
 
