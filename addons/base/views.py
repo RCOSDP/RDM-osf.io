@@ -979,7 +979,7 @@ def addon_view_or_download_file(auth, path, provider, **kwargs):
                 metadata_json = json.dumps(version.metadata, default=str)
                 headers['X-File-Metadata'] = metadata_json
             except (TypeError, ValueError) as e:
-                logger.warning(f"Failed to serialize metadata to JSON: {e}")
+                logger.warning(f'Failed to serialize metadata to JSON: {e}')
         return make_response(('', http_status.HTTP_302_FOUND, headers))
 
     if action == 'download':

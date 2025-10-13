@@ -9,7 +9,7 @@ from addons.s3.settings import BUCKET_LOCATIONS
 
 def populate_region_field(apps, schema_editor):
     NodeSettings = apps.get_model('addons_s3', 'NodeSettings')
-    
+
     for node_setting in NodeSettings.objects.filter(folder_id__isnull=False):
         try:
             if node_setting.external_account:
@@ -18,12 +18,12 @@ def populate_region_field(apps, schema_editor):
                     node_setting.external_account.oauth_secret,
                     node_setting.folder_id
                 )
-                
+
                 node_setting.region = bucket_location
                 node_setting.save()
-                
+
         except Exception as e:
-            print(f"Failed to get region for bucket {node_setting.folder_id}: {e}")
+            print(f'Failed to get region for bucket {node_setting.folder_id}: {e}')
             node_setting.region = 'us-east-1'  # default region
             node_setting.save()
 
