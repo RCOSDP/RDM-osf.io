@@ -11,7 +11,7 @@
         {
           "qid": "title-of-dataset",
           "nav": "データセットの名称",
-          "title": "データセットの名称（日本語）|Title of Dataset (Japanese)",
+          "title": "データセットの名称（日本語） [必須]|Title of Dataset (Japanese) [Required]",
           "type": "string",
           "format": "text",
           "required": true,
@@ -33,7 +33,7 @@
         {
           "qid": "project-name",
           "nav": "MSプロジェクト名",
-          "title": "MSプロジェクト名|MS Project name",
+          "title": "MSプロジェクト名 [必須]|MS Project name [Required]",
           "type": "choose",
           "format": "singleselect-pulldown",
           "required": true,
@@ -70,7 +70,7 @@
         {
           "qid": "date-registered-in-metadata",
           "nav": "メタデータ登録日・メタデータ更新日",
-          "title": "メタデータ登録日|Date (Registered) in Metadata",
+          "title": "メタデータ登録日 [必須]|Date (Registered) in Metadata [Required]",
           "type": "string",
           "format": "text",
           "required": true,
@@ -81,7 +81,7 @@
         {
           "qid": "date-updated-in-metadata",
           "nav": "メタデータ登録日・メタデータ更新日",
-          "title": "メタデータ更新日|Date (Updated) in Metadata",
+          "title": "メタデータ更新日 [必須]|Date (Updated) in Metadata [Required]",
           "type": "string",
           "format": "text",
           "required": true,
@@ -92,7 +92,7 @@
         {
           "qid": "purpose-of-experiment",
           "nav": "データの説明",
-          "title": "実験（もしくは解析結果・解析ツールなど）の目的（日本語）|Purpose of experiment (Purpose of Analytical results or Analytical tools) (Japanese)",
+          "title": "実験（もしくは解析結果・解析ツールなど）の目的（日本語） [必須]|Purpose of experiment (Purpose of Analytical results or Analytical tools) (Japanese) [Required]",
           "type": "string",
           "format": "text",
           "space_normalization": true,
@@ -110,7 +110,7 @@
         {
           "qid": "description-of-experimental-condition",
           "nav": "データの説明",
-          "title": "実験状況など（もしくは解析結果・解析ツールの背景など）の説明（日本語）|Description of experimental condition (Description of  Analytical results or Analytical tools) (Japanese)",
+          "title": "実験状況など（もしくは解析結果・解析ツールの背景など）の説明（日本語） [必須]|Description of experimental condition (Description of  Analytical results or Analytical tools) (Japanese) [Required]",
           "type": "string",
           "format": "text",
           "space_normalization": true,
@@ -128,7 +128,7 @@
         {
           "qid": "keywords",
           "nav": "データの説明",
-          "title": "キーワード|Keywords",
+          "title": "キーワード [必須]*|Keywords [Required]*",
           "required": true,
           "type": "array",
           "properties": [
@@ -149,7 +149,7 @@
         {
           "qid": "dataset-research-field",
           "nav": "データセットの分野",
-          "title": "データセットの分野|Dataset Research field",
+          "title": "データセットの分野 [必須]|Dataset Research field [Required]",
           "type": "choose",
           "format": "singleselect-pulldown",
           "options": [
@@ -204,7 +204,7 @@
         {
           "qid": "Analysis-type",
           "nav": "解析対象データ",
-          "title": "解析対象データ|Analysis type",
+          "title": "解析対象データ [必須]|Analysis type [Required]",
           "type": "choose",
           "format": "multiselect",
           "required": true,
@@ -254,7 +254,7 @@
         {
           "qid": "the-presence-of-metadata-files-created-for-a-specific-modality-in-other-databases",
           "nav": "データの説明",
-          "title": "他のデータベースで特定のモダリティ用に作成したメタデータファイルの有無|The presence of metadata files created for a specific modality in other databases",
+          "title": "他のデータベースで特定のモダリティ用に作成したメタデータファイルの有無 [必須]|The presence of metadata files created for a specific modality in other databases [Required]",
           "type": "choose",
           "format": "singleselect-pulldown",
           "options": [
@@ -288,7 +288,7 @@
         {
           "qid": "necessity-of-contact-and-permission",
           "nav": "データの提供・公開（解析結果・解析ツールの提供・公開）",
-          "title": "連絡・許諾の要不要|Necessity of Contact and Permission",
+          "title": "連絡・許諾の要不要 [必須]|Necessity of Contact and Permission [Required]",
           "type": "choose",
           "format": "singleselect-pulldown",
           "options": [
@@ -311,7 +311,7 @@
         {
           "qid": "necessity-of-including-in-acknowledgments",
           "nav": "データの提供・公開（解析結果・解析ツールの提供・公開）",
-          "title": "謝辞に記載の要不要|Necessity of including in Acknowledgments",
+          "title": "謝辞に記載の要不要 [必須]|Necessity of including in Acknowledgments [Required]",
           "type": "choose",
           "format": "singleselect-pulldown",
           "options": [
@@ -330,7 +330,7 @@
         {
           "qid": "names-to-be-included-in-the-acknowledgments",
           "nav": "データの提供・公開（解析結果・解析ツールの提供・公開）",
-          "title": "謝辞に記載する名称（個人名、グループ名等）、または謝辞全文（日本語）|Names to be included in the Acknowledgments (individuals, groups, etc.), or the full text of the Acknowledgments (Japanese)",
+          "title": "謝辞に記載する名称（個人名、グループ名等）、または謝辞全文（日本語） [必須]|Names to be included in the Acknowledgments (individuals, groups, etc.), or the full text of the Acknowledgments (Japanese) [Required]",
           "type": "string",
           "format": "text",
           "required": true,
@@ -339,7 +339,7 @@
         {
           "qid": "names-to-be-included-in-the-acknowledgments-en",
           "nav": "データの提供・公開（解析結果・解析ツールの提供・公開）",
-          "title": "Names to be included in the Acknowledgments (individuals, groups, etc.), or the full text of the Acknowledgments (English)",
+          "title": "Names to be included in the Acknowledgments (individuals, groups, etc.), or the full text of the Acknowledgments (English) [Required]",
           "type": "string",
           "format": "text",
           "required": true,
@@ -366,7 +366,7 @@
         {
           "qid": "data-policy-license",
           "nav": "データの提供・公開（解析結果・解析ツールの提供・公開）",
-          "title": "ライセンス|License",
+          "title": "ライセンス [必須]|License [Required]",
           "required": true,
           "type": "choose",
           "format": "singleselect-pulldown",
@@ -468,7 +468,7 @@
         {
           "qid": "data-policy-free",
           "nav": "データの提供・公開（解析結果・解析ツールの提供・公開）",
-          "title": "有償・無償 |Pay or Free ",
+          "title": "有償・無償 [必須]|Pay or Free [Required]",
           "type": "choose",
           "format": "singleselect-pulldown",
           "options": [
@@ -486,7 +486,7 @@
         {
           "qid": "availability-of-commercial-use",
           "nav": "データの提供・公開（解析結果・解析ツールの提供・公開）",
-          "title": "商用利用の可否  |Availability of commercial use  ",
+          "title": "商用利用の可否 [必須]|Availability of commercial use [Required]",
           "type": "choose",
           "format": "singleselect-pulldown",
           "options": [
@@ -504,7 +504,7 @@
         {
           "qid": "access-rights",
           "nav": "データの提供・公開",
-          "title": "アクセス権|Access rights",
+          "title": "アクセス権 [必須]|Access rights [Required]",
           "type": "choose",
           "format": "singleselect-pulldown",
           "options": [
@@ -540,7 +540,7 @@
         {
           "qid": "repository-information",
           "nav": "リポジトリ",
-          "title": "リポジトリ情報 |Repository information ",
+          "title": "リポジトリ情報 [必須]|Repository information [Required]",
           "type": "choose",
           "format": "singleselect-pulldown",
           "options": [
@@ -623,7 +623,7 @@
         {
           "qid": "data-creator",
           "nav": "データ作成者",
-          "title": "データ作成者|Name of data creator",
+          "title": "データ作成者 [必須]*|Name of data creator [Required]*",
           "required": true,
           "type": "array",
           "properties": [
@@ -667,7 +667,7 @@
         {
           "qid": "data-manager",
           "nav": "データ管理者",
-          "title": "データ管理者|Name of data manager",
+          "title": "データ管理者 [必須]*|Name of data manager [Required]*",
           "required": true,
           "type": "array",
           "properties": [
@@ -711,7 +711,7 @@
         {
           "qid": "target-type-of-acquired-data",
           "nav": "取得データの対象種別",
-          "title": "取得データの対象種別（日本語）|Target type of acquired data (Japanese)",
+          "title": "取得データの対象種別（日本語） [必須]|Target type of acquired data (Japanese) [Required]",
           "type": "string",
           "format": "text",
           "required": true,
@@ -729,7 +729,7 @@
         {
           "qid": "ethics-review-committee-approval",
           "nav": "倫理審査委員会承認 ",
-          "title": "倫理審査委員会承認（日本語）|Ethics Review Committee Approval (Japanese)",
+          "title": "倫理審査委員会承認（日本語） [必須]|Ethics Review Committee Approval (Japanese) [Required]",
           "type": "string",
           "format": "text",
           "required": true,
@@ -749,7 +749,7 @@
         {
           "qid": "informed-consent",
           "nav": "インフォームドコンセント",
-          "title": "（ヒト）インフォームドコンセント（IC） 有・無・不要 |(Human) Informed Consent (IC) Yes, No, or Unnecessary",
+          "title": "（ヒト）インフォームドコンセント（IC） 有・無・不要 [必須]|(Human) Informed Consent (IC) Yes, No, or Unnecessary [Required]",
           "type": "choose",
           "format": "singleselect-pulldown",
           "options": [
@@ -873,7 +873,7 @@
         {
           "qid": "conflict-of-interest-Yes-or-No",
           "nav": "利益相反の有無",
-          "title": "利益相反の有無|Conflict of interest Yes or No ",
+          "title": "利益相反の有無 [必須]|Conflict of interest Yes or No [Required]",
           "type": "choose",
           "format": "singleselect-pulldown",
           "options": [
@@ -1203,7 +1203,7 @@
               "properties": [
                 {
                   "id": "Position-of-column",
-                  "title": "行の位置（日本語）|Position of column (Japanese)",
+                  "title": "列の位置（日本語）|Position of column (Japanese)",
                   "type": "string",
                   "format": "textarea"
                 },
@@ -1895,7 +1895,7 @@
           "type": "choose",
           "format": "multiselect",
           "required": true,
-          "help": "「ムーンショット目標2研究データデポジットの基本方針に係る協定書」（付帯事項含む。以降協定書）および「ムーンショット目標２データベースガイドライン」（以降ガイドライン）はムーンショット目標2（以降MS2）に参画する全ての研究参加者がその内容を理解し、遵守する必要があります。内容について改めて確認したい方は以下のリンクを参照ください。\n\n協定書：https://rdm.nii.ac.jp/ve4fp/\n未病DBガイドライン：https://rdm.nii.ac.jp/3sw6v/|All participants in Moonshot Goal 2 (MS2) are required to understand and comply with the \"Agreement on the Policy of Research Project for the Moonshot Goal 22\" (including supplementary provisions, hereinafter \"Agreement\") and the \"Moonshot Goal 2 Database Guidelines\" (hereinafter \"Guidelines\"). If you would like to review the content, please refer to the following links.\nMS2 Agreement: https://rdm.nii.ac.jp/ve4fp/\nMebyo DB Guidelines: https://rdm.nii.ac.jp/3sw6v/",
+          "help": "「ムーンショット目標2研究データデポジットの基本方針に係る協定書」（付帯事項含む。以降協定書）および「ムーンショット目標２データベースガイドライン」（以降ガイドライン）はムーンショット目標2（以降MS2）に参画する全ての研究参加者がその内容を理解し、遵守する必要があります。内容について改めて確認したい方は以下のリンクを参照ください。\n\n協定書：https://rdm.nii.ac.jp/d3y6e/\n協定書付帯事項：https://rdm.nii.ac.jp/ve4fp/\n未病DBガイドライン：https://rdm.nii.ac.jp/3sw6v/|All participants in Moonshot Goal 2 (MS2) are required to understand and comply with the \"Agreement on the Policy of Research Project for the Moonshot Goal 22\" (including supplementary provisions, hereinafter \"Agreement\") and the \"Moonshot Goal 2 Database Guidelines\" (hereinafter \"Guidelines\"). If you would like to review the content, please refer to the following links.\nMS2 Agreement: https://rdm.nii.ac.jp/d3y6e/\nMS2 Agreement - Supplementary Provisions: https://rdm.nii.ac.jp/ve4fp/\nMebyo DB Guidelines: https://rdm.nii.ac.jp/3sw6v/",
           "options": [
             {
               "text": "「ムーンショット目標2研究データデポジットの基本方針に係る協定書」（付帯事項含む。以降協定書）および「ムーンショット目標２データベースガイドライン」を全て読み、内容を理解しましたか？|Have you read and understood the Agreement and Guidelines?"
@@ -1954,7 +1954,7 @@
           "type": "choose",
           "format": "multiselect",
           "required": true,
-          "help": "未病DBでは、メタデータカタログを通して研究コラボレーションが創発・活発化することが期待されています。実験・数理・応用など様々な分野の研究者が互いの持つ研究資産を理解しコラボレーションにつながるためには、各提供者が自身の研究について分野外から見ても十分に理解可能な形で説明を付与する必要があります。未病DBのコンセプトやメタデータ入力についての解説は以下のリンクを参照ください。（未病DBガイドライン、未病DBデータ格納手順書）\nhttps://rdm.nii.ac.jp/3sw6v/\nhttps://rdm.nii.ac.jp/ve4fp/|The Mebyo Database (Mebyo DB) is expected to promote and facilitate interdisciplinary research collaboration through its metadata catalog. \nTo enable researchers from diverse fields—such as experimental, mathematical, and applied sciences—to understand one another’s research assets and work together effectively, each data provider must describe their research in a manner that is accessible to those outside their specific field.\nFor more details, please refer to the Mebyo DB Guidelines.\nMebyo DB Guidelines: https://rdm.nii.ac.jp/3sw6v/",
+          "help": "未病DBでは、メタデータカタログを通して研究コラボレーションが創発・活発化することが期待されています。実験・数理・応用など様々な分野の研究者が互いの持つ研究資産を理解しコラボレーションにつながるためには、各提供者が自身の研究について分野外から見ても十分に理解可能な形で説明を付与する必要があります。未病DBのコンセプトやメタデータ入力についての解説は以下のリンクを参照ください。\n\n未病DBガイドライン：https://rdm.nii.ac.jp/3sw6v/\n未病DBデータ格納手順書：https://rdm.nii.ac.jp/6hs2b/|The Mebyo Database (Mebyo DB) is expected to promote and facilitate interdisciplinary research collaboration through its metadata catalog. \nTo enable researchers from diverse fields—such as experimental, mathematical, and applied sciences—to understand one another’s research assets and work together effectively, each data provider must describe their research in a manner that is accessible to those outside their specific field.\nFor more details, please refer to the Mebyo DB Guidelines.\nMebyo DB Guidelines: https://rdm.nii.ac.jp/3sw6v/\nMebyo DB Deposition Guide (Under Development): https://rdm.nii.ac.jp/6hs2b/",
           "options": [
             {
               "text": "メタデータは、他の研究者が見ても分かりやすい形で記入しましたか？|Is the metadata written in a way that other researchers can easily understand?"
@@ -1983,7 +1983,7 @@
           "type": "choose",
           "format": "multiselect",
           "required": true,
-          "help": "未病DBでは、公開・制限公開・共有・制限共有の各共有レベルが設定されています。各研究データは倫理審査などの状況に応じて、正しい共有レベルに設定する必要があります。各共有レベルについての解説は以下のリンクを参照ください。（未病DBガイドライン）\nhttps://rdm.nii.ac.jp/3sw6v/|Mebyo DB has public, restricted public, shared, and restricted shared levels.\nEach dataset must be set to the appropriate sharing level according to the situation, such as ethics review. For details on each sharing level, please refer to the following link.\n\nMebyo DB Guidelines: https://rdm.nii.ac.jp/3sw6v/",
+          "help": "未病DBでは、公開・制限公開・共有・制限共有の各共有レベルが設定されています。各研究データは倫理審査などの状況に応じて、正しい共有レベルに設定する必要があります。各共有レベルについての解説は以下のリンクを参照ください。\n\n未病DBガイドライン：https://rdm.nii.ac.jp/3sw6v/|Mebyo DB has public, restricted public, shared, and restricted shared levels.\nEach dataset must be set to the appropriate sharing level according to the situation, such as ethics review. For details on each sharing level, please refer to the following link.\n\nMebyo DB Guidelines: https://rdm.nii.ac.jp/3sw6v/",
           "options": [
             {
               "text": "共有レベルは適切ですか？制限共有とすべき研究データが含まれていませんか？|Is the sharing level appropriate? Are there any datasets that should be set as restricted sharing?"
@@ -2026,7 +2026,7 @@
           "type": "choose",
           "format": "multiselect",
           "required": true,
-          "help": "各提供者は自身の研究データに対して責任をもって管理する必要があります。未病DBでは、各データセットに関して提供者にコンタクトを取る必要がある場合に、メタデータに記載された連絡先の情報を元に連絡をとります。そのため、メタデータの連絡先は常にコンタクト可能なものに更新してある必要があります。研究データの取扱や提供者の責務については以下のリンクを参照ください。（未病DBガイドライン）\nhttps://rdm.nii.ac.jp/3sw6v/|Each provider is responsible for managing their research data. \nIn the Mebyo Database (Mebyo DB), if it becomes necessary to contact a provider regarding a dataset, contact information listed in the metadata can used to start communication. \nTherefore, it is necessary to always keep the contact information up to date. \nMebyo DB Guidelines: https://rdm.nii.ac.jp/3sw6v/",
+          "help": "各提供者は自身の研究データに対して責任をもって管理する必要があります。未病DBでは、各データセットに関して提供者にコンタクトを取る必要がある場合に、メタデータに記載された連絡先の情報を元に連絡をとります。そのため、メタデータの連絡先は常にコンタクト可能なものに更新してある必要があります。研究データの取扱や提供者の責務については以下のリンクを参照ください。\n\n未病DBガイドライン：https://rdm.nii.ac.jp/3sw6v/|Each provider is responsible for managing their research data. \nIn the Mebyo Database (Mebyo DB), if it becomes necessary to contact a provider regarding a dataset, contact information listed in the metadata can used to start communication. \nTherefore, it is necessary to always keep the contact information up to date. \nMebyo DB Guidelines: https://rdm.nii.ac.jp/3sw6v/",
           "options": [
             {
               "text": "有効なメールアドレスがメタデータに正しく記載されていますか？|Is a valid email address correctly listed in the metadata?"
@@ -2056,7 +2056,7 @@
           "type": "choose",
           "format": "multiselect",
           "required": true,
-          "help": "未病DBでは各提供者のオーサーシップや著作権について協定書に規定しています。各データセットにおいて、協定書を参考にデータ利用者との間で事前に取り決めを交わしておくことを推奨しています。提供者の権利については以下のリンクを参照ください。（協定書、未病DBガイドライン）|In the Mebyo Database (Mebyo DB), authorship and copyright are stipulated in the agreement. \nIt is recommended that providers make prior arrangements with data users based on the Agreement for each dataset. For details on provider rights, please refer to the following links.\n\nMS2 Agreement: https://rdm.nii.ac.jp/ve4fp/\nMebyo DB Guidelines: https://rdm.nii.ac.jp/3sw6v/",
+          "help": "未病DBでは各提供者のオーサーシップや著作権について協定書に規定しています。各データセットにおいて、協定書を参考にデータ利用者との間で事前に取り決めを交わしておくことを推奨しています。提供者の権利については以下のリンクを参照ください。\n\n協定書：https://rdm.nii.ac.jp/d3y6e/\n協定書付帯事項：https://rdm.nii.ac.jp/ve4fp/\n未病DBガイドライン：https://rdm.nii.ac.jp/3sw6v/|In the Mebyo Database (Mebyo DB), authorship and copyright are stipulated in the agreement. \nIt is recommended that providers make prior arrangements with data users based on the Agreement for each dataset. For details on provider rights, please refer to the following links.\n\nMS2 Agreement: https://rdm.nii.ac.jp/d3y6e/\nMS2 Agreement - Supplementary Provisions: https://rdm.nii.ac.jp/ve4fp/\nMebyo DB Guidelines: https://rdm.nii.ac.jp/3sw6v/",
           "options": [
             {
               "text": "未病DBが定めるオーサーシップや著作権に関する指針について理解しましたか？|Do you understand the Mebyo DB's authorship and copyright policies?",
