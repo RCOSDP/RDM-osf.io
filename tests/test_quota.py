@@ -1671,13 +1671,14 @@ class TestUpdateNodeStorage(OsfTestCase):
         self.node = ProjectFactory(creator=self.user)
         self.institution = InstitutionFactory()
         self.region = RegionFactory(_id=self.institution._id)
+        self.user.affiliated_institutions.add(self.institution)
         self.node.affiliated_institutions.add(self.institution)
 
     def test_update_node_storage_sets_region(self):
         node_settings = self.node.get_addon('osfstorage')
         node_settings.region = RegionFactory()  # Different region
         node_settings.save()
-        quota.update_node_storage(self.node)
+        quota.update_node_storage(self.node,self.user)
         node_settings.refresh_from_db()
         assert_equal(node_settings.region._id, self.region._id)
 
@@ -1685,7 +1686,7 @@ class TestUpdateNodeStorage(OsfTestCase):
         self.node.affiliated_institutions.clear()
         node_settings = self.node.get_addon('osfstorage')
         old_region_id = node_settings.region._id
-        quota.update_node_storage(self.node)
+        quota.update_node_storage(self.node, self.user)
         node_settings.refresh_from_db()
         assert_equal(node_settings.region._id, old_region_id)
 
@@ -1693,14 +1694,14 @@ class TestUpdateNodeStorage(OsfTestCase):
         Region.objects.filter(_id=self.institution._id).delete()
         node_settings = self.node.get_addon('osfstorage')
         old_region_id = node_settings.region._id
-        quota.update_node_storage(self.node)
+        quota.update_node_storage(self.node, self.user)
         node_settings.refresh_from_db()
         assert_equal(node_settings.region._id, old_region_id)
 
     def test_update_node_storage_addon_created_if_missing(self):
         with mock.patch.object(self.node, 'get_addon', return_value=None) as mock_get_addon:
            with mock.patch.object(self.node, 'add_addon') as mock_add_addon:
-                quota.update_node_storage(self.node)
+                quota.update_node_storage(self.node, self.user)
                 mock_add_addon.assert_called_once()
                 args, kwargs = mock_add_addon.call_args
                 assert_equal(args[0], 'osfstorage')
@@ -1712,7 +1713,7 @@ class TestUpdateNodeStorage(OsfTestCase):
         with mock.patch.object(self.node, 'get_addon', return_value=None):
             with mock.patch.object(self.node, 'add_addon') as mock_add_addon:
                 try:
-                    quota.update_node_storage(self.node)
+                    quota.update_node_storage(self.node, self.user)
                 except Exception as e:
                     assert False, f"update_node_storage raised an exception when node_settings is None: {e}"
                 # Verify addon creation was attempted
@@ -1720,3 +1721,29 @@ class TestUpdateNodeStorage(OsfTestCase):
                 args, kwargs = mock_add_addon.call_args
                 assert_equal(args[0], 'osfstorage')
                 assert_equal(kwargs['auth'].user, self.node.creator)
+
+    def test_update_node_storage_sets_creator_if_none(self):
+        node = ProjectFactory()  # Create with a valid creator
+        node.creator = None      # Set creator to None after creation
+        node.save()              # Save if necessary
+        node.affiliated_institutions.add(self.institution)
+        quota.update_node_storage(node, self.user)
+        node.refresh_from_db()
+        assert_equal(node.creator, self.user)
+
+    def test_update_node_storage_user_settings_none(self):
+        # Remove osfstorage addon from user if exists
+        addon = self.user.get_addon('osfstorage')
+        if addon:
+            addon.delete()
+        # Remove osfstorage addon from node if exists
+        node_addon = self.node.get_addon('osfstorage')
+        if node_addon:
+            node_addon.delete()
+
+        # Should add osfstorage addon to user and node
+        quota.update_node_storage(self.node, self.user)
+        user_addon = self.user.get_addon('osfstorage')
+        node_addon = self.node.get_addon('osfstorage')
+        assert_is_not_none(user_addon)
+        assert_is_not_none(node_addon)

@@ -356,8 +356,18 @@ def update_default_storage(user):
                     user_settings.set_region(region._id)
                     logger.info(u'user={}, institution={}, user_settings.set_region({})'.format(user, institution.name, region.name))
 
-def update_node_storage(node):
+def update_node_storage(node, userRequest = None):
     if node is not None:
+        user = node.creator
+        # 機関ストレージを変更しようとするとosf_abstractnode に対応する addons_osfstorage_nodesettings のレコードが存在しない修正。
+        # プロジェクトの作成者が空の場合、機関ストレージを変更したユーザーを creator_id として追加します。
+        if user is None:
+            user = userRequest
+            node.creator = userRequest
+            node.save()
+        user_settings = user.get_addon('osfstorage')
+        if user_settings is None:
+            user_settings = user.add_addon('osfstorage')
         node_settings = node.get_addon('osfstorage')
         if node_settings is None:
             # 機関ストレージを変更しようとすると「いくつかのエラーが発生しました」とのエラーメッセージが出ている修正

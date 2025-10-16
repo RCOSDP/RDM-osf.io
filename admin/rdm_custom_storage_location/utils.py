@@ -172,9 +172,9 @@ def update_storage(institution_id, storage_name, wb_credentials, wb_settings):
         region.save()
     return region
 
-def update_nodes_storage(institution):
+def update_nodes_storage(institution, userRequest=None):
     for node in Node.objects.filter(affiliated_institutions=institution.id):
-        update_node_storage(node)
+        update_node_storage(node, userRequest)
         storage_type = ProjectStorageType.objects.filter(node=node)
         storage_type.update(storage_type=ProjectStorageType.CUSTOM_STORAGE)
     for user in OSFUser.objects.filter(affiliated_institutions=institution.id):
