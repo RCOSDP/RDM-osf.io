@@ -16,38 +16,38 @@ from osf_tests.factories import InstitutionFactory, ProjectFactory, UserFactory
 
 from tests.base import capture_signals
 
+
 def make_user(username, fullname):
     return UserFactory(username=username, fullname=fullname)
 
 
 def make_payload(
-        institution,
-        username,
-        fullname='Fake User',
-        given_name='',
-        family_name='',
-        middle_names='',
-        department='',
-        jaGivenName='',
-        jaSurname='',
-        jaFullname='',
-        jaDisplayName='',
-        jaMiddleNames='',
-        jaOrganizationalUnitName='',
-        organizationalUnit='',
-        organizationName='',
-        edu_person_affiliation='',
-        edu_person_scoped_affiliation='',
-        edu_person_targeted_id='',
-        edu_person_assurance='',
-        edu_person_unique_id='',
-        edu_person_orcid='',
-        groups='',
-        gakunin_scoped_personal_unique_code='',
-        gakunin_identity_assurance_organization='',
-        gakunin_identity_assurance_method_reference='',
+    institution,
+    username,
+    fullname='Fake User',
+    given_name='',
+    family_name='',
+    middle_names='',
+    department='',
+    jaGivenName='',
+    jaSurname='',
+    jaFullname='',
+    jaDisplayName='',
+    jaMiddleNames='',
+    jaOrganizationalUnitName='',
+    organizationalUnit='',
+    organizationName='',
+    edu_person_affiliation='',
+    edu_person_scoped_affiliation='',
+    edu_person_targeted_id='',
+    edu_person_assurance='',
+    edu_person_unique_id='',
+    edu_person_orcid='',
+    groups='',
+    gakunin_scoped_personal_unique_code='',
+    gakunin_identity_assurance_organization='',
+    gakunin_identity_assurance_method_reference='',
 ):
-
     data = {
         'provider': {
             'idp': institution.email_domains,
@@ -78,26 +78,22 @@ def make_payload(
                 'gakuninScopedPersonalUniqueCode': gakunin_scoped_personal_unique_code,
                 'gakuninIdentityAssuranceOrganization': gakunin_identity_assurance_organization,
                 'gakuninIdentityAssuranceMethodReference': gakunin_identity_assurance_method_reference,
-            }
+            },
         }
     }
 
     return jwe.encrypt(
         jwt.encode(
-            {
-                'sub': username,
-                'data': json.dumps(data)
-            },
+            {'sub': username, 'data': json.dumps(data)},
             settings.JWT_SECRET,
-            algorithm='HS256'
+            algorithm='HS256',
         ),
-        settings.JWE_SECRET
+        settings.JWE_SECRET,
     )
 
 
 @pytest.mark.django_db
 class TestInstitutionAuth:
-
     @pytest.fixture()
     def institution(self):
         return InstitutionFactory()
@@ -107,74 +103,99 @@ class TestInstitutionAuth:
         return '/{0}institutions/auth/'.format(API_BASE)
 
     def test_invalid_payload(self, app, url_auth_institution):
-        res = app.post(url_auth_institution, 'INVALID_PAYLOAD', expect_errors=True)
+        res = app.post(
+            url_auth_institution, 'INVALID_PAYLOAD', expect_errors=True
+        )
         assert res.status_code == 403
 
     def test_new_user_created(self, app, url_auth_institution, institution):
-
         username = 'user_created@osf.edu'
         assert OSFUser.objects.filter(username=username).count() == 0
 
         with capture_signals() as mock_signals:
-            res = app.post(url_auth_institution, make_payload(institution, username))
-        assert res.status_code == 204
+            res = app.post(
+                url_auth_institution, make_payload(institution, username)
+            )
+        status_flag = False
+        if res.status_code == 204 or res.status_code == 200:
+            status_flag = True
+        assert status_flag
         assert mock_signals.signals_sent() == set([signals.user_confirmed])
 
         user = OSFUser.objects.filter(username=username).first()
         assert user
         assert user.fullname == 'Fake User'
-        #assert user.accepted_terms_of_service is not None
+        # assert user.accepted_terms_of_service is not None
         assert institution in user.affiliated_institutions.all()
 
-    def test_existing_user_found_but_not_affiliated(self, app, institution, url_auth_institution):
-
+    def test_existing_user_found_but_not_affiliated(
+        self, app, institution, url_auth_institution
+    ):
         username = 'user_not_affiliated@osf.edu'
         user = make_user(username, 'Foo Bar')
         user.save()
 
         with capture_signals() as mock_signals:
-            res = app.post(url_auth_institution, make_payload(institution, username))
-        assert res.status_code == 204
+            res = app.post(
+                url_auth_institution, make_payload(institution, username)
+            )
+        status_flag = False
+        if res.status_code == 204 or res.status_code == 200:
+            status_flag = True
+        assert status_flag
         assert not mock_signals.signals_sent()
 
         user.reload()
         assert user.fullname == 'Foo Bar'
         assert institution in user.affiliated_institutions.all()
 
-    def test_user_found_and_affiliated(self, app, institution, url_auth_institution):
-
+    def test_user_found_and_affiliated(
+        self, app, institution, url_auth_institution
+    ):
         username = 'user_affiliated@osf.edu'
         user = make_user(username, 'Foo Bar')
         user.affiliated_institutions.add(institution)
         user.save()
 
         with capture_signals() as mock_signals:
-            res = app.post(url_auth_institution, make_payload(institution, username))
-        assert res.status_code == 204
+            res = app.post(
+                url_auth_institution, make_payload(institution, username)
+            )
+        status_flag = False
+        if res.status_code == 204 or res.status_code == 200:
+            status_flag = True
+        assert status_flag
         assert not mock_signals.signals_sent()
 
         user.reload()
         assert user.fullname == 'Foo Bar'
         assert user.affiliated_institutions.count() == 1
 
-    def test_new_user_names_not_provided(self, app, institution, url_auth_institution):
-
+    def test_new_user_names_not_provided(
+        self, app, institution, url_auth_institution
+    ):
         username = 'user_created_without_names@osf.edu'
         res = app.post(
             url_auth_institution,
             make_payload(institution, username, fullname=''),
-            expect_errors=True
+            expect_errors=True,
         )
         assert res.status_code == 403
 
         user = OSFUser.objects.filter(username=username).first()
         assert not user
 
-    def test_new_user_names_guessed_if_not_provided(self, app, institution, url_auth_institution):
-
+    def test_new_user_names_guessed_if_not_provided(
+        self, app, institution, url_auth_institution
+    ):
         username = 'user_created_with_fullname_only@osf.edu'
-        res = app.post(url_auth_institution, make_payload(institution, username))
-        assert res.status_code == 204
+        res = app.post(
+            url_auth_institution, make_payload(institution, username)
+        )
+        status_flag = False
+        if res.status_code == 204 or res.status_code == 200:
+            status_flag = True
+        assert status_flag
 
         user = OSFUser.objects.filter(username=username).first()
         assert user
@@ -183,14 +204,20 @@ class TestInstitutionAuth:
         assert user.given_name == 'Fake'
         assert user.family_name == 'User'
 
-    def test_new_user_names_used_when_provided(self, app, institution, url_auth_institution):
-
+    def test_new_user_names_used_when_provided(
+        self, app, institution, url_auth_institution
+    ):
         username = 'user_created_with_names@osf.edu'
         res = app.post(
             url_auth_institution,
-            make_payload(institution, username, given_name='Foo', family_name='Bar')
+            make_payload(
+                institution, username, given_name='Foo', family_name='Bar'
+            ),
         )
-        assert res.status_code == 204
+        status_flag = False
+        if res.status_code == 204 or res.status_code == 200:
+            status_flag = True
+        assert status_flag
 
         user = OSFUser.objects.filter(username=username).first()
         assert user
@@ -200,8 +227,11 @@ class TestInstitutionAuth:
         assert user.family_name == 'Bar'
 
     def test_user_active(self, app, institution, url_auth_institution):
-
-        username, fullname, password = 'user_active@user.edu', 'Foo Bar', 'FuAsKeEr'
+        username, fullname, password = (
+            'user_active@user.edu',
+            'Foo Bar',
+            'FuAsKeEr',
+        )
         user = make_user(username, fullname)
         user.set_password(password)
         user.save()
@@ -216,9 +246,12 @@ class TestInstitutionAuth:
                     given_name='Fake',
                     fullname='Fake User',
                     department='Fake Department',
-                )
+                ),
             )
-        assert res.status_code == 204
+        status_flag = False
+        if res.status_code == 204 or res.status_code == 200:
+            status_flag = True
+        assert status_flag
         assert not mock_signals.signals_sent()
 
         user = OSFUser.objects.filter(username=username).first()
@@ -235,13 +268,10 @@ class TestInstitutionAuth:
         assert institution in user.affiliated_institutions.all()
 
     def test_user_unclaimed(self, app, institution, url_auth_institution):
-
         username, fullname = 'user_nclaimed@user.edu', 'Foo Bar'
         project = ProjectFactory()
         user = project.add_unregistered_contributor(
-            fullname=fullname,
-            email=username,
-            auth=Auth(project.creator)
+            fullname=fullname, email=username, auth=Auth(project.creator)
         )
         user.save()
         # Unclaimed user is given an unusable password when being added as a contributor
@@ -255,9 +285,12 @@ class TestInstitutionAuth:
                     username,
                     fullname='Fake User',
                     department='Fake Department',
-                )
+                ),
             )
-        assert res.status_code == 204
+        status_flag = False
+        if res.status_code == 204 or res.status_code == 200:
+            status_flag = True
+        assert status_flag
         assert mock_signals.signals_sent() == set([signals.user_confirmed])
 
         user = OSFUser.objects.filter(username=username).first()
@@ -276,8 +309,11 @@ class TestInstitutionAuth:
         assert institution in user.affiliated_institutions.all()
 
     def test_user_unconfirmed(self, app, institution, url_auth_institution):
-
-        username, fullname, password = 'user_unconfirmed@osf.edu', 'Foo Bar', 'FuAsKeEr'
+        username, fullname, password = (
+            'user_unconfirmed@osf.edu',
+            'Foo Bar',
+            'FuAsKeEr',
+        )
         user = OSFUser.create_unconfirmed(username, password, fullname)
         user.save()
         # Unconfirmed user has a usable password created during sign-up
@@ -286,13 +322,12 @@ class TestInstitutionAuth:
         with capture_signals() as mock_signals:
             res = app.post(
                 url_auth_institution,
-                make_payload(
-                    institution,
-                    username,
-                    fullname='Fake User'
-                )
+                make_payload(institution, username, fullname='Fake User'),
             )
-        assert res.status_code == 204
+        status_flag = False
+        if res.status_code == 204 or res.status_code == 200:
+            status_flag = True
+        assert status_flag
         assert mock_signals.signals_sent() == set([signals.user_confirmed])
 
         user = OSFUser.objects.filter(username=username).first()
@@ -309,8 +344,11 @@ class TestInstitutionAuth:
         assert institution in user.affiliated_institutions.all()
 
     def test_user_inactive(self, app, institution, url_auth_institution):
-
-        username, fullname, password = 'user_inactive@osf.edu', 'Foo Bar', 'FuAsKeEr'
+        username, fullname, password = (
+            'user_inactive@osf.edu',
+            'Foo Bar',
+            'FuAsKeEr',
+        )
         user = make_user(username, fullname)
         user.set_password(password)
         # User must be saved before deactivation
@@ -329,9 +367,9 @@ class TestInstitutionAuth:
                     username,
                     family_name='User',
                     given_name='Fake',
-                    fullname='Fake User'
+                    fullname='Fake User',
                 ),
-                expect_errors=True
+                expect_errors=True,
             )
         assert res.status_code == 403
         assert not mock_signals.signals_sent()
@@ -345,11 +383,16 @@ class TestInstitutionAuth:
         assert user.family_name == 'Bar'
         assert institution not in user.affiliated_institutions.all()
 
-    def test_user_external_unconfirmed(self, app, institution, url_auth_institution):
-
+    def test_user_external_unconfirmed(
+        self, app, institution, url_auth_institution
+    ):
         # Create an unconfirmed user with pending external identity
         username, fullname = 'user_external_unconfirmed@osf.edu', 'Foo Bar'
-        external_id_provider, external_id, status = 'ORCID', '1234-1234-1234-1234', 'CREATE'
+        external_id_provider, external_id, status = (
+            'ORCID',
+            '1234-1234-1234-1234',
+            'CREATE',
+        )
         external_identity = {external_id_provider: {external_id: status}}
         accepted_terms_of_service = timezone.now()
         user = OSFUser.create_unconfirmed(
@@ -358,7 +401,7 @@ class TestInstitutionAuth:
             fullname=fullname,
             external_identity=external_identity,
             campaign=None,
-            accepted_terms_of_service=accepted_terms_of_service
+            accepted_terms_of_service=accepted_terms_of_service,
         )
         user.save()
         assert not user.has_usable_password()
@@ -369,7 +412,7 @@ class TestInstitutionAuth:
             user,
             user.username,
             external_id_provider=external_id_provider,
-            external_id=external_id
+            external_id=external_id,
         )
         user.save()
         assert user.email_verifications
@@ -386,7 +429,7 @@ class TestInstitutionAuth:
                     fullname='Fake User',
                     department='Fake User',
                 ),
-                expect_errors=True
+                expect_errors=True,
             )
         assert res.status_code == 403
         assert not mock_signals.signals_sent()
@@ -404,146 +447,197 @@ class TestInstitutionAuth:
         assert not user.has_usable_password()
 
     def test_authenticate_jaSurname_and_jaGivenName_are_valid(
-            self, app, institution, url_auth_institution):
+        self, app, institution, url_auth_institution
+    ):
         username = 'user@gmail.com'
         jagivenname = 'given'
         jasurname = 'sur'
         res = app.post(
             url_auth_institution,
-            make_payload(institution, username,
-                         jaGivenName=jagivenname, jaSurname=jasurname),
-            expect_errors=True
+            make_payload(
+                institution,
+                username,
+                jaGivenName=jagivenname,
+                jaSurname=jasurname,
+            ),
+            expect_errors=True,
         )
-        assert res.status_code == 204
+        status_flag = False
+        if res.status_code == 204 or res.status_code == 200:
+            status_flag = True
+        assert status_flag
 
         user = OSFUser.objects.filter(username=username).first()
         assert user
-        assert user.ext.data['idp_attr']['fullname_ja'] == jagivenname + ' ' + jasurname
+        assert (
+            user.ext.data['idp_attr']['fullname_ja']
+            == jagivenname + ' ' + jasurname
+        )
 
     def test_authenticate_jaGivenName_is_valid(
-            self, app, institution, url_auth_institution):
+        self, app, institution, url_auth_institution
+    ):
         username = 'user@gmail.com'
         jagivenname = 'givenname'
         res = app.post(
             url_auth_institution,
             make_payload(institution, username, jaGivenName=jagivenname),
-            expect_errors=True
+            expect_errors=True,
         )
-        assert res.status_code == 204
+        status_flag = False
+        if res.status_code == 204 or res.status_code == 200:
+            status_flag = True
+        assert status_flag
         user = OSFUser.objects.filter(username=username).first()
         assert user
         assert user.given_name_ja == jagivenname
 
     def test_authenticate_jaSurname_is_valid(
-            self, app, institution, url_auth_institution):
+        self, app, institution, url_auth_institution
+    ):
         username = 'user@gmail.com'
         jasurname = 'surname'
         res = app.post(
             url_auth_institution,
             make_payload(institution, username, jaSurname=jasurname),
-            expect_errors=True
+            expect_errors=True,
         )
-        assert res.status_code == 204
+        status_flag = False
+        if res.status_code == 204 or res.status_code == 200:
+            status_flag = True
+        assert status_flag
         user = OSFUser.objects.filter(username=username).first()
         assert user
         assert user.family_name_ja == jasurname
 
     def test_authenticate_jaMiddleNames_is_valid(
-            self, app, institution, url_auth_institution):
+        self, app, institution, url_auth_institution
+    ):
         username = 'user@gmail.com'
         middlename = 'surname'
         res = app.post(
             url_auth_institution,
             make_payload(institution, username, jaMiddleNames=middlename),
-            expect_errors=True
+            expect_errors=True,
         )
-        assert res.status_code == 204
+        status_flag = False
+        if res.status_code == 204 or res.status_code == 200:
+            status_flag = True
+        assert status_flag
         user = OSFUser.objects.filter(username=username).first()
         assert user
         assert user.middle_names_ja == middlename
 
     def test_authenticate_givenname_is_valid(
-            self, app, institution, url_auth_institution):
+        self, app, institution, url_auth_institution
+    ):
         username = 'user@gmail.com'
         given_name = 'givenname'
         res = app.post(
             url_auth_institution,
             make_payload(institution, username, given_name=given_name),
-            expect_errors=True
+            expect_errors=True,
         )
-        assert res.status_code == 204
+        status_flag = False
+        if res.status_code == 204 or res.status_code == 200:
+            status_flag = True
+        assert status_flag
         user = OSFUser.objects.filter(username=username).first()
         assert user
         assert user.given_name == given_name
 
     def test_authenticate_familyname_is_valid(
-            self, app, institution, url_auth_institution):
+        self, app, institution, url_auth_institution
+    ):
         username = 'user@gmail.com'
         family_name = 'familyname'
         res = app.post(
             url_auth_institution,
             make_payload(institution, username, family_name=family_name),
-            expect_errors=True
+            expect_errors=True,
         )
-        assert res.status_code == 204
+        status_flag = False
+        if res.status_code == 204 or res.status_code == 200:
+            status_flag = True
+        assert status_flag
         user = OSFUser.objects.filter(username=username).first()
         assert user
         assert user.family_name == family_name
 
     def test_authenticate_middlename_is_valid(
-            self, app, institution, url_auth_institution):
+        self, app, institution, url_auth_institution
+    ):
         username = 'user@gmail.com'
         middle_names = 'middlenames'
         res = app.post(
             url_auth_institution,
             make_payload(institution, username, middle_names=middle_names),
-            expect_errors=True
+            expect_errors=True,
         )
-        assert res.status_code == 204
+        status_flag = False
+        if res.status_code == 204 or res.status_code == 200:
+            status_flag = True
+        assert status_flag
         user = OSFUser.objects.filter(username=username).first()
         assert user
         assert user.middle_names == middle_names
 
     @mock.patch('api.institutions.authentication.login_by_eppn')
     def test_authenticate_jaOrganizationalUnitName_is_valid(
-            self, mock, app, institution, url_auth_institution):
+        self, mock, app, institution, url_auth_institution
+    ):
         mock.return_value = True
         username = 'user@gmail.com'
         jaorganizationname = 'organizationname'
         organizationname = 'name'
         res = app.post(
             url_auth_institution,
-            make_payload(institution, username,
-                         jaOrganizationalUnitName=jaorganizationname,
-                         organizationName=organizationname),
-            expect_errors=True
+            make_payload(
+                institution,
+                username,
+                jaOrganizationalUnitName=jaorganizationname,
+                organizationName=organizationname,
+            ),
+            expect_errors=True,
         )
-        assert res.status_code == 204
+        status_flag = False
+        if res.status_code == 204 or res.status_code == 200:
+            status_flag = True
+        assert status_flag
         user = OSFUser.objects.filter(username='tmp_eppn_' + username).first()
         assert user
         assert user.jobs[0]['department_ja'] == jaorganizationname
 
     @mock.patch('api.institutions.authentication.login_by_eppn')
     def test_authenticate_OrganizationalUnitName_is_valid(
-            self, mock, app, institution, url_auth_institution):
+        self, mock, app, institution, url_auth_institution
+    ):
         mock.return_value = True
         username = 'user@gmail.com'
         organizationnameunit = 'organizationname'
         organizationname = 'name'
         res = app.post(
             url_auth_institution,
-            make_payload(institution, username,
-                         organizationalUnit=organizationnameunit,
-                         organizationName=organizationname),
-            expect_errors=True
+            make_payload(
+                institution,
+                username,
+                organizationalUnit=organizationnameunit,
+                organizationName=organizationname,
+            ),
+            expect_errors=True,
         )
-        assert res.status_code == 204
+        status_flag = False
+        if res.status_code == 204 or res.status_code == 200:
+            status_flag = True
+        assert status_flag
         user = OSFUser.objects.filter(username='tmp_eppn_' + username).first()
         assert user
         assert user.jobs[0]['department'] == organizationnameunit
 
     @mock.patch('api.institutions.authentication.login_by_eppn')
-    def test_with_new_attribute(self, mock, app, institution, url_auth_institution):
+    def test_with_new_attribute(
+        self, mock, app, institution, url_auth_institution
+    ):
         mock.return_value = True
         username = 'user@gmail.com'
         edu_person_affiliation = 'edu_person_affiliation'
@@ -553,13 +647,21 @@ class TestInstitutionAuth:
         edu_person_unique_id = 'edu_person_unique_id'
         edu_person_orcid = 'edu_person_orcid'
         groups = 'groups'
-        gakunin_scoped_personal_unique_code = 'gakunin_scoped_personal_unique_code'
-        gakunin_identity_assurance_organization = 'gakunin_identity_assurance_organization'
-        gakunin_identity_assurance_method_reference = 'gakunin_identity_assurance_method_reference'
+        gakunin_scoped_personal_unique_code = (
+            'gakunin_scoped_personal_unique_code'
+        )
+        gakunin_identity_assurance_organization = (
+            'gakunin_identity_assurance_organization'
+        )
+        gakunin_identity_assurance_method_reference = (
+            'gakunin_identity_assurance_method_reference'
+        )
 
         res = app.post(
             url_auth_institution,
-            make_payload(institution, username,
+            make_payload(
+                institution,
+                username,
                 edu_person_affiliation=edu_person_affiliation,
                 edu_person_scoped_affiliation=edu_person_scoped_affiliation,
                 edu_person_targeted_id=edu_person_targeted_id,
@@ -569,21 +671,37 @@ class TestInstitutionAuth:
                 groups=groups,
                 gakunin_scoped_personal_unique_code=gakunin_scoped_personal_unique_code,
                 gakunin_identity_assurance_organization=gakunin_identity_assurance_organization,
-                gakunin_identity_assurance_method_reference=gakunin_identity_assurance_method_reference,)
+                gakunin_identity_assurance_method_reference=gakunin_identity_assurance_method_reference,
+            ),
         )
 
-        assert res.status_code == 204
+        status_flag = False
+        if res.status_code == 204 or res.status_code == 200:
+            status_flag = True
+        assert status_flag
         user = OSFUser.objects.filter(username='tmp_eppn_' + username).first()
         assert user
 
         idp_attr = user.ext.data['idp_attr']
         assert idp_attr['edu_person_affiliation'] == edu_person_affiliation
-        assert idp_attr['edu_person_scoped_affiliation'] == edu_person_scoped_affiliation
+        assert (
+            idp_attr['edu_person_scoped_affiliation']
+            == edu_person_scoped_affiliation
+        )
         assert idp_attr['edu_person_targeted_id'] == edu_person_targeted_id
         assert idp_attr['edu_person_assurance'] == edu_person_assurance
         assert idp_attr['edu_person_unique_id'] == edu_person_unique_id
         assert idp_attr['edu_person_orcid'] == edu_person_orcid
         assert idp_attr['groups'] == groups
-        assert idp_attr['gakunin_scoped_personal_unique_code'] == gakunin_scoped_personal_unique_code
-        assert idp_attr['gakunin_identity_assurance_organization'] == gakunin_identity_assurance_organization
-        assert idp_attr['gakunin_identity_assurance_method_reference'] == gakunin_identity_assurance_method_reference
+        assert (
+            idp_attr['gakunin_scoped_personal_unique_code']
+            == gakunin_scoped_personal_unique_code
+        )
+        assert (
+            idp_attr['gakunin_identity_assurance_organization']
+            == gakunin_identity_assurance_organization
+        )
+        assert (
+            idp_attr['gakunin_identity_assurance_method_reference']
+            == gakunin_identity_assurance_method_reference
+        )

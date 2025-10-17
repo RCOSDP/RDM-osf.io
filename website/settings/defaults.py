@@ -16,8 +16,9 @@ os_env = os.environ
 
 
 def parent_dir(path):
-    '''Return the parent of a directory.'''
+    """Return the parent of a directory."""
     return os.path.abspath(os.path.join(path, os.pardir))
+
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 BASE_PATH = parent_dir(HERE)  # website/ directory
@@ -38,12 +39,14 @@ with open(os.path.join(APP_PATH, 'package.json'), 'r') as fobj:
 
 # Expiration time for verification key
 EXPIRATION_TIME_DICT = {
-    'password': 24 * 60,    # 24 hours in minutes for forgot and reset password
-    'confirm': 24 * 60,     # 24 hours in minutes for confirm account and email
-    'claim': 30 * 24 * 60   # 30 days in minutes for claim contributor-ship
+    'password': 24 * 60,  # 24 hours in minutes for forgot and reset password
+    'confirm': 24 * 60,  # 24 hours in minutes for confirm account and email
+    'claim': 30 * 24 * 60,  # 30 days in minutes for claim contributor-ship
 }
 
-CITATION_STYLES_PATH = os.path.join(BASE_PATH, 'static', 'vendor', 'bower_components', 'styles')
+CITATION_STYLES_PATH = os.path.join(
+    BASE_PATH, 'static', 'vendor', 'bower_components', 'styles'
+)
 
 # Minimum seconds between forgot password email attempts
 SEND_EMAIL_THROTTLE = 30
@@ -56,7 +59,9 @@ INCORRECT_PASSWORD_ATTEMPTS_ALLOWED = 3
 
 # Seconds that must elapse before updating a user's date_last_login field
 DATE_LAST_LOGIN_THROTTLE = 60
-DATE_LAST_LOGIN_THROTTLE_DELTA = datetime.timedelta(seconds=DATE_LAST_LOGIN_THROTTLE)
+DATE_LAST_LOGIN_THROTTLE_DELTA = datetime.timedelta(
+    seconds=DATE_LAST_LOGIN_THROTTLE
+)
 
 # Seconds that must elapse before change password attempts are reset(currently 1 hour)
 TIME_RESET_CHANGE_PASSWORD_ATTEMPTS = 3600
@@ -89,7 +94,7 @@ API_DOMAIN = PROTOCOL + 'localhost:8000/'
 PREPRINT_PROVIDER_DOMAINS = {
     'enabled': False,
     'prefix': PROTOCOL,
-    'suffix': '/'
+    'suffix': '/',
 }
 # External Ember App Local Development
 USE_EXTERNAL_EMBER = False
@@ -142,12 +147,12 @@ USE_CDN_FOR_CLIENT_LIBS = True
 USE_EMAIL = True
 FROM_EMAIL = 'openscienceframework-noreply@osf.io'
 
-#nii institution name
-NII_FORMAL_NAME_JA = u'国立情報学研究所'
+# nii institution name
+NII_FORMAL_NAME_JA = '国立情報学研究所'
 NII_FORMAL_NAME_EN = 'National Institute of Informatics'
-#rdm url
+# rdm url
 RDM_URL = 'https://rdm.nii.ac.jp/'
-#nii url
+# nii url
 NII_HOMEPAGE_URL = 'https://www.nii.ac.jp/'
 # support email
 OSF_SUPPORT_EMAIL = 'rdm_support@nii.ac.jp'
@@ -176,11 +181,13 @@ SENDGRID_EMAIL_WHITELIST = []
 
 # Mailchimp
 MAILCHIMP_API_KEY = None
-MAILCHIMP_WEBHOOK_SECRET_KEY = 'CHANGEME'  # OSF secret key to ensure webhook is secure
+MAILCHIMP_WEBHOOK_SECRET_KEY = (
+    'CHANGEME'  # OSF secret key to ensure webhook is secure
+)
 ENABLE_EMAIL_SUBSCRIPTIONS = True
 MAILCHIMP_GENERAL_LIST = 'GakuNin RDM General'
 
-#Triggered emails
+# Triggered emails
 OSF_HELP_LIST = 'GakuNin RDM Help'
 ENABLE_OSF_HELP = True
 PREREG_AGE_LIMIT = timedelta(weeks=12)
@@ -221,45 +228,119 @@ CONFERENCE_MIN_COUNT = 5
 
 WIKI_WHITELIST = {
     'tags': [
-        'a', 'abbr', 'acronym', 'b', 'bdo', 'big', 'blockquote', 'br',
-        'center', 'cite', 'code',
-        'dd', 'del', 'dfn', 'div', 'dl', 'dt', 'em', 'embed', 'font',
-        'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'i', 'img', 'ins',
-        'kbd', 'li', 'object', 'ol', 'param', 'pre', 'p', 'q',
-        's', 'samp', 'small', 'span', 'strike', 'strong', 'sub', 'sup',
-        'table', 'tbody', 'td', 'th', 'thead', 'tr', 'tt', 'ul', 'u',
-        'var', 'wbr',
+        'a',
+        'abbr',
+        'acronym',
+        'b',
+        'bdo',
+        'big',
+        'blockquote',
+        'br',
+        'center',
+        'cite',
+        'code',
+        'dd',
+        'del',
+        'dfn',
+        'div',
+        'dl',
+        'dt',
+        'em',
+        'embed',
+        'font',
+        'h1',
+        'h2',
+        'h3',
+        'h4',
+        'h5',
+        'h6',
+        'hr',
+        'i',
+        'img',
+        'ins',
+        'kbd',
+        'li',
+        'object',
+        'ol',
+        'param',
+        'pre',
+        'p',
+        'q',
+        's',
+        'samp',
+        'small',
+        'span',
+        'strike',
+        'strong',
+        'sub',
+        'sup',
+        'table',
+        'tbody',
+        'td',
+        'th',
+        'thead',
+        'tr',
+        'tt',
+        'ul',
+        'u',
+        'var',
+        'wbr',
     ],
     'attributes': [
-        'align', 'alt', 'border', 'cite', 'class', 'dir',
-        'height', 'href', 'id', 'src', 'style', 'title', 'type', 'width',
-        'face', 'size',  # font tags
-        'salign', 'align', 'wmode', 'target',
+        'align',
+        'alt',
+        'border',
+        'cite',
+        'class',
+        'dir',
+        'height',
+        'href',
+        'id',
+        'src',
+        'style',
+        'title',
+        'type',
+        'width',
+        'face',
+        'size',  # font tags
+        'salign',
+        'align',
+        'wmode',
+        'target',
     ],
     # Styles currently used in Reproducibility Project wiki pages
     'styles': [
-        'top', 'left', 'width', 'height', 'position',
-        'background', 'font-size', 'text-align', 'z-index',
+        'top',
+        'left',
+        'width',
+        'height',
+        'position',
+        'background',
+        'font-size',
+        'text-align',
+        'z-index',
         'list-style',
-    ]
+    ],
 }
 
 # Maps category identifier => Human-readable representation for use in
 # titles, menus, etc.
 # Use an OrderedDict so that menu items show in the correct order
-NODE_CATEGORY_MAP = OrderedDict([
-    ('analysis', 'Analysis'),
-    ('communication', 'Communication'),
-    ('data', 'Data'),
-    ('hypothesis', 'Hypothesis'),
-    ('instrumentation', 'Instrumentation'),
-    ('methods and measures', 'Methods and Measures'),
-    ('procedure', 'Procedure'),
-    ('project', 'Project'),
-    ('software', 'Software'),
-    ('other', 'Other'),
-    ('', 'Uncategorized')
-])
+NODE_CATEGORY_MAP = OrderedDict(
+    [
+        ('analysis', 'Analysis'),
+        ('communication', 'Communication'),
+        ('data', 'Data'),
+        ('hypothesis', 'Hypothesis'),
+        ('instrumentation', 'Instrumentation'),
+        ('methods and measures', 'Methods and Measures'),
+        ('procedure', 'Procedure'),
+        ('project', 'Project'),
+        ('software', 'Software'),
+        ('other', 'Other'),
+        ('', 'Uncategorized'),
+    ]
+)
 
 # Add-ons
 # Load addons from addons.json
@@ -271,8 +352,12 @@ with open(os.path.join(ROOT, 'addons.json')) as fp:
     ADDONS_BASED_ON_IDS = addon_settings['addons_based_on_ids']
     ADDONS_DEFAULT = addon_settings['addons_default']
     ADDONS_OAUTH_NO_REDIRECT = addon_settings['addons_oauth_no_redirect']
-    INSTITUTIONAL_STORAGE_ADD_ON_METHOD = addon_settings['institutional_storage_add_on_method']
-    INSTITUTIONAL_STORAGE_BULK_MOUNT_METHOD = addon_settings['institutional_storage_bulk_mount_method']
+    INSTITUTIONAL_STORAGE_ADD_ON_METHOD = addon_settings[
+        'institutional_storage_add_on_method'
+    ]
+    INSTITUTIONAL_STORAGE_BULK_MOUNT_METHOD = addon_settings[
+        'institutional_storage_bulk_mount_method'
+    ]
     ADDONS_HAS_MAX_KEYS = addon_settings['addons_has_max_keys']
     ADDONS_FOLDER_FIELD = addon_settings['addons_folder_field']
 
@@ -303,7 +388,9 @@ MISSING_FILE_NAME = 'untitled'
 # Most Popular and New and Noteworthy Nodes
 POPULAR_LINKS_NODE = None  # TODO Override in local.py in production.
 POPULAR_LINKS_REGISTRATIONS = None  # TODO Override in local.py in production.
-NEW_AND_NOTEWORTHY_LINKS_NODE = None  # TODO Override in local.py in production.
+NEW_AND_NOTEWORTHY_LINKS_NODE = (
+    None  # TODO Override in local.py in production.
+)
 
 MAX_POPULAR_PROJECTS = 10
 
@@ -343,7 +430,9 @@ DOI_FORMAT = '{prefix}/osf.io/{guid}'
 DATACITE_USERNAME = None
 DATACITE_PASSWORD = None
 DATACITE_URL = None
-DATACITE_PREFIX = '10.70102'  # Datacite's test DOI prefix -- update in production
+DATACITE_PREFIX = (
+    '10.70102'  # Datacite's test DOI prefix -- update in production
+)
 # Minting DOIs only works on Datacite's production server, so
 # disable minting on staging and development environments by default
 DATACITE_MINT_DOIS = not DEV_MODE
@@ -380,7 +469,7 @@ OSF_MFA_URL = ''  # R-2022-48
 ###### ARCHIVER ###########
 ARCHIVE_PROVIDER = 'osfstorage'
 
-MAX_ARCHIVE_SIZE = 5 * 1024 ** 3  # == math.pow(1024, 3) == 1 GB
+MAX_ARCHIVE_SIZE = 5 * 1024**3  # == math.pow(1024, 3) == 1 GB
 
 ARCHIVE_TIMEOUT_TIMEDELTA = timedelta(1)  # 24 hours
 
@@ -401,11 +490,13 @@ RABBITMQ_VHOST = os.environ.get('RABBITMQ_VHOST', '/')
 # Seconds, not an actual celery setting
 CELERY_RETRY_BACKOFF_BASE = 5
 
+
 class CeleryConfig:
     """
     Celery Configuration
     http://docs.celeryproject.org/en/latest/userguide/configuration.html
     """
+
     timezone = 'UTC'
 
     task_default_queue = 'celery'
@@ -433,7 +524,7 @@ class CeleryConfig:
         'osf.management.commands.migrate_deleted_date',
         'osf.management.commands.addon_deleted_date',
         'osf.management.commands.migrate_registration_responses',
-        'osf.management.commands.update_institution_project_counts'
+        'osf.management.commands.update_institution_project_counts',
     }
 
     med_pri_modules = {
@@ -467,22 +558,47 @@ class CeleryConfig:
         pass
     else:
         task_queues = (
-            Queue(task_low_queue, Exchange(task_low_queue), routing_key=task_low_queue,
-                consumer_arguments={'x-priority': -1}),
-            Queue(task_default_queue, Exchange(task_default_queue), routing_key=task_default_queue,
-                consumer_arguments={'x-priority': 0}),
-            Queue(task_med_queue, Exchange(task_med_queue), routing_key=task_med_queue,
-                consumer_arguments={'x-priority': 1}),
-            Queue(task_high_queue, Exchange(task_high_queue), routing_key=task_high_queue,
-                consumer_arguments={'x-priority': 10}),
+            Queue(
+                task_low_queue,
+                Exchange(task_low_queue),
+                routing_key=task_low_queue,
+                consumer_arguments={'x-priority': -1},
+            ),
+            Queue(
+                task_default_queue,
+                Exchange(task_default_queue),
+                routing_key=task_default_queue,
+                consumer_arguments={'x-priority': 0},
+            ),
+            Queue(
+                task_med_queue,
+                Exchange(task_med_queue),
+                routing_key=task_med_queue,
+                consumer_arguments={'x-priority': 1},
+            ),
+            Queue(
+                task_high_queue,
+                Exchange(task_high_queue),
+                routing_key=task_high_queue,
+                consumer_arguments={'x-priority': 10},
+            ),
         )
 
         task_default_exchange_type = 'direct'
-        task_routes = ('framework.celery_tasks.routers.CeleryRouter', )
+        task_routes = ('framework.celery_tasks.routers.CeleryRouter',)
         task_ignore_result = False
         task_store_errors_even_if_ignored = True
 
-    broker_url = os.environ.get('BROKER_URL', 'amqp://{}:{}@{}:{}/{}'.format(RABBITMQ_USERNAME, RABBITMQ_PASSWORD, RABBITMQ_HOST, RABBITMQ_PORT, RABBITMQ_VHOST))
+    broker_url = os.environ.get(
+        'BROKER_URL',
+        'amqp://{}:{}@{}:{}/{}'.format(
+            RABBITMQ_USERNAME,
+            RABBITMQ_PASSWORD,
+            RABBITMQ_HOST,
+            RABBITMQ_PORT,
+            RABBITMQ_VHOST,
+        ),
+    )
     broker_use_ssl = False
 
     # Default RabbitMQ backend
@@ -556,12 +672,15 @@ class CeleryConfig:
             'refresh_addons': {
                 'task': 'scripts.refresh_addon_tokens',
                 'schedule': crontab(minute=0, hour=7),  # Daily 2:00 a.m
-                'kwargs': {'dry_run': False, 'addons': {
-                    'box': 60,          # https://docs.box.com/docs/oauth-20#section-6-using-the-access-and-refresh-tokens
-                    'googledrive': 14,  # https://developers.google.com/identity/protocols/OAuth2#expiration
-                    'mendeley': 14,     # http://dev.mendeley.com/reference/topics/authorization_overview.html
-                    'iqbrims': 14       # https://developers.google.com/identity/protocols/OAuth2#expiration
-                }},
+                'kwargs': {
+                    'dry_run': False,
+                    'addons': {
+                        'box': 60,  # https://docs.box.com/docs/oauth-20#section-6-using-the-access-and-refresh-tokens
+                        'googledrive': 14,  # https://developers.google.com/identity/protocols/OAuth2#expiration
+                        'mendeley': 14,  # http://dev.mendeley.com/reference/topics/authorization_overview.html
+                        'iqbrims': 14,  # https://developers.google.com/identity/protocols/OAuth2#expiration
+                    },
+                },
             },
             'retract_registrations': {
                 'task': 'scripts.retract_registrations',
@@ -610,23 +729,27 @@ class CeleryConfig:
             },
             'new-and-noteworthy': {
                 'task': 'scripts.populate_new_and_noteworthy_projects',
-                'schedule': crontab(minute=0, hour=7, day_of_week=6),  # Saturday 2:00 a.m.
-                'kwargs': {'dry_run': False}
+                'schedule': crontab(
+                    minute=0, hour=7, day_of_week=6
+                ),  # Saturday 2:00 a.m.
+                'kwargs': {'dry_run': False},
             },
             'update_popular_nodes': {
                 'task': 'scripts.populate_popular_projects_and_registrations',
                 'schedule': crontab(minute=0, hour=7),  # Daily 2:00 a.m.
-                'kwargs': {'dry_run': False}
+                'kwargs': {'dry_run': False},
             },
             'registration_schema_metrics': {
                 'task': 'management.commands.registration_schema_metrics',
-                'schedule': crontab(minute=45, hour=7, day_of_month=3),  # Third day of month 2:45 a.m.
-                'kwargs': {'dry_run': False}
+                'schedule': crontab(
+                    minute=45, hour=7, day_of_month=3
+                ),  # Third day of month 2:45 a.m.
+                'kwargs': {'dry_run': False},
             },
             'run_keen_summaries': {
                 'task': 'scripts.analytics.run_keen_summaries',
                 'schedule': crontab(minute=0, hour=6),  # Daily 1:00 a.m.
-                'kwargs': {'yesterday': True}
+                'kwargs': {'yesterday': True},
             },
             # 'run_keen_snapshots': {
             #     'task': 'scripts.analytics.run_keen_snapshots',
@@ -635,7 +758,7 @@ class CeleryConfig:
             'run_keen_events': {
                 'task': 'scripts.analytics.run_keen_events',
                 'schedule': crontab(minute=0, hour=9),  # Daily 4:00 a.m.
-                'kwargs': {'yesterday': True}
+                'kwargs': {'yesterday': True},
             },
             # 'data_storage_usage': {
             #   'task': 'management.commands.data_storage_usage',
@@ -669,11 +792,13 @@ class CeleryConfig:
             },
             'update_institution_project_counts': {
                 'task': 'management.commands.update_institution_project_counts',
-                'schedule': crontab(minute=0, hour=9), # Daily 05:00 a.m. EDT
+                'schedule': crontab(minute=0, hour=9),  # Daily 05:00 a.m. EDT
             },
             'mapcore_refresh_token': {
                 'task': 'nii.mapcore_refresh_tokens',
-                'schedule': crontab(minute=0, hour=10),  # Daily 5:00 a.m. EST (-5h)
+                'schedule': crontab(
+                    minute=0, hour=10
+                ),  # Daily 5:00 a.m. EST (-5h)
                 #'schedule': crontab(minute='*/1'), # for DEBUG
                 'kwargs': {'dry_run': False},
             },
@@ -705,7 +830,9 @@ SENSITIVE_DATA_SALT = 'yusaltydough'
 SENSITIVE_DATA_SECRET = 'TrainglesAre5Squares'
 
 DRAFT_REGISTRATION_APPROVAL_PERIOD = datetime.timedelta(days=10)
-assert (DRAFT_REGISTRATION_APPROVAL_PERIOD > EMBARGO_END_DATE_MIN), 'The draft registration approval period should be more than the minimum embargo end date.'
+assert DRAFT_REGISTRATION_APPROVAL_PERIOD > EMBARGO_END_DATE_MIN, (
+    'The draft registration approval period should be more than the minimum embargo end date.'
+)
 
 # TODO: Remove references to this flag
 ENABLE_INSTITUTIONS = True
@@ -1931,41 +2058,93 @@ SITEMAP_URL_MAX = 25000
 SITEMAP_INDEX_MAX = 50000
 SITEMAP_STATIC_URLS = [
     OrderedDict([('loc', ''), ('changefreq', 'yearly'), ('priority', '0.5')]),
-    OrderedDict([('loc', 'preprints'), ('changefreq', 'yearly'), ('priority', '0.5')]),
-    OrderedDict([('loc', 'prereg'), ('changefreq', 'yearly'), ('priority', '0.5')]),
-    OrderedDict([('loc', 'meetings'), ('changefreq', 'yearly'), ('priority', '0.5')]),
-    OrderedDict([('loc', 'registries'), ('changefreq', 'yearly'), ('priority', '0.5')]),
-    OrderedDict([('loc', 'reviews'), ('changefreq', 'yearly'), ('priority', '0.5')]),
-    OrderedDict([('loc', 'explore/activity'), ('changefreq', 'weekly'), ('priority', '0.5')]),
-    OrderedDict([('loc', 'support'), ('changefreq', 'yearly'), ('priority', '0.5')]),
-    OrderedDict([('loc', 'faq'), ('changefreq', 'yearly'), ('priority', '0.5')]),
-
+    OrderedDict(
+        [('loc', 'preprints'), ('changefreq', 'yearly'), ('priority', '0.5')]
+    ),
+    OrderedDict(
+        [('loc', 'prereg'), ('changefreq', 'yearly'), ('priority', '0.5')]
+    ),
+    OrderedDict(
+        [('loc', 'meetings'), ('changefreq', 'yearly'), ('priority', '0.5')]
+    ),
+    OrderedDict(
+        [('loc', 'registries'), ('changefreq', 'yearly'), ('priority', '0.5')]
+    ),
+    OrderedDict(
+        [('loc', 'reviews'), ('changefreq', 'yearly'), ('priority', '0.5')]
+    ),
+    OrderedDict(
+        [
+            ('loc', 'explore/activity'),
+            ('changefreq', 'weekly'),
+            ('priority', '0.5'),
+        ]
+    ),
+    OrderedDict(
+        [('loc', 'support'), ('changefreq', 'yearly'), ('priority', '0.5')]
+    ),
+    OrderedDict(
+        [('loc', 'faq'), ('changefreq', 'yearly'), ('priority', '0.5')]
+    ),
 ]
 
-SITEMAP_USER_CONFIG = OrderedDict([('loc', ''), ('changefreq', 'yearly'), ('priority', '0.5')])
-SITEMAP_NODE_CONFIG = OrderedDict([('loc', ''), ('lastmod', ''), ('changefreq', 'monthly'), ('priority', '0.5')])
-SITEMAP_PREPRINT_CONFIG = OrderedDict([('loc', ''), ('lastmod', ''), ('changefreq', 'yearly'), ('priority', '0.5')])
-SITEMAP_PREPRINT_FILE_CONFIG = OrderedDict([('loc', ''), ('lastmod', ''), ('changefreq', 'yearly'), ('priority', '0.5')])
+SITEMAP_USER_CONFIG = OrderedDict(
+    [('loc', ''), ('changefreq', 'yearly'), ('priority', '0.5')]
+)
+SITEMAP_NODE_CONFIG = OrderedDict(
+    [
+        ('loc', ''),
+        ('lastmod', ''),
+        ('changefreq', 'monthly'),
+        ('priority', '0.5'),
+    ]
+)
+SITEMAP_PREPRINT_CONFIG = OrderedDict(
+    [
+        ('loc', ''),
+        ('lastmod', ''),
+        ('changefreq', 'yearly'),
+        ('priority', '0.5'),
+    ]
+)
+SITEMAP_PREPRINT_FILE_CONFIG = OrderedDict(
+    [
+        ('loc', ''),
+        ('lastmod', ''),
+        ('changefreq', 'yearly'),
+        ('priority', '0.5'),
+    ]
+)
 
 # For preventing indexing of QA nodes by Elastic and SHARE
 DO_NOT_INDEX_LIST = {
     'tags': ['qatest', 'qa test'],
-    'titles': ['Bulk stress 201', 'Bulk stress 202', 'OSF API Registration test'],
+    'titles': [
+        'Bulk stress 201',
+        'Bulk stress 202',
+        'OSF API Registration test',
+    ],
 }
 
 CUSTOM_CITATIONS = {
     'bluebook-law-review': 'bluebook',
     'bluebook2': 'bluebook',
-    'bluebook-inline': 'bluebook'
+    'bluebook-inline': 'bluebook',
 }
 
-#Email templates logo
+# Email templates logo
 OSF_LOGO = 'osf_logo'
 OSF_PREPRINTS_LOGO = 'osf_preprints'
 OSF_MEETINGS_LOGO = 'osf_meetings'
 OSF_PREREG_LOGO = 'osf_prereg'
 OSF_REGISTRIES_LOGO = 'osf_registries'
-OSF_LOGO_LIST = [OSF_LOGO, OSF_PREPRINTS_LOGO, OSF_MEETINGS_LOGO, OSF_PREREG_LOGO, OSF_REGISTRIES_LOGO]
+OSF_LOGO_LIST = [
+    OSF_LOGO,
+    OSF_PREPRINTS_LOGO,
+    OSF_MEETINGS_LOGO,
+    OSF_PREREG_LOGO,
+    OSF_REGISTRIES_LOGO,
+]
 
 FOOTER_LINKS = {
     'terms': 'https://support.rdm.nii.ac.jp/terms',
@@ -2010,8 +2189,8 @@ LOGIN_BY_EPPN = False
 USE_EMBEDDED_DS = False
 EMBEDDED_DS_URL = 'https://test-ds.gakunin.nii.ac.jp/WAYF/embedded-wayf.js'
 
-#USER_TIMEZONE = 'Asia/Tokyo'
-#USER_LOCALE = 'ja'
+# USER_TIMEZONE = 'Asia/Tokyo'
+# USER_LOCALE = 'ja'
 USER_TIMEZONE = None
 USER_LOCALE = None
 
@@ -2024,15 +2203,15 @@ CLOUD_GATEWAY_ISMEMBEROF_PREFIX = 'https://cg.gakunin.jp/gr/'
 # Path of .cer and . key for GakuNin SP on the container of server.
 # (for API of Cloud Gateway)
 GAKUNIN_SP_CERT = '/ssl/gakunin-sp.cer'
-GAKUNIN_SP_KEY  = '/ssl/gakunin-sp.key'
+GAKUNIN_SP_KEY = '/ssl/gakunin-sp.key'
 
 # (unused) OSF projects synchronize groups on Cloud Gateway periodically.
 PROJECT_SYNC = False
-PROJECT_SYNC_LOOP_INTERVAL =  300  # sec.
-PROJECT_SYNC_TIME_LENGTH   = 3600  # sec.
+PROJECT_SYNC_LOOP_INTERVAL = 300  # sec.
+PROJECT_SYNC_TIME_LENGTH = 3600  # sec.
 
-ADMIN_URL='http://localhost:8001/'
-ADMIN_INTERNAL_DOCKER_URL='http://192.168.168.167:8001/'
+ADMIN_URL = 'http://localhost:8001/'
+ADMIN_INTERNAL_DOCKER_URL = 'http://192.168.168.167:8001/'
 
 # the user merge feature
 ENABLE_USER_MERGE = True
@@ -2080,11 +2259,7 @@ ENABLE_MULTILINGUAL_SEARCH = False
 
 BABEL_TRANSLATION_DIRECTORIES = os.path.join(BASE_PATH, 'translations')
 BABEL_DOMAIN = 'messages'
-BABEL_LANGUAGES = {
-    'en': 'English',
-    'ja': '日本語',
-    'ja_jp': '日本語'
-}
+BABEL_LANGUAGES = {'en': 'English', 'ja': '日本語', 'ja_jp': '日本語'}
 BABEL_DEFAULT_LOCALE = 'ja'
 
 # WOPI settings.
@@ -2093,12 +2268,17 @@ WOPI_TOKEN_TTL = 24 * 60 * 60
 
 # WOPI_CLIENT_ONLYOFFICE is ONLYOFFICE online editor's host and port FROM web server.
 # WOPI_CLIENT_COLLABORA  is Collabora online editor's host and port.
-WOPI_CLIENT_ONLYOFFICE  = 'http://grdm-server.grdm.test:8002'
-WOPI_CLIENT_COLLABORA   = 'http://grdm-server.grdm.test:9980'
+WOPI_CLIENT_ONLYOFFICE = 'http://grdm-server.grdm.test:8002'
+WOPI_CLIENT_COLLABORA = 'http://grdm-server.grdm.test:9980'
 
 # WOPI_SRC_HOST is web server's host and port which can access FROM WOPI CLIENT.
 WOPI_SRC_HOST = 'http://grdm-server.grdm.test:5000'
 
 # Default values for IAL2 & AAL2 parameters(R-2023-55)
+# Default values for IAL1 & AAL1 parameters(R-2024-AUTH01)
 OSF_IAL2_STR = 'https://www\.gakunin\.jp/profile/IAL2'
+OSF_AAL1_STR = 'https://www\.gakunin\.jp/profile/AAL1'
 OSF_AAL2_STR = 'https://www\.gakunin\.jp/profile/AAL2'
+OSF_IAL2_VAR = 'https://www.gakunin.jp/profile/IAL2'
+OSF_AAL1_VAR = 'https://www.gakunin.jp/profile/AAL1'
+OSF_AAL2_VAR = 'https://www.gakunin.jp/profile/AAL2'

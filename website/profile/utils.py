@@ -3,25 +3,34 @@ from framework import auth
 
 from api.base import settings as api_settings
 from website import settings
-from osf.models import Contributor, UserQuota
+from osf.models import Contributor, UserQuota, LoA
 from addons.osfstorage.models import Region
 from website.filters import profile_image_url
 from osf.utils.permissions import READ
 from osf.utils import workflows
 from api.waffle.utils import storage_i18n_flag_active
 from website.util import quota
+
 # @R2022-48
 import re
-
 import logging
+import urllib.parse
+
 
 def get_profile_image_url(user, size=settings.PROFILE_IMAGE_MEDIUM):
-    return profile_image_url(settings.PROFILE_IMAGE_PROVIDER,
-                             user,
-                             use_ssl=True,
-                             size=size)
+    return profile_image_url(
+        settings.PROFILE_IMAGE_PROVIDER, user, use_ssl=True, size=size
+    )
 
-def serialize_user(user, node=None, admin=False, full=False, is_profile=False, include_node_counts=False):
+
+def serialize_user(
+    user,
+    node=None,
+    admin=False,
+    full=False,
+    is_profile=False,
+    include_node_counts=False,
+):
     """
     Return a dictionary representation of a registered user.
 
@@ -36,19 +45,46 @@ def serialize_user(user, node=None, admin=False, full=False, is_profile=False, i
     logging.getLogger(__name__).info(user.affiliated_institutions)
     fullname = user.display_full_name(node=node)
     idp_attrs = user.get_idp_attr()
+
     # @R2022-48
     if not user.aal:
-        _aal = "NULL"
-    elif re.search('AAL2', user.aal):
-        _aal = "AAL2"
+        _aal = 'NULL'
+    elif re.search(settings.OSF_AAL2_STR, str(user.aal)):
+        _aal = 'AAL2'
     else:
-        _aal = "AAL1"
-    if not user.ial:
-        _ial = "NULL"
-    elif re.search('IAL2', user.ial):
-        _ial = "IAL2"
+        _aal = 'AAL1'
+
+    # @R-2024-AUTH01 Values other than IAL2 are equivalent to IAL1.
+    if re.search(settings.OSF_IAL2_STR, str(user.ial)):
+        _ial = 'IAL2'
     else:
-        _ial = "IAL1"
+        _ial = 'IAL1'
+
+    # @R-2023-55
+    mfa_url = ''
+    entity_id = idp_attrs.get('idp')
+    if entity_id is not None:
+        mfa_url_q = (
+            settings.OSF_MFA_URL
+            + '?entityID='
+            + entity_id
+            + '&target='
+            + settings.CAS_SERVER_URL
+            + '/login?service='
+            + settings.OSF_SERVICE_URL
+            + '/profile/'
+        )
+        mfa_url = (
+            settings.CAS_SERVER_URL
+            + '/logout?service='
+            + urllib.parse.quote(mfa_url_q, safe='')
+        )
+
+    loa = LoA.objects.get_or_none(institution_id=idp_attrs.get('id'))
+    if loa is not None:
+        is_mfa = loa.is_mfa
+    else:
+        is_mfa = False
 
     ret = {
         'id': str(user._id),
@@ -56,13 +92,19 @@ def serialize_user(user, node=None, admin=False, full=False, is_profile=False, i
         'registered': user.is_registered,
         'surname': user.family_name,
         'fullname': fullname,
-        'shortname': fullname if len(fullname) < 50 else fullname[:23] + '...' + fullname[-23:],
-        'profile_image_url': user.profile_image_url(size=settings.PROFILE_IMAGE_MEDIUM),
+        'shortname': fullname
+        if len(fullname) < 50
+        else fullname[:23] + '...' + fullname[-23:],
+        'profile_image_url': user.profile_image_url(
+            size=settings.PROFILE_IMAGE_MEDIUM
+        ),
         'active': user.is_active,
-        'ial': user.ial,# @R2022-48
-        'aal': user.aal,# @R2022-48
-        '_ial': _ial,# @R2022-48
-        '_aal': _aal,# @R2022-48
+        'ial': user.ial,  # @R2022-48
+        'aal': user.aal,  # @R2022-48
+        '_ial': _ial,  # @R2022-48
+        '_aal': _aal,  # @R2022-48
+        'mfa_url': mfa_url,  # @R-2023-55
+        'is_mfa': is_mfa,  # @R-2023-55
         'have_email': user.have_email,
         'idp_email': idp_attrs.get('email'),
     }
@@ -80,17 +122,25 @@ def serialize_user(user, node=None, admin=False, full=False, is_profile=False, i
                     contrib = None
             is_contributor_obj = isinstance(contrib, Contributor)
             flags = {
-                'visible': contrib.visible if is_contributor_obj else node.contributor_set.filter(user=user, visible=True).exists(),
-                'permission': contrib.permission if is_contributor_obj else None
+                'visible': contrib.visible
+                if is_contributor_obj
+                else node.contributor_set.filter(
+                    user=user, visible=True
+                ).exists(),
+                'permission': contrib.permission
+                if is_contributor_obj
+                else None,
             }
         ret.update(flags)
     if user.is_registered:
-        ret.update({
-            'url': user.url,
-            'absolute_url': user.absolute_url,
-            'display_absolute_url': user.display_absolute_url,
-            'date_registered': user.date_registered.strftime('%Y-%m-%d'),
-        })
+        ret.update(
+            {
+                'url': user.url,
+                'absolute_url': user.absolute_url,
+                'display_absolute_url': user.display_absolute_url,
+                'date_registered': user.date_registered.strftime('%Y-%m-%d'),
+            }
+        )
 
     if full:
         # Add emails
@@ -98,14 +148,17 @@ def serialize_user(user, node=None, admin=False, full=False, is_profile=False, i
             ret['emails'] = [
                 {
                     'address': each,
-                    'primary': each.strip().lower() == user.username.strip().lower(),
+                    'primary': each.strip().lower()
+                    == user.username.strip().lower(),
                     'confirmed': True,
-                } for each in user.emails.values_list('address', flat=True)
+                }
+                for each in user.emails.values_list('address', flat=True)
             ] + [
                 {
                     'address': each,
-                    'primary': each.strip().lower() == user.username.strip().lower(),
-                    'confirmed': False
+                    'primary': each.strip().lower()
+                    == user.username.strip().lower(),
+                    'confirmed': False,
                 }
                 for each in user.get_unconfirmed_emails_exclude_external_identity()
             ]
@@ -115,31 +168,42 @@ def serialize_user(user, node=None, admin=False, full=False, is_profile=False, i
             merged_by = {
                 'id': str(merger._primary_key),
                 'url': merger.url,
-                'absolute_url': merger.absolute_url
+                'absolute_url': merger.absolute_url,
             }
         else:
             merged_by = None
 
         default_region = user.get_addon('osfstorage').default_region
-        available_regions = [region for region in Region.objects.all().values('_id', 'name')]
+        available_regions = [
+            region for region in Region.objects.all().values('_id', 'name')
+        ]
 
         storage_type = UserQuota.NII_STORAGE
         institution = user.affiliated_institutions.first()
-        if institution is not None and Region.objects.filter(_id=institution._id).exists():
+        if (
+            institution is not None
+            and Region.objects.filter(_id=institution._id).exists()
+        ):
             storage_type = UserQuota.CUSTOM_STORAGE
 
         max_quota, used_quota = quota.get_quota_info(user, storage_type)
         used_quota_abbr = quota.abbreviate_size(used_quota)
         if used_quota_abbr[1] == 'B':
-            used_quota_abbr = '{:.0f}[{}]'.format(used_quota_abbr[0], used_quota_abbr[1])
+            used_quota_abbr = '{:.0f}[{}]'.format(
+                used_quota_abbr[0], used_quota_abbr[1]
+            )
         else:
             size_unit = used_quota_abbr[1]
-            used_quota_abbr = '{:.1f}[{}]'.format(used_quota_abbr[0], size_unit)
+            used_quota_abbr = '{:.1f}[{}]'.format(
+                used_quota_abbr[0], size_unit
+            )
 
         if max_quota == 0:
             used_rate = 1.0
         else:
-            used_rate = float(used_quota) / (max_quota * api_settings.SIZE_UNIT_GB)
+            used_rate = float(used_quota) / (
+                max_quota * api_settings.SIZE_UNIT_GB
+            )
         icon_name = None
         if used_rate < api_settings.WARNING_THRESHOLD:
             icon_name = 'storage_ok.png'
@@ -148,28 +212,45 @@ def serialize_user(user, node=None, admin=False, full=False, is_profile=False, i
         else:
             icon_name = 'storage_error.png'
 
-        ret.update({
-            'activity_points': user.get_activity_points(),
-            'profile_image_url': user.profile_image_url(size=settings.PROFILE_IMAGE_LARGE),
-            'is_merged': user.is_merged,
-            'available_regions': available_regions,
-            'storage_flag_is_active': storage_i18n_flag_active(),
-            'default_region': {'name': default_region.name, '_id': default_region._id},
-            'merged_by': merged_by,
-            'quota': {
-                'max': max_quota,
-                'used': used_quota_abbr,
-                'rate': '{:.1f}'.format(used_rate * 100),
-                'icon_url': '{}static/img/{}'.format(settings.DOMAIN, icon_name),
-                'is_nii_storage': storage_type == UserQuota.NII_STORAGE
+        ret.update(
+            {
+                'activity_points': user.get_activity_points(),
+                'profile_image_url': user.profile_image_url(
+                    size=settings.PROFILE_IMAGE_LARGE
+                ),
+                'is_merged': user.is_merged,
+                'available_regions': available_regions,
+                'storage_flag_is_active': storage_i18n_flag_active(),
+                'default_region': {
+                    'name': default_region.name,
+                    '_id': default_region._id,
+                },
+                'merged_by': merged_by,
+                'quota': {
+                    'max': max_quota,
+                    'used': used_quota_abbr,
+                    'rate': '{:.1f}'.format(used_rate * 100),
+                    'icon_url': '{}static/img/{}'.format(
+                        settings.DOMAIN, icon_name
+                    ),
+                    'is_nii_storage': storage_type == UserQuota.NII_STORAGE,
+                },
             }
-        })
+        )
         if include_node_counts:
-            projects = user.nodes.exclude(is_deleted=True).filter(type='osf.node').get_roots()
-            ret.update({
-                'number_projects': projects.count(),
-                'number_public_projects': projects.filter(is_public=True).count(),
-            })
+            projects = (
+                user.nodes.exclude(is_deleted=True)
+                .filter(type='osf.node')
+                .get_roots()
+            )
+            ret.update(
+                {
+                    'number_projects': projects.count(),
+                    'number_public_projects': projects.filter(
+                        is_public=True
+                    ).count(),
+                }
+            )
 
     return ret
 
@@ -187,9 +268,7 @@ def serialize_visible_contributors(node):
         'user__groups', 'user__guids', 'user__ext'
     )
 
-    return [
-        serialize_user(c, node) for c in contribs.iterator() if c.visible
-    ]
+    return [serialize_user(c, node) for c in contribs.iterator() if c.visible]
 
 
 def add_contributor_json(user, current_user=None, node=None):
@@ -224,8 +303,10 @@ def add_contributor_json(user, current_user=None, node=None):
         'n_projects_in_common': n_projects_in_common,
         'registered': user.is_registered,
         'active': user.is_active,
-        'profile_image_url': user.profile_image_url(size=settings.PROFILE_IMAGE_MEDIUM),
-        'profile_url': user.profile_url
+        'profile_image_url': user.profile_image_url(
+            size=settings.PROFILE_IMAGE_MEDIUM
+        ),
+        'profile_url': user.profile_url,
     }
 
     if node:
@@ -245,10 +326,12 @@ def serialize_unregistered(fullname, email):
             'id': None,
             'registered': False,
             'active': False,
-            'profile_image_url': profile_image_url(settings.PROFILE_IMAGE_PROVIDER,
-                                                   email,
-                                                   use_ssl=True,
-                                                   size=settings.PROFILE_IMAGE_MEDIUM),
+            'profile_image_url': profile_image_url(
+                settings.PROFILE_IMAGE_PROVIDER,
+                email,
+                use_ssl=True,
+                size=settings.PROFILE_IMAGE_MEDIUM,
+            ),
             'email': email,
         }
     else:
@@ -264,9 +347,10 @@ def serialize_access_requests(node):
         {
             'user': serialize_user(access_request.creator),
             'comment': access_request.comment,
-            'id': access_request._id
-        } for access_request in node.requests.filter(
+            'id': access_request._id,
+        }
+        for access_request in node.requests.filter(
             request_type=workflows.RequestTypes.ACCESS.value,
-            machine_state=workflows.DefaultStates.PENDING.value
+            machine_state=workflows.DefaultStates.PENDING.value,
         ).select_related('creator')
     ]

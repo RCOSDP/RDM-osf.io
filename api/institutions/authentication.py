@@ -6,9 +6,13 @@ import jwe
 import jwt
 import waffle
 
-#from django.utils import timezone
+# @R2022-48 loa
+import re
+import urllib.parse
+
+# from django.utils import timezone
 from rest_framework.authentication import BaseAuthentication
-from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.exceptions import AuthenticationFailed, ValidationError
 
 from api.base.authentication import drf
 from api.base import exceptions, settings
@@ -18,19 +22,29 @@ from framework.auth import get_or_create_user
 from framework.auth.core import get_user
 
 from osf import features
-from osf.models import Institution, UserExtendedData
+from osf.models import Institution, UserExtendedData, LoA
 from osf.exceptions import BlacklistedEmailError
 from website.mails import send_mail, WELCOME_OSF4I
-from website.settings import OSF_SUPPORT_EMAIL, DOMAIN, to_bool
+from website.settings import (
+    OSF_SUPPORT_EMAIL,
+    DOMAIN,
+    to_bool,
+    OSF_SERVICE_URL,
+    CAS_SERVER_URL,
+    OSF_MFA_URL,
+    OSF_IAL2_STR,
+    OSF_AAL1_STR,
+    OSF_AAL2_STR,
+    OSF_IAL2_VAR,
+    OSF_AAL1_VAR,
+    OSF_AAL2_VAR,
+)
 from website.util.quota import update_default_storage
 
 logger = logging.getLogger(__name__)
 
-
-import logging
-logger = logging.getLogger(__name__)
-
 NEW_USER_NO_NAME = 'New User (no name)'
+
 
 def send_welcome(user, request):
     send_mail(
@@ -47,6 +61,7 @@ def send_welcome(user, request):
         use_viewonlylinks=to_bool('USE_VIEWONLYLINKS', True),
     )
 
+
 class InstitutionAuthentication(BaseAuthentication):
     """A dedicated authentication class for view ``InstitutionAuth``.
 
@@ -57,6 +72,7 @@ class InstitutionAuthentication(BaseAuthentication):
     """
 
     media_type = 'text/plain'
+    context = {'mfa_url': ''}
 
     def authenticate(self, request):
         """
@@ -96,6 +112,8 @@ class InstitutionAuthentication(BaseAuthentication):
                     "gakuninScopedPersonalUniqueCode": "",
                     "gakuninIdentityAssuranceOrganization": "",
                     "gakuninIdentityAssuranceMethodReference": "",
+                    'ial': '',  # eduPersonAssurance
+                    'aal': '',  # AuthnContextClass
                 }
             }
         }
@@ -113,7 +131,11 @@ class InstitutionAuthentication(BaseAuthentication):
                 options={'verify_exp': False},
                 algorithm='HS256',
             )
-        except (jwt.InvalidTokenError, TypeError, jwe.exceptions.MalformedData):
+        except (
+            jwt.InvalidTokenError,
+            TypeError,
+            jwe.exceptions.MalformedData,
+        ):
             raise AuthenticationFailed
 
         # Load institution and user data
@@ -121,11 +143,17 @@ class InstitutionAuthentication(BaseAuthentication):
         provider = data['provider']
         institution = Institution.load(provider['id'])
         if not institution:
-            raise AuthenticationFailed('Invalid institution id: "{}"'.format(provider['id']))
+            raise AuthenticationFailed(
+                'Invalid institution id: "{}"'.format(provider['id'])
+            )
 
         USE_EPPN = login_by_eppn()
 
-        logger.info('---InstitutionAuthentication.authenticate.user:{}'.format(provider))
+        logger.info(
+            '---InstitutionAuthentication.authenticate.user:{}'.format(
+                provider
+            )
+        )
 
         p_idp = provider['idp']
         p_user = provider['user']
@@ -149,7 +177,9 @@ class InstitutionAuthentication(BaseAuthentication):
         # first name: 'givenName' is friendlyName
         given_name = get_next(p_user, 'givenName', 'firstName')
         # last name: 'sn' is friendlyName
-        family_name = get_next(p_user, 'sn', 'surname', 'familyName', 'lastName')
+        family_name = get_next(
+            p_user, 'sn', 'surname', 'familyName', 'lastName'
+        )
         # middle names
         middle_names = p_user.get('middleNames')
         # suffix name
@@ -159,7 +189,9 @@ class InstitutionAuthentication(BaseAuthentication):
         # first name: 'jaGivenName' is friendlyName
         given_name_ja = get_next(p_user, 'jaGivenName', 'jaFirstName')
         # last name: 'jasn' is friendlyName
-        family_name_ja = get_next(p_user, 'jasn', 'jaSurname', 'jaFamilyName', 'jaLastName')
+        family_name_ja = get_next(
+            p_user, 'jasn', 'jaSurname', 'jaFamilyName', 'jaLastName'
+        )
         # middle names
         middle_names_ja = p_user.get('jaMiddleNames')
         # department
@@ -175,37 +207,122 @@ class InstitutionAuthentication(BaseAuthentication):
         # organization: 'jao' is friendlyName
         organization_name_ja = get_next(p_user, 'jao', 'jaOrganizationName')
         # affiliation: 'jaou' is friendlyName
-        organizational_unit_ja = get_next(p_user, 'jaou', 'jaOrganizationalUnitName')
+        organizational_unit_ja = get_next(
+            p_user, 'jaou', 'jaOrganizationalUnitName'
+        )
 
         # edu_person_affiliation: 'eduPersonAffiliation' is friendlyName
-        edu_person_affiliation = get_next(p_user, 'edu_person_affiliation', 'eduPersonAffiliation')
+        edu_person_affiliation = get_next(
+            p_user, 'edu_person_affiliation', 'eduPersonAffiliation'
+        )
         # edu_person_scoped_affiliation: 'eduPersonScopedAffiliation' is friendlyName
-        edu_person_scoped_affiliation = get_next(p_user, 'edu_person_scoped_affiliation', 'eduPersonScopedAffiliation')
+        edu_person_scoped_affiliation = get_next(
+            p_user,
+            'edu_person_scoped_affiliation',
+            'eduPersonScopedAffiliation',
+        )
         # edu_person_targeted_id: 'eduPersonTargetedID' is friendlyName
-        edu_person_targeted_id = get_next(p_user, 'edu_person_targeted_id', 'eduPersonTargetedID')
+        edu_person_targeted_id = get_next(
+            p_user, 'edu_person_targeted_id', 'eduPersonTargetedID'
+        )
         # edu_person_assurance: 'eduPersonAssurance' is friendlyName
-        edu_person_assurance = get_next(p_user, 'edu_person_assurance', 'eduPersonAssurance')
+        edu_person_assurance = get_next(
+            p_user, 'edu_person_assurance', 'eduPersonAssurance'
+        )
         # edu_person_unique_id: 'eduPersonUniqueId' is friendlyName
-        edu_person_unique_id = get_next(p_user, 'edu_person_unique_id', 'eduPersonUniqueId')
+        edu_person_unique_id = get_next(
+            p_user, 'edu_person_unique_id', 'eduPersonUniqueId'
+        )
         # edu_person_orcid: 'eduPersonOrcid' is friendlyName
-        edu_person_orcid = get_next(p_user, 'edu_person_orcid', 'eduPersonOrcid')
+        edu_person_orcid = get_next(
+            p_user, 'edu_person_orcid', 'eduPersonOrcid'
+        )
         # groups: 'isMemberOf' is friendlyName
         groups = get_next(p_user, 'groups', 'isMemberOf')
         # gakunin_scoped_personal_unique_code: 'gakuninScopedPersonalUniqueCode' is friendlyName
         gakunin_scoped_personal_unique_code = get_next(
-            p_user, 'gakunin_scoped_personal_unique_code',
+            p_user,
+            'gakunin_scoped_personal_unique_code',
             'gakuninScopedPersonalUniqueCode',
         )
         # gakunin_identity_assurance_organization: 'gakuninIdentityAssuranceOrganization' is friendlyName
         gakunin_identity_assurance_organization = get_next(
-            p_user, 'gakunin_identity_assurance_organization',
+            p_user,
+            'gakunin_identity_assurance_organization',
             'gakuninIdentityAssuranceOrganization',
         )
         # gakunin_identity_assurance_method_reference: 'gakuninIdentityAssuranceMethodReference' is friendlyName
         gakunin_identity_assurance_method_reference = get_next(
-            p_user, 'gakunin_identity_assurance_method_reference',
+            p_user,
+            'gakunin_identity_assurance_method_reference',
             'gakuninIdentityAssuranceMethodReference',
         )
+
+        # @R2022-48 ial,aal
+        ial = None
+        aal = None
+        # @R-2024-AUTH01 eduPersonAssurance(multi value)
+        eduPersonAssurance = p_user.get('eduPersonAssurance')
+        if re.search(OSF_IAL2_STR, str(eduPersonAssurance)):
+            ial = OSF_IAL2_VAR
+        if re.search(OSF_AAL2_STR, str(eduPersonAssurance)):
+            aal = OSF_AAL2_VAR
+        elif re.search(OSF_AAL1_STR, str(eduPersonAssurance)):
+            aal = OSF_AAL1_VAR
+        else:
+            aal = p_user.get('Shib-AuthnContext-Class')
+
+        # @R2022-48 loa + R-2023-55
+        message = ''
+        self.context['mfa_url'] = ''
+        mfa_url = ''
+        if type(p_idp) is str:
+            mfa_url_q = (
+                OSF_MFA_URL
+                + '?entityID='
+                + p_idp
+                + '&target='
+                + CAS_SERVER_URL
+                + '/login?service='
+                + OSF_SERVICE_URL
+                + '/profile/'
+            )
+            mfa_url = (
+                CAS_SERVER_URL
+                + '/logout?service='
+                + urllib.parse.quote(mfa_url_q, safe='')
+            )
+        loa_flag = True
+        loa = LoA.objects.get_or_none(institution_id=institution.id)
+        if loa:
+            if loa.aal == 2:
+                if not re.search(OSF_AAL2_STR, str(aal)):
+                    self.context['mfa_url'] = mfa_url
+            elif loa.aal == 1:
+                if not aal:
+                    message = (
+                        'Institution login failed: Does not meet the required AAL.<br />Please contact the IdP as the'
+                        ' appropriate value may not have been sent out by the IdP.'
+                    )
+                    loa_flag = False
+            if loa.ial == 2:
+                if not re.search(OSF_IAL2_STR, str(ial)):
+                    message = (
+                        'Institution login failed: Does not meet the required IAL.<br />Please check the IAL of your'
+                        ' institution.'
+                    )
+                    loa_flag = False
+            elif loa.ial == 1:
+                if not ial:
+                    message = (
+                        'Institution login failed: Does not meet the required IAL.<br />Please check the IAL of your'
+                        ' institution.'
+                    )
+                    loa_flag = False
+        if not loa_flag:
+            message = 'Institution login failed: Does not meet the required AAL and IAL.'
+            sentry.log_message(message)
+            raise ValidationError(message)
 
         # Use given name and family name to build full name if it is not provided
         if given_name and family_name and not fullname:
@@ -218,8 +335,12 @@ class InstitutionAuthentication(BaseAuthentication):
 
         # Non-empty full name is required. Fail the auth and inform sentry if not provided.
         if not fullname:
-            message = 'Institution login failed: fullname required for ' \
-                      'user "{}" from institution "{}"'.format(username, provider['id'])
+            message = (
+                'Institution login failed: fullname required for '
+                'user "{}" from institution "{}"'.format(
+                    username, provider['id']
+                )
+            )
             sentry.log_message(message)
             raise AuthenticationFailed(message)
 
@@ -241,8 +362,9 @@ class InstitutionAuthentication(BaseAuthentication):
             else:  # new user
                 if email:
                     existing_user = get_user(email=email, log=False)
-                    if existing_user and \
-                       existing_user.eppn != eppn:  # suppose race-condition
+                    if (
+                        existing_user and existing_user.eppn != eppn
+                    ):  # suppose race-condition
                         email = None  # require other email address
                 tmp_eppn = ('tmp_eppn_' + eppn).lower()
                 if email:
@@ -252,7 +374,8 @@ class InstitutionAuthentication(BaseAuthentication):
                 try:
                     # try to use email or tmp_eppn
                     user, created = get_or_create_user(
-                        fullname, username_tmp,
+                        fullname,
+                        username_tmp,
                         reset_password=False,
                     )
                 except BlacklistedEmailError:
@@ -262,11 +385,14 @@ class InstitutionAuthentication(BaseAuthentication):
                     email = None
                     # try to use tmp_eppn only
                     user, created = get_or_create_user(
-                        fullname, tmp_eppn,
+                        fullname,
+                        tmp_eppn,
                         reset_password=False,
                     )
         else:
-            user, created = get_or_create_user(fullname, username, reset_password=False)
+            user, created = get_or_create_user(
+                fullname, username, reset_password=False
+            )
         # Get an existing user or create a new one. If a new user is created, the user object is
         # confirmed but not registered,which is temporarily of an inactive status. If an existing
         # user is found, it is also possible that the user is inactive (e.g. unclaimed, disabled,
@@ -278,7 +404,9 @@ class InstitutionAuthentication(BaseAuthentication):
         if not created:
             try:
                 drf.check_user(user)
-                logger.info('Institution SSO: active user "{}"'.format(username))
+                logger.info(
+                    'Institution SSO: active user "{}"'.format(username)
+                )
             except exceptions.UnclaimedAccountError:
                 # Unclaimed user (i.e. a user that has been added as an unregistered contributor)
                 user.unclaimed_records = {}
@@ -286,7 +414,11 @@ class InstitutionAuthentication(BaseAuthentication):
                 # Unclaimed users have an unusable password when being added as an unregistered
                 # contributor. Thus a random usable password must be assigned during activation.
                 new_password_required = True
-                logger.info('Institution SSO: unclaimed contributor "{}"'.format(username))
+                logger.info(
+                    'Institution SSO: unclaimed contributor "{}"'.format(
+                        username
+                    )
+                )
             except exceptions.UnconfirmedAccountError:
                 if user.has_usable_password():
                     # Unconfirmed user from default username / password signup
@@ -296,26 +428,38 @@ class InstitutionAuthentication(BaseAuthentication):
                     # sign-up. However, it must be overwritten by a new random one so the creator
                     # (if he is not the real person) can not access the account after activation.
                     new_password_required = True
-                    logger.info('Institution SSO: unconfirmed user "{}"'.format(username))
+                    logger.info(
+                        'Institution SSO: unconfirmed user "{}"'.format(
+                            username
+                        )
+                    )
                 else:
                     # Login take-over has not been implemented for unconfirmed user created via
                     # external IdP login (ORCiD).
-                    message = 'Institution SSO is not eligible for an unconfirmed account ' \
-                              'created via external IdP login: username = "{}"'.format(username)
+                    message = (
+                        'Institution SSO is not eligible for an unconfirmed account '
+                        'created via external IdP login: username = "{}"'.format(
+                            username
+                        )
+                    )
                     sentry.log_message(message)
                     logger.error(message)
                     return None, None
             except exceptions.DeactivatedAccountError:
                 # Deactivated user: login is not allowed for deactivated users
-                message = 'Institution SSO is not eligible for a deactivated account: ' \
-                          'username = "{}"'.format(username)
+                message = (
+                    'Institution SSO is not eligible for a deactivated account: '
+                    'username = "{}"'.format(username)
+                )
                 sentry.log_message(message)
                 logger.error(message)
                 return None, None
             except exceptions.MergedAccountError:
                 # Merged user: this shouldn't happen since merged users do not have an email
-                message = 'Institution SSO is not eligible for a merged account: ' \
-                          'username = "{}"'.format(username)
+                message = (
+                    'Institution SSO is not eligible for a merged account: '
+                    'username = "{}"'.format(username)
+                )
                 sentry.log_message(message)
                 logger.error(message)
                 return None, None
@@ -323,8 +467,12 @@ class InstitutionAuthentication(BaseAuthentication):
                 # Other invalid status: this shouldn't happen unless the user happens to be in a
                 # temporary state. Such state requires more updates before the user can be saved
                 # to the database. (e.g. `get_or_create_user()` creates a temporary-state user.)
-                message = 'Institution SSO is not eligible for an inactive account with ' \
-                          'an unknown or invalid status: username = "{}"'.format(username)
+                message = (
+                    'Institution SSO is not eligible for an inactive account with '
+                    'an unknown or invalid status: username = "{}"'.format(
+                        username
+                    )
+                )
                 sentry.log_message(message)
                 logger.error(message)
                 return None, None
@@ -336,9 +484,17 @@ class InstitutionAuthentication(BaseAuthentication):
             user.department = department
             user.save()
 
+        # @R-2023-55.
+        if ial and user.ial != ial:
+            user.ial = ial
+            user.save()
+        if aal and user.aal != aal:
+            user.aal = aal
+            user.save()
+        logger.info('MFA URL "{}"'.format(self.context['mfa_url']))
+
         # Both created and activated accounts need to be updated and registered
         if created or activation_required:
-
             if given_name:
                 user.given_name = given_name
             if family_name:
@@ -362,7 +518,7 @@ class InstitutionAuthentication(BaseAuthentication):
             user.update_date_last_login()
 
             ## Relying on front-end validation until `accepted_tos` is added to the JWT payload
-            #user.accepted_terms_of_service = timezone.now()
+            # user.accepted_terms_of_service = timezone.now()
             if settings.USER_TIMEZONE:
                 user.timezone = settings.USER_TIMEZONE
 
@@ -381,7 +537,7 @@ class InstitutionAuthentication(BaseAuthentication):
                 else:
                     username = user.username
                     user.have_email = False
-                    #user.unclaimed_records = {}
+                    # user.unclaimed_records = {}
                 if organization_name:
                     # Settings > Profile information > Employment > ...
                     #   organization_name (o) : Institution / Employer
@@ -456,7 +612,9 @@ class InstitutionAuthentication(BaseAuthentication):
 
         # update every login.
         if USE_EPPN:
-            for other in user.affiliated_institutions.exclude(id=institution.id):
+            for other in user.affiliated_institutions.exclude(
+                id=institution.id
+            ):
                 user.affiliated_institutions.remove(other)
 
         # Affiliate the user if not previously affiliated
@@ -470,8 +628,10 @@ class InstitutionAuthentication(BaseAuthentication):
 
         return user, None
 
+
 def login_by_eppn():
     return settings.LOGIN_BY_EPPN
+
 
 def init_cloud_gateway_groups(user, provider):
     if not hasattr(settings, 'CLOUD_GATEWAY_ISMEMBEROF_PREFIX'):
@@ -488,7 +648,7 @@ def init_cloud_gateway_groups(user, provider):
     user.eptid = eptid
 
     debug = False
-    #debug = True
+    # debug = True
 
     if debug:
         groups_str = ''
@@ -509,6 +669,7 @@ def init_cloud_gateway_groups(user, provider):
 
     # set groups
     import re
+
     patt_prefix = re.compile('^' + prefix)
     patt_admin = re.compile('(.+)/admin$')
     for group in groups_str.split(';'):
