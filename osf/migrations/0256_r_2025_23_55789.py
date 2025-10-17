@@ -78,6 +78,14 @@ class Migration(migrations.Migration):
                         to=settings.AUTH_USER_MODEL,
                     ),
                 ),
+                (
+                    'is_mfa',
+                    models.BooleanField(
+                        choices=[(False, 'Disabled'), (True, 'Enabled')],
+                        default=False,
+                        verbose_name='Display MFA link button',
+                    ),
+                ),
             ],
             options={
                 'permissions': (
