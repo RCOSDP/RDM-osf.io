@@ -214,6 +214,7 @@ def check_access(node, auth, action, cas_resp):
         else:
             required_scope = node.file_write_scope
 
+        logger.info('***************CAS Attributes Scope: {}'.format(cas_resp.attributes['accessTokenScope']))
         if not cas_resp.authenticated \
            or required_scope not in oauth_scopes.normalize_scopes(cas_resp.attributes['accessTokenScope']):
             raise HTTPError(http_status.HTTP_403_FORBIDDEN)
@@ -288,11 +289,13 @@ def get_auth(auth, **kwargs):
     cas_resp = None
     # Central Authentication Server OAuth Bearer Token
     authorization = request.headers.get('Authorization')
+    logger.info('****************** Authorization Header: {}'.format(authorization))
     if authorization and authorization.startswith('Bearer '):
         client = cas.get_client()
         try:
             access_token = cas.parse_auth_header(authorization)
             cas_resp = client.profile(access_token)
+            logger.info('**************CAS Response: {}'.format(cas_resp))
         except cas.CasError as err:
             sentry.log_exception()
             # NOTE: We assume that the request is an AJAX request
