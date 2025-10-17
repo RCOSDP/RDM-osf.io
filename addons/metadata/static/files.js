@@ -266,7 +266,7 @@ function MetadataButtons() {
   self.createProjectMetadataQuestionPage = function(schema, item, options) {
     const questionPage = new QuestionPage(schema, { data: item }, options);
     questionPage.setQuestionFilter(function(question) {
-      return question.qid && !question.qid.match(/^grdm-file:.+/);
+      return question.qid && !question.qid.match(/^grdm-file:.+/) && !question.qid.match(/^internal:.+/);
     });
     questionPage.create();
     return questionPage;
