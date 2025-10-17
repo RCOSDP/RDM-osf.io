@@ -67,7 +67,6 @@ class Migration(migrations.Migration):
                 (
                     'is_mfa',
                     models.BooleanField(
-                        choices=[(False, 'Disabled'), (True, 'Enabled')],
                         default=False,
                         verbose_name='Display MFA link button',
                     ),
