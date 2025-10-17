@@ -65,6 +65,14 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 (
+                    'is_mfa',
+                    models.BooleanField(
+                        choices=[(False, 'Disabled'), (True, 'Enabled')],
+                        default=False,
+                        verbose_name='Display MFA link button',
+                    ),
+                ),
+                (
                     'institution',
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
@@ -86,14 +94,5 @@ class Migration(migrations.Migration):
                 ),
             },
             bases=(models.Model, osf.models.base.QuerySetExplainMixin),
-        ),
-        migrations.AddField(
-            model_name='loa',
-            name='is_mfa',
-            field=models.BooleanField(
-                choices=[(False, 'Disabled'), (True, 'Enabled')],
-                default=False,
-                verbose_name='Display MFA link button',
-            ),
         ),
     ]
