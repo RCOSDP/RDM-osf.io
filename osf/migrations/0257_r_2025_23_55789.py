@@ -10,7 +10,7 @@ import osf.models.base
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('osf', '0255_ensure_schema_mappings'),
+        ('osf', '0256_ensure_schema_mappings'),
     ]
 
     operations = [
