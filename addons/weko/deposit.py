@@ -10,7 +10,7 @@ import bagit
 
 from framework.auth import Auth
 from framework.celery_tasks import app as celery_app
-from osf.models import AbstractNode, OSFUser
+from osf.models import AbstractNode, DraftRegistration, OSFUser
 
 import json
 from addons.metadata.packages import WaterButlerClient, BaseROCrateFactory
@@ -64,11 +64,13 @@ def _download(node, file, tmp_dir, total_size):
     rocrate.download_to(download_file_path)
     return download_file_path, ROCRATE_DATASET_MIME_TYPE
 
+
 def _check_file_size(total_size):
     if total_size <= settings.MAX_UPLOAD_SIZE:
         return
     params = f'exported={total_size}, limit={settings.MAX_UPLOAD_SIZE}'
     raise IOError(f'Exported file size exceeded limit: {params}')
+
 
 @celery_app.task(bind=True, max_retries=5, default_retry_delay=60)
 def deposit_metadata(
@@ -85,6 +87,7 @@ def deposit_metadata(
         update_task_state=update_task_state,
     )
 
+
 def _deposit_metadata(
     user_id, index_id, node_id, metadata_node_id,
     schema_id, file_metadatas, project_metadatas, metadata_paths, status_path,
@@ -93,6 +96,7 @@ def _deposit_metadata(
 ):
 
     from .models import RegistrationMetadataMapping
+    from .schema.constants_mebyo import MEBYO_SCHEMA_NAME
     user = OSFUser.load(user_id)
     logger.info(f'Deposit: {metadata_paths}, {status_path} {task_request_id}')
     node = AbstractNode.load(node_id)
@@ -290,6 +294,19 @@ def _deposit_metadata(
                     'item_html_url': links[0]['@id'] if len(links) > 0 else None,
                 },
             )
+
+        if (len(links) > 0 and mapping_def_ro_crate_json is not None and mapping_def_ro_crate_json.rules['@metadata'].get('schemaname') == MEBYO_SCHEMA_NAME):
+            project_metadata = DraftRegistration.objects.filter(_id=metadata_node_id).first()
+            if project_metadata:
+                current_metadata = project_metadata.registration_responses
+                weko_id = respbody['@id'].split('/')[-1]
+                current_metadata.update(
+                    {
+                        'internal:weko-index-id': weko_id, }
+                )
+                project_metadata.registration_responses = current_metadata
+                project_metadata.save()
+
         return {
             'result': links[0]['@id'] if len(links) > 0 else None,
             'paths': metadata_paths,

@@ -316,7 +316,7 @@ def _publish_project_metadata(auth, node, addon, index_id, metadata_type, metada
         ]
     } for file in files]
     enqueue_task(deposit_metadata.s(
-        auth.user._id, index_id, node._id, node._id,
+        auth.user._id, index_id, node._id, metadata_id,
         schema_id, file_metadata, [project_metadata], filepaths, status_path,
     ))
     return _response_project_metadata(addon, metadata_type, metadata_id)
