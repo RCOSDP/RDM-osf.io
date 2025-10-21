@@ -8,7 +8,7 @@ from .base import (
     expand_listed_key, get_sources_for_key, find_schema_question, is_special_key, is_key_present, get_value, resolve_array_index
 )
 from .constants_mebyo import MEBYO_SCHEMA_NAME
-from .ro_crate_mebyo import generate_dataset_metadata
+from .ro_crate_mebyo import generate_dataset_metadata, get_weko_item_id
 
 
 logger = logging.getLogger(__name__)
@@ -615,5 +615,9 @@ def write_ro_crate_json(user, f, target_index, download_file_names, schema_id, f
         json_ld['@graph'].extend(entity_list)
         match = next((d for d in json_ld['@graph'] if d.get('@id') == './'), None)
         match.update(properties)
+
+        # 未病スキーマ アイテムの更新用プロパティ追加
+        if get_weko_item_id(project_metadatas):
+            match.update({'wk:editMode': 'Upgrade'})
 
     json.dump(json_ld, f, indent=2, ensure_ascii=False)

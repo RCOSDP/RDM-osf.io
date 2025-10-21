@@ -14,6 +14,7 @@ def _flatten_indices(indices):
         r += _flatten_indices(i.children)
     return r
 
+
 def _is_valid_index(desc):
     if 'name' in desc and 'id' in desc:
         return True
@@ -21,6 +22,7 @@ def _is_valid_index(desc):
         return False
     logger.warning('Unexpected index description: %s', desc)
     return False
+
 
 def _is_valid_item(desc):
     if 'metadata' in desc:
@@ -83,6 +85,9 @@ class Client(object):
     def deposit(self, files, headers=None):
         return self._post('sword/service-document', files=files, headers=headers)
 
+    def version_upgrade_item(self, item_id, files, headers=None):
+        return self._put(f'sword/deposit/{item_id}', files=files, headers=headers)
+
     def request_headers(self, headers=None):
         return self._requests_args(headers=headers).get('headers', {})
 
@@ -104,16 +109,18 @@ class Client(object):
             **self._requests_args(headers=headers)
         )
         logger.info(f'_post: url={self._base_host + path}, status={resp.status_code}, response={resp.content}')
-        if resp.status_code == 400:
-            error_reason = resp.json()
-            error_type = error_reason.get('@type', 'Unknown')
-            error_message = error_reason.get('error', 'Unknown')
-            raise HTTPError(f'Bad Request for URL: {self._base_host + path}: type={error_type}, message={error_message}')
-        if resp.status_code == 500:
-            error_reason = resp.json()
-            error_type = error_reason.get('@type', 'Unknown')
-            error_message = error_reason.get('error', 'Unknown')
-            raise HTTPError(f'Internal Server Error for URL: {self._base_host + path}: type={error_type}, message={error_message}')
+        self._check_status_code(resp, path)
+        resp.raise_for_status()
+        return resp.json()
+
+    def _put(self, path, files, headers=None):
+        resp = requests.put(
+            self._base_host + path,
+            files=files,
+            **self._requests_args(headers=headers)
+        )
+        logger.info(f'_put: url={self._base_host + path}, status={resp.status_code}, response={resp.content}')
+        self._check_status_code(resp, path)
         resp.raise_for_status()
         return resp.json()
 
@@ -137,6 +144,19 @@ class Client(object):
                 'auth': (self.username, self.password),
                 'timeout': DEFAULT_TIMEOUT,
             }
+
+    def _check_status_code(self, resp, path):
+        if resp.status_code == 400:
+            error_reason = resp.json()
+            error_type = error_reason.get('@type', 'Unknown')
+            error_message = error_reason.get('error', 'Unknown')
+            raise HTTPError(f'Bad Request for URL: {self._base_host + path}: type={error_type}, message={error_message}')
+        if resp.status_code == 500:
+            error_reason = resp.json()
+            error_type = error_reason.get('@type', 'Unknown')
+            error_message = error_reason.get('error', 'Unknown')
+            raise HTTPError(f'Internal Server Error for URL: {self._base_host + path}: type={error_type}, message={error_message}')
+        return
 
 
 class Index(object):

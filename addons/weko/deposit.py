@@ -225,6 +225,8 @@ def _deposit_metadata(
             registration_schema_id=schema_id,
             filename='ro-crate-metadata.json',
         ).first()
+        ro_crate_schemaname = None
+
         if mapping_def_ro_crate_json is not None:
             with open(os.path.join(bagit_dir, 'data', 'ro-crate-metadata.json'), 'w', encoding='utf8') as f:
                 schema.write_ro_crate_json(
@@ -237,6 +239,7 @@ def _deposit_metadata(
                     project_metadatas,
                     node_id
                 )
+            ro_crate_schemaname = mapping_def_ro_crate_json.rules['@metadata'].get('schemaname')
         if mapping_def_csv is None and mapping_def_ro_crate_json is None:
             logger.warning('No metadata mapping found')
         bag.save(manifests=True)
@@ -261,7 +264,12 @@ def _deposit_metadata(
                 'paths': metadata_paths,
             })
         logger.info(f'Uploading... {file_metadatas}')
-        respbody = c.deposit(files, headers=headers)
+
+        # 未病スキーマですでに WEKO 上にアイテムがある場合はバージョンアップ、それ以外の場合は新規作成
+        if ro_crate_schemaname == MEBYO_SCHEMA_NAME and schema.get_weko_item_id(project_metadatas):
+            respbody = c.version_upgrade_item(schema.get_weko_item_id, files, headers=headers)
+        else:
+            respbody = c.deposit(files, headers=headers)
         logger.info(f'Uploaded: {respbody}')
 
         if update_task_state:
@@ -295,7 +303,7 @@ def _deposit_metadata(
                 },
             )
 
-        if (len(links) > 0 and mapping_def_ro_crate_json is not None and mapping_def_ro_crate_json.rules['@metadata'].get('schemaname') == MEBYO_SCHEMA_NAME):
+        if len(links) > 0 and ro_crate_schemaname == MEBYO_SCHEMA_NAME:
             project_metadata = DraftRegistration.objects.filter(_id=metadata_node_id).first()
             if project_metadata:
                 current_metadata = project_metadata.registration_responses
