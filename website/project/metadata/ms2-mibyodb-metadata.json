@@ -3327,7 +3327,7 @@
       "description": "プロジェクトメタデータ・ファイルメタデータのどちらにも表示せずユーザー編集不可とする内部用メタデータ",
       "questions": [
         {
-          "qid": "internal:weko-index-id",
+          "qid": "internal:weko-item-id",
           "type": "string",
           "format": "text",
           "pattern": "^[0-9]+$",

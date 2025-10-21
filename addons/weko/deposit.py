@@ -302,7 +302,7 @@ def _deposit_metadata(
                 weko_id = respbody['@id'].split('/')[-1]
                 current_metadata.update(
                     {
-                        'internal:weko-index-id': weko_id, }
+                        'internal:weko-item-id': weko_id, }
                 )
                 project_metadata.registration_responses = current_metadata
                 project_metadata.save()
