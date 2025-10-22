@@ -315,6 +315,20 @@ def _publish_project_metadata(auth, node, addon, index_id, metadata_type, metada
             }
         ]
     } for file in files]
+
+    # 未病DBスキーマ(required:true)に基づく必須チェック
+    from .schema.metadata_required import find_missing_required_fields, is_mebyo_schema
+    if is_mebyo_schema(schema_id):
+        schema = RegistrationSchema.objects.get(_id=schema_id)
+        missing = find_missing_required_fields(schema.schema, project_metadata)
+        if missing:
+            msg = 'Required fields are missing: ' + ', '.join(missing)
+            logger.error(msg)
+            return HTTPError(http_status.HTTP_400_BAD_REQUEST, data={
+                'message_short': 'Missing required fields',
+                'message_long': msg,
+            })
+
     enqueue_task(deposit_metadata.s(
         auth.user._id, index_id, node._id, node._id,
         schema_id, file_metadata, [project_metadata], filepaths, status_path,
