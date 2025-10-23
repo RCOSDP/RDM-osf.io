@@ -267,7 +267,7 @@ def _deposit_metadata(
 
         # 未病スキーマですでに WEKO 上にアイテムがある場合はバージョンアップ、それ以外の場合は新規作成
         if ro_crate_schemaname == MEBYO_SCHEMA_NAME and schema.get_weko_item_id(project_metadatas):
-            respbody = c.version_upgrade_item(schema.get_weko_item_id, files, headers=headers)
+            respbody = c.version_upgrade_item(schema.get_weko_item_id(project_metadatas), files, headers=headers)
         else:
             respbody = c.deposit(files, headers=headers)
         logger.info(f'Uploaded: {respbody}')
