@@ -185,5 +185,8 @@ def get_weko_item_id(project_metadatas: Any) -> Union[str, None]:
     if len(project_metadatas) != 1:
         raise ValueError('Choose 1 project metadata to export.')
     project_metadata = _deep_json_loads(project_metadatas[0])
+    item_id = project_metadata.get('internal:weko-item-id')
 
-    return project_metadata['internal:weko-item-id'].get('value')
+    if item_id and item_id.get('value'):
+        return item_id.get('value')
+    return None
