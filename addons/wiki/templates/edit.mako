@@ -20,6 +20,23 @@
     outline: none;
   }
 
+/* Dynamic height adjustment for wiki editor */
+.wiki-editor-dynamic {
+    height: calc(100vh - 350px);
+    min-height: 400px;
+    transition: height 0.3s ease;
+}
+
+.wiki-editor-expanded {
+    height: calc(100vh - 350px);
+    min-height: 400px;
+}
+
+.wiki-editor-collapsed {
+    height: calc(100vh - 330px);
+    min-height: 450px;
+}
+
 </style>
 
 <div class="row" style="margin-bottom: 5px;">
@@ -184,11 +201,11 @@
                     </div>
                     <button class="menu-item" style="margin-left: 40px;" data-toggle="modal" data-target="#wiki-help-modal"><span class="material-symbols-outlined">help</span></button>
                   </div>
-                  <div id="mEditor" class="mFrame" style="${'' if version_settings['view'] == 'preview' else 'display: none'}"></div>
+                  <div id="mEditor" class="mFrame wiki-editor-dynamic" style="${'' if version_settings['view'] == 'preview' else 'display: none'}"></div>
 
                   <div id="wikiViewRender">
                       % if wiki_markdown:
-                          <div id="mView" class="mFrame"></div>
+                          <div id="mView" class="mFrame wiki-editor-dynamic"></div>
                       % else:
                           <p class="text-muted"><em>${_("Add important information, links, or images here to describe your project.")}</em></p>
                       % endif
@@ -497,6 +514,197 @@ ${parent.javascript_bottom()}
             title: 'Wiki: ' + ${wiki_name | sjson, n },
             public: true,
         },
+    });
+
+    // Wiki sidebar toggle functionality with dynamic height adjustment
+    $(document).ready(function() {
+        var panelToggle = $('.panel-toggle');
+        var panelExpand = $('.panel-expand');
+        var $editor = $('#mEditor');
+        var $viewer = $('#mView');
+        var $normalPanel = panelToggle.find('.osf-panel').not('.panel-collapsed');
+        var $collapsedPanel = panelToggle.find('.osf-panel.panel-collapsed');
+        
+        // Store initial state from the DOM - this captures the server-rendered state
+        var initialSidebarClass = null;
+        var initialMainClass = null;
+        var isCollapsed = false;
+        
+        // Detect initial classes by checking all col-sm-* classes
+        var sidebarClasses = panelToggle.attr('class').match(/col-sm-\d+/g);
+        var mainClasses = panelExpand.attr('class').match(/col-sm-\d+/g);
+        
+        if (sidebarClasses && sidebarClasses.length > 0) {
+            initialSidebarClass = sidebarClasses[0]; // Get the first col-sm-* class
+        }
+        if (mainClasses && mainClasses.length > 0) {
+            initialMainClass = mainClasses[0]; // Get the first col-sm-* class
+        }
+        
+        // Determine if initially collapsed based on whether normal panel is hidden
+        isCollapsed = $normalPanel.hasClass('hidden');
+        
+        console.log('Initial state:', {
+            sidebar: initialSidebarClass,
+            main: initialMainClass,
+            collapsed: isCollapsed,
+            normalPanelHidden: $normalPanel.hasClass('hidden'),
+            collapsedPanelHidden: $collapsedPanel.hasClass('hidden')
+        });
+
+        // Function to calculate optimal editor height based on viewport
+        function calculateEditorHeight() {
+            var windowHeight = $(window).height();
+            var navbarHeight = $('.navbar').outerHeight() || 50;
+            var headerHeight = $('.wiki-panel-header').outerHeight() || 50;
+            var menuBarHeight = $('#mMenuBar').outerHeight() || 0;
+            var footerHeight = $('#mEditorFooter').outerHeight() || 0;
+            var statusHeight = $('.row').first().outerHeight() || 30;
+            
+            // Calculate available height
+            var usedHeight = navbarHeight + headerHeight + menuBarHeight + footerHeight + statusHeight + 80; // 80px for margins/padding
+            var availableHeight = windowHeight - usedHeight;
+            
+            // Set min and max constraints
+            var minHeight = 400;
+            var maxHeight = 900;
+            
+            var calculatedHeight = Math.max(minHeight, Math.min(availableHeight, maxHeight));
+            
+            return calculatedHeight;
+        }
+
+        // Function to update editor height based on sidebar state and viewport
+        function updateEditorHeight() {
+            var baseHeight = calculateEditorHeight();
+            var adjustedHeight = isCollapsed ? baseHeight + 20 : baseHeight;
+            
+            // Apply calculated height directly
+            $editor.css('height', adjustedHeight + 'px');
+            $viewer.css('height', adjustedHeight + 'px');
+            
+            // Also apply class for transition effects
+            if (isCollapsed) {
+                $editor.removeClass('wiki-editor-expanded').addClass('wiki-editor-collapsed');
+                $viewer.removeClass('wiki-editor-expanded').addClass('wiki-editor-collapsed');
+            } else {
+                $editor.removeClass('wiki-editor-collapsed').addClass('wiki-editor-expanded');
+                $viewer.removeClass('wiki-editor-collapsed').addClass('wiki-editor-expanded');
+            }
+        }
+
+        // Handle toggle icon click
+        $('#toggleIcon .panel-collapse').on('click', function() {
+            var $icon = $(this).find('i');
+            
+            console.log('Toggle clicked! Current state:', {
+                isCollapsed: isCollapsed,
+                currentSidebarClasses: panelToggle.attr('class'),
+                currentMainClasses: panelExpand.attr('class'),
+                normalPanelHidden: $normalPanel.hasClass('hidden'),
+                collapsedPanelHidden: $collapsedPanel.hasClass('hidden')
+            });
+            
+            if (isCollapsed) {
+                // Expand sidebar to initial state
+                console.log('Expanding to initial state:', {
+                    sidebar: initialSidebarClass,
+                    main: initialMainClass
+                });
+                // Remove all col-sm-* classes and add initial class
+                var sidebarClasses = panelToggle.attr('class');
+                panelToggle.attr('class', sidebarClasses.replace(/col-sm-\d+/g, '').trim() + ' ' + initialSidebarClass);
+                
+                var mainClasses = panelExpand.attr('class');
+                panelExpand.attr('class', mainClasses.replace(/col-sm-\d+/g, '').trim() + ' ' + initialMainClass);
+                
+                $icon.removeClass('fa-angle-right').addClass('fa-angle-left');
+                
+                // Show normal panel, hide collapsed panel
+                $normalPanel.removeClass('hidden');
+                $collapsedPanel.addClass('hidden');
+                
+                isCollapsed = false;
+            } else {
+                // Collapse sidebar
+                console.log('Collapsing sidebar');
+                // Remove all col-sm-* classes and add collapsed class
+                var sidebarClasses = panelToggle.attr('class');
+                panelToggle.attr('class', sidebarClasses.replace(/col-sm-\d+/g, '').trim() + ' col-sm-1');
+                
+                var mainClasses = panelExpand.attr('class');
+                panelExpand.attr('class', mainClasses.replace(/col-sm-\d+/g, '').trim() + ' col-sm-11');
+                
+                $icon.removeClass('fa-angle-left').addClass('fa-angle-right');
+                
+                // Hide normal panel, show collapsed panel
+                $normalPanel.addClass('hidden');
+                $collapsedPanel.removeClass('hidden');
+                
+                isCollapsed = true;
+            }
+            
+            console.log('After toggle:', {
+                isCollapsed: isCollapsed,
+                newSidebarClasses: panelToggle.attr('class'),
+                newMainClasses: panelExpand.attr('class'),
+                normalPanelHidden: $normalPanel.hasClass('hidden'),
+                collapsedPanelHidden: $collapsedPanel.hasClass('hidden')
+            });
+            
+            // Update editor height
+            updateEditorHeight();
+        });
+
+        // Handle collapsed panel click to expand
+        $collapsedPanel.on('click', function() {
+            console.log('Collapsed panel clicked!');
+            if (isCollapsed) {
+                console.log('Expanding from collapsed panel to initial state:', {
+                    sidebar: initialSidebarClass,
+                    main: initialMainClass
+                });
+                // Remove all col-sm-* classes and add initial class
+                var sidebarClasses = panelToggle.attr('class');
+                panelToggle.attr('class', sidebarClasses.replace(/col-sm-\d+/g, '').trim() + ' ' + initialSidebarClass);
+                
+                var mainClasses = panelExpand.attr('class');
+                panelExpand.attr('class', mainClasses.replace(/col-sm-\d+/g, '').trim() + ' ' + initialMainClass);
+                
+                $('#toggleIcon .panel-collapse i').removeClass('fa-angle-right').addClass('fa-angle-left');
+                
+                // Show normal panel, hide collapsed panel
+                $normalPanel.removeClass('hidden');
+                $collapsedPanel.addClass('hidden');
+                
+                isCollapsed = false;
+                
+                console.log('After collapsed panel click:', {
+                    isCollapsed: isCollapsed,
+                    newSidebarClasses: panelToggle.attr('class'),
+                    newMainClasses: panelExpand.attr('class'),
+                    normalPanelHidden: $normalPanel.hasClass('hidden'),
+                    collapsedPanelHidden: $collapsedPanel.hasClass('hidden')
+                });
+                
+                // Update editor height
+                updateEditorHeight();
+            }
+        });
+
+        // Initial height setup (delayed to ensure DOM is fully loaded)
+        setTimeout(function() {
+            updateEditorHeight();
+        }, 100);
+
+        // Handle window resize to maintain proper proportions
+        var resizeTimer;
+        $(window).on('resize', function() {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(function() {
+                updateEditorHeight();
+            }, 150);
+        });
     });
 
 </script>
