@@ -3331,7 +3331,8 @@
           "type": "string",
           "format": "text",
           "pattern": "^[0-9]+$",
-          "required": false
+          "required": false,
+          "concealment_page": "buttonHide"
         }
       ]
     }
