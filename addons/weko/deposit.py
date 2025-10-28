@@ -305,9 +305,14 @@ def _deposit_metadata(
 
         if len(links) > 0 and ro_crate_schemaname == MEBYO_SCHEMA_NAME:
             project_metadata = DraftRegistration.objects.filter(_id=metadata_node_id).first()
-            if project_metadata:
-                weko_id = respbody['@id'].split('/')[-1]
 
+            weko_id = None
+            try:
+                weko_id = respbody['@id'].split('/')[-1]
+            except (KeyError, IndexError, TypeError):
+                pass
+
+            if project_metadata and weko_id:
                 update_data = {
                     'internal:weko-item-id': {
                         'value': weko_id,
