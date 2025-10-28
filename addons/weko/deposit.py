@@ -307,25 +307,16 @@ def _deposit_metadata(
             project_metadata = DraftRegistration.objects.filter(_id=metadata_node_id).first()
             if project_metadata:
                 weko_id = respbody['@id'].split('/')[-1]
-                current_responses = project_metadata.registration_responses
-                current_responses.update(
-                    {
-                        'internal:weko-item-id': weko_id, }
-                )
 
-                project_metadata.registration_responses = current_responses
-                current_metadata = project_metadata.registration_metadata
-                current_metadata.update(
-                    {
-                        'internal:weko-item-id':
-                        {
-                            'value': weko_id,
-                            'comments': [],
-                            'extra': [],
-                        },
-                    }
-                )
-                project_metadata.registration_metadata = current_metadata
+                update_data = {
+                    'internal:weko-item-id': {
+                        'value': weko_id,
+                        'comments': [],
+                        'extra': [],
+                    },
+                }
+
+                project_metadata.update_metadata(update_data)
 
                 project_metadata.save()
 
