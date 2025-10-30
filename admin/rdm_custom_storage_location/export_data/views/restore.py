@@ -730,6 +730,8 @@ def copy_files_from_export_data_to_destination(task, current_process_step,
                             file_version = node.get_version(response_file_version_id, required=False)
 
                             if file_version is not None:
+                                contributor = version.get('contributor')
+                                user = OSFUser.objects.filter(username=contributor)
                                 file_version_created_at = version.get('created_at')
                                 file_version_modified_at = version.get('modified_at')
 
