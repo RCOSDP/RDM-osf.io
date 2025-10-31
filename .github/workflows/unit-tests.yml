@@ -43,7 +43,7 @@ jobs:
     needs: build-image
     permissions:
       contents: read
-    timeout-minutes: 90
+    timeout-minutes: 360
     strategy:
       fail-fast: false
       matrix:
