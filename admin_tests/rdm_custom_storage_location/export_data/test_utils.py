@@ -12,7 +12,7 @@ from nose import tools as nt
 from requests import ConnectionError, ReadTimeout, Timeout
 from rest_framework import status
 
-from addons.metadata.models import NodeSettings as MetadataNodeSettings, FileMetadata
+from addons.metadata.models import FileMetadata
 from addons.nextcloudinstitutions.models import NextcloudInstitutionsProvider
 from admin.rdm_custom_storage_location.export_data import utils
 from admin.rdm_custom_storage_location.export_data.views.restore import ProcessError
