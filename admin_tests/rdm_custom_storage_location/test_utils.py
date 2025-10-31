@@ -1,3 +1,4 @@
+import mock
 import pytest
 from nose import tools as nt
 
@@ -59,8 +60,8 @@ class TestUtils:
     @patch('osf.utils.external_util.remove_region_external_account')
     @patch('admin.rdm_custom_storage_location.utils.update_storage')
     @patch('admin.rdm_custom_storage_location.utils.test_s3compatb3_connection')
-    def test_save_s3compatb3_credentials(self, 
-                                         _testconnection, mock_update_storage,
+    def test_save_s3compatb3_credentials(self,
+                                         mock_testconnection, mock_update_storage,
                                          mock_remove_region_external_account):
         mock_testconnection.return_value = {'message': 'Nice'}, http_status.HTTP_200_OK
         mock_update_storage.return_value = {}
