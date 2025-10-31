@@ -31,6 +31,9 @@ website_local = Path('website/settings/local.py')
 website_local.write_text(website_local.read_text() + '\nDB_HOST = \'postgres\'\nDB_PORT = 5432\nELASTIC_URI = \'elasticsearch:9200\'\n')
 PY
 
+# Setup loopback alias for container communication
+sudo ip addr add 192.168.168.167/32 dev lo
+
 compose pull postgres elasticsearch6 >/dev/null 2>&1 || true
 compose build elasticsearch
 compose up -d postgres elasticsearch elasticsearch6
