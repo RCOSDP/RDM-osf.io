@@ -1707,7 +1707,7 @@ class TestUtilsForCheckRestoreData(AdminTestCase):
         self.export_data_restore = ExportDataRestoreFactory()
         self.export_data_restore.export = self.export_data
         self.project = ProjectFactory(creator=self.user)
-        self.metadata_node_settings = MetadataNodeSettings(owner=self.project)
+        self.metadata_node_settings = self.project.get_or_add_addon('metadata', self.user)
         self.metadata_node_settings.save()
 
     def test_count_file_ng_ok(self):
@@ -2847,7 +2847,7 @@ class TestUtilsForRestoreData(AdminTestCase):
     def test_update_file_metadata_project_not_found(self):
         user = AuthUserFactory()
         project = ProjectFactory()
-        metadata_node_settings = MetadataNodeSettings(owner=project)
+        metadata_node_settings = project.get_or_add_addon('metadata', user)
         metadata_node_settings.save()
         source_provider = 'osfstorage'
         destination_provider = 's3compatinstitutions'
@@ -2869,7 +2869,7 @@ class TestUtilsForRestoreData(AdminTestCase):
     def test_update_file_metadata_no_update(self):
         user = AuthUserFactory()
         project = ProjectFactory()
-        metadata_node_settings = MetadataNodeSettings(owner=project)
+        metadata_node_settings = project.get_or_add_addon('metadata', user)
         metadata_node_settings.save()
         source_provider = 'dropboxbusiness'
         destination_provider = 's3compatinstitutions'
@@ -2891,7 +2891,7 @@ class TestUtilsForRestoreData(AdminTestCase):
     def test_update_file_metadata(self):
         user = AuthUserFactory()
         project = ProjectFactory()
-        metadata_node_settings = MetadataNodeSettings(owner=project)
+        metadata_node_settings = project.get_or_add_addon('metadata', user)
         metadata_node_settings.save()
         source_provider = 'osfstorage'
         destination_provider = 's3compatinstitutions'
@@ -2914,7 +2914,7 @@ class TestUtilsForRestoreData(AdminTestCase):
     def test_update_all_folders_metadata_invalid_input(self):
         user = AuthUserFactory()
         project = ProjectFactory()
-        metadata_node_settings = MetadataNodeSettings(owner=project)
+        metadata_node_settings = project.get_or_add_addon('metadata', user)
         metadata_node_settings.save()
         source_provider = 'osfstorage'
         destination_provider = 's3compatinstitutions'
@@ -2936,7 +2936,7 @@ class TestUtilsForRestoreData(AdminTestCase):
     def test_update_all_folders_metadata(self):
         user = AuthUserFactory()
         project = ProjectFactory(creator=user)
-        metadata_node_settings = MetadataNodeSettings(owner=project)
+        metadata_node_settings = project.get_or_add_addon('metadata', user)
         metadata_node_settings.save()
         source_provider = 'osfstorage'
         destination_provider = 's3compatinstitutions'
