@@ -4,6 +4,7 @@ Metadata addon default settings
 import os
 USE_EXPORTING = False
 USE_DATASET_IMPORTING = False
+USE_METADATA_ASSET_POOL_SYNC = False
 
 # Maximum size of files that can be exported ... 1GB
 MAX_EXPORTABLE_FILES_BYTES = 1024 * 1024 * 1024
