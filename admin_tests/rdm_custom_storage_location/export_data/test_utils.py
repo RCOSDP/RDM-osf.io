@@ -5,7 +5,6 @@ import uuid
 import mock
 import pytest
 import requests
-import logging
 from datetime import datetime, timezone, timedelta
 from jsonschema import ValidationError, SchemaError
 from mock import patch, MagicMock
@@ -30,8 +29,6 @@ from osf_tests.factories import (
 )
 from tests.base import AdminTestCase
 from website.settings import INSTITUTIONAL_STORAGE_ADD_ON_METHOD
-
-logger = logging.getLogger(__name__)
 
 FAKE_TASK_ID = '00000000-0000-0000-0000-000000000000'
 RESTORE_EXPORT_DATA_PATH = 'admin.rdm_custom_storage_location.export_data.views.restore'
@@ -726,7 +723,6 @@ class TestUtils(AdminTestCase):
         }
 
     def test_write_json_file__successfully(self):
-        logger.info('TestUtils.test_write_json_file__successfully')
         mock_json_dump_patcher = mock.patch(f'{EXPORT_DATA_UTIL_PATH}.json.dump')
         json_data = {'json_data': 'json_data'}
         output_file = '_temp.json'
@@ -740,10 +736,8 @@ class TestUtils(AdminTestCase):
         nt.assert_equal(call_args[1], {'ensure_ascii': False, 'indent': 2, 'sort_keys': False})
 
         mock_json_dump_patcher.stop()
-        logger.info('TestUtils.test_write_json_file__successfully completed')
 
     def test_from_json__file_not_found(self):
-        logger.info('TestUtils.test_from_json__file_not_found')
         mock_json_dump_patcher = mock.patch(
             f'{EXPORT_DATA_UTIL_PATH}.json.dump',
             side_effect=Exception()
@@ -757,10 +751,8 @@ class TestUtils(AdminTestCase):
         mock_json_dump.assert_called()
 
         mock_json_dump_patcher.stop()
-        logger.info('TestUtils.test_from_json__file_not_found completed')
 
     def test_update_storage_location__create_new(self):
-        logger.info('TestUtils.test_update_storage_location__create_new')
         result = utils.update_storage_location(
             institution_guid=self.institution.guid,
             storage_name='testname',
@@ -770,10 +762,8 @@ class TestUtils(AdminTestCase):
         nt.assert_equal(result.waterbutler_credentials, self.wb_credentials)
         nt.assert_equal(result.waterbutler_settings, self.wb_settings)
         nt.assert_equal(result.name, 'testname')
-        logger.info('TestUtils.test_update_storage_location__create_new completed')
 
     def test_update_storage_location__update(self):
-        logger.info('TestUtils.test_update_storage_location__update')
         ExportDataLocationFactory(
             institution_guid=self.institution.guid,
             name='testname',
@@ -791,10 +781,8 @@ class TestUtils(AdminTestCase):
         nt.assert_equal(result.waterbutler_credentials, self.wb_credentials)
         nt.assert_equal(result.waterbutler_settings, self.wb_settings)
         nt.assert_equal(result.name, 'testname')
-        logger.info('TestUtils.test_update_storage_location__update completed')
 
     def test_test_dropboxbusiness_connection__no_option(self):
-        logger.info('TestUtils.test_test_dropboxbusiness_connection__no_option')
         mock_get_two_addon_options = mock.MagicMock(return_value=None)
         with mock.patch(f'{EXPORT_DATA_UTIL_PATH}.dropboxbusiness_utils.get_two_addon_options',
                         mock_get_two_addon_options):
@@ -803,10 +791,8 @@ class TestUtils(AdminTestCase):
             nt.assert_equal(status_code, 400)
             nt.assert_true('message' in data)
             nt.assert_equal(data.get('message'), 'Invalid Institution ID.: {}'.format(self.institution.id))
-        logger.info('TestUtils.test_test_dropboxbusiness_connection__no_option completed')
 
     def test_test_dropboxbusiness_connection__no_token(self):
-        logger.info('TestUtils.test_test_dropboxbusiness_connection__no_token')
         mock_get_two_addon_options_patcher = mock.patch(
             f'{EXPORT_DATA_UTIL_PATH}.dropboxbusiness_utils.get_two_addon_options',
             return_value=('apple', 'banana')
@@ -828,7 +814,6 @@ class TestUtils(AdminTestCase):
 
         mock_addon_option_to_token_patcher.stop()
         mock_get_two_addon_options_patcher.stop()
-        logger.info('TestUtils.test_test_dropboxbusiness_connection__no_token completed')
 
     def test_test_dropboxbusiness_connection__valid(self):
         mock_get_two_addon_options_patcher = mock.patch(

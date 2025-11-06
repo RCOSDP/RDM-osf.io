@@ -21,6 +21,7 @@ from addons.metadata.settings import (
     METADATA_ASSET_POOL_MAX_FILESIZE,
     USE_EXPORTING,
     USE_DATASET_IMPORTING,
+    USE_METADATA_ASSET_POOL_SYNC,
 )
 from framework.celery_tasks import app as celery_app
 from osf.models import DraftRegistration, BaseFileNode, NodeLog, AbstractNode
@@ -1070,6 +1071,11 @@ def update_metadata_asset_pool_when_file_changed(sender, instance, created, **kw
 
 @receiver(post_save, sender=NodeSettings)
 def sync_all_metadata_set_pool_when_enabled(sender, instance, created, **kwargs):
+    # Skip if metadata asset pool sync is disabled
+    if not USE_METADATA_ASSET_POOL_SYNC:
+        logger.debug('Metadata asset pool sync is disabled')
+        return
+
     # Skip in test environment where tasks run synchronously
     # and WaterButler is not available
     if celery_app.conf.task_always_eager:
