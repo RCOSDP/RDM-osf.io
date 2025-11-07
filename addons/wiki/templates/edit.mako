@@ -524,26 +524,26 @@ ${parent.javascript_bottom()}
         var $viewer = $('#mView');
         var $normalPanel = panelToggle.find('.osf-panel').not('.panel-collapsed');
         var $collapsedPanel = panelToggle.find('.osf-panel.panel-collapsed');
-        
+
         // Store initial state from the DOM - this captures the server-rendered state
         var initialSidebarClass = null;
         var initialMainClass = null;
         var isCollapsed = false;
-        
+
         // Detect initial classes by checking all col-sm-* classes
         var sidebarClasses = panelToggle.attr('class').match(/col-sm-\d+/g);
         var mainClasses = panelExpand.attr('class').match(/col-sm-\d+/g);
-        
+
         if (sidebarClasses && sidebarClasses.length > 0) {
             initialSidebarClass = sidebarClasses[0]; // Get the first col-sm-* class
         }
         if (mainClasses && mainClasses.length > 0) {
             initialMainClass = mainClasses[0]; // Get the first col-sm-* class
         }
-        
+
         // Determine if initially collapsed based on whether normal panel is hidden
         isCollapsed = $normalPanel.hasClass('hidden');
-        
+
         console.log('Initial state:', {
             sidebar: initialSidebarClass,
             main: initialMainClass,
@@ -560,17 +560,17 @@ ${parent.javascript_bottom()}
             var menuBarHeight = $('#mMenuBar').outerHeight() || 0;
             var footerHeight = $('#mEditorFooter').outerHeight() || 0;
             var statusHeight = $('.row').first().outerHeight() || 30;
-            
+
             // Calculate available height
             var usedHeight = navbarHeight + headerHeight + menuBarHeight + footerHeight + statusHeight + 80; // 80px for margins/padding
             var availableHeight = windowHeight - usedHeight;
-            
+
             // Set min and max constraints
             var minHeight = 400;
             var maxHeight = 900;
-            
+
             var calculatedHeight = Math.max(minHeight, Math.min(availableHeight, maxHeight));
-            
+
             return calculatedHeight;
         }
 
@@ -578,11 +578,11 @@ ${parent.javascript_bottom()}
         function updateEditorHeight() {
             var baseHeight = calculateEditorHeight();
             var adjustedHeight = isCollapsed ? baseHeight + 20 : baseHeight;
-            
+
             // Apply calculated height directly
             $editor.css('height', adjustedHeight + 'px');
             $viewer.css('height', adjustedHeight + 'px');
-            
+
             // Also apply class for transition effects
             if (isCollapsed) {
                 $editor.removeClass('wiki-editor-expanded').addClass('wiki-editor-collapsed');
@@ -596,7 +596,7 @@ ${parent.javascript_bottom()}
         // Handle toggle icon click
         $('#toggleIcon .panel-collapse').on('click', function() {
             var $icon = $(this).find('i');
-            
+
             console.log('Toggle clicked! Current state:', {
                 isCollapsed: isCollapsed,
                 currentSidebarClasses: panelToggle.attr('class'),
@@ -604,7 +604,7 @@ ${parent.javascript_bottom()}
                 normalPanelHidden: $normalPanel.hasClass('hidden'),
                 collapsedPanelHidden: $collapsedPanel.hasClass('hidden')
             });
-            
+
             if (isCollapsed) {
                 // Expand sidebar to initial state
                 console.log('Expanding to initial state:', {
@@ -614,16 +614,16 @@ ${parent.javascript_bottom()}
                 // Remove all col-sm-* classes and add initial class
                 var sidebarClasses = panelToggle.attr('class');
                 panelToggle.attr('class', sidebarClasses.replace(/col-sm-\d+/g, '').trim() + ' ' + initialSidebarClass);
-                
+
                 var mainClasses = panelExpand.attr('class');
                 panelExpand.attr('class', mainClasses.replace(/col-sm-\d+/g, '').trim() + ' ' + initialMainClass);
-                
+
                 $icon.removeClass('fa-angle-right').addClass('fa-angle-left');
-                
+
                 // Show normal panel, hide collapsed panel
                 $normalPanel.removeClass('hidden');
                 $collapsedPanel.addClass('hidden');
-                
+
                 isCollapsed = false;
             } else {
                 // Collapse sidebar
@@ -631,19 +631,19 @@ ${parent.javascript_bottom()}
                 // Remove all col-sm-* classes and add collapsed class
                 var sidebarClasses = panelToggle.attr('class');
                 panelToggle.attr('class', sidebarClasses.replace(/col-sm-\d+/g, '').trim() + ' col-sm-1');
-                
+
                 var mainClasses = panelExpand.attr('class');
                 panelExpand.attr('class', mainClasses.replace(/col-sm-\d+/g, '').trim() + ' col-sm-11');
-                
+
                 $icon.removeClass('fa-angle-left').addClass('fa-angle-right');
-                
+
                 // Hide normal panel, show collapsed panel
                 $normalPanel.addClass('hidden');
                 $collapsedPanel.removeClass('hidden');
-                
+
                 isCollapsed = true;
             }
-            
+
             console.log('After toggle:', {
                 isCollapsed: isCollapsed,
                 newSidebarClasses: panelToggle.attr('class'),
@@ -651,7 +651,7 @@ ${parent.javascript_bottom()}
                 normalPanelHidden: $normalPanel.hasClass('hidden'),
                 collapsedPanelHidden: $collapsedPanel.hasClass('hidden')
             });
-            
+
             // Update editor height
             updateEditorHeight();
         });
@@ -667,18 +667,18 @@ ${parent.javascript_bottom()}
                 // Remove all col-sm-* classes and add initial class
                 var sidebarClasses = panelToggle.attr('class');
                 panelToggle.attr('class', sidebarClasses.replace(/col-sm-\d+/g, '').trim() + ' ' + initialSidebarClass);
-                
+
                 var mainClasses = panelExpand.attr('class');
                 panelExpand.attr('class', mainClasses.replace(/col-sm-\d+/g, '').trim() + ' ' + initialMainClass);
-                
+
                 $('#toggleIcon .panel-collapse i').removeClass('fa-angle-right').addClass('fa-angle-left');
-                
+
                 // Show normal panel, hide collapsed panel
                 $normalPanel.removeClass('hidden');
                 $collapsedPanel.addClass('hidden');
-                
+
                 isCollapsed = false;
-                
+
                 console.log('After collapsed panel click:', {
                     isCollapsed: isCollapsed,
                     newSidebarClasses: panelToggle.attr('class'),
@@ -686,7 +686,7 @@ ${parent.javascript_bottom()}
                     normalPanelHidden: $normalPanel.hasClass('hidden'),
                     collapsedPanelHidden: $collapsedPanel.hasClass('hidden')
                 });
-                
+
                 // Update editor height
                 updateEditorHeight();
             }
