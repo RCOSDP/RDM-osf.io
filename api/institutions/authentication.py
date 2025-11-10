@@ -144,14 +144,14 @@ class InstitutionAuthentication(BaseAuthentication):
         institution = Institution.load(provider['id'])
         if not institution:
             raise AuthenticationFailed(
-                'Invalid institution id: "{}"'.format(provider['id'])
+                'Invalid institution id: "{}"'.format(provider['id']),
             )
 
         USE_EPPN = login_by_eppn()
 
         logger.info(
             '---InstitutionAuthentication.authenticate.user:{}'.format(
-                provider
+                provider,
             )
         )
 
@@ -178,7 +178,11 @@ class InstitutionAuthentication(BaseAuthentication):
         given_name = get_next(p_user, 'givenName', 'firstName')
         # last name: 'sn' is friendlyName
         family_name = get_next(
-            p_user, 'sn', 'surname', 'familyName', 'lastName'
+            p_user,
+            'sn',
+            'surname',
+            'familyName',
+            'lastName',
         )
         # middle names
         middle_names = p_user.get('middleNames')
@@ -190,7 +194,11 @@ class InstitutionAuthentication(BaseAuthentication):
         given_name_ja = get_next(p_user, 'jaGivenName', 'jaFirstName')
         # last name: 'jasn' is friendlyName
         family_name_ja = get_next(
-            p_user, 'jasn', 'jaSurname', 'jaFamilyName', 'jaLastName'
+            p_user,
+            'jasn',
+            'jaSurname',
+            'jaFamilyName',
+            'jaLastName',
         )
         # middle names
         middle_names_ja = p_user.get('jaMiddleNames')
@@ -208,12 +216,16 @@ class InstitutionAuthentication(BaseAuthentication):
         organization_name_ja = get_next(p_user, 'jao', 'jaOrganizationName')
         # affiliation: 'jaou' is friendlyName
         organizational_unit_ja = get_next(
-            p_user, 'jaou', 'jaOrganizationalUnitName'
+            p_user,
+            'jaou',
+            'jaOrganizationalUnitName',
         )
 
         # edu_person_affiliation: 'eduPersonAffiliation' is friendlyName
         edu_person_affiliation = get_next(
-            p_user, 'edu_person_affiliation', 'eduPersonAffiliation'
+            p_user,
+            'edu_person_affiliation',
+            'eduPersonAffiliation',
         )
         # edu_person_scoped_affiliation: 'eduPersonScopedAffiliation' is friendlyName
         edu_person_scoped_affiliation = get_next(
@@ -223,15 +235,21 @@ class InstitutionAuthentication(BaseAuthentication):
         )
         # edu_person_targeted_id: 'eduPersonTargetedID' is friendlyName
         edu_person_targeted_id = get_next(
-            p_user, 'edu_person_targeted_id', 'eduPersonTargetedID'
+            p_user,
+            'edu_person_targeted_id',
+            'eduPersonTargetedID',
         )
         # edu_person_assurance: 'eduPersonAssurance' is friendlyName
         edu_person_assurance = get_next(
-            p_user, 'edu_person_assurance', 'eduPersonAssurance'
+            p_user,
+            'edu_person_assurance',
+            'eduPersonAssurance',
         )
         # edu_person_unique_id: 'eduPersonUniqueId' is friendlyName
         edu_person_unique_id = get_next(
-            p_user, 'edu_person_unique_id', 'eduPersonUniqueId'
+            p_user,
+            'edu_person_unique_id',
+            'eduPersonUniqueId',
         )
         # edu_person_orcid: 'eduPersonOrcid' is friendlyName
         edu_person_orcid = get_next(
@@ -338,7 +356,8 @@ class InstitutionAuthentication(BaseAuthentication):
             message = (
                 'Institution login failed: fullname required for '
                 'user "{}" from institution "{}"'.format(
-                    username, provider['id']
+                    username,
+                    provider['id'],
                 )
             )
             sentry.log_message(message)
@@ -391,7 +410,9 @@ class InstitutionAuthentication(BaseAuthentication):
                     )
         else:
             user, created = get_or_create_user(
-                fullname, username, reset_password=False
+                fullname,
+                username,
+                reset_password=False,
             )
         # Get an existing user or create a new one. If a new user is created, the user object is
         # confirmed but not registered,which is temporarily of an inactive status. If an existing
@@ -405,7 +426,7 @@ class InstitutionAuthentication(BaseAuthentication):
             try:
                 drf.check_user(user)
                 logger.info(
-                    'Institution SSO: active user "{}"'.format(username)
+                    'Institution SSO: active user "{}"'.format(username),
                 )
             except exceptions.UnclaimedAccountError:
                 # Unclaimed user (i.e. a user that has been added as an unregistered contributor)
@@ -416,7 +437,7 @@ class InstitutionAuthentication(BaseAuthentication):
                 new_password_required = True
                 logger.info(
                     'Institution SSO: unclaimed contributor "{}"'.format(
-                        username
+                        username,
                     )
                 )
             except exceptions.UnconfirmedAccountError:
@@ -430,7 +451,7 @@ class InstitutionAuthentication(BaseAuthentication):
                     new_password_required = True
                     logger.info(
                         'Institution SSO: unconfirmed user "{}"'.format(
-                            username
+                            username,
                         )
                     )
                 else:
@@ -439,7 +460,7 @@ class InstitutionAuthentication(BaseAuthentication):
                     message = (
                         'Institution SSO is not eligible for an unconfirmed account '
                         'created via external IdP login: username = "{}"'.format(
-                            username
+                            username,
                         )
                     )
                     sentry.log_message(message)
@@ -470,7 +491,7 @@ class InstitutionAuthentication(BaseAuthentication):
                 message = (
                     'Institution SSO is not eligible for an inactive account with '
                     'an unknown or invalid status: username = "{}"'.format(
-                        username
+                        username,
                     )
                 )
                 sentry.log_message(message)
@@ -613,7 +634,7 @@ class InstitutionAuthentication(BaseAuthentication):
         # update every login.
         if USE_EPPN:
             for other in user.affiliated_institutions.exclude(
-                id=institution.id
+                id=institution.id,
             ):
                 user.affiliated_institutions.remove(other)
 
