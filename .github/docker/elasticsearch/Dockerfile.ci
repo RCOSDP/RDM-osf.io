@@ -1,0 +1,5 @@
+# syntax=docker/dockerfile:1
+FROM --platform=linux/amd64 elasticsearch:2
+
+RUN /usr/share/elasticsearch/bin/plugin install --batch analysis-kuromoji \
+    && /usr/share/elasticsearch/bin/plugin install --batch analysis-icu
