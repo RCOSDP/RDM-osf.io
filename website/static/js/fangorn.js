@@ -134,7 +134,7 @@ var PROVIDER_SETTINGS = {
             return;
         }
         var queuedFiles = this.getQueuedFiles();
-        if (!(queuedFiles.length > 0)) {
+        if (queuedFiles.length === 0) {
             return;
         }
 
@@ -1049,7 +1049,7 @@ function _fangornDropzoneDrop(treebeard, event) {
     }
 
     var item = treebeard.dropzoneItemCache;
-    var provider = "unknown"
+    var provider = 'unknown';
     if (item && item.data) {
         provider = item.data.provider;
     }
@@ -1300,7 +1300,7 @@ function _uploadEvent(event, item, col) {
             totalFilesSize += files[i].size;
         }
 
-        var provider = "unknown"
+        var provider = 'unknown';
         if (item && item.data) {
             provider = item.data.provider;
         }
@@ -1341,8 +1341,8 @@ function _uploadEvent(event, item, col) {
         self.dropzone.options.limitQuota = false;
 
         // Add files to Treebeard
-        for (var i = 0; i < files.length; i++) {
-            self.dropzone.addFile(files[i]);
+        for (var j = 0; j < files.length; j++) {
+            self.dropzone.addFile(files[j]);
         }
     }
 }
