@@ -152,7 +152,7 @@ class InstitutionAuthentication(BaseAuthentication):
         logger.info(
             '---InstitutionAuthentication.authenticate.user:{}'.format(
                 provider,
-            )
+            ),
         )
 
         p_idp = provider['idp']
@@ -253,7 +253,9 @@ class InstitutionAuthentication(BaseAuthentication):
         )
         # edu_person_orcid: 'eduPersonOrcid' is friendlyName
         edu_person_orcid = get_next(
-            p_user, 'edu_person_orcid', 'eduPersonOrcid'
+            p_user,
+            'edu_person_orcid',
+            'eduPersonOrcid',
         )
         # groups: 'isMemberOf' is friendlyName
         groups = get_next(p_user, 'groups', 'isMemberOf')
@@ -452,7 +454,7 @@ class InstitutionAuthentication(BaseAuthentication):
                     logger.info(
                         'Institution SSO: unconfirmed user "{}"'.format(
                             username,
-                        )
+                        ),
                     )
                 else:
                     # Login take-over has not been implemented for unconfirmed user created via
