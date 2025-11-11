@@ -16,10 +16,10 @@
         "root.jpcoar:fundingReference[]": {
             ".@type": "PropertyValue",
             "jpcoar:funderIdentifier": {
-                "@createIf": "{{ funder_value }}",
+                "@createIf": "{{ funder_value | to_funder_ror_id }}",
                 ".@type": "jpcoar:funderIdentifier",
-                "jpcoar:funderIdentifierType": "e-Rad_funder",
-                "value": "{{funder_value}}"
+                "jpcoar:funderIdentifierType": "ROR",
+                "value": "{{ funder_value | to_funder_ror_id }}"
             },
             "jpcoar:funderName[FUNDER_NAME_JA]": {
                 "@createIf": "{{ funder_value }}",

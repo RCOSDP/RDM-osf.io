@@ -1145,8 +1145,8 @@ class TestWEKOSchema(OsfTestCase):
     },
     {
       "@type": "jpcoar:funderIdentifier",
-      "jpcoar:funderIdentifierType": "e-Rad_funder",
-      "value": "JST",
+      "jpcoar:funderIdentifierType": "ROR",
+      "value": "https://ror.org/00097mb19",
       "@id": "_:jpcoar_funderIdentifier1"
     },
     {
@@ -1183,6 +1183,71 @@ class TestWEKOSchema(OsfTestCase):
         actual_json['@graph'] = sorted(actual_json['@graph'], key=lambda entry: entry['@id'])
         expected_json['@graph'] = sorted(expected_json['@graph'], key=lambda entry: entry['@id'])
         assert_equal(actual_json, expected_json)
+
+    def test_write_ro_crate_json_without_funder_ror(self):
+        buf = io.StringIO()
+        index = mock.MagicMock()
+        index.identifier = '1000'
+        index.title = 'TITLE'
+        node_id = 'rvm3q'
+        files = [
+            [('test.jpg', 'image/jpeg')],
+        ]
+        target_schema = RegistrationSchema.objects \
+            .filter(name='公的資金による研究データのメタデータ登録') \
+            .order_by('-schema_version') \
+            .first()
+        file_metadata = {
+            'items': [
+                {
+                    'schema': target_schema._id,
+                    'data': dict([(k, {
+                        'value': v,
+                    })for k, v in {
+                        'grdm-file:data-number': '00001',
+                        'grdm-file:title-en': 'TEST DATA',
+                        'grdm-file:creators': [
+                            {
+                                'number': '22222',
+                                'name-ja': '情報太郎',
+                                'name-en': 'Taro Joho',
+                            }
+                        ],
+                    }.items()]),
+                },
+            ],
+        }
+        project_metadata = {
+            'funder': {
+                'value': 'MOD',
+            },
+            'japan-grant-number': {
+                'value': 'JP123456',
+            },
+            'project-name-ja': {
+                'value': 'テストプロジェクト',
+            },
+        }
+
+        schema.write_ro_crate_json(
+            self.user,
+            buf,
+            index,
+            files,
+            target_schema._id,
+            [file_metadata],
+            [project_metadata],
+            node_id
+        )
+        actual_json = json.loads(buf.getvalue())
+        # funderIdentifier should not be present
+        graph_items = actual_json.get('@graph', [])
+        funder_identifiers = [item for item in graph_items if item.get('@type') == 'jpcoar:funderIdentifier']
+        logger.info(f'DEBUG: funder_identifiers={funder_identifiers}')
+        assert_equal(len(funder_identifiers), 0, 'funderIdentifier should not be created for MOD (no ROR ID)')
+        # But fundingReference should still exist with funderName
+        funding_refs = [item for item in graph_items if item.get('@type') == 'PropertyValue' and 'jpcoar:funderName' in str(item)]
+        assert_true(len(funding_refs) > 0, 'fundingReference with funderName should still be created')
 
     def test_write_ro_crate_json_grouped_supporting_files(self):
         buf = io.StringIO()

@@ -214,6 +214,72 @@ VERSION_TYPE_DEFS = {
     },
 }
 
+FUNDER_DEFS = {
+    'AMED': {
+        'ror': 'https://ror.org/004rtk039',
+    },
+    'MOD': {
+        'ror': None,
+    },
+    'NRA': {
+        'ror': 'https://ror.org/01169d420',
+    },
+    'ERCA': {
+        'ror': 'https://ror.org/01c9agy38',
+    },
+    'CAO': {
+        'ror': 'https://ror.org/007f5s288',
+    },
+    'SOUMU': {
+        'ror': 'https://ror.org/00vs1pz50',
+    },
+    'FDMA': {
+        'ror': None,
+    },
+    'NICT': {
+        'ror': 'https://ror.org/016bgq349',
+    },
+    'MEXT': {
+        'ror': 'https://ror.org/048rj2z13',
+    },
+    'JST': {
+        'ror': 'https://ror.org/00097mb19',
+    },
+    'JSPS': {
+        'ror': 'https://ror.org/00hhkn466',
+    },
+    'MHLW': {
+        'ror': 'https://ror.org/03mwa7s65',
+    },
+    'MAFF': {
+        'ror': 'https://ror.org/02zdz1m23',
+    },
+    'PRIMAFF': {
+        'ror': 'https://ror.org/042wasb67',
+    },
+    'NARO': {
+        'ror': 'https://ror.org/023v4bd62',
+    },
+    'METI': {
+        'ror': 'https://ror.org/055tm7f07',
+    },
+    'NEDO': {
+        'ror': 'https://ror.org/0055k7a87',
+    },
+    'MLIT': {
+        'ror': 'https://ror.org/00b0p4j69',
+    },
+    'NILIM': {
+        'ror': 'https://ror.org/044bxz342',
+    },
+    'ENV': {
+        'ror': 'https://ror.org/03rybxa06',
+    },
+    'BIBIOHN': {
+        'ror': 'https://ror.org/001rkbe13',
+    },
+}
+
 def _get_license_for_jpcoar2(value):
     for license in LICENSE_DEFS:
         if license['text'] == value:
@@ -285,6 +351,18 @@ def _get_version_type_uri(value):
         return ''
     return definition['uri']
 
+def _get_funder(value):
+    if value is None:
+        return None
+    return FUNDER_DEFS.get(str(value).strip())
+
+def _get_funder_ror_id(value):
+    definition = _get_funder(value)
+    if definition is None:
+        return ''
+    ror = definition.get('ror')
+    return ror if ror is not None else ''
+
 JINJA2_FILTERS = {
     'has_license_def_for_jpcoar2': _has_license_def_for_jpcoar2,
     'to_normalized_ja_license_name_for_jpcoar2': _get_ja_license_name_for_jpcoar2,
@@ -294,4 +372,5 @@ JINJA2_FILTERS = {
     'to_resource_type_uri': _get_resource_type_uri,
     'to_manuscript_type_uri': _get_manuscript_type_uri,
     'to_version_type_uri': _get_version_type_uri,
+    'to_funder_ror_id': _get_funder_ror_id,
 }
