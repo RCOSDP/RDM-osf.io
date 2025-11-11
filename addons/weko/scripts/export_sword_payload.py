@@ -3,7 +3,6 @@
 import argparse
 import json
 import logging
-import mimetypes
 import os
 import shutil
 import sys
@@ -16,8 +15,7 @@ django.setup()
 
 from website.app import init_app
 from osf.models.metaschema import RegistrationSchema
-from osf.models import AbstractNode, OSFUser, Registration, DraftRegistration
-from addons.metadata.models import FileMetadata
+from osf.models import AbstractNode, Registration, DraftRegistration
 from addons.metadata.packages import WaterButlerClient
 
 from addons.weko.deposit import _build_payload_zip, _download
