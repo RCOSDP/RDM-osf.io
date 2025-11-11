@@ -280,7 +280,7 @@ class TestSuggestionPubmed:
     @responses.activate
     def test_successful_doi_lookup(self):
         doi = '10.1038/nature12373'
-        
+
         # Mock ESearch response
         responses.add(
             responses.GET,
@@ -288,7 +288,7 @@ class TestSuggestionPubmed:
             json={'esearchresult': {'idlist': ['23903748']}},
             status=200
         )
-        
+
         # Mock ESummary response
         responses.add(
             responses.GET,
@@ -316,7 +316,7 @@ class TestSuggestionPubmed:
     @responses.activate
     def test_doi_not_found(self):
         doi = '10.1234/notfound'
-        
+
         responses.add(
             responses.GET,
             'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi',
@@ -341,7 +341,7 @@ class TestSuggestionPubmed:
             'http://dx.doi.org/10.1038/nature12373',
             'doi:10.1038/nature12373'
         ]
-        
+
         for input_doi in test_cases:
             # Should not return empty for valid DOI formats
             # (would need to mock API calls to fully test)
@@ -352,14 +352,14 @@ class TestSuggestionPubmed:
     def test_caching(self, mock_cache):
         mock_cache.get.return_value = None
         doi = '10.1038/nature12373'
-        
+
         responses.add(
             responses.GET,
             'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi',
             json={'esearchresult': {'idlist': ['23903748']}},
             status=200
         )
-        
+
         responses.add(
             responses.GET,
             'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi',
@@ -375,7 +375,7 @@ class TestSuggestionPubmed:
         )
 
         result = suggestion_pubmed('pubmed:doi', doi)
-        
+
         # Verify cache.set was called
         mock_cache.set.assert_called_once()
         cache_key, cache_value, cache_duration = mock_cache.set.call_args[0]
@@ -386,9 +386,9 @@ class TestSuggestionPubmed:
     def test_cache_hit(self, mock_cache):
         cached_result = [{'key': 'pubmed:doi', 'value': {'title': 'Cached Article'}}]
         mock_cache.get.return_value = cached_result
-        
+
         result = suggestion_pubmed('pubmed:doi', '10.1038/nature12373')
-        
+
         assert result == cached_result
         # No API calls should be made when cache hit
 
@@ -410,14 +410,14 @@ class TestSuggestionIntegration:
     @responses.activate
     def test_suggestion_metadata_pubmed(self):
         doi = '10.1038/nature12373'
-        
+
         responses.add(
             responses.GET,
             'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi',
             json={'esearchresult': {'idlist': ['23903748']}},
             status=200
         )
-        
+
         responses.add(
             responses.GET,
             'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi',
@@ -442,7 +442,7 @@ class TestSuggestionIntegration:
     @responses.activate
     def test_suggestion_metadata_pubmed_not_found(self):
         doi = '10.1234/notfound'
-        
+
         responses.add(
             responses.GET,
             'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi',

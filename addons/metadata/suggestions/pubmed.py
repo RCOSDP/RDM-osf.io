@@ -219,7 +219,7 @@ def extract_pubmed_metadata(pubmed_data, doi):
         for month_name, month_num in month_map.items():
             if month_name in pubdate:
                 if year_match:
-                    result['publication_year_month'] = f"{year_match.group(1)}-{month_num}"
+                    result['publication_year_month'] = f'{year_match.group(1)}-{month_num}'
                 break
         else:
             if year_match:

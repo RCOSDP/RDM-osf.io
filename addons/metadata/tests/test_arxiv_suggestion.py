@@ -55,7 +55,7 @@ class TestSuggestionArxiv:
             <link href="http://arxiv.org/pdf/2301.08727v2" rel="related" type="application/pdf"/>
           </entry>
         </feed>'''
-        
+
         responses.add(
             responses.GET,
             'https://export.arxiv.org/api/query',
@@ -89,7 +89,7 @@ class TestSuggestionArxiv:
             <arxiv:primary_category xmlns:arxiv="http://arxiv.org/schemas/atom" term="cs.LG"/>
           </entry>
         </feed>'''
-        
+
         responses.add(
             responses.GET,
             'https://export.arxiv.org/api/query',
@@ -110,7 +110,7 @@ class TestSuggestionArxiv:
         mock_xml = '''<?xml version="1.0"?>
         <feed xmlns="http://www.w3.org/2005/Atom">
         </feed>'''
-        
+
         responses.add(
             responses.GET,
             'https://export.arxiv.org/api/query',
@@ -137,7 +137,7 @@ class TestSuggestionArxiv:
             ('https://arxiv.org/pdf/2301.08727.pdf', '2301.08727'),
             ('2301.08727v2', '2301.08727v2'),
         ]
-        
+
         for input_id, expected_clean_id in test_cases:
             # Would need to mock API calls to fully test
             pass
@@ -154,7 +154,7 @@ class TestSuggestionArxiv:
             <title>Test Paper</title>
           </entry>
         </feed>'''
-        
+
         responses.add(
             responses.GET,
             'https://export.arxiv.org/api/query',
@@ -163,7 +163,7 @@ class TestSuggestionArxiv:
         )
 
         result = suggestion_arxiv('arxiv:id', arxiv_id)
-        
+
         mock_cache.set.assert_called_once()
         cache_key, cache_value, cache_duration = mock_cache.set.call_args[0]
         assert cache_key == f'arxiv:{arxiv_id}'
@@ -181,12 +181,12 @@ class TestExtractArxivMetadata:
             <published>2023-01-20T18:47:24Z</published>
             <updated>2023-01-25T08:01:55Z</updated>
         </entry>'''
-        
+
         entry = ET.fromstring(xml_str)
         ns = {'atom': 'http://www.w3.org/2005/Atom', 'arxiv': 'http://arxiv.org/schemas/atom'}
-        
+
         result = extract_arxiv_metadata(entry, ns, '2301.08727', '10.48550/arXiv.2301.08727')
-        
+
         assert result['arxiv_id'] == '2301.08727'
         assert result['doi'] == '10.48550/arXiv.2301.08727'
         assert result['title'] == 'Test Title'
@@ -203,21 +203,21 @@ class TestExtractArxivMetadata:
             <author><name>Jane Doe</name></author>
             <author><name>Smith</name></author>
         </entry>'''
-        
+
         entry = ET.fromstring(xml_str)
         ns = {'atom': 'http://www.w3.org/2005/Atom', 'arxiv': 'http://arxiv.org/schemas/atom'}
-        
+
         result = extract_arxiv_metadata(entry, ns, '2301.08727', '10.48550/arXiv.2301.08727')
-        
+
         assert len(result['authors']) == 3
         assert result['authors'][0]['name'] == 'Colin White'
         assert result['authors'][0]['given'] == 'Colin'
         assert result['authors'][0]['family'] == 'White'
-        
+
         assert result['authors'][2]['name'] == 'Smith'
         assert result['authors'][2]['given'] == ''
         assert result['authors'][2]['family'] == 'Smith'
-        
+
         # Check common metadata format
         assert len(result['authors_common_metadata_format']) == 3
         assert result['authors_common_metadata_format'][0]['name-en'] == {
@@ -233,12 +233,12 @@ class TestExtractArxivMetadata:
             <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
             <category term="stat.ML" scheme="http://arxiv.org/schemas/atom"/>
         </entry>'''
-        
+
         entry = ET.fromstring(xml_str)
         ns = {'atom': 'http://www.w3.org/2005/Atom', 'arxiv': 'http://arxiv.org/schemas/atom'}
-        
+
         result = extract_arxiv_metadata(entry, ns, '2301.08727', '10.48550/arXiv.2301.08727')
-        
+
         assert result['primary_category'] == 'cs.LG'
         assert result['categories'] == ['cs.LG', 'cs.AI', 'stat.ML']
         assert result['manuscript_type_common_metadata_format'] == 'article'
@@ -249,12 +249,12 @@ class TestExtractArxivMetadata:
             <arxiv:journal_ref>Nature 500, 54-58 (2013)</arxiv:journal_ref>
             <arxiv:doi>10.1038/nature12373</arxiv:doi>
         </entry>'''
-        
+
         entry = ET.fromstring(xml_str)
         ns = {'atom': 'http://www.w3.org/2005/Atom', 'arxiv': 'http://arxiv.org/schemas/atom'}
-        
+
         result = extract_arxiv_metadata(entry, ns, '1301.0001', '10.48550/arXiv.1301.0001')
-        
+
         assert result['journal_ref'] == 'Nature 500, 54-58 (2013)'
         assert result['external_doi'] == '10.1038/nature12373'
         assert result['journal_year'] == '2013'
@@ -269,7 +269,7 @@ class TestParseJournalRef:
     def test_nature_format(self):
         result = {}
         parse_journal_ref('Nature 500, 54-58 (2013)', result)
-        
+
         assert result['journal_year'] == '2013'
         assert result['volume'] == '500'
         assert result['page_start'] == '54'
@@ -279,7 +279,7 @@ class TestParseJournalRef:
     def test_phys_rev_format(self):
         result = {}
         parse_journal_ref('Phys. Rev. Lett. 120, 120501 (2018)', result)
-        
+
         assert result['journal_year'] == '2018'
         assert result['volume'] == '120'
         assert result['page_start'] == '120501'
@@ -288,7 +288,7 @@ class TestParseJournalRef:
     def test_no_pages(self):
         result = {}
         parse_journal_ref('Journal Name (2020)', result)
-        
+
         assert result['journal_year'] == '2020'
         assert 'volume' not in result
         assert 'page_start' not in result
@@ -318,7 +318,7 @@ class TestSuggestionIntegration:
             <title>Test Paper</title>
           </entry>
         </feed>'''
-        
+
         responses.add(
             responses.GET,
             'https://export.arxiv.org/api/query',

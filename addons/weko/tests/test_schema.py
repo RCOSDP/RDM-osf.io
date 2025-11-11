@@ -1290,7 +1290,7 @@ class TestWEKOSchema(OsfTestCase):
         for part_ref in graph['./']['hasPart']:
             part_id = part_ref['@id']
             if part_id.startswith('#dataset-'):
-                logger.info(f"Dataset {part_id} keys: {list(graph[part_id].keys())}")
+                logger.info(f'Dataset {part_id} keys: {list(graph[part_id].keys())}')
 
         dataset_root = graph['./']
         assert_true(dataset_root.get('wk:isSplited'))
@@ -1379,7 +1379,7 @@ class TestWEKOSchema(OsfTestCase):
 
         def assert_references(dataset, key):
             values = property_entities(dataset, key)
-            assert_true(values, f"Key '{key}' not found or empty in dataset {dataset.get('@id', 'unknown')}")
+            assert_true(values, f'Key \'{key}\' not found or empty in dataset {dataset.get("@id", "unknown")}')
 
         # Common fields for both manuscript and dataset
         common_reference_keys = [

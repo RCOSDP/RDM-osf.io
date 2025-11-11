@@ -320,7 +320,7 @@ def extract_person_data(person):
             }
             # Also store as string for compatibility
             if last and first:
-                person_data['name_ja_str'] = f"{last} {first}"
+                person_data['name_ja_str'] = f'{last} {first}'
             elif last:
                 person_data['name_ja_str'] = last
             elif first:
@@ -334,7 +334,7 @@ def extract_person_data(person):
             }
             # Also store as string for compatibility
             if first and last:
-                person_data['name_en_str'] = f"{first} {last}"
+                person_data['name_en_str'] = f'{first} {last}'
             elif last:
                 person_data['name_en_str'] = last
             elif first:
@@ -400,12 +400,12 @@ def extract_dates(jalc_data, result):
             if month:
                 # Ensure month is two digits
                 month = str(month).zfill(2)
-                date_str = f"{year}-{month}"
+                date_str = f'{year}-{month}'
                 result['publication_year_month'] = date_str
                 if day:
                     # Ensure day is two digits
                     day = str(day).zfill(2)
-                    date_str = f"{year}-{month}-{day}"
+                    date_str = f'{year}-{month}-{day}'
             else:
                 result['publication_year_month'] = year
 

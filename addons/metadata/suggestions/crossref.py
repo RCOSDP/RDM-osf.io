@@ -394,8 +394,8 @@ def extract_person_data(person):
         person_data['name'] = person['name']
     else:
         if family and given:
-            person_data['name_ja'] = f"{family}, {given}"
-            person_data['name_en'] = f"{given} {family}"
+            person_data['name_ja'] = f'{family}, {given}'
+            person_data['name_en'] = f'{given} {family}'
         elif family:
             person_data['name_ja'] = family
             person_data['name_en'] = family
@@ -515,11 +515,11 @@ def extract_date_string(date_obj):
     if date_parts and date_parts[0]:
         parts = date_parts[0]
         if len(parts) >= 3:
-            return f"{parts[0]:04d}-{parts[1]:02d}-{parts[2]:02d}"
+            return f'{parts[0]:04d}-{parts[1]:02d}-{parts[2]:02d}'
         elif len(parts) == 2:
-            return f"{parts[0]:04d}-{parts[1]:02d}"
+            return f'{parts[0]:04d}-{parts[1]:02d}'
         elif len(parts) == 1:
-            return f"{parts[0]:04d}"
+            return f'{parts[0]:04d}'
 
     # Fallback to date-time if available
     if 'date-time' in date_obj:

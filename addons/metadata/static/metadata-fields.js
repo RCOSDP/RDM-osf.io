@@ -808,11 +808,11 @@ const ArrayFormField = oop.extend(FormFieldInterface, {
     const columnCount = self.question.display_template.split('|').length + 1; // +1 for button column
     const editCell = $('<td>').attr('colspan', columnCount);
     const fieldsContainer = $('<div>').css('padding', '10px');
-    
+
     // Add each field with its label in vertical layout
     self.question.properties.forEach(function(prop, index) {
       const fieldWrapper = $('<div>').addClass('form-group');
-      
+
       // Create label
       const fieldLabel = $('<label>')
         .text(prop.title ? getLocalizedText(prop.title) : prop.label);
@@ -822,25 +822,25 @@ const ArrayFormField = oop.extend(FormFieldInterface, {
           .css('font-weight', 'bold')
           .text('*'));
       }
-      
+
       fieldWrapper.append(fieldLabel);
       fieldWrapper.append(subFormFields[index].container);
       fieldsContainer.append(fieldWrapper);
     });
-    
+
     editCell.append(fieldsContainer);
     return editCell;
   },
 
   addRow: function(value, isAutofilled) {
     const self = this;
-    
+
     // Create display row first (if display_template exists)
     let displayTr = null;
     if (self.question.display_template) {
       displayTr = $('<tr class="metadata-display-mode">');
     }
-    
+
     const subFormFields = self.question.properties.map(function(prop) {
       const subFormField = createFormField(prop, self.options);
       subFormField.create();
@@ -861,11 +861,11 @@ const ArrayFormField = oop.extend(FormFieldInterface, {
         self.emit('suggestionSelected', suggestion, nextTree);
       });
     });
-    
+
     // Create edit row (always)
     const editTr = $('<tr class="metadata-edit-mode">');
     let editCell = null;
-    
+
     if (self.question.display_template) {
       // For display_template mode: use vertical layout
       editCell = self._createVerticalEditCell(subFormFields);
@@ -876,44 +876,44 @@ const ArrayFormField = oop.extend(FormFieldInterface, {
         editTr.append($('<td>').append(subFormField.container));
       });
     }
-    
+
     // Add buttons
     if (!self.options || !self.options.readonly) {
       // Create move buttons (for both display_template and normal mode)
       const moveButtons = $('<span>')
         .css('white-space', 'nowrap')
         .css('margin-right', '5px');
-      
+
       const moveUpButton = $('<span class="move-up-row">')
         .css('cursor', 'pointer')
         .css('padding', '0 2px')
         .css('vertical-align', 'middle')
         .append($('<i class="fa fa-arrow-up"></i>'))
         .attr('title', _('Move up'));
-      
+
       const moveDownButton = $('<span class="move-down-row">')
         .css('cursor', 'pointer')
         .css('padding', '0 2px')
         .css('vertical-align', 'middle')
         .append($('<i class="fa fa-arrow-down"></i>'))
         .attr('title', _('Move down'));
-      
+
       moveUpButton.on('click', function(e) {
         e.preventDefault();
         self.moveRow(subFormFields, -1);
       });
-      
+
       moveDownButton.on('click', function(e) {
         e.preventDefault();
         self.moveRow(subFormFields, 1);
       });
-      
+
       moveButtons.append(moveUpButton).append(' ').append(moveDownButton);
-      
+
       if (self.question.display_template) {
         // For display_template mode: add toggle edit button, move buttons, and remove button
         const displayButtonCell = $('<td>').css('text-align', 'right').css('vertical-align', 'middle');
-        
+
         const showEditButton = $('<span class="show-edit-row" style="cursor: pointer; padding: 0 2px; vertical-align: middle;">')
           .append($('<i class="fa fa-pencil"></i>'))
           .attr('title', _('Edit'));
@@ -922,16 +922,16 @@ const ArrayFormField = oop.extend(FormFieldInterface, {
           .attr('title', _('Done'));
         const removeButtonDisplay = $('<span class="remove-row" style="cursor: pointer; padding: 0 2px; vertical-align: middle;"><i class="fa fa-trash"></i></span>')
           .attr('title', _('Delete'));
-        
+
         // Clone move buttons for display mode
         const moveButtonsDisplay = moveButtons.clone(true);
-        
+
         showEditButton.on('click', function(e) {
           e.preventDefault();
           displayTr.hide();
           editTr.show();
         });
-        
+
         hideEditButton.on('click', function(e) {
           e.preventDefault();
           // Update display row when switching to display mode
@@ -939,23 +939,23 @@ const ArrayFormField = oop.extend(FormFieldInterface, {
           editTr.hide();
           displayTr.show();
         });
-        
+
         removeButtonDisplay.on('click', function(e) {
           e.preventDefault();
           self.removeRow(subFormFields, [editTr, displayTr]);
         });
-        
+
         // Add buttons to display row
         displayButtonCell.append(moveButtonsDisplay).append(' ').append(showEditButton).append(' ').append(removeButtonDisplay);
         displayTr.append(displayButtonCell);
-        
+
         // Add buttons to the edit cell's button container
         const editButtonContainer = $('<div>')
           .css('text-align', 'right')
           .css('margin-top', '10px');
         editButtonContainer.append(hideEditButton);
         editCell.append(editButtonContainer);
-        
+
         // Initialize display row and show appropriate mode
         if (value && Object.keys(value).some(function(key) { return value[key]; })) {
           self.updateDisplayRow(displayTr, subFormFields);
@@ -963,7 +963,7 @@ const ArrayFormField = oop.extend(FormFieldInterface, {
         } else {
           displayTr.hide();
         }
-        
+
         self.tbody.append(displayTr);
         self.tbody.append(editTr);
       } else {
@@ -985,7 +985,7 @@ const ArrayFormField = oop.extend(FormFieldInterface, {
         // In readonly mode with display_template, still need an empty cell for alignment
         const emptyButtonCell = $('<td>');
         displayTr.append(emptyButtonCell);
-        
+
         self.updateDisplayRow(displayTr, subFormFields);
         editTr.hide();
         self.tbody.append(displayTr);
@@ -994,9 +994,9 @@ const ArrayFormField = oop.extend(FormFieldInterface, {
         self.tbody.append(editTr);
       }
     }
-    
+
     self.emptyLine.hide();
-    
+
     // Store field group with row references
     const fieldGroup = {
       subFormFields: subFormFields,
@@ -1004,7 +1004,7 @@ const ArrayFormField = oop.extend(FormFieldInterface, {
       editTr: editTr
     };
     self.fields.push(fieldGroup);
-    
+
     // Update move button states after adding row
     self.updateMoveButtons();
   },
@@ -1017,7 +1017,7 @@ const ArrayFormField = oop.extend(FormFieldInterface, {
     } else {
       tr.remove();
     }
-    
+
     // Find and remove the field group
     const fieldGroupIndex = self.fields.findIndex(function(group) {
       return group.subFormFields === subquestion;
@@ -1025,43 +1025,43 @@ const ArrayFormField = oop.extend(FormFieldInterface, {
     if (fieldGroupIndex !== -1) {
       self.fields.splice(fieldGroupIndex, 1);
     }
-    
+
     if (self.fields.length === 0) {
       self.emptyLine.show();
     }
-    
+
     // Update move button states after removing row
     self.updateMoveButtons();
     self.emit('change', self.getValue());
   },
-  
+
   moveRow: function(subFormFields, direction) {
     const self = this;
-    
+
     // Find current field group index
     const currentIndex = self.fields.findIndex(function(group) {
       return group.subFormFields === subFormFields;
     });
-    
+
     if (currentIndex === -1) {
       return; // Field group not found
     }
-    
+
     const newIndex = currentIndex + direction;
-    
+
     if (newIndex < 0 || newIndex >= self.fields.length) {
       return; // Cannot move beyond boundaries
     }
-    
+
     // Swap array elements
     const temp = self.fields[currentIndex];
     self.fields[currentIndex] = self.fields[newIndex];
     self.fields[newIndex] = temp;
-    
+
     // Get the field groups
     const currentGroup = self.fields[newIndex]; // After swap, current is at new position
     const targetGroup = self.fields[currentIndex]; // Target is at old position
-    
+
     // Move DOM elements
     if (direction === -1) {
       // Moving up: insert current rows before target rows
@@ -1077,34 +1077,34 @@ const ArrayFormField = oop.extend(FormFieldInterface, {
         currentGroup.displayTr.insertAfter(lastTargetRow);
       }
     }
-    
+
     // Update button states
     self.updateMoveButtons();
     self.emit('change', self.getValue());
   },
-  
+
   updateMoveButtons: function() {
     const self = this;
-    
+
     self.fields.forEach(function(fieldGroup, index) {
       const isFirst = index === 0;
       const isLast = index === self.fields.length - 1;
-      
+
       // Find move buttons in both display and edit rows
       const moveButtons = [];
-      
+
       if (fieldGroup.displayTr) {
         moveButtons.push({
           up: fieldGroup.displayTr.find('.move-up-row'),
           down: fieldGroup.displayTr.find('.move-down-row')
         });
       }
-      
+
       moveButtons.push({
         up: fieldGroup.editTr.find('.move-up-row'),
         down: fieldGroup.editTr.find('.move-down-row')
       });
-      
+
       // Update button states
       moveButtons.forEach(function(buttons) {
         if (buttons.up.length > 0) {
@@ -1118,7 +1118,7 @@ const ArrayFormField = oop.extend(FormFieldInterface, {
       });
     });
   },
-  
+
   updateDisplayRow: function(displayTr, subFormFields) {
     const self = this;
     if (!displayTr) {
@@ -1127,15 +1127,15 @@ const ArrayFormField = oop.extend(FormFieldInterface, {
     if (!self.question.display_template) {
       throw new Error('updateDisplayRow called without display_template');
     }
-    
+
     // Check if button cell exists (should always have at least one td for button column)
     if (displayTr.find('td').length === 0) {
       console.warn(logPrefix + 'updateDisplayRow: No button cell found in display row. The caller should add a button cell first.');
     }
-    
+
     // Clear existing cells except button cell
     displayTr.find('td:not(:last)').remove();
-    
+
     // Split template by pipe and create cells
     const templates = self.question.display_template.split('|');
     templates.forEach(function(template) {
@@ -1145,32 +1145,32 @@ const ArrayFormField = oop.extend(FormFieldInterface, {
       displayTr.find('td:last').before(td);
     });
   },
-  
+
   evaluateTemplate: function(template, subFormFields) {
     const self = this;
     let result = template;
-    
+
     // Helper function to recursively process fields
     function processField(field, prefix) {
       const fieldId = prefix ? prefix + '.' + field.question.id : field.question.id;
       const value = field.getValue();
-      
+
       // Replace simple property
       const regex = new RegExp('{{' + fieldId + '}}', 'g');
       result = result.replace(regex, value || '');
-      
+
       // Recursively handle nested fields using getChildFields
       const childFields = field.getChildFields();
       childFields.forEach(function(childField) {
         processField(childField, fieldId);
       });
     }
-    
+
     // Process all fields
     subFormFields.forEach(function(field) {
       processField(field, '');
     });
-    
+
     return result;
   },
 
