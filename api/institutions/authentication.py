@@ -440,7 +440,7 @@ class InstitutionAuthentication(BaseAuthentication):
                 logger.info(
                     'Institution SSO: unclaimed contributor "{}"'.format(
                         username,
-                    )
+                    ),
                 )
             except exceptions.UnconfirmedAccountError:
                 if user.has_usable_password():
