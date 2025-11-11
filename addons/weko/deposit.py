@@ -285,6 +285,7 @@ def _deposit_metadata(
         # target_index = ''
 
         # Packaging the files as BagIt
+        skip_csv = len(file_metadatas) > 1
         zip_path, bagit_dir = _build_payload_zip(
             user,
             target_index,
@@ -296,6 +297,7 @@ def _deposit_metadata(
             tmp_dir,
             node_id,
             flatten_ro_crate=True,
+            skip_csv_generation=skip_csv,
         )
 
         headers = {

@@ -61,7 +61,6 @@ class WEKOProvider(ExternalProvider):
 
     auth_url_base = None
     callback_url = None
-    default_scopes = ['deposit:actions deposit:write index:create user:activity user:email']
     refresh_time = weko_settings.REFRESH_TIME
 
     def __init__(self, account=None, host=None, username=None, password=None):
@@ -155,6 +154,11 @@ class WEKOProvider(ExternalProvider):
         repodomain = _get_repodomain_from_repoid(repoid)
 
         assert self._oauth_version == OAUTH2
+        scope = weko_settings.DEFAULT_APPLICATION_SCOPES
+        if callable(scope):
+            self.default_scopes = scope(repo_settings)
+        else:
+            self.default_scopes = scope
         # build the URL
         oauth = OAuth2Session(
             repo_settings['client_id'],
