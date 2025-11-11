@@ -156,16 +156,16 @@ class WEKOProvider(ExternalProvider):
         assert self._oauth_version == OAUTH2
         scope = weko_settings.DEFAULT_APPLICATION_SCOPES
         if callable(scope):
-            self.default_scopes = scope(repo_settings)
+            default_scopes = scope(repo_settings)
         else:
-            self.default_scopes = scope
+            default_scopes = scope
         # build the URL
         oauth = OAuth2Session(
             repo_settings['client_id'],
             redirect_uri=web_url_for('weko_oauth_callback',
                                      repodomain=repodomain,
                                      _absolute=True),
-            scope=self.default_scopes,
+            scope=default_scopes,
         )
 
         url, state = oauth.authorization_url(repo_settings['authorize_url'])
