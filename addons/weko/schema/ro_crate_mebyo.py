@@ -95,6 +95,8 @@ def _add_property_to_entity(
     value: Any,
     entity_id: str
 ) -> None:
+    if value is None or value == '':
+        return
     if key not in MAPPING_DICT:
         raise ValueError(f'Mapping to {key} is not defined.')
 
