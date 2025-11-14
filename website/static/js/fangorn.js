@@ -99,11 +99,11 @@ var ENTER_KEY = 13;
 
 var PROVIDER_SETTINGS = {
     // Bulk mount institution storage settings
-    'osfstorage': { parallelNum: 4, fileSizeThreshold: 128000000 }, // 128 MB
+    'osfstorage': { parallelNum: 3, fileSizeThreshold: 128000000 }, // 128 MB
 
     // Extend storage settings
-    's3': { parallelNum: 4, fileSizeThreshold: 128000000 },
-    's3compat': { parallelNum: 4, fileSizeThreshold: 128000000 },
+    's3': { parallelNum: 1, fileSizeThreshold: 128000000 },
+    's3compat': { parallelNum: 4, fileSizeThreshold: 256000000 },
     'box': { parallelNum: 4, fileSizeThreshold: 128000000 },
     'googledrive': { parallelNum: 4, fileSizeThreshold: 128000000 },
     'nextcloud': { parallelNum: 4, fileSizeThreshold: 128000000 },
