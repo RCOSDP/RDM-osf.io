@@ -99,11 +99,11 @@ var ENTER_KEY = 13;
 
 var PROVIDER_SETTINGS = {
     // Bulk mount institution storage settings
-    'osfstorage': { parallelNum: 3, fileSizeThreshold: 128000000 }, // 128 MB
+    'osfstorage': { parallelNum: 4, fileSizeThreshold: 128000000 }, // 128 MB
 
     // Extend storage settings
-    's3': { parallelNum: 1, fileSizeThreshold: 128000000 },
-    's3compat': { parallelNum: 4, fileSizeThreshold: 256000000 },
+    's3': { parallelNum: 4, fileSizeThreshold: 128000000 },
+    's3compat': { parallelNum: 4, fileSizeThreshold: 128000000 },
     'box': { parallelNum: 4, fileSizeThreshold: 128000000 },
     'googledrive': { parallelNum: 4, fileSizeThreshold: 128000000 },
     'nextcloud': { parallelNum: 4, fileSizeThreshold: 128000000 },
@@ -1294,6 +1294,10 @@ function _uploadEvent(event, item, col) {
     self.dropzone.hiddenFileInput.addEventListener('change', _onchange, { once: true });
 
     function _onchange() {
+        // --- LOGGING: Start upload file timing ---
+        var uploadFileStartTime = new Date();
+        console.log('[Fangorn] File upload started:', item.data.name || item.data.path, 'at', uploadFileStartTime.toISOString());
+
         var files = self.dropzone.hiddenFileInput.files || [];
         var totalFilesSize = 0;
         for (var i = 0; i < files.length; i++) {
@@ -1395,6 +1399,10 @@ function _uploadFolderEvent(event, item, mode, col) {
     tb.dropzone.hiddenFileInput.addEventListener('change', _onchange, { once: true });
 
     function _onchange() {
+        // --- LOGGING: Start upload folder timing ---
+        var uploadFolderStartTime = new Date();
+        console.log('[Fangorn] Folder upload started:', item.data.name || item.data.path, 'at', uploadFolderStartTime.toISOString());
+
         var nodeParent = tb.multiselected()[0];
         var files = tb.dropzone.hiddenFileInput.files || [];
         var totalFilesSize = 0;
