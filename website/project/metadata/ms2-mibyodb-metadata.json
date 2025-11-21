@@ -2379,7 +2379,7 @@
           "properties": [
             {
               "id": "Position-of-row",
-              "title": "行、列の位置（日本語）|Position of row and column (Japanese)",
+              "title": "行の位置（日本語）|Position of row (Japanese)",
               "type": "string",
               "format": "textarea"
             },
@@ -2397,7 +2397,7 @@
             },
             {
               "id": "Position-of-row-en",
-              "title": "Position of row and column (English)",
+              "title": "Position of row (English)",
               "type": "string",
               "format": "textarea"
             },
@@ -2425,7 +2425,7 @@
           "properties": [
             {
               "id": "Position-of-row",
-              "title": "行、列の位置（日本語）|Position of row and column (Japanese)",
+              "title": "列の位置（日本語）|Position of column (Japanese)",
               "type": "string",
               "format": "textarea"
             },
@@ -2443,7 +2443,7 @@
             },
             {
               "id": "Position-of-row-en",
-              "title": "Position of row and column (English)",
+              "title": "Position of column (English)",
               "type": "string",
               "format": "textarea"
             },
@@ -2639,7 +2639,7 @@
           "properties": [
             {
               "id": "Position-of-row",
-              "title": "行、列の位置（日本語）|Position of row and column (Japanese)",
+              "title": "行の位置（日本語）|Position of row (Japanese)",
               "type": "string",
               "format": "textarea"
             },
@@ -2657,7 +2657,7 @@
             },
             {
               "id": "Position-of-row-en",
-              "title": "Position of row and column (English)",
+              "title": "Position of row (English)",
               "type": "string",
               "format": "textarea"
             },
@@ -2685,7 +2685,7 @@
           "properties": [
             {
               "id": "Position-of-row",
-              "title": "行、列の位置（日本語）|Position of row and column (Japanese)",
+              "title": "列の位置（日本語）|Position of column (Japanese)",
               "type": "string",
               "format": "textarea"
             },
@@ -2703,7 +2703,7 @@
             },
             {
               "id": "Position-of-row-en",
-              "title": "Position of row and column (English)",
+              "title": "Position of column (English)",
               "type": "string",
               "format": "textarea"
             },
