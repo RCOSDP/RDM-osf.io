@@ -237,7 +237,8 @@ def _deposit_metadata(
                     schema_id,
                     file_metadatas,
                     project_metadatas,
-                    node_id
+                    node_id,
+                    base_host=c._base_host
                 )
             ro_crate_schemaname = mapping_def_ro_crate_json.rules['@metadata'].get('schemaname')
         if mapping_def_csv is None and mapping_def_ro_crate_json is None:
