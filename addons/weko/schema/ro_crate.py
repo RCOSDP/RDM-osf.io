@@ -413,10 +413,6 @@ def _flatten_json_ld(object, counts):
 
 
 def write_ro_crate_json(user, f, target_index, download_file_names, schema_id, file_metadatas, project_metadatas, node_id, base_host=None):
-    if base_host is None:
-        logger.error('Client creation failed: _base_host is None. Aborting task.')
-        return
-
     from ..models import RegistrationMetadataMapping
     from urllib.parse import urlparse
     schema = RegistrationSchema.objects.get(_id=schema_id)
