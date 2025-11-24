@@ -69,7 +69,7 @@ def is_mebyo_schema(schema_id: str) -> bool:
     if mapping_def is None:
         return False
     try:
-        return mapping_def.rules.get("@metadata", {}).get("schemaname") == MEBYO_SCHEMA_NAME
+        return mapping_def.rules.get('@metadata', {}).get('schemaname') == MEBYO_SCHEMA_NAME
     except AttributeError:
         return False
 
