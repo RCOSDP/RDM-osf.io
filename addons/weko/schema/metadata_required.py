@@ -20,6 +20,7 @@ def _has_value(entry: Any) -> bool:
 
 def _collect_required_qids(schema: Dict[str, Any]) -> Set[str]:
     req: Set[str] = set()
+
     def walk(node: Any) -> None:
         if isinstance(node, dict):
             if node.get('required') is True and isinstance(node.get('qid'), str):
@@ -72,4 +73,3 @@ def is_mebyo_schema(schema_id: str) -> bool:
         return mapping_def.rules.get('@metadata', {}).get('schemaname') == MEBYO_SCHEMA_NAME
     except AttributeError:
         return False
-
