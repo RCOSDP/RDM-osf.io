@@ -91,6 +91,10 @@
         .disabled {
             pointer-events: none;
         }
+
+        #createProjectLimitNumberSettingForm {
+            overflow: auto;
+        }
     </style>
 {% endblock %}
 
@@ -211,6 +215,7 @@
             <button type="button" class="btn btn-default" style="width: 90px; margin-right: 5px;" onclick="navigateToPreviousPage()">{% trans 'Cancel' %}</button>
             <button type="submit" class="btn btn-primary" style="width: 90px;" >{% trans 'Save' %}</button>
             <button type="button" class="btn btn-primary" style="margin-left: 5px;" onclick="getUserList()">{% trans 'Show User List' %}</button>
+            <button type="button" class="btn btn-primary" style="margin-left: 5px;" onclick="exportUserListCSV()">{% trans 'Export User List(CSV)' %}</button>
         </div>
     </form>
 
@@ -347,7 +352,7 @@
                                 <tr>
                                     <th class="col-md-1">{% trans "GUID" %}</th>
                                     <th class="nowrap col-md-3">
-                                        {% trans "EPPN" %}
+                                        {% trans "ePPN" %}
                                     </th>
                                     <th class="nowrap col-md-3">
                                         {% trans "Username" %}
@@ -366,6 +371,56 @@
                             <tbody>`+tableDiv+`</tbody>
                         </table>`;
                     $('#user-table').html(div);
+                }
+            }).fail(function (jqXHR, textStatus, error) {
+                handleAjaxRequestFailure(jqXHR);
+            });
+        }
+
+        function exportUserListCSV() {
+            let attributeList = [];
+            // Extract data from attribute section
+            $('.attribute-item').each(function (index, element) {
+                const attribute_name = element.querySelector('.attribute-name').value;
+                const setting_type = Number(element.querySelector('.setting-type').value, 10);
+                let attribute_value = element.querySelector('.attribute-value').value;
+                attributeList.push({
+                    attribute_name,
+                    setting_type,
+                    attribute_value
+                });
+            });
+            const data = {
+                'institution_id': {{ institution.id }},
+                'attribute_list': attributeList
+            };
+            $.ajax({
+                url: '{% url "project_limit_number:settings:export_user_list_csv" %}',
+                type: 'post',
+                data: JSON.stringify(data),
+                contentType: 'application/json',
+                success: function (data, status, xhr) {
+                    const contentType = xhr.getResponseHeader('Content-Type');
+                    if (contentType && contentType.includes('text/csv')) {
+                        // Handle CSV response
+                        const disposition = xhr.getResponseHeader('Content-Disposition');
+                        let filename = '';
+                        if (disposition && disposition.indexOf('filename=') !== -1) {
+                            const split = disposition.split('filename=');
+                            filename = split[split.length-1].replace(/['"]/g, '');
+                        }
+
+                        // Convert the text response to a blob
+                        const blob = new Blob([data], { type: 'text/csv' });
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = filename;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        window.URL.revokeObjectURL(url);
+                    }
                 }
             }).fail(function (jqXHR, textStatus, error) {
                 handleAjaxRequestFailure(jqXHR);
