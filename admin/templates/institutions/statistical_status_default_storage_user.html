@@ -1,10 +1,78 @@
 {% load i18n %}
 <h2 id="title">{% trans "Statistical Status of Institutional Storage" %}</h2>
 <h3 id="sub-title">{% blocktrans %}Institutional Storage > {{ institution_name }}{% endblocktrans %}</h3>
+<style>
+    /* Base Utilities */
+    .nowrap {
+        white-space: nowrap;
+    }
 
-<div class="flex-item" style="flex-grow: 0;">
-    {% include "util/pagination.html" with items=page status=direction order=order_by %}
+    /* Form Elements */
+    .form-group.flex-item {
+        max-width: 20em !important;
+    }
+
+    /* Flex Container System */
+    .flex-container {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .flex-container .form-group.flex-item {
+        display: flex;
+        align-items: center;
+    }
+
+    /* Grid System */
+    .row.flex-container {
+        padding-inline: 15px;
+    }
+
+    /* Flex Items */
+    .flex-container .flex-item {
+        flex: 1 1 0;
+        white-space: nowrap;
+        margin: 0;
+    }
+
+    /* Nested Elements */
+    .flex-item .flex-container,
+    .flex-item .flex-container .flex-item {
+        margin-bottom: 0;
+    }
+
+    /* Pagination Component */
+    .pagination-extra-div {
+        & .pagination {
+            margin: 0;
+        }
+
+        & > .flex-item {
+            margin-bottom: 15px;
+        }
+    }
+
+    /* Spacing Utilities */
+    .flex-item + .flex-item {
+        margin-inline-start: 2px;
+    }
+</style>
+
+<div class="row flex-container pagination-extra-div">
+    <div class="flex-item" style="flex-grow: 0; margin-left: 2em;">
+        {% include "util/pagination.html" with items=page status=direction order=order_by %}
+    </div>
+    <div class="flex-item" style="flex-grow: 0; margin-left: auto">
+        <div>
+            <a class="btn btn-primary" style="padding-left: 6px; padding-right: 6px;"
+               href="{% url 'institutions:statistical_tsvexport' %}">
+               {% trans "Export All Users Statistics (TSV)" %}
+            </a>
+        </div>
+    </div>
 </div>
+
 <div class="table-responsive">
 <table class="table table-striped table-hover table-responsive">
     <thead>
