@@ -94,7 +94,7 @@ class BulkAddLoA(RdmPermissionMixin, UserPassesTestMixin, View):
                 self.institution_id = int(self.institution_id)
             else:
                 return render_bad_request_response(request=request, error_msgs='institution_id is required')
-            return super(BulkAddInstitutionEntitlement, self).dispatch(request, *args, **kwargs)
+            return super(BulkAddLoA, self).dispatch(request, *args, **kwargs)
         except ValueError:
             return render_bad_request_response(request=request, error_msgs='institution_id must be a integer')
 

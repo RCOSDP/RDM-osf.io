@@ -12,7 +12,7 @@ import urllib.parse
 
 #from django.utils import timezone
 from rest_framework.authentication import BaseAuthentication
-from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.exceptions import AuthenticationFailed, ValidationError
 
 from api.base.authentication import drf
 from api.base import exceptions, settings
