@@ -95,6 +95,8 @@ def _add_property_to_entity(
     value: Any,
     entity_id: str
 ) -> None:
+    if value is None or value == '':
+        return
     if key not in MAPPING_DICT:
         raise ValueError(f'Mapping to {key} is not defined.')
 
@@ -105,7 +107,7 @@ def _add_property_to_entity(
     if prop_type in [str, int, float]:
         _add_scalar_property(base_entity, prop_name, value)
 
-    elif mapping['prop_type'] in LANG_LIST and isinstance(value, str):
+    elif mapping['prop_type'] in LANG_LIST:
         _add_lang_property(entity_list, base_entity, prop_name, prop_type, value, entity_id)
 
     elif isinstance(value, list):
