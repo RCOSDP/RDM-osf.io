@@ -22,10 +22,23 @@ from framework.auth import get_or_create_user
 from framework.auth.core import get_user
 
 from osf import features
-from osf.models import Institution, UserExtendedData
+from osf.models import Institution, UserExtendedData, LoA
 from osf.exceptions import BlacklistedEmailError
 from website.mails import send_mail, WELCOME_OSF4I
-from website.settings import OSF_SUPPORT_EMAIL, DOMAIN, to_bool
+from website.settings import (
+    OSF_SUPPORT_EMAIL,
+    DOMAIN,
+    to_bool,
+    OSF_SERVICE_URL,
+    CAS_SERVER_URL,
+    OSF_MFA_URL,
+    OSF_IAL2_STR,
+    OSF_AAL1_STR,
+    OSF_AAL2_STR,
+    OSF_IAL2_VAR,
+    OSF_AAL1_VAR,
+    OSF_AAL2_VAR,
+)
 from website.util.quota import update_default_storage
 
 logger = logging.getLogger(__name__)

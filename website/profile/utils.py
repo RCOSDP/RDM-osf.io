@@ -3,7 +3,7 @@ from framework import auth
 
 from api.base import settings as api_settings
 from website import settings
-from osf.models import Contributor, UserQuota
+from osf.models import Contributor, UserQuota, LoA
 from addons.osfstorage.models import Region
 from website.filters import profile_image_url
 from osf.utils.permissions import READ
