@@ -1291,6 +1291,49 @@ class TestNodeContributorAdd(NodeCRUDTestCase):
 @pytest.mark.django_db
 @pytest.mark.enable_quickfiles_creation
 @pytest.mark.enable_implicit_clean
+class TestNodeContributorAddBySuperAdmin(NodeCRUDTestCase):
+
+    @pytest.fixture()
+    def url_private(self, project_private):
+        return '/{}nodes/{}/contributors/?send_email=false'.format(
+            API_BASE, project_private._id)
+
+    @pytest.fixture()
+    def data_user_two(self, user_two):
+        return {
+            'data': {
+                'type': 'contributors',
+                'attributes': {
+                    'bibliographic': True,
+                },
+                'relationships': {
+                    'users': {
+                        'data': {
+                            'type': 'users',
+                            'id': user_two._id,
+                        }
+                    }
+                }
+            }
+        }
+
+    def test_adds_contributor_by_super_admin(
+            self, app, user, user_two, project_private,
+            data_user_two, url_private):
+        user.is_superuser = True
+        user.save()
+        res = app.post_json_api(url_private, data_user_two, auth=user.auth)
+        assert res.status_code == 201
+        assert res.json['data']['id'] == '{}-{}'.format(
+            project_private._id, user_two._id)
+
+        project_private.reload()
+        assert user_two in project_private.contributors
+
+
+@pytest.mark.django_db
+@pytest.mark.enable_quickfiles_creation
+@pytest.mark.enable_implicit_clean
 class TestNodeContributorCreateValidation(NodeCRUDTestCase):
 
     @pytest.fixture()
