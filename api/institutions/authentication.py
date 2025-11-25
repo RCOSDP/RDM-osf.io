@@ -6,9 +6,13 @@ import jwe
 import jwt
 import waffle
 
+# @R2022-48 loa
+import re
+import urllib.parse
+
 #from django.utils import timezone
 from rest_framework.authentication import BaseAuthentication
-from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.exceptions import AuthenticationFailed, ValidationError
 
 from api.base.authentication import drf
 from api.base import exceptions, settings
@@ -18,10 +22,23 @@ from framework.auth import get_or_create_user
 from framework.auth.core import get_user
 
 from osf import features
-from osf.models import Institution, UserExtendedData
+from osf.models import Institution, UserExtendedData, LoA
 from osf.exceptions import BlacklistedEmailError
 from website.mails import send_mail, WELCOME_OSF4I
-from website.settings import OSF_SUPPORT_EMAIL, DOMAIN, to_bool
+from website.settings import (
+    OSF_SUPPORT_EMAIL,
+    DOMAIN,
+    to_bool,
+    OSF_SERVICE_URL,
+    CAS_SERVER_URL,
+    OSF_MFA_URL,
+    OSF_IAL2_STR,
+    OSF_AAL1_STR,
+    OSF_AAL2_STR,
+    OSF_IAL2_VAR,
+    OSF_AAL1_VAR,
+    OSF_AAL2_VAR,
+)
 from website.util.quota import update_default_storage
 
 logger = logging.getLogger(__name__)
@@ -57,6 +74,7 @@ class InstitutionAuthentication(BaseAuthentication):
     """
 
     media_type = 'text/plain'
+    context = {'mfa_url': ''}
 
     def authenticate(self, request):
         """
@@ -207,6 +225,72 @@ class InstitutionAuthentication(BaseAuthentication):
             'gakuninIdentityAssuranceMethodReference',
         )
 
+        # @R2022-48 ial,aal
+        ial = None
+        aal = None
+        # @R-2024-AUTH01 eduPersonAssurance(multi value)
+        eduPersonAssurance = p_user.get('eduPersonAssurance')
+        if re.search(OSF_IAL2_STR, str(eduPersonAssurance)):
+            ial = OSF_IAL2_VAR
+        if re.search(OSF_AAL2_STR, str(eduPersonAssurance)):
+            aal = OSF_AAL2_VAR
+        elif re.search(OSF_AAL1_STR, str(eduPersonAssurance)):
+            aal = OSF_AAL1_VAR
+        else:
+            aal = p_user.get('Shib-AuthnContext-Class')
+
+        # @R2022-48 loa + R-2023-55
+        message = ''
+        self.context['mfa_url'] = ''
+        mfa_url = ''
+        if type(p_idp) is str:
+            mfa_url_q = (
+                OSF_MFA_URL
+                + '?entityID='
+                + p_idp
+                + '&target='
+                + CAS_SERVER_URL
+                + '/login?service='
+                + OSF_SERVICE_URL
+                + '/profile/'
+            )
+            mfa_url = (
+                CAS_SERVER_URL
+                + '/logout?service='
+                + urllib.parse.quote(mfa_url_q, safe='')
+            )
+        loa_flag = True
+        loa = LoA.objects.get_or_none(institution_id=institution.id)
+        if loa:
+            if loa.aal == 2:
+                if not re.search(OSF_AAL2_STR, str(aal)):
+                    self.context['mfa_url'] = mfa_url
+            elif loa.aal == 1:
+                if not aal:
+                    message = (
+                        'Institution login failed: Does not meet the required AAL.<br />Please contact the IdP as the'
+                        ' appropriate value may not have been sent out by the IdP.'
+                    )
+                    loa_flag = False
+            if loa.ial == 2:
+                if not re.search(OSF_IAL2_STR, str(ial)):
+                    message = (
+                        'Institution login failed: Does not meet the required IAL.<br />Please check the IAL of your'
+                        ' institution.'
+                    )
+                    loa_flag = False
+            elif loa.ial == 1:
+                if not ial:
+                    message = (
+                        'Institution login failed: Does not meet the required IAL.<br />Please check the IAL of your'
+                        ' institution.'
+                    )
+                    loa_flag = False
+        if not loa_flag:
+            message = 'Institution login failed: Does not meet the required AAL and IAL.'
+            sentry.log_message(message)
+            raise ValidationError(message)
+
         # Use given name and family name to build full name if it is not provided
         if given_name and family_name and not fullname:
             fullname = given_name + ' ' + family_name
@@ -336,6 +420,15 @@ class InstitutionAuthentication(BaseAuthentication):
             user.department = department
             user.save()
 
+        # @R-2023-55.
+        if ial and user.ial != ial:
+            user.ial = ial
+            user.save()
+        if aal and user.aal != aal:
+            user.aal = aal
+            user.save()
+        logger.info('MFA URL "{}"'.format(self.context['mfa_url']))
+
         # Both created and activated accounts need to be updated and registered
         if created or activation_required:
 
@@ -425,6 +518,7 @@ class InstitutionAuthentication(BaseAuthentication):
         # update every login.
         ext.set_idp_attr(
             {
+                'id': institution.id,  # @R-2023-55
                 'idp': p_idp,
                 'eppn': eppn,
                 'username': username,

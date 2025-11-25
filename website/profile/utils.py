@@ -3,13 +3,17 @@ from framework import auth
 
 from api.base import settings as api_settings
 from website import settings
-from osf.models import Contributor, UserQuota
+from osf.models import Contributor, UserQuota, LoA
 from addons.osfstorage.models import Region
 from website.filters import profile_image_url
 from osf.utils.permissions import READ
 from osf.utils import workflows
 from api.waffle.utils import storage_i18n_flag_active
 from website.util import quota
+
+# @R2022-48
+import re
+import urllib.parse
 
 
 def get_profile_image_url(user, size=settings.PROFILE_IMAGE_MEDIUM):
@@ -31,6 +35,47 @@ def serialize_user(user, node=None, admin=False, full=False, is_profile=False, i
         user = contrib.user
     fullname = user.display_full_name(node=node)
     idp_attrs = user.get_idp_attr()
+
+    # @R2022-48
+    if not user.aal:
+        _aal = 'NULL'
+    elif re.search(settings.OSF_AAL2_STR, str(user.aal)):
+        _aal = 'AAL2'
+    else:
+        _aal = 'AAL1'
+
+    # @R-2024-AUTH01 Values other than IAL2 are equivalent to IAL1.
+    if re.search(settings.OSF_IAL2_STR, str(user.ial)):
+        _ial = 'IAL2'
+    else:
+        _ial = 'IAL1'
+
+    # @R-2023-55
+    mfa_url = ''
+    entity_id = idp_attrs.get('idp')
+    if entity_id is not None:
+        mfa_url_q = (
+            settings.OSF_MFA_URL
+            + '?entityID='
+            + entity_id
+            + '&target='
+            + settings.CAS_SERVER_URL
+            + '/login?service='
+            + settings.OSF_SERVICE_URL
+            + '/profile/'
+        )
+        mfa_url = (
+            settings.CAS_SERVER_URL
+            + '/logout?service='
+            + urllib.parse.quote(mfa_url_q, safe='')
+        )
+
+    loa = LoA.objects.get_or_none(institution_id=idp_attrs.get('id'))
+    if loa is not None:
+        is_mfa = loa.is_mfa
+    else:
+        is_mfa = False
+
     ret = {
         'id': str(user._id),
         'primary_key': user.id,
@@ -40,6 +85,12 @@ def serialize_user(user, node=None, admin=False, full=False, is_profile=False, i
         'shortname': fullname if len(fullname) < 50 else fullname[:23] + '...' + fullname[-23:],
         'profile_image_url': user.profile_image_url(size=settings.PROFILE_IMAGE_MEDIUM),
         'active': user.is_active,
+        'ial': user.ial,  # @R2022-48
+        'aal': user.aal,  # @R2022-48
+        '_ial': _ial,  # @R2022-48
+        '_aal': _aal,  # @R2022-48
+        'mfa_url': mfa_url,  # @R-2023-55
+        'is_mfa': is_mfa,  # @R-2023-55
         'have_email': user.have_email,
         'idp_email': idp_attrs.get('email'),
     }

@@ -198,7 +198,7 @@ class InstitutionAuth(JSONAPIBaseView, generics.CreateAPIView):
     view_name = 'institution-auth'
 
     def post(self, request, *args, **kwargs):
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(self.authentication_classes[0].context, status=status.HTTP_200_OK)
 
 
 class InstitutionRegistrationList(InstitutionNodeList):
