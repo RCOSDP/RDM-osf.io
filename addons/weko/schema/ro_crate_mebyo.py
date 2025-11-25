@@ -95,6 +95,8 @@ def _add_property_to_entity(
     value: Any,
     entity_id: str
 ) -> None:
+    if value is None or value == '':
+        return
     if key not in MAPPING_DICT:
         raise ValueError(f'Mapping to {key} is not defined.')
 
@@ -105,7 +107,7 @@ def _add_property_to_entity(
     if prop_type in [str, int, float]:
         _add_scalar_property(base_entity, prop_name, value)
 
-    elif mapping['prop_type'] in LANG_LIST and isinstance(value, str):
+    elif mapping['prop_type'] in LANG_LIST:
         _add_lang_property(entity_list, base_entity, prop_name, prop_type, value, entity_id)
 
     elif isinstance(value, list):
@@ -178,3 +180,15 @@ def generate_dataset_metadata(project_metadatas: Any) -> Tuple[List[Dict[str, An
             index += 1
 
     return entities, root_properties
+
+
+def get_weko_item_id(project_metadatas: Any) -> Union[str, None]:
+    '''未病スキーマのプロジェクトメタデータから JAIRO Cloud の item_id を取得'''
+    if len(project_metadatas) != 1:
+        raise ValueError('Choose 1 project metadata to export.')
+    project_metadata = _deep_json_loads(project_metadatas[0])
+    item_id = project_metadata.get('internal:weko-item-id')
+
+    if item_id and item_id.get('value'):
+        return item_id.get('value')
+    return None

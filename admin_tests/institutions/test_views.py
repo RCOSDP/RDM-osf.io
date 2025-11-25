@@ -1,6 +1,9 @@
 import json
+from datetime import datetime
 from operator import itemgetter
-from django.http import Http404
+
+import pytest
+from django.http import Http404, HttpResponse
 from django.urls import reverse
 from nose import tools as nt
 import mock
@@ -9,6 +12,7 @@ from django.contrib.auth.models import Permission, AnonymousUser
 from django.core.exceptions import PermissionDenied
 
 from addons.osfstorage.models import Region
+from admin.institutions.views import StatisticalExportFileTSV
 from api.base import settings as api_settings
 from tests.base import AdminTestCase
 from osf_tests.factories import (
@@ -1299,6 +1303,31 @@ class TestExportFileTSV(AdminTestCase):
         with nt.assert_raises(Http404):
             view.get(request)
 
+    def test_no_nii_storage_type(self):
+        """Test when institution doesn't have NII storage type"""
+        # Setup
+        mock_institution = mock.Mock(spec=Institution)
+        mock_institution.id = 1
+        mock_institution.name = 'Test Institution'
+        mock_institution.is_deleted = False
+        mock_institution.get_user_quota_type_for_nii_storage.return_value = None
+        request = RequestFactory().get(
+            'institutions:tsvexport',
+            kwargs={'institution_id': mock_institution.id})
+        request.user = self.user
+        view = setup_view(self.view, request,
+                          institution_id=mock_institution.id)
+
+        with mock.patch('osf.models.Institution.objects.filter') as mock_filter:
+            mock_filter.return_value.first.return_value = mock_institution
+
+            # Execute and Assert
+            with pytest.raises(Http404) as exc_info:
+                view.get(mock_request)
+
+            assert str(exc_info.value) == 'Institution with id "1" not using NII storage. Please double check.'
+            mock_institution.get_user_quota_type_for_nii_storage.assert_called_once()
+
     def test_get_zero_max_quota(self):
         UserQuota.objects.create(user=self.user,
                                  storage_type=UserQuota.NII_STORAGE,
@@ -1406,3 +1435,233 @@ class TestRecalculateQuota(AdminTestCase):
         region.save()
         with nt.assert_raises(Http404):
             self.view.post(request=self.request, institution_id=self.institution1.id)
+
+
+@pytest.fixture
+def mock_user():
+    user = mock.Mock(spec=OSFUser)
+    user._id = 'test123'
+    user.username = 'testuser'
+    user.fullname = 'Test User'
+    user.guid_id = 'guid123'
+    user.has_quota = True
+    user.quota_max = 100
+    user.quota_used = 50 * 1000 ** 3  # 50GB in bytes
+    return user
+
+
+@pytest.fixture
+def mock_institution():
+    institution = mock.Mock()
+    institution.id = 1
+    institution.get_user_quota_type_for_nii_storage.return_value = 'nii_storage'
+    institution.name = 'Test Institution'
+    institution.is_deleted = False
+    return institution
+
+
+@pytest.fixture
+def mock_request():
+    request = RequestFactory().get('/tsvexport/')
+    request.user = mock.Mock()
+    request.user.is_authenticated = True
+    request.user.is_superuser = False
+    request.user.is_staff = True
+    request.user.affiliated_institutions.exists.return_value = True
+    return request
+
+
+@pytest.fixture
+def api_settings_mock():
+    with mock.patch('api.base.settings') as mock_settings:
+        mock_settings.DEFAULT_MAX_QUOTA = 50
+        mock_settings.SIZE_UNIT_GB = 1000 ** 3  # 1 GB in bytes
+        yield mock_settings
+
+
+class TestStatisticalExportFileTSV:
+    """Test suite for StatisticalExportFileTSV class"""
+
+    @pytest.fixture
+    def view_instance(self):
+        view = StatisticalExportFileTSV()
+        return view
+
+    def test_unauthenticated_user(self, view_instance):
+        """Test permission check with valid authorization"""
+        request = RequestFactory().get('/tsvexport/')
+        request.user = mock.Mock()
+        request.user.is_authenticated = False
+        request.user.is_superuser = False
+        request.user.is_staff = True
+        request.user.affiliated_institutions.exists.return_value = True
+        view_instance.request = request
+        assert view_instance.test_func() is False
+        res = view_instance.handle_no_permission()
+        nt.assert_equal(res.status_code, 401)
+
+    def test_test_func_with_valid_auth(self, view_instance):
+        """Test permission check with valid authorization"""
+        request = RequestFactory().get('/tsvexport/')
+        request.user = mock.Mock()
+        request.user.is_authenticated = True
+        request.user.is_superuser = False
+        request.user.is_staff = True
+        request.user.affiliated_institutions.exists.return_value = True
+        view_instance.request = request
+        assert view_instance.test_func() is True
+        with pytest.raises(PermissionDenied):
+            assert view_instance.handle_no_permission() is not None
+
+    def test_non_affiliated_admin(self, view_instance):
+        """Test permission check with invalid authorization"""
+        request = RequestFactory().get('/tsvexport/')
+        request.user = mock.Mock()
+        request.user.is_authenticated = True
+        request.user.is_superuser = False
+        request.user.is_staff = True
+        request.user.affiliated_institutions.exists.return_value = False
+        view_instance.request = request
+        assert view_instance.test_func() is False
+
+    def test_super_admin_access(self, view_instance):
+        """Test permission check with invalid institution ID"""
+        request = RequestFactory().get('/tsvexport/')
+        request.user = mock.Mock()
+        request.user.is_authenticated = True
+        request.user.is_superuser = True
+        request.user.is_staff = True
+        request.user.affiliated_institutions.exists.return_value = False
+        view_instance.request = request
+        assert view_instance.test_func() is False
+
+    def test_institution_not_found(self, view_instance, mock_request):
+        """Test behavior when institution is not found"""
+        view_instance.request = mock_request
+        with mock.patch.object(view_instance, 'get_institution', return_value=None):
+            with pytest.raises(Http404):
+                view_instance.get(mock_request)
+
+    def test_institution_without_nii_storage(self, view_instance, mock_request, mock_institution):
+        """Test behavior when institution doesn't use NII storage"""
+        view_instance.request = mock_request
+        mock_institution.get_user_quota_type_for_nii_storage.return_value = None
+
+        with mock.patch.object(view_instance, 'get_institution', return_value=mock_institution):
+            with pytest.raises(Http404):
+                view_instance.get(mock_request)
+
+    def test_user_with_custom_quota(self, view_instance, mock_request, mock_user, api_settings_mock):
+        """Test calculations for user with custom quota"""
+        view_instance.request = mock_request
+        mock_institution = mock.Mock()
+        mock_institution.get_user_quota_type_for_nii_storage.return_value = 1
+
+        with mock.patch.object(view_instance, 'get_institution', return_value=mock_institution), \
+                mock.patch.object(view_instance, 'get_userlist', return_value=[mock_user]):
+            response = view_instance.get(mock_request)
+
+        content = response.content.decode('utf-8').splitlines()
+        data = content[1].split('\t')
+
+        assert float(data[4]) == 50.0  # Usage ratio
+        assert float(data[5]) == mock_user.quota_used  # Used quota
+        assert float(data[6]) == (mock_user.quota_max * api_settings_mock.SIZE_UNIT_GB - mock_user.quota_used)
+
+    def test_user_with_default_quota(self, view_instance, mock_request, mock_user, api_settings_mock):
+        """Test calculations for user with default quota"""
+        mock_user.has_quota = False
+        view_instance.request = mock_request
+        mock_institution = mock.Mock()
+        mock_institution.get_user_quota_type_for_nii_storage.return_value = 1
+
+        with mock.patch('admin.institutions.views.quota') as mock_quota, \
+                mock.patch.object(view_instance, 'get_institution', return_value=mock_institution), \
+                mock.patch.object(view_instance, 'get_userlist', return_value=[mock_user]):
+            mock_quota.used_quota.return_value = 25 * 1000 * 1000 * 1000  # 25GB
+            response = view_instance.get(mock_request)
+
+        content = response.content.decode('utf-8').splitlines()
+        data = content[1].split('\t')
+
+        assert float(data[4]) == 25.0  # Usage ratio
+        assert float(data[5]) == 25 * 1000 * 1000 * 1000  # Used quota
+
+    def test_user_with_zero_quota(self, view_instance, mock_request, mock_user):
+        """Test calculations for user with zero quota"""
+        mock_user.quota_max = 0
+        view_instance.request = mock_request
+        mock_institution = mock.Mock()
+        mock_institution.get_user_quota_type_for_nii_storage.return_value = 1
+
+        with mock.patch.object(view_instance, 'get_institution', return_value=mock_institution), \
+                mock.patch.object(view_instance, 'get_userlist', return_value=[mock_user]):
+            response = view_instance.get(mock_request)
+
+        content = response.content.decode('utf-8').splitlines()
+        data = content[1].split('\t')
+
+        assert float(data[4]) == 100.0  # Usage ratio should be 100%
+
+    def test_tsv_header(self, view_instance, mock_request, mock_institution):
+        """Test TSV file header generation"""
+        view_instance.request = mock_request
+
+        with mock.patch.object(view_instance, 'get_institution', return_value=mock_institution), \
+                mock.patch.object(view_instance, 'get_userlist', return_value=[]):
+            response = view_instance.get(mock_request)
+
+        content = response.content.decode('utf-8').splitlines()
+        headers = content[0].split('\t')
+
+        expected_headers = ['GUID', 'eduPersonPrincipleName', 'Username', 'Fullname', 'Ratio (%)',
+                            'Usage (Byte)', 'Remaining (Byte)', 'Quota (Byte)']
+        assert headers == expected_headers
+
+    def test_file_format(self, view_instance, mock_request, mock_institution):
+        """Test TSV file format and content type"""
+        view_instance.request = mock_request
+
+        with mock.patch.object(view_instance, 'get_institution', return_value=mock_institution), \
+                mock.patch.object(view_instance, 'get_userlist', return_value=[]):
+            response = view_instance.get(mock_request)
+
+        assert isinstance(response, HttpResponse)
+        assert response['Content-Type'] == 'text/tsv'
+        assert 'attachment; filename= export_users_' in response['Content-Disposition']
+
+    def test_filename_timestamp(self, view_instance, mock_request, mock_institution):
+        """Test timestamp in filename"""
+        view_instance.request = mock_request
+
+        with mock.patch.object(view_instance, 'get_institution', return_value=mock_institution), \
+                mock.patch.object(view_instance, 'get_userlist', return_value=[]):
+            response = view_instance.get(mock_request)
+
+        filename = response['Content-Disposition'].split('export_users_')[1].replace('.tsv', '')
+        # Verify timestamp format
+        datetime.strptime(filename, '%Y%m%d%H%M%S')
+
+    def test_userlist_query(self, view_instance, mock_institution):
+        """Test user list query construction"""
+        with mock.patch('osf.models.OSFUser.objects') as mock_objects:
+            view_instance.get_userlist(mock_institution, 1)
+
+            # Verify filter was called with correct parameters
+            mock_objects.filter.assert_called_once_with(
+                affiliated_institutions=mock_institution.id
+            )
+
+    def test_get_institution_success(self, view_instance, mock_request, mock_institution):
+        """Test successful institution retrieval"""
+        # Setup
+        view_instance.request = mock_request
+        mock_request.user.affiliated_institutions = mock.Mock()
+        mock_request.user.affiliated_institutions.filter.return_value.first.return_value = mock_institution
+
+        # Execute
+        result = view_instance.get_institution()
+
+        # Assert
+        assert result == mock_institution
+        mock_request.user.affiliated_institutions.filter.assert_called_once_with(is_deleted=False)

@@ -413,7 +413,8 @@
                 {
                     ".@type": "File",
                     ".@id": "files/{{choose_additional_metadata_value}}",
-                    "name": "{{choose_additional_metadata_value}}"
+                    "name": "{{choose_additional_metadata_value}}",
+                    "wk:extendedMetadata": true
                 }
             ],
             "conformsTo": {

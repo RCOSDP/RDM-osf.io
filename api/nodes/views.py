@@ -85,6 +85,7 @@ from api.nodes.permissions import (
     NodeLinksShowIfVersion,
     ReadOnlyIfWithdrawn,
     IsWritableContributorToRegisterDrafts,
+    AdminOrPublicOrSuperUser,
 )
 from api.nodes.serializers import (
     NodeSerializer,
@@ -472,7 +473,7 @@ class NodeContributorsList(BaseContributorList, bulk_views.BulkUpdateJSONAPIView
     """The documentation for this endpoint can be found [here](https://developer.osf.io/#operation/nodes_contributors_list).
     """
     permission_classes = (
-        AdminOrPublic,
+        AdminOrPublicOrSuperUser,
         drf_permissions.IsAuthenticatedOrReadOnly,
         ReadOnlyIfRegistration,
         base_permissions.TokenHasScope,

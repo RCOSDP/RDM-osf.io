@@ -8,10 +8,11 @@ from .base import (
     expand_listed_key, get_sources_for_key, find_schema_question, is_special_key, is_key_present, get_value, resolve_array_index
 )
 from .constants_mebyo import MEBYO_SCHEMA_NAME
-from .ro_crate_mebyo import generate_dataset_metadata
+from .ro_crate_mebyo import generate_dataset_metadata, get_weko_item_id
 
 
 logger = logging.getLogger(__name__)
+
 
 def _set_object_value(dest_object, key, value):
     logger.debug(f'SET {key} = {value}, target={dest_object}')
@@ -55,6 +56,7 @@ def _set_object_value(dest_object, key, value):
             raise ValueError(f'{key} is not an object')
     _set_object_value(dest_object[key], subkey.lstrip('.'), value)
 
+
 def _build_value(dest_object, full_key, value, weko_key_counts=None):
     if f'{full_key}.__value__' in weko_key_counts:
         if weko_key_counts[f'{full_key}.__value__'] != value:
@@ -64,6 +66,7 @@ def _build_value(dest_object, full_key, value, weko_key_counts=None):
         return []
     weko_key_counts[f'{full_key}.__value__'] = value
     _set_object_value(dest_object, full_key, value)
+
 
 def _build_values(dest_object, file_metadata, weko_key_prefix, weko_props, weko_key_counts=None, commonvars=None, schema=None):
     if isinstance(weko_props, str):
@@ -95,6 +98,7 @@ def _build_values(dest_object, file_metadata, weko_key_prefix, weko_props, weko_
             value = get_value(file_metadata, item, commonvars=commonvars, schema=schema)
             _build_value(dest_object, full_key, value, weko_key_counts=weko_key_counts)
 
+
 def is_json_array_of_dicts(val):
     if isinstance(val, str) and val.startswith('[') and val.endswith(']'):
         try:
@@ -104,8 +108,10 @@ def is_json_array_of_dicts(val):
             return False
     return False
 
+
 def normalize_base_id(base_id):
     return re.sub(r'\d+$', '', base_id)
+
 
 def simplify_subitem(data, field_name, key_name, base_id, lang, cnt):
     if field_name in data:
@@ -135,6 +141,7 @@ def simplify_subitem(data, field_name, key_name, base_id, lang, cnt):
         except Exception as e:
             print(f'Could not parse {field_name}: {e}')
     return [], cnt
+
 
 def _flatten_json_ld_root(object):
     entities = []
@@ -312,6 +319,23 @@ def _flatten_json_ld_root(object):
                                     new_entries.append(new_entry)
                             root_data[key] = new_entries
 
+                # analysisType 特殊対応
+                if key == 'ams:analysisType' and len(values) == 1:
+                    parent_raw_id = values[0]['@id']
+                    parent_base_id = normalize_base_id(parent_raw_id)
+                    final_values = []
+                    iCnt = 0
+
+                    for iCnt, value_str in enumerate(values[0]['value'], start=1):
+                        new_entry = {
+                            '@id': f'{parent_base_id}{iCnt}',
+                            '@type': values[0].get('@type', 'PropertyValue'),
+                            'value': value_str
+                        }
+
+                        final_values.append(new_entry)
+                    root_data[key] = final_values
+
                 if key == 'creator' or key == 'contributor':
                     root_data[key] = clone
 
@@ -332,6 +356,7 @@ def _flatten_json_ld_root(object):
         entities += _flatten_json_ld(entity, counts)
     return sorted(entities, key=lambda x: x['@id'])
 
+
 def _generate_json_ld_id(entity, counts):
     type_name = entity['@type']
     if isinstance(type_name, list):
@@ -342,17 +367,20 @@ def _generate_json_ld_id(entity, counts):
     counts[type_name] += 1
     return f'_:{type_name}{counts[type_name]}'
 
+
 def _is_reference(value):
     if not isinstance(value, dict):
         return False
     keys = list(value.keys())
     return len(keys) == 1 and keys[0] == '@id'
 
+
 def _is_literal(value):
-    if isinstance(value, str):
+    if isinstance(value, (str, bool, int, float)):
         return True
     if isinstance(value, list):
         return all([isinstance(v, str) for v in value])
+
 
 def _flatten_json_ld(object, counts):
     flattened_object = {}
@@ -400,7 +428,8 @@ def _flatten_json_ld(object, counts):
             continue
     return entities
 
-def write_ro_crate_json(user, f, target_index, download_file_names, schema_id, file_metadatas, project_metadatas, node_id):
+
+def write_ro_crate_json(user, f, target_index, download_file_names, schema_id, file_metadatas, project_metadatas, node_id, base_host=None):
     from ..models import RegistrationMetadataMapping
     from urllib.parse import urlparse
     schema = RegistrationSchema.objects.get(_id=schema_id)
@@ -615,5 +644,16 @@ def write_ro_crate_json(user, f, target_index, download_file_names, schema_id, f
         json_ld['@graph'].extend(entity_list)
         match = next((d for d in json_ld['@graph'] if d.get('@id') == './'), None)
         match.update(properties)
+
+        # 未病スキーマ アイテムの更新用プロパティ追加
+        weko_item_id = get_weko_item_id(project_metadatas)
+        if weko_item_id and base_host:
+            match.update(
+                {
+                    'wk:editMode': 'Upgrade',
+                    'uri': f'{base_host}records/{weko_item_id}',
+                    'identifier': f'{weko_item_id}'
+                }
+            )
 
     json.dump(json_ld, f, indent=2, ensure_ascii=False)

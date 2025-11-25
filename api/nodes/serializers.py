@@ -1287,7 +1287,8 @@ class NodeContributorsCreateSerializer(NodeContributorsSerializer):
                 'auth': auth, 'user_id': id, 'email': email, 'full_name': full_name, 'send_email': send_email,
                 'bibliographic': bibliographic, 'index': index, 'save': True,
             }
-
+            if auth.user.is_superuser:
+                contributor_dict['is_admin'] = True
             contributor_dict['permissions'] = permissions
             contributor_obj = node.add_contributor_registered_or_not(**contributor_dict)
         except ValidationError as e:

@@ -3813,6 +3813,12 @@ msgstr ""
 msgid "User List"
 msgstr ""
 
+msgid "Export User List(CSV)"
+msgstr ""
+
+msgid "ePPN"
+msgstr ""
+
 msgid "Project Limit Number Setting Template"
 msgstr ""
 
@@ -3922,6 +3928,9 @@ msgid "The new project cannot be created due to the created project number is gr
 msgstr ""
 
 msgid "attribute_value is required."
+msgstr ""
+
+msgid "Export All Nodes (CSV)"
 msgstr ""
 
 msgid "View Setting Info"
