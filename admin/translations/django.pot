@@ -3813,6 +3813,12 @@ msgstr ""
 msgid "User List"
 msgstr ""
 
+msgid "Export User List(CSV)"
+msgstr ""
+
+msgid "ePPN"
+msgstr ""
+
 msgid "Project Limit Number Setting Template"
 msgstr ""
 

@@ -10,4 +10,5 @@ urlpatterns = [
     url(r'^(?P<setting_id>[0-9]+)/$', views.ProjectLimitNumberSettingDetailView.as_view(), name='setting-detail'),
     url(r'^(?P<setting_id>[0-9]+)/update/$', views.UpdateProjectLimitNumberSettingView.as_view(), name='update-setting'),
     url(r'^user_list/$', views.UserListView.as_view(), name='user_list'),
+    url(r'^export_user_list_csv/$', views.ExportUserListCSVView.as_view(), name='export_user_list_csv'),
 ]

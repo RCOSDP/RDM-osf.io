@@ -3905,6 +3905,12 @@ msgstr "設定"
 msgid "User List"
 msgstr "ユーザー一覧"
 
+msgid "Export User List(CSV)"
+msgstr "ユーザー一覧をエクスポート(CSV)"
+
+msgid "ePPN"
+msgstr "ePPN"
+
 msgid "Project Limit Number Setting Template"
 msgstr "プロジェクト作成数設定テンプレート"
 
