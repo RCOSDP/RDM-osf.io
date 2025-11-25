@@ -133,10 +133,10 @@
           "type": "array",
           "properties": [
             {
-            "id": "filename",
-            "title": "キーワード（日本語）|Keywords (Japanese)",
-            "type": "string",
-            "format": "text"
+              "id": "filename",
+              "title": "キーワード（日本語）|Keywords (Japanese)",
+              "type": "string",
+              "format": "text"
             },
             {
               "id": "filename-en",
@@ -153,50 +153,50 @@
           "type": "choose",
           "format": "singleselect-pulldown",
           "options": [
-              {
-                "text": "自然科学一般|Natural Science",
-                "tooltip": "自然科学一般|Natural Science"
-              },
-              {
-                "text": "ライフサイエンス|Life Science",
-                "tooltip": "ライフサイエンス|Life Science"
-              },
-              {
-                "text": "情報通信|Informatics",
-                "tooltip": "情報通信|Informatics"
-              },
-              {
-                "text": "環境|Environmental science",
-                "tooltip": "環境|Environmental science"
-              },
-              {
-                "text": "ナノテク・材料|Nanotechnology/Materials",
-                "tooltip": "ナノテク・材料|Nanotechnology/Materials"
-              },
-              {
-                "text": "エネルギー|Energy Engineering",
-                "tooltip": "エネルギー|Energy Engineering"
-              },
-              {
-                "text": "ものづくり技術|Manufacturing Technology",
-                "tooltip": "ものづくり技術|Manufacturing Technology"
-              },
-              {
-                "text": "社会基盤|Social Infrastructure",
-                "tooltip": "社会基盤|Social Infrastructure"
-              },
-              {
-                "text": "フロンティア|Frontier Technology",
-                "tooltip": "フロンティア|Frontier Technology"
-              },
-              {
-                "text": "人文・社会|Humanities & Social Sciences",
-                "tooltip": "人文・社会|Humanities & Social Sciences"
-              },
-              {
-                "text": "その他|Others",
-                "tooltip": "その他|Others"
-              }
+            {
+              "text": "自然科学一般|Natural Science",
+              "tooltip": "自然科学一般|Natural Science"
+            },
+            {
+              "text": "ライフサイエンス|Life Science",
+              "tooltip": "ライフサイエンス|Life Science"
+            },
+            {
+              "text": "情報通信|Informatics",
+              "tooltip": "情報通信|Informatics"
+            },
+            {
+              "text": "環境|Environmental science",
+              "tooltip": "環境|Environmental science"
+            },
+            {
+              "text": "ナノテク・材料|Nanotechnology/Materials",
+              "tooltip": "ナノテク・材料|Nanotechnology/Materials"
+            },
+            {
+              "text": "エネルギー|Energy Engineering",
+              "tooltip": "エネルギー|Energy Engineering"
+            },
+            {
+              "text": "ものづくり技術|Manufacturing Technology",
+              "tooltip": "ものづくり技術|Manufacturing Technology"
+            },
+            {
+              "text": "社会基盤|Social Infrastructure",
+              "tooltip": "社会基盤|Social Infrastructure"
+            },
+            {
+              "text": "フロンティア|Frontier Technology",
+              "tooltip": "フロンティア|Frontier Technology"
+            },
+            {
+              "text": "人文・社会|Humanities & Social Sciences",
+              "tooltip": "人文・社会|Humanities & Social Sciences"
+            },
+            {
+              "text": "その他|Others",
+              "tooltip": "その他|Others"
+            }
           ],
           "required": true,
           "help": "https://ndlsearch.ndl.go.jp/guideline/researchdata#main_6"
@@ -278,10 +278,10 @@
           "type": "array",
           "properties": [
             {
-            "id": "filename",
-            "title": "メタデータファイル名|Metadata file name",
-            "type": "string",
-            "format": "text"
+              "id": "filename",
+              "title": "メタデータファイル名|Metadata file name",
+              "type": "string",
+              "format": "text"
             }
           ]
         },
@@ -472,14 +472,14 @@
           "type": "choose",
           "format": "singleselect-pulldown",
           "options": [
-              {
-                "text": "有償|Pay",
-                "tooltip": "有償|Pay"
-              },
-              {
-                "text": "無償|Free",
-                "tooltip": "無償|Free"
-              }
+            {
+              "text": "有償|Pay",
+              "tooltip": "有償|Pay"
+            },
+            {
+              "text": "無償|Free",
+              "tooltip": "無償|Free"
+            }
           ],
           "required": true
         },
@@ -786,7 +786,7 @@
           ],
           "required": false,
           "required_if": {
-            "informed-consent" : "有|Yes"
+            "informed-consent": "有|Yes"
           }
         },
         {
@@ -807,7 +807,7 @@
           ],
           "required": false,
           "required_if": {
-            "informed-consent" : "有|Yes"
+            "informed-consent": "有|Yes"
           }
         },
         {
@@ -828,7 +828,7 @@
           ],
           "required": false,
           "required_if": {
-            "informed-consent" : "有|Yes"
+            "informed-consent": "有|Yes"
           }
         },
         {
@@ -849,7 +849,7 @@
           ],
           "required": false,
           "required_if": {
-            "informed-consent" : "無|No"
+            "informed-consent": "無|No"
           }
         },
         {
@@ -898,7 +898,7 @@
           "required": false,
           "help": "e.g. 企業名|e.g. Company's name",
           "required_if": {
-            "conflict-of-interest-Yes-or-No" : "有|Yes"
+            "conflict-of-interest-Yes-or-No": "有|Yes"
           }
         },
         {
@@ -1132,7 +1132,7 @@
           "row_addition_caption": "テキストファイル|Text files",
           "properties": [
             {
-              "id":"d-txt-file-name-convention-file-extension",
+              "id": "d-txt-file-name-convention-file-extension",
               "title": "ファイル名、または命名規則・拡張子（e.g. csv, tsv, txt）など|File name, naming convention, file extension (e.g. csv, tsv, txt), etc.",
               "type": "string",
               "format": "textarea"
@@ -1877,8 +1877,7 @@
           "nav": "説明文",
           "title": "ムーンショット目標2データベース（未病DB）ではデータセット全体に対するメタデータを「プロジェクトメタデータ」、個々のファイルやフォルダに対するメタデータを「ファイルメタデータ」としています。|In the Moonshot Research and Development Project Goal 2 (Mebyo DB), the metadata for the entire dataset is called \"project metadata\", and the metadata for individual files and folders is called \"file metadata\".",
           "type": "object",
-          "properties": [
-          ],
+          "properties": [],
           "required": false
         }
       ]
@@ -2111,8 +2110,7 @@
           "nav": "測定手順・条件等",
           "title": "■測定手順・条件等 ────────────────────────────────────────|■measurement procedures/conditions ────────────────────────────────────────",
           "type": "object",
-          "properties": [
-          ],
+          "properties": [],
           "required": false,
           "concealment_page": "buttonHide"
         },
@@ -2268,8 +2266,7 @@
           "nav": "フォルダ構成",
           "title": "■フォルダ構成 ────────────────────────────────────────|■Folder structure ────────────────────────────────────────",
           "type": "object",
-          "properties": [
-          ],
+          "properties": [],
           "required": false,
           "concealment_page": "buttonHide"
         },
@@ -2334,8 +2331,7 @@
           "nav": "テキストファイル",
           "title": "■テキストファイル ────────────────────────────────────────|■TextFile ────────────────────────────────────────",
           "type": "object",
-          "properties": [
-          ],
+          "properties": [],
           "required": false,
           "concealment_page": "buttonHide"
         },
@@ -2383,7 +2379,7 @@
           "properties": [
             {
               "id": "Position-of-row",
-              "title": "行、列の位置（日本語）|Position of row and column (Japanese)",
+              "title": "行の位置（日本語）|Position of row (Japanese)",
               "type": "string",
               "format": "textarea"
             },
@@ -2401,7 +2397,7 @@
             },
             {
               "id": "Position-of-row-en",
-              "title": "Position of row and column (English)",
+              "title": "Position of row (English)",
               "type": "string",
               "format": "textarea"
             },
@@ -2429,7 +2425,7 @@
           "properties": [
             {
               "id": "Position-of-row",
-              "title": "行、列の位置（日本語）|Position of row and column (Japanese)",
+              "title": "列の位置（日本語）|Position of column (Japanese)",
               "type": "string",
               "format": "textarea"
             },
@@ -2447,7 +2443,7 @@
             },
             {
               "id": "Position-of-row-en",
-              "title": "Position of row and column (English)",
+              "title": "Position of column (English)",
               "type": "string",
               "format": "textarea"
             },
@@ -2595,8 +2591,7 @@
           "nav": "エクセルファイル",
           "title": "■エクセルファイル ────────────────────────────────────────|■ExcelFile ────────────────────────────────────────",
           "type": "object",
-          "properties": [
-          ],
+          "properties": [],
           "required": false,
           "concealment_page": "buttonHide"
         },
@@ -2644,7 +2639,7 @@
           "properties": [
             {
               "id": "Position-of-row",
-              "title": "行、列の位置（日本語）|Position of row and column (Japanese)",
+              "title": "行の位置（日本語）|Position of row (Japanese)",
               "type": "string",
               "format": "textarea"
             },
@@ -2662,7 +2657,7 @@
             },
             {
               "id": "Position-of-row-en",
-              "title": "Position of row and column (English)",
+              "title": "Position of row (English)",
               "type": "string",
               "format": "textarea"
             },
@@ -2690,7 +2685,7 @@
           "properties": [
             {
               "id": "Position-of-row",
-              "title": "行、列の位置（日本語）|Position of row and column (Japanese)",
+              "title": "列の位置（日本語）|Position of column (Japanese)",
               "type": "string",
               "format": "textarea"
             },
@@ -2708,7 +2703,7 @@
             },
             {
               "id": "Position-of-row-en",
-              "title": "Position of row and column (English)",
+              "title": "Position of column (English)",
               "type": "string",
               "format": "textarea"
             },
@@ -2826,8 +2821,7 @@
           "nav": "画像ファイル",
           "title": "■画像ファイル ────────────────────────────────────────|■ImageFile ────────────────────────────────────────",
           "type": "object",
-          "properties": [
-          ],
+          "properties": [],
           "required": false,
           "concealment_page": "buttonHide"
         },
@@ -3025,8 +3019,7 @@
           "nav": "■任意",
           "title": "■任意のファイル ────────────────────────────────────────|■AnyFile ────────────────────────────────────────",
           "type": "object",
-          "properties": [
-          ],
+          "properties": [],
           "required": false,
           "concealment_page": "buttonHide"
         },
@@ -3324,6 +3317,22 @@
           "type": "string",
           "format": "textarea",
           "space_normalization": true
+        }
+      ]
+    },
+    {
+      "id": "page13",
+      "title": "内部用編集不可メタデータ|Uneditable Internal Metadata",
+      "hide_projectmetadata": true,
+      "concealment_page_navigator": true,
+      "description": "プロジェクトメタデータ・ファイルメタデータのどちらにも表示せずユーザー編集不可とする内部用メタデータ",
+      "questions": [
+        {
+          "qid": "internal:weko-item-id",
+          "type": "string",
+          "format": "text",
+          "pattern": "^[0-9]+$",
+          "required": false
         }
       ]
     }
