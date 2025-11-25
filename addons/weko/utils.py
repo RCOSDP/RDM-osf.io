@@ -11,6 +11,8 @@ logger = logging.getLogger(__name__)
 
 
 def _validate_mapping_element(element):
+    if isinstance(element, (str, bool, int, float)):
+        return
     if isinstance(element, list):
         for e in element:
             if isinstance(e, str):

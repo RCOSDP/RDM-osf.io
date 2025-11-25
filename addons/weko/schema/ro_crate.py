@@ -319,6 +319,23 @@ def _flatten_json_ld_root(object):
                                     new_entries.append(new_entry)
                             root_data[key] = new_entries
 
+                # analysisType 特殊対応
+                if key == 'ams:analysisType' and len(values) == 1:
+                    parent_raw_id = values[0]['@id']
+                    parent_base_id = normalize_base_id(parent_raw_id)
+                    final_values = []
+                    iCnt = 0
+
+                    for iCnt, value_str in enumerate(values[0]['value'], start=1):
+                        new_entry = {
+                            '@id': f'{parent_base_id}{iCnt}',
+                            '@type': values[0].get('@type', 'PropertyValue'),
+                            'value': value_str
+                        }
+
+                        final_values.append(new_entry)
+                    root_data[key] = final_values
+
                 if key == 'creator' or key == 'contributor':
                     root_data[key] = clone
 
@@ -359,7 +376,7 @@ def _is_reference(value):
 
 
 def _is_literal(value):
-    if isinstance(value, str):
+    if isinstance(value, (str, bool, int, float)):
         return True
     if isinstance(value, list):
         return all([isinstance(v, str) for v in value])
