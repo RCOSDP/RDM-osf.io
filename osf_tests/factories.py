@@ -1299,7 +1299,7 @@ class LoginControlMailAddressFactory(DjangoModelFactory):
     class Meta:
         model = models.LoginControlMailAddress
 
-        
+
 class ProjectLimitNumberTemplateFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.ProjectLimitNumberTemplate
