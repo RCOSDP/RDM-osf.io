@@ -43,12 +43,4 @@ class Migration(migrations.Migration):
             },
             bases=(models.Model, osf.models.base.QuerySetExplainMixin),
         ),
-        migrations.AddIndex(
-            model_name='kakensynclog',
-            index=models.Index(fields=['status', 'completed_at'], name='addons_meta_status_57f18d_idx'),
-        ),
-        migrations.AddIndex(
-            model_name='kakensynclog',
-            index=models.Index(fields=['sync_type', 'status'], name='addons_meta_sync_ty_987f92_idx'),
-        ),
     ]

@@ -72,7 +72,9 @@ class InstitutionAuthentication(BaseAuthentication):
     """
 
     media_type = 'text/plain'
-    context = {'mfa_url': ''}
+
+    def __init__(self, context):
+        self.context = context
 
     def authenticate(self, request):
         """
