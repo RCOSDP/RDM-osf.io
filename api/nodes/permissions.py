@@ -337,3 +337,49 @@ class NodeLinksShowIfVersion(ShowIfVersion):
         max_version = '2.0'
         deprecated_message = 'This feature is deprecated as of version 2.1'
         super(NodeLinksShowIfVersion, self).__init__(min_version, max_version, deprecated_message)
+
+
+# GRDM-50321 Project Metadata should be available to non-admins.
+class IsWritableContributorToRegisterDrafts(permissions.BasePermission):
+
+    acceptable_models = (AbstractNode, DraftRegistration,)
+
+    def has_object_permission(self, request, view, obj):
+        """
+        To make changes, user must be an admin contributor. Admin group membership is not sufficient.
+        """
+        assert_resource_type(obj, self.acceptable_models)
+        auth = get_user_auth(request)
+        if request.method in permissions.SAFE_METHODS:
+            return obj.is_public or obj.can_view(auth)
+        return obj.has_permission(auth.user, osf_permissions.WRITE)
+
+
+class AdminOrPublicOrSuperUser(permissions.BasePermission):
+    """
+    Permission class that grants access based on user's role and object's visibility.
+
+    This class implements a permission system that allows access if:
+    1. The user is a superuser making a POST request
+    2. The request is using safe methods (GET, HEAD, OPTIONS) and the object is either public or viewable by the user
+    3. The user has admin permissions on the object
+    """
+    acceptable_models = (AbstractNode, OSFUser, Institution, BaseAddonSettings, DraftRegistration,)
+
+    def has_object_permission(self, request, view, obj):
+        """
+       Determines if the user has permission to access the specified object.
+       Returns:
+           bool: True if the user has permission to access the object, False otherwise.
+        """
+        if isinstance(obj, dict) and 'self' in obj:
+            obj = obj['self']
+
+        assert_resource_type(obj, self.acceptable_models)
+        auth = get_user_auth(request)
+
+        if request.method == 'POST' and auth.user.is_superuser:
+            return True
+        if request.method in permissions.SAFE_METHODS:
+            return obj.is_public or obj.can_view(auth)
+        return obj.has_permission(auth.user, osf_permissions.ADMIN)

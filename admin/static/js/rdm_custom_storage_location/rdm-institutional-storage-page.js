@@ -334,10 +334,17 @@ $.ajaxSetup({
 });
 
 function ajaxCommon(type, params, providerShortName, route, callback) {
+    var currentUrlPart = cutAndStoreInstitution(document.location.href);
+    var url = currentUrlPart.newUrl + '../' + route + '/' + currentUrlPart.institutionPart;
     if (type === 'POST') {
         params = JSON.stringify(params);
     }
-    var url = '../' + route + '/'
+    var url = '../' + route + '/';
+    if (window.contextVars && !!window.contextVars.institutional_storage) {
+        // If page is institutional storage page, request to /custom_storage_location/{route}/{institution_id}
+        var institution_id = window.contextVars.institution_id || '';
+        url = '/custom_storage_location/' + route + '/' + institution_id;
+    }
     $.ajax({
         url: url,
         type: type,
@@ -353,7 +360,7 @@ function ajaxCommon(type, params, providerShortName, route, callback) {
         },
         error: function (jqXHR) {
             if (jqXHR.responseJSON != null && ('message' in jqXHR.responseJSON)) {
-                afterRequest[route].fail(this.custom, jqXHR.responseJSON.message);
+                afterRequest[route].fail(this.custom, _(jqXHR.responseJSON.message));
             } else {
                 afterRequest[route].fail(this.custom, _('Some errors occurred'));
             }
@@ -402,13 +409,17 @@ var afterRequest = {
             $('.modal').modal('hide');
             $('#' + id + '_message').addClass('text-success');
             $('#' + id + '_message').removeClass('text-danger');
-            $osf.growl('Success', _('Institutional Storage set successfully'), 'success', growlBoxDelay);
+            if (window.contextVars.is_location) {
+                $osf.growl('Success', _('Export Data Storage location set successfully'), 'success', growlBoxDelay);
+            } else {
+                $osf.growl('Success', _('Institutional Storage set successfully'), 'success', growlBoxDelay);
+            }
             setTimeout(function() {
                 location.reload(true);
             }, growlBoxDelay);
         },
         'fail': function (id, message) {
-            $('#' + id + '_message').html(message);
+            $('#' + id + '_message').html(_(message));
             $('#' + id + '_save').attr('disabled', true);
             $('#' + id + '_save').removeClass('btn-success').addClass('btn-default');
             $('#' + id + '_connect').removeClass('btn-default').addClass('btn-success');
@@ -709,8 +720,14 @@ $('#csv_file').change(function () {
         });
         fd.append('check_extuser', $('#csv_check_extuser').is(':checked'));
     }
+    var url = '../usermap/';
+    if (window.contextVars && !!window.contextVars.institutional_storage) {
+        // If page is institutional storage page, request to /custom_storage_location/usermap/{institution_id}
+        var institution_id = window.contextVars.institution_id || '';
+        url = '/custom_storage_location/usermap/' + institution_id;
+    }
     $.ajax({
-        url: '../usermap/',
+        url: url,
         type: 'POST',
         data: fd,
         processData: false,
@@ -793,9 +810,29 @@ $('.delete-location').click(function () {
     });
 });
 
+function cutAndStoreInstitution(url) {
+    var institutionRegex = /\/institutions\/(\d+)/;
+
+    var match = url.match(institutionRegex);
+    var institutionPart = '';
+    var newUrl = url;
+
+    if (match !== null) {
+        institutionPart = match[1];
+        newUrl = url.replace(match[0], '');
+    }
+
+    return {
+        institutionPart: institutionPart,
+        newUrl: newUrl
+    };
+}
+
 function deleteLocation(id) {
     var route = 'delete';
-    var url = id + '/' + route + '/';
+    var currentUrlPart = cutAndStoreInstitution(document.location.href);
+    var url = currentUrlPart.newUrl + id + '/' + route + '/' + currentUrlPart.institutionPart;
+
     $.ajax({
         url: url,
         type: 'DELETE',
@@ -1578,7 +1615,11 @@ $('#cancel_restore_modal_button').on('click', function () {
 });
 
 $('#restore').on('hidden.bs.modal', function () {
-    enableRestoreFunction();
+    if (no_hidden_modal_event) {
+        no_hidden_modal_event = false;
+    } else {
+        enableRestoreFunction();
+    }
 });
 
 $('#restore_button').on('click', function () {
@@ -1628,17 +1669,8 @@ $('#stop_restore_button').on('click', function () {
         type: 'post',
         data: data
     }).done(function (response) {
-        // If stop restore success without task_id, display message.
-        if (response && response['message'] === 'Stop restore data successfully.') {
-            enableRestoreFunction();
-            $osf.growl(_('Stop Restore Export Data'), _('Stopped restoring data process.'), 'success', growlBoxDelay);
-            return;
-        }
-        stop_restore_task_id = response['task_id'];
-        $osf.growl(_('Stop Restore Export Data'), 'Stop restoring in background.', 'success', growlBoxDelay);
-        setTimeout(function () {
-            checkTaskStatus(stop_restore_task_id, 'Stop Restore');
-        }, intervalCheckStatus);
+        enableRestoreFunction();
+        $osf.growl(_('Stop Restore Export Data'), _('Stopped restoring data process.'), 'success', 0);
     }).fail(function (jqXHR) {
         enableStopRestoreFunction();
         var data = jqXHR.responseJSON;
@@ -1700,10 +1732,6 @@ function checkTaskStatus(task_id, task_type) {
                     $table_ng_file_restore_not_exist.html(text_show_file);
                     $table_ng_file_restore_not_exist.css('word-break', 'break-word');
                 }
-            } else if (result_task_type === 'Stop Restore') {
-                // Done stopping restore export data
-                enableRestoreFunction();
-                $osf.growl(_('Stop Restore Export Data'), _('Stopped restoring data process.'), 'success', 0);
             }
         } else if (state === 'PENDING' || state === 'STARTED') {
             // Redo check task status after 2 seconds
@@ -1722,25 +1750,15 @@ function checkTaskStatus(task_id, task_type) {
                 $osf.growl(title, _('Stopped restoring data process.'), 'danger', 0);
             }
             if (result && result['message']) {
-                var title = '';
-                if (result_task_type === 'Restore'){
-                    title = _('Restore Export Data');
-                } else if (result_task_type === 'Stop Restore') {
-                    title = _('Stop Restore Export Data');
-                }
+                var title = _('Restore Export Data');
                 $osf.growl(title, _(result['message']), 'danger', 0);
             }
         }
     }).fail(function (jqXHR) {
-        enableRestoreFunction();
         var data = jqXHR.responseJSON;
-        if (data && data['result']) {
-            var title = '';
-            if (task_type === 'Restore'){
-                title = _('Restore Export Data');
-            } else if (task_type === 'Stop Restore') {
-                title = _('Stop Restore Export Data');
-            }
+        if (data && data['result'] && data['result'] !== 'Restore process is stopped') {
+            enableRestoreFunction();
+            var title = _('Restore Export Data');
             $osf.growl(title, _(data['result']), 'danger', 0);
         }
     });
@@ -1751,6 +1769,8 @@ $('#start_restore_modal_button').on('click', function () {
     var data = {};
     data['destination_id'] = $('#destination_storage').val();
     data['is_from_confirm_dialog'] = true;
+    // Prevent hidden modal event trigger
+    no_hidden_modal_event = true;
     // Call enableStopRestoreFunction() when click Restore button
     closeGrowl();
     $.ajax({

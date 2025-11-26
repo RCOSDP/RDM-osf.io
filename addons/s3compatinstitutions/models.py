@@ -42,7 +42,7 @@ class S3CompatInstitutionsFolder(S3CompatInstitutionsFileNode, Folder):
 
 
 class S3CompatInstitutionsFile(S3CompatInstitutionsFileNode, File):
-    pass
+    version_identifier = 'version'
 
 
 class S3CompatInstitutionsProvider(BasicAuthProviderMixin):
@@ -168,6 +168,7 @@ class NodeSettings(InstitutionsNodeSettings, InstitutionsStorageAddon):
 
     def serialize_waterbutler_settings(self):
         return {
+            'nid': self.owner._id,
             'bucket': self.bucket,
             'prefix': self.root_prefix,
             'encrypt_uploads': settings.ENCRYPT_UPLOADS

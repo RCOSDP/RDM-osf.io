@@ -108,6 +108,7 @@ ALLOW_LOGIN = True
 SEARCH_ENGINE = 'elastic'  # Can be 'elastic', or None
 ELASTIC_URI = '127.0.0.1:9200'
 ELASTIC_TIMEOUT = 10
+ELASTIC_TIMEOUT_FOR_WIKI_IMPORT = 60
 ELASTIC_INDEX = 'website'
 ELASTIC_INDEX_PRIVATE_PREFIX = 'private__'  # for ENABLE_PRIVATE_SEARCH
 ELASTIC_KWARGS = {
@@ -273,6 +274,7 @@ with open(os.path.join(ROOT, 'addons.json')) as fp:
     INSTITUTIONAL_STORAGE_ADD_ON_METHOD = addon_settings['institutional_storage_add_on_method']
     INSTITUTIONAL_STORAGE_BULK_MOUNT_METHOD = addon_settings['institutional_storage_bulk_mount_method']
     ADDONS_HAS_MAX_KEYS = addon_settings['addons_has_max_keys']
+    ADDONS_FOLDER_FIELD = addon_settings['addons_folder_field']
 
 SYSTEM_ADDED_ADDONS = {
     'user': [],
@@ -365,8 +367,9 @@ CROSSREF_JSON_API_URL = 'https://api.crossref.org/'
 # Leave as `None` for production, test/staging/local envs must set
 SHARE_PREPRINT_PROVIDER_PREPEND = None
 
+SHARE_ENABLED = True  # This should be False for most local development
 SHARE_REGISTRATION_URL = ''
-SHARE_URL = None
+SHARE_URL = 'https://share.osf.io/'
 SHARE_API_TOKEN = None  # Required to send project updates to SHARE
 
 CAS_SERVER_URL = 'http://localhost:8080'
@@ -422,6 +425,7 @@ class CeleryConfig:
         'scripts.analytics.run_keen_snapshots',
         'scripts.analytics.run_keen_events',
         'scripts.clear_sessions',
+        'scripts.cleanup_task_results',
         'osf.management.commands.check_crossref_dois',
         'osf.management.commands.migrate_pagecounter_data',
         'osf.management.commands.migrate_deleted_date',
@@ -505,6 +509,7 @@ class CeleryConfig:
         'scripts.approve_embargo_terminations',
         'scripts.triggered_mails',
         'scripts.clear_sessions',
+        'scripts.cleanup_task_results',
         'scripts.send_queued_mails',
         'scripts.analytics.run_keen_summaries',
         'scripts.analytics.run_keen_snapshots',
@@ -517,6 +522,7 @@ class CeleryConfig:
         'osf.management.commands.update_institution_project_counts',
         'nii.mapcore_refresh_tokens',
         'admin.rdm_custom_storage_location.tasks',
+        'addons.metadata.tasks',
     )
 
     # Modules that need metrics and release requirements
@@ -588,6 +594,11 @@ class CeleryConfig:
             },
             'clear_sessions': {
                 'task': 'scripts.clear_sessions',
+                'schedule': crontab(minute=0, hour=5),  # Daily 12 a.m
+                'kwargs': {'dry_run': False},
+            },
+            'cleanup_task_results': {
+                'task': 'scripts.cleanup_task_results',
                 'schedule': crontab(minute=0, hour=5),  # Daily 12 a.m
                 'kwargs': {'dry_run': False},
             },
@@ -664,6 +675,14 @@ class CeleryConfig:
                 'schedule': crontab(minute=0, hour=10),  # Daily 5:00 a.m. EST (-5h)
                 #'schedule': crontab(minute='*/1'), # for DEBUG
                 'kwargs': {'dry_run': False},
+            },
+            'sync_kaken_data': {
+                'task': 'addons.metadata.tasks.sync_kaken_data',
+                'schedule': crontab(minute=0, hour=17),  # Daily at 5:00 p.m. UTC (2:00 a.m. JST)
+            },
+            'cleanup_old_sync_logs': {
+                'task': 'addons.metadata.tasks.cleanup_old_sync_logs',
+                'schedule': crontab(minute=0, hour=18, day_of_week=6),  # Weekly on Saturday at 6:00 p.m. UTC (Sunday 3:00 a.m. JST)
             },
         }
 
