@@ -108,9 +108,15 @@ var UserProfileClient = oop.defclass({
         ).done(function (data) {
             ret.resolve(this.unserialize(data, profile));
         }.bind(this)).fail(function(xhr, status, error) {
-            if (xhr.status === 400) {
+            if (xhr.status === 401) {
+                if (xhr.responseJSON && xhr.responseJSON.redirect_url) {
+                    window.location.href = xhr.responseJSON.redirect_url;
+                } else {
+                    window.location.href = '/?login_not_available=true';
+                }
+                return;
+            } else if (xhr.status === 400) {
                 $osf.growl('Error', xhr.responseJSON.message_long);
-
             } else {
                 $osf.growl('Error', sprintf(_('User profile not updated. Please refresh the page and try again or contact %1$s if the problem persists.'),$osf.osfSupportLink()), 'danger');
             }
