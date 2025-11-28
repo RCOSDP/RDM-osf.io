@@ -29,7 +29,6 @@ from website.settings import (
     OSF_SUPPORT_EMAIL,
     DOMAIN,
     to_bool,
-    OSF_SERVICE_URL,
     CAS_SERVER_URL,
     OSF_MFA_URL,
     OSF_IAL2_STR,
@@ -40,11 +39,8 @@ from website.settings import (
     OSF_AAL2_VAR,
 )
 from website.util.quota import update_default_storage
+from future.moves.urllib.parse import urljoin
 
-logger = logging.getLogger(__name__)
-
-
-import logging
 logger = logging.getLogger(__name__)
 
 NEW_USER_NO_NAME = 'New User (no name)'
@@ -74,7 +70,6 @@ class InstitutionAuthentication(BaseAuthentication):
     """
 
     media_type = 'text/plain'
-    context = {'mfa_url': ''}
 
     def authenticate(self, request):
         """
@@ -243,8 +238,8 @@ class InstitutionAuthentication(BaseAuthentication):
 
         # @R2022-48 loa + R-2023-55
         message = ''
-        self.context['mfa_url'] = ''
         mfa_url = ''
+        mfa_url_tmp = ''
         if type(p_idp) is str:
             mfa_url_q = (
                 OSF_MFA_URL
@@ -253,10 +248,9 @@ class InstitutionAuthentication(BaseAuthentication):
                 + '&target='
                 + CAS_SERVER_URL
                 + '/login?service='
-                + OSF_SERVICE_URL
-                + '/profile/'
+                + urljoin(DOMAIN, "/profile/")
             )
-            mfa_url = (
+            mfa_url_tmp = (
                 CAS_SERVER_URL
                 + '/logout?service='
                 + urllib.parse.quote(mfa_url_q, safe='')
@@ -266,7 +260,7 @@ class InstitutionAuthentication(BaseAuthentication):
         if loa:
             if loa.aal == 2:
                 if not re.search(OSF_AAL2_STR, str(aal)):
-                    self.context['mfa_url'] = mfa_url
+                    mfa_url = mfa_url_tmp
             elif loa.aal == 1:
                 if not aal:
                     message = (
@@ -429,7 +423,6 @@ class InstitutionAuthentication(BaseAuthentication):
         if aal and user.aal != aal:
             user.aal = aal
             user.save()
-        logger.info('MFA URL "{}"'.format(self.context['mfa_url']))
 
         # Both created and activated accounts need to be updated and registered
         if created or activation_required:
@@ -563,6 +556,10 @@ class InstitutionAuthentication(BaseAuthentication):
 
         # update every login. (for mAP API v1)
         init_cloud_gateway_groups(user, provider)
+
+        # R-2023-55 for MFA
+        logger.info('MFA URL "{}"'.format(mfa_url))
+        user.context = {'mfa_url': mfa_url}
 
         return user, None
 

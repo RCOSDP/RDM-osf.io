@@ -4062,3 +4062,6 @@ msgstr "有効化する"
 
 msgid "No@encrypt_uploads"
 msgstr "有効化しない"
+
+msgid "LoA update successful."
+msgstr "LoAの更新に成功しました。"
