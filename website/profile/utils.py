@@ -61,7 +61,7 @@ def serialize_user(user, node=None, admin=False, full=False, is_profile=False, i
             + '&target='
             + settings.CAS_SERVER_URL
             + '/login?service='
-            + web_url_for('user_profile', _absolute=True)
+            + urllib.parse.quote(web_url_for('user_profile', _absolute=True), safe='')
         )
         mfa_url = (
             settings.CAS_SERVER_URL
