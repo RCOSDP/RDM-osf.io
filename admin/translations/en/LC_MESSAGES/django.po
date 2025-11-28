@@ -3999,3 +3999,6 @@ msgstr "Yes"
 
 msgid "No@encrypt_uploads"
 msgstr "No"
+
+msgid "LoA update successful."
+msgstr ""

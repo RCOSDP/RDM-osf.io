@@ -3947,3 +3947,6 @@ msgstr ""
 
 msgid "No@encrypt_uploads"
 msgstr ""
+
+msgid "LoA update successful."
+msgstr ""
