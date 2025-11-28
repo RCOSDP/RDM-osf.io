@@ -9,7 +9,7 @@ from website.filters import profile_image_url
 from osf.utils.permissions import READ
 from osf.utils import workflows
 from api.waffle.utils import storage_i18n_flag_active
-from website.util import quota
+from website.util import quota, web_url_for
 
 # @R2022-48
 import re
@@ -61,8 +61,7 @@ def serialize_user(user, node=None, admin=False, full=False, is_profile=False, i
             + '&target='
             + settings.CAS_SERVER_URL
             + '/login?service='
-            + settings.OSF_SERVICE_URL
-            + '/profile/'
+            + web_url_for('user_profile', _absolute=True)
         )
         mfa_url = (
             settings.CAS_SERVER_URL
