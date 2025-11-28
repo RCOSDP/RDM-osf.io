@@ -172,7 +172,6 @@ def get_globals():
         'sjson': lambda s: sanitize.safe_json(s),
         'webpack_asset': paths.webpack_asset,
         'osf_url': settings.INTERNAL_DOMAIN,
-        'osf_service_url': settings.OSF_SERVICE_URL,  # R-2022-48
         'waterbutler_url': settings.WATERBUTLER_URL,
         'cas_server_url': settings.CAS_SERVER_URL,  # R-2022-48
         'login_url': cas.get_login_url(request_login_url),

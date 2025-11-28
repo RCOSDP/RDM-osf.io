@@ -374,7 +374,6 @@ SHARE_API_TOKEN = None  # Required to send project updates to SHARE
 
 CAS_SERVER_URL = 'http://localhost:8080'
 MFR_SERVER_URL = 'http://localhost:7778'
-OSF_SERVICE_URL = ''  # R-2022-48
 OSF_MFA_URL = ''  # R-2022-48
 
 ###### ARCHIVER ###########

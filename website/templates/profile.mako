@@ -77,7 +77,7 @@
             % if profile.get('is_mfa') and profile.get('_aal') != "AAL2" and profile.get('mfa_url'):
             <tr>
                 <td>&nbsp;</td>
-                <td><a href="${profile['mfa_url']}" class="btn btn-info">${_("Configure multi-factor authentication (MFA)")}</a></td><!--@R2022-48-->
+                <td><a href="${profile['mfa_url']}" class="btn btn-info">${_("Log in again using multi-factor authentication")}</a></td><!--@R2022-48-->
             </tr>
             % endif
         % endif
