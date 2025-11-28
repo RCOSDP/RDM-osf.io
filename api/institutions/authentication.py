@@ -8,7 +8,7 @@ import waffle
 
 # @R2022-48 loa
 import re
-import urllib.parse
+from urllib.parse import urlencode
 
 #from django.utils import timezone
 from rest_framework.authentication import BaseAuthentication
@@ -241,20 +241,17 @@ class InstitutionAuthentication(BaseAuthentication):
         mfa_url = ''
         mfa_url_tmp = ''
         if type(p_idp) is str:
-            mfa_url_q = (
-                OSF_MFA_URL
-                + '?entityID='
-                + p_idp
-                + '&target='
-                + CAS_SERVER_URL
-                + '/login?service='
-                + urljoin(DOMAIN, "/profile/")
-            )
-            mfa_url_tmp = (
-                CAS_SERVER_URL
-                + '/logout?service='
-                + urllib.parse.quote(mfa_url_q, safe='')
-            )
+            profile_url = urljoin(DOMAIN, '/profile/')
+
+            login_url = CAS_SERVER_URL + '/login?' + urlencode({
+                'service': profile_url,
+            })
+
+            mfa_url_tmp = OSF_MFA_URL + '?' + urlencode({
+                'entityID': p_idp,
+                'target': login_url,
+            })
+
         loa_flag = True
         loa = LoA.objects.get_or_none(institution_id=institution.id)
         if loa:

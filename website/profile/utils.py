@@ -13,7 +13,7 @@ from website.util import quota, web_url_for
 
 # @R2022-48
 import re
-import urllib.parse
+from urllib.parse import urlencode
 
 
 def get_profile_image_url(user, size=settings.PROFILE_IMAGE_MEDIUM):
@@ -54,20 +54,21 @@ def serialize_user(user, node=None, admin=False, full=False, is_profile=False, i
     mfa_url = ''
     entity_id = idp_attrs.get('idp')
     if entity_id is not None:
-        mfa_url_q = (
-            settings.OSF_MFA_URL
-            + '?entityID='
-            + entity_id
-            + '&target='
-            + settings.CAS_SERVER_URL
-            + '/login?service='
-            + web_url_for('user_profile', _absolute=True)
-        )
-        mfa_url = (
-            settings.CAS_SERVER_URL
-            + '/logout?service='
-            + urllib.parse.quote(mfa_url_q, safe='')
-        )
+        profile_url = web_url_for('user_profile', _absolute=True)
+
+        login_url = settings.CAS_SERVER_URL + '/login?' + urlencode({
+            'service': profile_url,
+        })
+
+        mfa_url_q = settings.OSF_MFA_URL + '?' + urlencode({
+            'entityID': entity_id,
+            'target': login_url,
+        })
+
+        # CAS logout → MFA の redirect
+        mfa_url = settings.CAS_SERVER_URL + '/logout?' + urlencode({
+            'service': mfa_url_q,
+        })
 
     loa = LoA.objects.get_or_none(institution_id=idp_attrs.get('id'))
     if loa is not None:
