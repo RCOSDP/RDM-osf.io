@@ -3974,5 +3974,14 @@ msgstr ""
 msgid "No@encrypt_uploads"
 msgstr ""
 
-msgid "LoA update successful."
+msgid "Show"
+msgstr ""
+
+msgid "Hide"
+msgstr ""
+
+msgid "Level of Assurance"
+msgstr ""
+
+msgid "Display MFA link button"
 msgstr ""

@@ -4025,3 +4025,15 @@ msgstr "No"
 
 msgid "LoA update successful."
 msgstr ""
+
+msgid "Show"
+msgstr ""
+
+msgid "Hide"
+msgstr ""
+
+msgid "Level of Assurance"
+msgstr ""
+
+msgid "Display MFA link button"
+msgstr ""
