@@ -4025,3 +4025,9 @@ msgstr "No"
 
 msgid "LoA update successful."
 msgstr ""
+
+msgid "Show"
+msgstr ""
+
+msgid "Hide"
+msgstr ""

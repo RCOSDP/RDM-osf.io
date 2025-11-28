@@ -4091,5 +4091,5 @@ msgid "AuthnContext-Class"
 msgstr ""
 
 #: website/templates/profile.mako:80
-msgid "Configure multi-factor authentication (MFA)"
-msgstr "Log in again using multi-factor authentication"
+msgid "Log in again using multi-factor authentication"
+msgstr ""

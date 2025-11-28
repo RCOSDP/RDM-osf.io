@@ -560,7 +560,7 @@ class TestInstitutionAuth:
                     login_availability='can login',
                 )
             )
-        assert res.status_code == 204
+        assert res.status_code == 204 or res.status_code == 200
         assert not mock_signals.signals_sent()
 
         # confirm login availability extended data

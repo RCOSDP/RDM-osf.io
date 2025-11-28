@@ -4065,3 +4065,9 @@ msgstr "有効化しない"
 
 msgid "LoA update successful."
 msgstr "LoAの更新に成功しました。"
+
+msgid "Show"
+msgstr "表示する"
+
+msgid "Hide"
+msgstr "表示しない"
