@@ -7,8 +7,8 @@ class LoAForm(forms.ModelForm):
     CHOICES_AAL = [(0, _('NULL')), (1, _('AAL1')), (2, _('AAL2'))]
     CHOICES_IAL = [(0, _('NULL')), (1, _('IAL1')), (2, _('IAL2'))]
     CHOICES_MFA = (
-        (False, _('表示しない')),
-        (True, _('表示する')),
+        (False, _('Hide')),
+        (True, _('Show')),
     )
     aal = forms.ChoiceField(
         choices=CHOICES_AAL,
