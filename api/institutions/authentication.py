@@ -248,7 +248,7 @@ class InstitutionAuthentication(BaseAuthentication):
                 + '&target='
                 + CAS_SERVER_URL
                 + '/login?service='
-                + urljoin(DOMAIN, "/profile/")
+                + urljoin(DOMAIN, '/profile/')
             )
             mfa_url_tmp = (
                 CAS_SERVER_URL
