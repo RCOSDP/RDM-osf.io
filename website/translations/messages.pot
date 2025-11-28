@@ -4345,3 +4345,14 @@ msgstr ""
 msgid "Manage Contributors"
 msgstr ""
 
+#: website/templates/profile.mako:70
+msgid "IAL"
+msgstr ""
+
+#: website/templates/profile.mako:74
+msgid "AuthnContext-Class"
+msgstr ""
+
+#: website/templates/profile.mako:80
+msgid "Configure multi-factor authentication (MFA)"
+msgstr ""
