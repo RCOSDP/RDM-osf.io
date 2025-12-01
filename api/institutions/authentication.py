@@ -241,7 +241,7 @@ class InstitutionAuthentication(BaseAuthentication):
         mfa_url = ''
         mfa_url_tmp = ''
         if type(p_idp) is str:
-            profile_url = urljoin(DOMAIN, "/profile/")
+            profile_url = urljoin(DOMAIN, '/profile/')
 
             login_url = CAS_SERVER_URL + '/login?' + urlencode({
                 'service': profile_url,
@@ -254,7 +254,7 @@ class InstitutionAuthentication(BaseAuthentication):
 
             # CAS logout → MFA の redirect
             mfa_url_tmp = CAS_SERVER_URL + '/logout?' + urlencode({
-                'service': mfa_url_q
+                'service': mfa_url_q,
             })
 
         loa_flag = True

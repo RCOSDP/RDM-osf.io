@@ -67,7 +67,7 @@ def serialize_user(user, node=None, admin=False, full=False, is_profile=False, i
 
         # CAS logout → MFA の redirect
         mfa_url = settings.CAS_SERVER_URL + '/logout?' + urlencode({
-            'service': mfa_url_q
+            'service': mfa_url_q,
         })
 
     loa = LoA.objects.get_or_none(institution_id=idp_attrs.get('id'))
