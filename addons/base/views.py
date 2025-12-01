@@ -286,6 +286,11 @@ def get_metric_class_for_action(action, from_mfr):
 def get_auth(auth, **kwargs):
     logger.debug('----{}:{}::{} from {}:{}::{}'.format(*inspect_info(inspect.currentframe(), inspect.stack())))
     cas_resp = None
+    payload_param = request.args.get('payload', '')
+    if payload_param:
+        payload_param = f'{payload_param[:10]}...{payload_param[-10:]}'
+    before_time = timezone.now()
+    logger.info(f'get_auth called with payload: {payload_param} (length: {len(payload_param)}) at {before_time.isoformat()}')
     if not auth.user:
         # Central Authentication Server OAuth Bearer Token
         authorization = request.headers.get('Authorization')
@@ -303,13 +308,16 @@ def get_auth(auth, **kwargs):
 
     # get data payload
     try:
+        logger.info(f'Decoding JWE payload {payload_param} at {timezone.now().isoformat()}')
         data = jwt.decode(
             jwe.decrypt(request.args.get('payload', '').encode('utf-8'), WATERBUTLER_JWE_KEY),
             settings.WATERBUTLER_JWT_SECRET,
             options={'require_exp': True},
             algorithm=settings.WATERBUTLER_JWT_ALGORITHM
         )['data']
+        logger.info(f'Total time to decode JWE payload {payload_param}: {(timezone.now() - before_time).total_seconds()} seconds')
     except (jwt.InvalidTokenError, KeyError) as err:
+        logger.error(f'Error decoding JWE payload {payload_param}: {err} at {timezone.now().isoformat()}')
         sentry.log_message(str(err))
         raise HTTPError(http_status.HTTP_403_FORBIDDEN)
 
