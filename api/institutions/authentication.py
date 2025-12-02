@@ -247,14 +247,9 @@ class InstitutionAuthentication(BaseAuthentication):
                 'service': profile_url,
             })
 
-            mfa_url_q = OSF_MFA_URL + '?' + urlencode({
+            mfa_url_tmp = OSF_MFA_URL + '?' + urlencode({
                 'entityID': p_idp,
                 'target': login_url,
-            })
-
-            # CAS logout → MFA の redirect
-            mfa_url_tmp = CAS_SERVER_URL + '/logout?' + urlencode({
-                'service': mfa_url_q,
             })
 
         loa_flag = True
