@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('osf', '0256_ensure_schema_mappings'),
+        ('osf', '0260_merge_20251126_1230'),
     ]
 
     operations = [
