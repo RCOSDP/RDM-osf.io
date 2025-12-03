@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('osf', '0257_merge_20251023_1304'),
+        ('osf', '0260_merge_20251126_1230'),
     ]
 
     operations = [
