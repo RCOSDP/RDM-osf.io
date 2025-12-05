@@ -20,7 +20,7 @@ var s3compatFolderPickerViewModel = oop.extend(OauthAddonFolderPicker, {
         self.super.construct.call(self, addonName, url, selector, folderPicker, opts, tbOpts);
         // Overwrite s3compatSettings
         var xhr = new XMLHttpRequest();
-        xhr.open('GET', '/static/addons_s3compat_settings.json', false);
+        xhr.open('GET', '/js/addons-s3compat-settings.json', false);
         xhr.onreadystatechange = function() {
           if (xhr.readyState === 4) {
             if (xhr.status === 200) {
