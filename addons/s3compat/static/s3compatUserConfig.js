@@ -26,7 +26,7 @@ function ViewModel(url) {
 
     // Overwrite s3compatSettings
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', '/static/addons_s3compat_setting.json', false);
+    xhr.open('GET', '/static/addons_s3compat_settings.json', false);
     xhr.onreadystatechange = function() {
       if (xhr.readyState === 4) {
         if (xhr.status === 200) {
