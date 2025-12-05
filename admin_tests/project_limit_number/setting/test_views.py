@@ -1,6 +1,8 @@
+import csv
 import json
 import time
 from http import HTTPStatus
+from io import StringIO
 from unittest.mock import patch
 
 from django.db import DatabaseError
@@ -23,7 +25,8 @@ from admin.project_limit_number.setting.views import (
     ProjectLimitNumberSettingCreateView,
     DeleteProjectLimitNumberSettingView,
     UpdateProjectLimitNumberSettingView,
-    UserListView
+    UserListView,
+    ExportUserListCSVView,
 )
 from osf.models import (
     UserExtendedData,
@@ -3370,3 +3373,688 @@ class TestUserListView(AdminTestCase):
             [self.users[0].username]
         )
         self.assertEqual(len(user_list), 1)
+
+
+class TestExportUserListCSVView(AdminTestCase):
+    def setUp(self):
+        """Set up test data for all test methods"""
+        self.request_factory = RequestFactory()
+
+        # Create institution
+        self.institution = InstitutionFactory()
+
+        # Create super admin user
+        self.super_admin = AuthUserFactory()
+        self.super_admin.is_staff = True
+        self.super_admin.is_superuser = True
+        self.super_admin.save()
+
+        # Create institution admin user
+        self.institution_admin = AuthUserFactory()
+        self.institution_admin.is_staff = True
+        self.institution_admin.save()
+
+        # Create template
+        self.template = ProjectLimitNumberTemplate.objects.create(
+            template_name='Test Template',
+            is_availability=True,
+            is_deleted=False
+        )
+
+        # Create template attributes
+        self.template_attribute1 = ProjectLimitNumberTemplateAttribute.objects.create(
+            template=self.template,
+            attribute_name='displayName',
+            setting_type=5,
+            attribute_value='displayName1, displayName2, displayName3',
+            is_deleted=False
+        )
+
+        self.template_attribute2 = ProjectLimitNumberTemplateAttribute.objects.create(
+            template=self.template,
+            attribute_name='jaDisplayName',
+            setting_type=5,
+            attribute_value='jaDisplayName1, jaDisplayName2, jaDisplayName3',
+            is_deleted=False
+        )
+
+        self.fixed_template_attribute = ProjectLimitNumberTemplateAttribute.objects.create(
+            template=self.template,
+            attribute_name='sn',
+            setting_type=3,
+            attribute_value='fixed_value',
+            is_deleted=False
+        )
+
+        # Create users
+        self.users = [AuthUserFactory(username=f'user{item}@test.com') for item in range(5)]
+
+        self.projects = []
+        # Affiliate users with institution and add extended data
+        for i, user in enumerate(self.users):
+            user.affiliated_institutions.add(self.institution)
+            data = {
+                'idp_attr': {
+                    'fullname': f'displayName{i + 1}',
+                    'fullname_ja': f'jaDisplayName{i + 1}',
+                    'family_name': 'fixed_value'
+                }
+            }
+            UserExtendedData.objects.create(
+                user=user,
+                data=data
+            )
+
+        # Create project limit number settings with different conditions
+        self.setting1 = ProjectLimitNumberSetting.objects.create(
+            institution=self.institution,
+            template=self.template,
+            name='Setting 1',
+            project_limit_number=5,
+            priority=1,
+            is_availability=True,
+            is_deleted=False
+        )
+
+        self.setting2 = ProjectLimitNumberSetting.objects.create(
+            institution=self.institution,
+            template=self.template,
+            name='Setting 2',
+            project_limit_number=10,
+            priority=2,
+            is_availability=True,
+            is_deleted=False
+        )
+
+        # Create setting attributes for different conditions
+        self.setting1_attribute1 = ProjectLimitNumberSettingAttribute.objects.create(
+            setting=self.setting1,
+            attribute=self.template_attribute1,
+            attribute_value='displayName1',
+            is_deleted=False
+        )
+
+        self.setting1_attribute2 = ProjectLimitNumberSettingAttribute.objects.create(
+            setting=self.setting1,
+            attribute=self.template_attribute2,
+            attribute_value='jaDisplayName1',
+            is_deleted=False
+        )
+
+        self.setting2_attribute1 = ProjectLimitNumberSettingAttribute.objects.create(
+            setting=self.setting2,
+            attribute=self.template_attribute1,
+            attribute_value='displayName2',
+            is_deleted=False
+        )
+
+        self.setting2_attribute2 = ProjectLimitNumberSettingAttribute.objects.create(
+            setting=self.setting2,
+            attribute=self.fixed_template_attribute,
+            attribute_value='fixed_value',
+            is_deleted=False
+        )
+
+        # Create default project limit number
+        self.default_limit = ProjectLimitNumberDefault.objects.create(
+            institution=self.institution,
+            project_limit_number=3
+        )
+
+        # Create base URL
+        self.base_url = '/project_limit_number/settings/export_user_list_csv/'
+
+        # Create view class
+        self.view = ExportUserListCSVView()
+        self.view.kwargs = {}
+
+        # Add valid request data
+        self.valid_data = {
+            'institution_id': self.institution.id,
+            'attribute_list': [
+                {
+                    'attribute_name': 'displayName',
+                    'setting_type': 1,
+                    'attribute_value': 'displayName1'
+                }
+            ]
+        }
+
+        self.csv_header = ['GUID', 'ePPN', 'Username', 'Fullname', 'Created Project Number', 'Project Limit Number']
+
+    def parse_to_csv(self, response):
+        """Parse response to CSV format"""
+        # Convert response content to CSV format
+        csv_content = response.content.decode('utf-8')
+        csv_reader = csv.reader(StringIO(csv_content))
+        # Convert to list to compare contents
+        return list(csv_reader)
+
+    def test_permission_unauthenticated(self):
+        """Test access with unauthenticated user"""
+        request = self.request_factory.get(self.base_url)
+        request.user = AnonymousUser()
+        self.view = setup_view(self.view, request)
+
+        # Assert test_func
+        self.assertFalse(self.view.test_func())
+        self.assertFalse(self.view.raise_exception)
+
+        # Assert handle_no_permission
+        response = self.view.handle_no_permission()
+        self.assertEqual(response.status_code, HTTPStatus.UNAUTHORIZED)
+        self.assertEqual(
+            json.loads(response.content),
+            {'error_message': 'Authentication credentials were not provided.'}
+        )
+
+    def test_permission_super_admin(self):
+        """Test access with super admin"""
+        request = self.request_factory.get(self.base_url)
+        request.user = self.super_admin
+        self.view = setup_view(self.view, request)
+
+        self.assertTrue(self.view.test_func())
+
+    def test_permission_institution_admin(self):
+        """Test access with institutional admin"""
+        self.institution_admin.affiliated_institutions.add(self.institution)
+        request = self.request_factory.get(self.base_url)
+        request.user = self.institution_admin
+        self.view = setup_view(self.view, request)
+
+        self.assertTrue(self.view.test_func())
+
+    def test_permission_user(self):
+        """Test access with user"""
+        request = self.request_factory.get(self.base_url)
+        request.user = AuthUserFactory()
+        self.view = setup_view(self.view, request)
+
+        self.assertFalse(self.view.test_func())
+        self.assertTrue(self.view.raise_exception)
+
+        with self.assertRaises(Exception):
+            self.view.handle_no_permission()
+
+    def test_post_invalid_json_body(self):
+        """Test with invalid JSON in request body"""
+        request = self.request_factory.post(
+            self.base_url,
+            data='invalid json',
+            content_type='application/json'
+        )
+        request.user = self.super_admin
+        self.view = setup_view(self.view, request)
+
+        response = self.view.post(request)
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+
+    @patch('admin.project_limit_number.utils.validate_file_json')
+    def test_post_invalid_schema(self, mock_validate):
+        """Test with invalid schema"""
+        mock_validate.return_value = (False, 'Schema validation error')
+
+        request = self.request_factory.post(
+            self.base_url,
+            data=json.dumps(self.valid_data),
+            content_type='application/json'
+        )
+        request.user = self.super_admin
+        self.view = setup_view(self.view, request)
+
+        response = self.view.post(request)
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.assertEqual(
+            json.loads(response.content),
+            {'error_message': 'Schema validation error'}
+        )
+
+    def test_post_nonexistent_institution(self):
+        """Test with non-existent institution"""
+        data = self.valid_data.copy()
+        data['institution_id'] = -1
+
+        request = self.request_factory.post(
+            self.base_url,
+            data=json.dumps(data),
+            content_type='application/json'
+        )
+        request.user = self.super_admin
+        self.view = setup_view(self.view, request)
+
+        response = self.view.post(request)
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.assertEqual(
+            json.loads(response.content),
+            {'error_message': 'The institution not exist.'}
+        )
+
+    def test_post_institution_admin_wrong_institution(self):
+        """Test institution admin accessing wrong institution"""
+        other_institution = InstitutionFactory()
+        self.institution_admin.affiliated_institutions.add(other_institution)
+
+        request = self.request_factory.post(
+            self.base_url,
+            data=json.dumps(self.valid_data),
+            content_type='application/json'
+        )
+        request.user = self.institution_admin
+        self.view = setup_view(self.view, request)
+
+        response = self.view.post(request)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+        self.assertEqual(
+            json.loads(response.content),
+            {'error_message': 'Forbidden'}
+        )
+
+    def test_post_invalid_attribute_name(self):
+        """Test with invalid attribute name"""
+        data = self.valid_data.copy()
+        data['attribute_list'] = [{
+            'attribute_name': 'invalid_attribute',
+            'setting_type': 1,
+            'attribute_value': 'displayName1'
+        }]
+
+        request = self.request_factory.post(
+            self.base_url,
+            data=json.dumps(data),
+            content_type='application/json'
+        )
+        request.user = self.super_admin
+        self.view = setup_view(self.view, request)
+        response = self.view.post(request)
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.assertEqual(
+            json.loads(response.content),
+            {'error_message': 'attribute_name is invalid.'}
+        )
+
+    def test_post_mail_grdm_attribute(self):
+        """Test with mail grdm attribute"""
+        data = self.valid_data.copy()
+        data['attribute_list'] = [{
+            'attribute_name': utils.MAIL_GRDM,
+            'setting_type': 2,
+            'attribute_value': '@test.com'
+        }, {
+            'attribute_name': utils.MAIL_GRDM,
+            'setting_type': 1,
+            'attribute_value': 'example1@test.com'
+        }]
+
+        request = self.request_factory.post(
+            self.base_url,
+            data=json.dumps(data),
+            content_type='application/json'
+        )
+        request.user = self.super_admin
+        self.view = setup_view(self.view, request)
+        response = self.view.post(request)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
+    def test_post_multiple_attribute(self):
+        """Test with multiple attributes"""
+        data = self.valid_data.copy()
+        data['attribute_list'] = [{
+            'attribute_name': 'displayName',
+            'setting_type': 1,
+            'attribute_value': 'displayName1'
+        }, {
+            'attribute_name': 'jaDisplayName',
+            'setting_type': 1,
+            'attribute_value': 'jaDisplayName1'
+        }]
+
+        request = self.request_factory.post(
+            self.base_url,
+            data=json.dumps(data),
+            content_type='application/json'
+        )
+        request.user = self.super_admin
+        self.view = setup_view(self.view, request)
+        response = self.view.post(request)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
+    def test_post_empty_user_list(self):
+        """Test when no users match the criteria"""
+        data = self.valid_data.copy()
+        data['attribute_list'] = [{
+            'attribute_name': 'displayName',
+            'setting_type': 1,
+            'attribute_value': 'no_match_value'
+        }]
+
+        request = self.request_factory.post(
+            self.base_url,
+            data=json.dumps(data),
+            content_type='application/json'
+        )
+        request.user = self.super_admin
+        self.view = setup_view(self.view, request)
+        response = self.view.post(request)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
+        csv_rows = self.parse_to_csv(response)
+        self.assertEqual(len(csv_rows), 1)
+        self.assertEqual(csv_rows[0], self.csv_header)
+
+    def test_post_response_with_settings(self):
+        """Test successful response including project limit settings"""
+        request = self.request_factory.post(
+            self.base_url,
+            data=json.dumps(self.valid_data),
+            content_type='application/json'
+        )
+        request.user = self.super_admin
+        self.view = setup_view(self.view, request)
+        response = self.view.post(request)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        csv_rows = self.parse_to_csv(response)
+        self.assertEqual(len(csv_rows), 2)
+        first_row = csv_rows[1]
+        self.assertEqual(first_row[0], self.users[0]._id)
+        self.assertEqual(first_row[-1], str(5))
+
+    def test_post_user_meets_first_condition(self):
+        """Test when user meets first setting's condition"""
+        with patch('admin.project_limit_number.utils.check_logic_condition') as mock_check:
+            mock_check.side_effect = [True, False]  # Meets first condition, not second
+
+            request = self.request_factory.post(
+                self.base_url,
+                data=json.dumps(self.valid_data),
+                content_type='application/json'
+            )
+            request.user = self.super_admin
+            self.view = setup_view(self.view, request)
+
+            response = self.view.post(request)
+            self.assertEqual(response.status_code, HTTPStatus.OK)
+
+            csv_rows = self.parse_to_csv(response)
+            self.assertNotEqual(len(csv_rows), 1)
+            # Remove header
+            csv_rows.pop(0)
+            for row in csv_rows:
+                self.assertEqual(row[-1], str(5))
+
+    def test_post_user_meets_second_condition(self):
+        """Test when user meets second setting's condition"""
+        with patch('admin.project_limit_number.utils.check_logic_condition') as mock_check:
+            mock_check.side_effect = [False, True]  # Doesn't meet first, meets second
+
+            request = self.request_factory.post(
+                self.base_url,
+                data=json.dumps(self.valid_data),
+                content_type='application/json'
+            )
+            request.user = self.super_admin
+            self.view = setup_view(self.view, request)
+
+            response = self.view.post(request)
+            self.assertEqual(response.status_code, HTTPStatus.OK)
+
+            csv_rows = self.parse_to_csv(response)
+            self.assertNotEqual(len(csv_rows), 1)
+            csv_rows.pop(0)
+            for row in csv_rows:
+                self.assertEqual(row[-1], str(10))
+
+    def test_post_user_meets_no_conditions(self):
+        """Test when user meets no conditions and gets default limit"""
+        with patch('admin.project_limit_number.utils.check_logic_condition') as mock_check:
+            mock_check.return_value = False  # Meets no conditions
+
+            request = self.request_factory.post(
+                self.base_url,
+                data=json.dumps(self.valid_data),
+                content_type='application/json'
+            )
+            request.user = self.super_admin
+            self.view = setup_view(self.view, request)
+
+            response = self.view.post(request)
+            self.assertEqual(response.status_code, HTTPStatus.OK)
+
+            csv_rows = self.parse_to_csv(response)
+            self.assertNotEqual(len(csv_rows), 1)
+            csv_rows.pop(0)
+            for row in csv_rows:
+                self.assertEqual(row[-1], str(3))
+
+    def test_post_no_default_limit_configured(self):
+        """Test when no project default limit number is configured"""
+        # Delete default limit
+        self.default_limit.delete()
+
+        with patch('admin.project_limit_number.utils.check_logic_condition') as mock_check:
+            mock_check.return_value = False  # Meets no conditions
+
+            request = self.request_factory.post(
+                self.base_url,
+                data=json.dumps(self.valid_data),
+                content_type='application/json'
+            )
+            request.user = self.super_admin
+            self.view = setup_view(self.view, request)
+
+            response = self.view.post(request)
+            self.assertEqual(response.status_code, HTTPStatus.OK)
+
+            csv_rows = self.parse_to_csv(response)
+            self.assertNotEqual(len(csv_rows), 1)
+            csv_rows.pop(0)
+            for row in csv_rows:
+                self.assertEqual(row[-1], 'No Limit')
+
+    def test_post_project_count_calculation(self):
+        """Test correct calculation of created project numbers"""
+        for i, user in enumerate(self.users):
+            self.projects.append(ProjectFactory(creator=user, is_deleted=False))
+        request = self.request_factory.post(
+            self.base_url,
+            data=json.dumps(self.valid_data),
+            content_type='application/json'
+        )
+        request.user = self.super_admin
+        self.view = setup_view(self.view, request)
+
+        response = self.view.post(request)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
+        csv_rows = self.parse_to_csv(response)
+        self.assertNotEqual(len(csv_rows), 1)
+        csv_rows.pop(0)
+        for row in csv_rows:
+            user_projects = len([p for p in self.projects
+                                 if p.creator._id == row[0]])
+            self.assertEqual(row[-2], str(user_projects))
+
+    def test_post_empty_setting_attributes(self):
+        """Test handling of settings with no attributes"""
+        # Create setting without attributes
+        ProjectLimitNumberSetting.objects.create(
+            institution=self.institution,
+            template=self.template,
+            name='Empty Setting',
+            project_limit_number=7,
+            priority=2,
+            is_availability=True,
+            is_deleted=False
+        )
+
+        request = self.request_factory.post(
+            self.base_url,
+            data=json.dumps(self.valid_data),
+            content_type='application/json'
+        )
+        request.user = self.super_admin
+        self.view = setup_view(self.view, request)
+
+        response = self.view.post(request)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
+    def test_post_deleted_setting_attributes(self):
+        """Test handling of deleted setting attributes"""
+        # Mark attribute as deleted
+        self.setting1_attribute1.is_deleted = True
+        self.setting1_attribute1.save()
+
+        request = self.request_factory.post(
+            self.base_url,
+            data=json.dumps(self.valid_data),
+            content_type='application/json'
+        )
+        request.user = self.super_admin
+        self.view = setup_view(self.view, request)
+
+        response = self.view.post(request)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
+    def test_post_multiple_conditions_same_user(self):
+        """Test when user meets multiple conditions"""
+        with patch('admin.project_limit_number.utils.check_logic_condition') as mock_check:
+            mock_check.return_value = True  # Meets all conditions
+
+            request = self.request_factory.post(
+                self.base_url,
+                data=json.dumps(self.valid_data),
+                content_type='application/json'
+            )
+            request.user = self.super_admin
+            self.view = setup_view(self.view, request)
+
+            response = self.view.post(request)
+            self.assertEqual(response.status_code, HTTPStatus.OK)
+
+            csv_rows = self.parse_to_csv(response)
+            self.assertNotEqual(len(csv_rows), 1)
+            csv_rows.pop(0)
+            for row in csv_rows:
+                self.assertEqual(row[-1], str(5))
+    def test_get_user_list(self):
+        """Test get user list function"""
+        user_list = self.view.get_user_list_met_logic_condition(
+            self.institution.id,
+            '',
+            '',
+            [],
+            []
+        )
+        self.assertEqual(len(user_list), 5)
+        for user in user_list:
+            self.assertIn('guid', user)
+            self.assertIn('username', user)
+            self.assertIn('fullname', user)
+            self.assertIn('eppn', user)
+
+    def test_get_user_list_with_logic_condition(self):
+        """Test get user list function with logic condition"""
+        logic_condition = "data -> 'idp_attr' ->> 'fullname' = %s"
+        user_list = self.view.get_user_list_met_logic_condition(
+            self.institution.id,
+            logic_condition,
+            '',
+            ['displayName1'],
+            []
+        )
+        self.assertEqual(len(user_list), 1)
+
+    def test_get_user_list_with_osf_query(self):
+        """Test get user list function with OSF user query"""
+        include_osf_query = f'u.username = %s'
+        user_list = self.view.get_user_list_met_logic_condition(
+            self.institution.id,
+            '',
+            include_osf_query,
+            [],
+            [self.users[0].username]
+        )
+        self.assertEqual(len(user_list), 1)
+
+    def test_get_user_list_with_multiple_osf_query(self):
+        """Test get user list function with multiple OSF user queries"""
+        include_osf_query = f'u.username = %s AND u.username = %s'
+        user_list = self.view.get_user_list_met_logic_condition(
+            self.institution.id,
+            '',
+            include_osf_query,
+            [],
+            [self.users[0].username, self.users[1].username]
+        )
+        self.assertEqual(len(user_list), 0)
+
+    def test_get_user_list_with_both_conditions(self):
+        """Test get user list function with both logic condition and OSF query"""
+        logic_condition = "data -> 'idp_attr' ->> 'fullname' = %s"
+        include_osf_query = f'u.username = %s'
+
+        user_list = self.view.get_user_list_met_logic_condition(
+            self.institution.id,
+            logic_condition,
+            include_osf_query,
+            ['displayName1'],
+            [self.users[0].username]
+        )
+        self.assertEqual(len(user_list), 1)
+
+    def test_create_csv_from_user_list(self):
+        """Test create CSV data from user list"""
+        test_users = [{
+            'guid': 'abc123',
+            'username': 'user1',
+            'fullname': 'Test User 1',
+            'eppn': 'user1@test.com',
+            'created_project_number': 5,
+            'project_limit_number': 10
+        }, {
+            'guid': 'def456',
+            'username': 'user2',
+            'fullname': 'Test User 2',
+            'eppn': 'user2@test.com',
+            'created_project_number': 3,
+            'project_limit_number': -1
+        }]
+
+        # Generate CSV response
+        response = self.view.create_csv_from_user_list(test_users)
+
+        # Assert content type
+        self.assertEqual(response['Content-Type'], 'text/csv')
+
+        # Assert Content-Disposition
+        self.assertIn('attachment; filename=', response['Content-Disposition'])
+
+        # Convert response content to readable format
+        content = response.content.decode('utf-8')
+        csv_reader = csv.reader(StringIO(content))
+        rows = list(csv_reader)
+
+        # Assert header row
+        self.assertEqual(rows[0], self.csv_header)
+
+        # Assert data rows
+        self.assertEqual(rows[1], [
+            'abc123',
+            'user1@test.com',
+            'user1',
+            'Test User 1',
+            '5',
+            '10'
+        ])
+
+        self.assertEqual(rows[2], [
+            'def456',
+            'user2@test.com',
+            'user2',
+            'Test User 2',
+            '3',
+            'No Limit'
+        ])
+
+        # Assert total number of rows
+        self.assertEqual(len(rows), 3)

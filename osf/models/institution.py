@@ -65,6 +65,9 @@ class Institution(DirtyFieldsMixin, Loggable, base.ObjectIDMixin, base.BaseModel
         related_name='institutions'
     )
 
+    login_availability_default = models.BooleanField(default=True)
+    login_logic_condition = models.TextField(null=True, blank=True)
+
     is_deleted = models.BooleanField(default=False, db_index=True)
     deleted = NonNaiveDateTimeField(null=True, blank=True)
 

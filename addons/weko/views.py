@@ -31,6 +31,7 @@ from admin.rdm_addons.decorators import must_be_rdm_addons_allowed
 from addons.metadata import SHORT_NAME as METADATA_SHORT_NAME
 from .deposit import deposit_metadata
 from .schema import get_available_schema_id
+from .schema.metadata_required import find_missing_required_fields, is_mebyo_schema
 
 
 logger = logging.getLogger('addons.weko.views')
@@ -298,25 +299,42 @@ def _publish_project_metadata(auth, node, addon, index_id, metadata_type, metada
     status_path = f'/_/{metadata_type}/{metadata_id}'
     addon.set_publish_task_id(status_path, None)
     logger.info(f'Metadata: {project_metadata}')
+
     files_text = project_metadata.get('grdm-files', {}).get('value', '')
-    if len(files_text) == 0:
+    files = json.loads(files_text) if files_text else []
+
+    if not files:
         logger.error(f'No files: {project_metadata}')
-        return HTTPError(http_status.HTTP_400_BAD_REQUEST)
-    files = json.loads(files_text)
-    if len(files) == 0:
-        logger.error(f'No files: {project_metadata}')
-        return HTTPError(http_status.HTTP_400_BAD_REQUEST)
-    filepaths = [file['path'] for file in files]
-    file_metadata = [{
-        'items': [
-            {
-                'schema': schema_id,
-                'data': file['metadata'],
-            }
-        ]
-    } for file in files]
+        if not is_mebyo_schema(schema_id):
+            return HTTPError(http_status.HTTP_400_BAD_REQUEST)
+        # 未病DBスキーマの場合はファイルメタデータ無しでも続行
+        filepaths = []
+        file_metadata = []
+    else:
+        filepaths = [file['path'] for file in files]
+        file_metadata = [{
+            'items': [
+                {
+                    'schema': schema_id,
+                    'data': file['metadata'],
+                }
+            ]
+        } for file in files]
+
+    # 未病DBスキーマ(required:true)に基づく必須チェック
+    if is_mebyo_schema(schema_id):
+        schema = RegistrationSchema.objects.get(_id=schema_id)
+        missing = find_missing_required_fields(schema.schema, project_metadata)
+        if missing:
+            msg = 'Required fields are missing: ' + ', '.join(missing)
+            logger.error(msg)
+            return HTTPError(http_status.HTTP_400_BAD_REQUEST, data={
+                'message_short': 'Missing required fields',
+                'message_long': msg,
+            })
+
     enqueue_task(deposit_metadata.s(
-        auth.user._id, index_id, node._id, node._id,
+        auth.user._id, index_id, node._id, metadata_id,
         schema_id, file_metadata, [project_metadata], filepaths, status_path,
     ))
     return _response_project_metadata(addon, metadata_type, metadata_id)

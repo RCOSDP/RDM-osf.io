@@ -354,7 +354,7 @@ TEMPORARY_PATH = '/tmp/'
 # Time out for calling copy API in Export/Restore processes
 EACH_FILE_EXPORT_RESTORE_TIME_OUT = 1800
 
-# Attribute list
+# Login access authentication attribute list
 ATTRIBUTE_NAME_LIST = [
     'Primary Email from GRDM',
     'mail',

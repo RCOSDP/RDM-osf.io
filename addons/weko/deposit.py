@@ -10,7 +10,7 @@ import bagit
 
 from framework.auth import Auth
 from framework.celery_tasks import app as celery_app
-from osf.models import AbstractNode, OSFUser
+from osf.models import AbstractNode, DraftRegistration, OSFUser
 
 import json
 from addons.metadata.packages import WaterButlerClient, BaseROCrateFactory
@@ -82,11 +82,13 @@ def _download(node, file, tmp_dir, total_size, relative_path=''):
             downloaded.append((child_path, child_type))
     return downloaded
 
+
 def _check_file_size(total_size):
     if total_size <= settings.MAX_UPLOAD_SIZE:
         return
     params = f'exported={total_size}, limit={settings.MAX_UPLOAD_SIZE}'
     raise IOError(f'Exported file size exceeded limit: {params}')
+
 
 @celery_app.task(bind=True, max_retries=5, default_retry_delay=60)
 def deposit_metadata(
@@ -115,6 +117,7 @@ def _build_payload_zip(
     node_id,
     flatten_ro_crate=True,
     skip_csv_generation=False,
+    base_host=None,
 ):
 
     from .models import RegistrationMetadataMapping
@@ -133,7 +136,7 @@ def _build_payload_zip(
     staged_files = all_files_from_metadata + additional_download_file_names
 
     for download_file_name, _ in staged_files:
-        file_in_bagit_path = os.path.join(bagit_dir, 'data', download_file_name)
+        file_in_bagit_path = os.path.join(bagit_dir, 'data', 'files', download_file_name)
         os.makedirs(os.path.dirname(file_in_bagit_path), exist_ok=True)
         shutil.copyfile(os.path.join(tmp_dir, download_file_name), file_in_bagit_path)
 
@@ -159,6 +162,7 @@ def _build_payload_zip(
         registration_schema_id=schema_id,
         filename='ro-crate-metadata.json',
     ).first()
+    ro_crate_schemaname = None
     if mapping_def_ro_crate_json is not None:
         with open(os.path.join(bagit_dir, 'data', 'ro-crate-metadata.json'), 'w', encoding='utf8') as f:
             schema.write_ro_crate_json(
@@ -171,7 +175,9 @@ def _build_payload_zip(
                 project_metadatas,
                 node_id,
                 flatten=flatten_ro_crate,
+                base_host=base_host,
             )
+        ro_crate_schemaname = mapping_def_ro_crate_json.rules['@metadata'].get('schemaname')
     if mapping_def_csv is None and mapping_def_ro_crate_json is None:
         logger.warning('No metadata mapping found')
     bag.save(manifests=True)
@@ -183,7 +189,8 @@ def _build_payload_zip(
                 file_path = os.path.join(root, file)
                 zipf.write(file_path, os.path.relpath(file_path, bagit_dir))
 
-    return zip_path, bagit_dir
+    return zip_path, bagit_dir, ro_crate_schemaname
+
 
 
 def _deposit_metadata(
@@ -193,6 +200,7 @@ def _deposit_metadata(
     task_request_id=None, update_task_state=None,
 ):
 
+    from .schema.constants_mebyo import MEBYO_SCHEMA_NAME
     user = OSFUser.load(user_id)
     logger.info(f'Deposit: {metadata_paths}, {status_path} {task_request_id}')
     node = AbstractNode.load(node_id)
@@ -286,7 +294,7 @@ def _deposit_metadata(
 
         # Packaging the files as BagIt
         skip_csv = len(file_metadatas) > 1
-        zip_path, bagit_dir = _build_payload_zip(
+        zip_path, bagit_dir, ro_crate_schemaname = _build_payload_zip(
             user,
             target_index,
             schema_id,
@@ -298,6 +306,7 @@ def _deposit_metadata(
             node_id,
             flatten_ro_crate=True,
             skip_csv_generation=skip_csv,
+            base_host=c._base_host,
         )
 
         headers = {
@@ -313,7 +322,12 @@ def _deposit_metadata(
                 'paths': metadata_paths,
             })
         logger.info(f'Uploading... {file_metadatas}')
-        respbody = c.deposit(files, headers=headers)
+
+        # 未病スキーマですでに WEKO 上にアイテムがある場合はバージョンアップ、それ以外の場合は新規作成
+        if ro_crate_schemaname == MEBYO_SCHEMA_NAME and schema.get_weko_item_id(project_metadatas):
+            respbody = c.version_upgrade_item(schema.get_weko_item_id(project_metadatas), files, headers=headers)
+        else:
+            respbody = c.deposit(files, headers=headers)
         logger.info(f'Uploaded: {respbody}')
 
         if update_task_state:
@@ -346,6 +360,29 @@ def _deposit_metadata(
                     'item_html_url': links[0]['@id'] if len(links) > 0 else None,
                 },
             )
+
+        if len(links) > 0 and ro_crate_schemaname == MEBYO_SCHEMA_NAME:
+            project_metadata = DraftRegistration.objects.filter(_id=metadata_node_id).first()
+
+            weko_id = None
+            try:
+                weko_id = respbody['@id'].split('/')[-1]
+            except (KeyError, IndexError, TypeError):
+                pass
+
+            if project_metadata and weko_id:
+                update_data = {
+                    'internal:weko-item-id': {
+                        'value': weko_id,
+                        'comments': [],
+                        'extra': [],
+                    },
+                }
+
+                project_metadata.update_metadata(update_data)
+
+                project_metadata.save()
+
         return {
             'result': links[0]['@id'] if len(links) > 0 else None,
             'paths': metadata_paths,

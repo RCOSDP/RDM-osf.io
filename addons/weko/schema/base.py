@@ -85,6 +85,8 @@ def _get_object_variables(o, prefix):
     return values
 
 def get_value(file_metadata, text, commonvars=None, schema=None):
+    if not isinstance(text, str):
+        return text
     values = _get_item_variables(file_metadata, schema=schema)
     if commonvars is not None:
         values.update(commonvars)

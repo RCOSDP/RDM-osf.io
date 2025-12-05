@@ -403,6 +403,7 @@ def create_schema_blocks_for_question(state, rs, question, sub=False):
                     display_text=question.get('title', '') or question.get('description', ''),
                     help_text=_help_text,
                     schema_block_group_key=schema_block_group_key,
+                    hide_projectmetadata=question.get('hide_projectmetadata', False),
                 )
                 create_schema_block(
                     state,
@@ -419,6 +420,7 @@ def create_schema_blocks_for_question(state, rs, question, sub=False):
                     suggestion=question.get('suggestion', None),
                     display_template=question.get('display_template', None),
                     row_addition_caption=question.get('row_addition_caption', ''),
+                    hide_projectmetadata=question.get('hide_projectmetadata', False),
                 )
             else:
                 create_schema_block(
@@ -436,6 +438,7 @@ def create_schema_blocks_for_question(state, rs, question, sub=False):
                     enabled_if=question.get('enabled_if', None),
                     suggestion=question.get('suggestion', None),
                     display_template=question.get('display_template', None),
+                    hide_projectmetadata=question.get('hide_projectmetadata', False),
                 )
         else:
             # the first subquestion has no text, so the "section" heading is better interpreted as a question label
@@ -461,7 +464,8 @@ def create_schema_blocks_for_question(state, rs, question, sub=False):
             help_text='' if description else help,
             example_text=example,
             readonly=question.get('readonly', False),
-            schema_block_group_key=schema_block_group_key
+            schema_block_group_key=schema_block_group_key,
+            hide_projectmetadata=question.get('hide_projectmetadata', False),
         )
 
         # Creates paragraph block (question description)
@@ -473,6 +477,7 @@ def create_schema_blocks_for_question(state, rs, question, sub=False):
                 display_text=description,
                 help_text=help,
                 schema_block_group_key=schema_block_group_key,
+                hide_projectmetadata=question.get('hide_projectmetadata', False),
             )
 
         # Creates question input block - this block will correspond to an answer
@@ -502,6 +507,7 @@ def create_schema_blocks_for_question(state, rs, question, sub=False):
             readonly=question.get('readonly', False),
             sentence=question.get('sentence', False),
             row_addition_caption=question.get('row_addition_caption', ''),
+            hide_projectmetadata=question.get('hide_projectmetadata', False),
         )
 
         # If there are multiple choice answers, create blocks for these as well.
@@ -529,6 +535,7 @@ def map_schemas_to_schemablocks(*args):
     for rs in RegistrationSchema.objects.all():
         logger.info('Migrating schema {}, version {} to schema blocks.'.format(rs.schema.get('name'), rs.schema_version))
         for page in rs.schema['pages']:
+            hide_projectmetadata_value = strip_html(page.get('hide_projectmetadata', False))
             # Create page heading block
             create_schema_block(
                 state,
@@ -536,9 +543,12 @@ def map_schemas_to_schemablocks(*args):
                 'page-heading',
                 display_text=strip_html(page.get('title', '')),
                 help_text=strip_html(page.get('description', '')),
-                concealment_page_navigator=strip_html(page.get('concealment_page_navigator', False))
+                concealment_page_navigator=strip_html(page.get('concealment_page_navigator', False)),
+                hide_projectmetadata=hide_projectmetadata_value
             )
             for question in page['questions']:
+                if hide_projectmetadata_value:
+                    question['hide_projectmetadata'] = True
                 create_schema_blocks_for_question(state, rs, question)
 
 
