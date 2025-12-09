@@ -1,4 +1,3 @@
-import mock
 from nose.tools import *  # noqa: F403
 import datetime as datetime
 import pytest
@@ -10,8 +9,6 @@ from django.core.exceptions import ValidationError, PermissionDenied
 from django.contrib.admin.sites import AdminSite
 from django.forms.models import model_to_dict
 from django.http import QueryDict
-from django.template.backends.django import DjangoTemplates, Template
-from django.template import Template as BaseTemplate
 
 from admin.base.schemas.utils import from_json
 from tests.base import AdminTestCase
@@ -20,7 +17,7 @@ from osf_tests.factories import SubjectFactory, UserFactory, RegistrationFactory
 
 from osf.models import Subject, OSFUser, Collection
 from osf.models.provider import rules_to_subjects
-from admin.base.utils import get_subject_rules, change_embargo_date, render_bad_request_response
+from admin.base.utils import get_subject_rules, change_embargo_date
 from osf.admin import OSFUserAdmin
 
 
@@ -258,12 +255,3 @@ class TestSchemaUtils:
     def test_from_json__file_not_found(self):
         with pytest.raises(Exception):
             from_json('file-info-schema2.json')
-
-
-class TestRenderBadRequestResponse:
-    @mock.patch('django.template.loader.get_template')
-    def test_render_bad_request_response(self, mock_get_template):
-        mock_get_template.return_value = Template(BaseTemplate(''), DjangoTemplates({'NAME': '', 'DIRS': '', 'APP_DIRS': '', 'OPTIONS': {}}))
-        response = render_bad_request_response(RequestFactory(), 'test')
-        assert response is not None
-        mock_get_template.assert_called()
