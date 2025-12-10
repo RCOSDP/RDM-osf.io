@@ -476,6 +476,17 @@
                     "affiliation-name-ja": "affiliation-name-ja",
                     "affiliation-name-en": "affiliation-name-en"
                   }
+                },
+                {
+                  "key": "kaken:erad",
+                  "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{kenkyukikan_mei}} (KAKEN)</small></span></div>",
+                  "autofill": {
+                    "number": "erad",
+                    "name-ja": "kenkyusha_shimei_ja_parts",
+                    "name-en": "kenkyusha_shimei_en_parts",
+                    "affiliation-name-ja": "kenkyukikan_mei_ja",
+                    "affiliation-name-en": "kenkyukikan_mei_en"
+                  }
                 }
               ]
             },
@@ -515,6 +526,17 @@
                         "../affiliation-name-ja": "affiliation-name-ja",
                         "../affiliation-name-en": "affiliation-name-en"
                       }
+                    },
+                    {
+                      "key": "kaken:kenkyusha_shimei",
+                      "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{kenkyukikan_mei}} (KAKEN)</small></span></div>",
+                      "autofill": {
+                        "../number": "erad",
+                        "../name-ja": "kenkyusha_shimei_ja_parts",
+                        "../name-en": "kenkyusha_shimei_en_parts",
+                        "../affiliation-name-ja": "kenkyukikan_mei_ja",
+                        "../affiliation-name-en": "kenkyukikan_mei_en"
+                      }
                     }
                   ]
                 },
@@ -547,6 +569,17 @@
                         "../affiliation-name-ja": "affiliation-name-ja",
                         "../affiliation-name-en": "affiliation-name-en"
                       }
+                    },
+                    {
+                      "key": "kaken:kenkyusha_shimei",
+                      "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{kenkyukikan_mei}} (KAKEN)</small></span></div>",
+                      "autofill": {
+                        "../number": "erad",
+                        "../name-ja": "kenkyusha_shimei_ja_parts",
+                        "../name-en": "kenkyusha_shimei_en_parts",
+                        "../affiliation-name-ja": "kenkyukikan_mei_ja",
+                        "../affiliation-name-en": "kenkyukikan_mei_en"
+                      }
                     }
                   ]
                 },
@@ -578,6 +611,17 @@
                         "../name-en": "name-en",
                         "../affiliation-name-ja": "affiliation-name-ja",
                         "../affiliation-name-en": "affiliation-name-en"
+                      }
+                    },
+                    {
+                      "key": "kaken:kenkyusha_shimei",
+                      "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{kenkyukikan_mei}} (KAKEN)</small></span></div>",
+                      "autofill": {
+                        "../number": "erad",
+                        "../name-ja": "kenkyusha_shimei_ja_parts",
+                        "../name-en": "kenkyusha_shimei_en_parts",
+                        "../affiliation-name-ja": "kenkyukikan_mei_ja",
+                        "../affiliation-name-en": "kenkyukikan_mei_en"
                       }
                     }
                   ]
@@ -620,6 +664,17 @@
                         "../affiliation-name-ja": "affiliation-name-ja",
                         "../affiliation-name-en": "affiliation-name-en"
                       }
+                    },
+                    {
+                      "key": "kaken:kenkyusha_shimei",
+                      "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{kenkyukikan_mei}} (KAKEN)</small></span></div>",
+                      "autofill": {
+                        "../number": "erad",
+                        "../name-ja": "kenkyusha_shimei_ja_parts",
+                        "../name-en": "kenkyusha_shimei_en_parts",
+                        "../affiliation-name-ja": "kenkyukikan_mei_ja",
+                        "../affiliation-name-en": "kenkyukikan_mei_en"
+                      }
                     }
                   ]
                 },
@@ -651,6 +706,17 @@
                         "../name-en": "name-en",
                         "../affiliation-name-ja": "affiliation-name-ja",
                         "../affiliation-name-en": "affiliation-name-en"
+                      }
+                    },
+                    {
+                      "key": "kaken:kenkyusha_shimei",
+                      "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{kenkyukikan_mei}} (KAKEN)</small></span></div>",
+                      "autofill": {
+                        "../number": "erad",
+                        "../name-ja": "kenkyusha_shimei_ja_parts",
+                        "../name-en": "kenkyusha_shimei_en_parts",
+                        "../affiliation-name-ja": "kenkyukikan_mei_ja",
+                        "../affiliation-name-en": "kenkyukikan_mei_en"
                       }
                     }
                   ]
@@ -684,6 +750,17 @@
                         "../affiliation-name-ja": "affiliation-name-ja",
                         "../affiliation-name-en": "affiliation-name-en"
                       }
+                    },
+                    {
+                      "key": "kaken:kenkyusha_shimei",
+                      "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{kenkyukikan_mei}} (KAKEN)</small></span></div>",
+                      "autofill": {
+                        "../number": "erad",
+                        "../name-ja": "kenkyusha_shimei_ja_parts",
+                        "../name-en": "kenkyusha_shimei_en_parts",
+                        "../affiliation-name-ja": "kenkyukikan_mei_ja",
+                        "../affiliation-name-en": "kenkyukikan_mei_en"
+                      }
                     }
                   ]
                 }
@@ -695,7 +772,20 @@
               "type": "string",
               "format": "text",
               "required": false,
-              "space_normalization": true
+              "space_normalization": true,
+              "suggestion": [
+                {
+                  "key": "kaken:kenkyukikan_mei",
+                  "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{kenkyukikan_mei}} (KAKEN)</small></span></div>",
+                  "autofill": {
+                    "number": "erad",
+                    "name-ja": "kenkyusha_shimei_ja_parts",
+                    "name-en": "kenkyusha_shimei_en_parts",
+                    "affiliation-name-ja": "kenkyukikan_mei_ja",
+                    "affiliation-name-en": "kenkyukikan_mei_en"
+                  }
+                }
+              ]
             },
             {
               "id": "affiliation-name-en",
@@ -703,7 +793,20 @@
               "type": "string",
               "format": "text",
               "required": false,
-              "space_normalization": true
+              "space_normalization": true,
+              "suggestion": [
+                {
+                  "key": "kaken:kenkyukikan_mei",
+                  "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{kenkyukikan_mei}} (KAKEN)</small></span></div>",
+                  "autofill": {
+                    "number": "erad",
+                    "name-ja": "kenkyusha_shimei_ja_parts",
+                    "name-en": "kenkyusha_shimei_en_parts",
+                    "affiliation-name-ja": "kenkyukikan_mei_ja",
+                    "affiliation-name-en": "kenkyukikan_mei_en"
+                  }
+                }
+              ]
             }
           ]
         },
