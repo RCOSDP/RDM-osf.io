@@ -161,8 +161,11 @@ const QuestionPage = oop.defclass({
   },
 
   _updateEnabledQuestionField: function(questionField, questionFields) {
+    const self = this;
     const cond = questionField.question.enabled_if;
-    questionField.updateEnabled(!cond || evaluateCond(cond, questionFields));
+    const commonValues = self.options.commonValues;
+    const defaultValues = self.options.defaultValues;
+    questionField.updateEnabled(!cond || evaluateCond(cond, questionFields, commonValues, defaultValues));
   },
 });
 
@@ -284,6 +287,7 @@ const QuestionField = oop.extend(Emitter, {
         } else {
           self.formField.disable(false);
         }
+        self.emit('change');
       });
       header.append(clearFormBlock);
     }
@@ -1655,12 +1659,20 @@ function createSuggestionButton(container, question, buttonSuggestions, options,
 
 // helper
 
-function evaluateCond(cond, questionFields) {
+function evaluateCond(cond, questionFields, commonValues, defaultValues) {
   const values = {};
   questionFields.forEach(function(field) {
+    const qid = field.question.qid;
     const value = field.getValue();
-    if (value != null && value !== '') {
-      values[field.question.qid] = value;
+    const cleared = field.checkedClear && field.checkedClear();
+    if (cleared) {
+      if (defaultValues && defaultValues[qid]) {
+        values[qid] = defaultValues[qid];
+      }
+    } else if (value != null && value !== '') {
+      values[qid] = value;
+    } else if (commonValues && commonValues[qid]) {
+      values[qid] = commonValues[qid];
     }
   });
   return sift(cond)(values);
