@@ -18,6 +18,7 @@ from addons.wiki import utils as wiki_utils
 from addons.wiki.models import WikiPage, WikiVersion, WikiImportTask
 from addons.wiki import tasks
 from addons.wiki.exceptions import ImportTaskAbortedError
+from osf.management.commands.import_EGAP import get_creator_auth_header
 from osf.models.files import BaseFileNode
 from rest_framework import status as http_status
 
@@ -357,7 +358,7 @@ def project_wiki_view(auth, wname, path=None, **kwargs):
 def _get_import_folder(node):
     # Get import folder
     root_dir = BaseFileNode.objects.filter(target_object_id=node.id, is_root=True).values('id').first()
-    parent_dirs = BaseFileNode.objects.filter(target_object_id=node.id, type='osf.osfstoragefolder', parent=root_dir['id'], deleted__isnull=True)
+    parent_dirs = BaseFileNode.objects.filter(target_object_id=node.id, type='osf.osfstoragefolder', parent=root_dir['id'], deleted__isnull=True).order_by('name')
     import_dirs = []
     for parent_dir in parent_dirs:
         wiki_dirs = BaseFileNode.objects.filter(target_object_id=node.id, type='osf.osfstoragefolder', parent=parent_dir.id, deleted__isnull=True)
@@ -881,11 +882,10 @@ def project_wiki_import_process(data, dir_id, task_id, auth, node):
     user = auth.user
     pid = node.guids.first()._id
     osf_cookie = user.get_or_create_cookie().decode()
-    # Create auth header using cookie for internal API calls
-    cookie_auth = {'Cookie': 'osf={}'.format(osf_cookie)}
+    creator, creator_auth = get_creator_auth_header(user)
     task = AbortableAsyncResult(task_id, app=celery_app)
     # GET markdown content from wb
-    wiki_info = _get_md_content_from_wb(data, node, cookie_auth, task)
+    wiki_info = _get_md_content_from_wb(data, node, creator_auth, task)
     if wiki_info is None:
         set_wiki_import_task_proces_end(node)
         logger.info('wiki import process is stopped')
@@ -893,10 +893,10 @@ def project_wiki_import_process(data, dir_id, task_id, auth, node):
     logger.info('got markdown content from wb')
     # Get or create 'Wiki images'
     root_id = BaseFileNode.objects.get(target_object_id=node.id, is_root=True).id
-    wiki_images_folder_id, wiki_images_folder_path = _get_or_create_wiki_folder(osf_cookie, node, root_id, user, cookie_auth, WIKI_IMAGE_FOLDER)
+    wiki_images_folder_id, wiki_images_folder_path = _get_or_create_wiki_folder(osf_cookie, node, root_id, user, creator_auth, WIKI_IMAGE_FOLDER)
     logger.info('got or created Wiki images folder')
     # Get or create 'Imported Wiki workspace (temporary)'
-    wiki_import_folder_id, wiki_import_folder_path = _get_or_create_wiki_folder(osf_cookie, node, wiki_images_folder_id, user, cookie_auth, WIKI_IMPORT_FOLDER, wiki_images_folder_path)
+    wiki_import_folder_id, wiki_import_folder_path = _get_or_create_wiki_folder(osf_cookie, node, wiki_images_folder_id, user, creator_auth, WIKI_IMPORT_FOLDER, wiki_images_folder_path)
     logger.info('got or created Imported Wiki workspace (temporary) folder')
     random_name = ''.join(random.choices(string.ascii_letters + string.digits, k=10))
     # Create folder sorting copy import directory
