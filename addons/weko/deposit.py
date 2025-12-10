@@ -195,7 +195,6 @@ def _build_payload_zip(
     return zip_path, bagit_dir, ro_crate_schemaname
 
 
-
 def _deposit_metadata(
     user_id, index_id, node_id, metadata_node_id,
     schema_id, file_metadatas, project_metadatas, metadata_paths, status_path,
