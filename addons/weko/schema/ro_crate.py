@@ -645,7 +645,9 @@ def write_ro_crate_json(user, f, target_index, download_file_names, schema_id, f
 
         files = entry_object.get('file', [])
         for (filename, _), entity in zip(entry['download_file_names'], files):
-            entity['@id'] = f'data/{filename}'
+            # TODO: Change to f'files/{filename}' once RCOSDP/weko#1746 is merged.
+            # The path should be relative to ro-crate-metadata.json (located in data/).
+            entity['@id'] = f'data/files/{filename}'
 
         if flatten:
             entry_entities = _flatten_json_ld_root(entry_object, counts=counts)

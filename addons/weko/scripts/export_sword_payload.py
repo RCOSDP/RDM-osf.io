@@ -198,7 +198,7 @@ def _generate_payload(config, output_path, fmt, flatten_ro_crate, log_level, ski
         download_file_names = [_stage_files(files, tmp_dir) for files in config['files']]
         additional_download_file_names = _stage_files(additional_files, tmp_dir)
 
-        zip_path, bagit_dir = _build_payload_zip(
+        zip_path, bagit_dir, _ = _build_payload_zip(
             user,
             target_index,
             schema_id,

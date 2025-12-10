@@ -117,6 +117,7 @@ def _build_payload_zip(
     node_id,
     flatten_ro_crate=True,
     skip_csv_generation=False,
+    skip_ro_crate_generation=False,
     base_host=None,
 ):
 
@@ -158,10 +159,12 @@ def _build_payload_zip(
                     project_metadatas,
                 )
 
-    mapping_def_ro_crate_json = RegistrationMetadataMapping.objects.filter(
-        registration_schema_id=schema_id,
-        filename='ro-crate-metadata.json',
-    ).first()
+    mapping_def_ro_crate_json = None
+    if not skip_ro_crate_generation:
+        mapping_def_ro_crate_json = RegistrationMetadataMapping.objects.filter(
+            registration_schema_id=schema_id,
+            filename='ro-crate-metadata.json',
+        ).first()
     ro_crate_schemaname = None
     if mapping_def_ro_crate_json is not None:
         with open(os.path.join(bagit_dir, 'data', 'ro-crate-metadata.json'), 'w', encoding='utf8') as f:
@@ -293,7 +296,8 @@ def _deposit_metadata(
         # target_index = ''
 
         # Packaging the files as BagIt
-        skip_csv = len(file_metadatas) > 1
+        skip_csv = len(file_metadatas) > 1 or not settings.ENABLE_CSV_GENERATION
+        skip_ro_crate = not settings.ENABLE_RO_CRATE_GENERATION
         zip_path, bagit_dir, ro_crate_schemaname = _build_payload_zip(
             user,
             target_index,
@@ -306,6 +310,7 @@ def _deposit_metadata(
             node_id,
             flatten_ro_crate=True,
             skip_csv_generation=skip_csv,
+            skip_ro_crate_generation=skip_ro_crate,
             base_host=c._base_host,
         )
 

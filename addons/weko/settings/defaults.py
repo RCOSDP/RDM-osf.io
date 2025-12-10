@@ -10,4 +10,7 @@ DEFAULT_TIMEOUT = 30  # seconds
 
 # Default OAuth2 scopes for WEKO repositories
 # Can be a list of scopes or a callable that takes repo_settings and returns a list
-DEFAULT_APPLICATION_SCOPES = ['deposit:actions deposit:write index:create user:activity user:email']
+DEFAULT_APPLICATION_SCOPES = ['item:create deposit:actions deposit:write index:create user:activity user:email']
+
+ENABLE_CSV_GENERATION = True
+ENABLE_RO_CRATE_GENERATION = True

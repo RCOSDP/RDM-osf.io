@@ -28,7 +28,7 @@ def _generate_file_columns(index, download_file_name, download_file_type):
         f'.ファイルパス[{index}]',
         '',
         'Allow Multiple',
-        download_file_name
+        f'files/{download_file_name}'
     ))
     return columns
 
