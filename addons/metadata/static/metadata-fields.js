@@ -1345,6 +1345,9 @@ const ObjectFormField = oop.extend(FormFieldInterface, {
 
 function validateField(question, value, questionFields, options) {
   const multiple = (options || {}).multiple;
+  if (question.enabled_if && !evaluateCond(question.enabled_if, questionFields)) {
+    return;
+  }
   validateRequired(question, value, questionFields, multiple);
   validatePattern(question, value);
 }
@@ -1357,9 +1360,6 @@ function validatePattern(question, value) {
 
 function validateRequired(question, value, questionFields, multiple) {
   if (multiple || value) {
-    return;
-  }
-  if (question.enabled_if && !evaluateCond(question.enabled_if, questionFields)) {
     return;
   }
   const cond = question.required_if;
