@@ -271,7 +271,7 @@
           "type": "string",
           "format": "text",
           "required": false,
-          "pattern": "^10\\.[0-9]{4,}(/[-._;()/:a-zA-Z0-9]+)*$",
+          "pattern": "^(https?://doi\\.org/)?10\\.[0-9]{4,}(/[-._;()/:a-zA-Z0-9]+)*$",
           "help": "例: 10.1234/5678|E.g., 10.1234/5678",
           "enabled_if": {
             "grdm-file:file-type": "manuscript"
@@ -1291,7 +1291,7 @@
           "type": "string",
           "format": "text",
           "required": false,
-          "pattern": "^[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)$",
+          "pattern": "^(https?://)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)$",
           "help": "例: https://example.com/example|E.g., https://example.com/example",
           "suggestion": [
             {
@@ -1308,7 +1308,7 @@
           "qid": "grdm-file:publication-link",
           "nav": "学術論文を掲載した「機関リポジトリ等の情報基盤」のDOI",
           "title": "学術論文を掲載した「機関リポジトリ等の情報基盤」のDOI|DOI of the institutional repository or other information infrastructure where the academic paper is published",
-          "pattern": "^10\\.[0-9]{4,}(/[-._;()/:a-zA-Z0-9]+)*$",
+          "pattern": "^(https?://doi\\.org/)?10\\.[0-9]{4,}(/[-._;()/:a-zA-Z0-9]+)*$",
           "help": "例: 10.1234/5678|E.g., 10.1234/5678",
           "type": "string",
           "format": "text",
@@ -1321,7 +1321,7 @@
           "qid": "grdm-file:dataset-link",
           "nav": "根拠データを掲載した「機関リポジトリ等の情報基盤」のDOI",
           "title": "根拠データを掲載した「機関リポジトリ等の情報基盤」のDOI|DOI of the institutional repository or other information infrastructure where the supplemental data is published",
-          "pattern": "^10\\.[0-9]{4,}(/[-._;()/:a-zA-Z0-9]+)*$",
+          "pattern": "^(https?://doi\\.org/)?10\\.[0-9]{4,}(/[-._;()/:a-zA-Z0-9]+)*$",
           "help": "例: 10.1234/5678|E.g., 10.1234/5678",
           "type": "string",
           "format": "text",
