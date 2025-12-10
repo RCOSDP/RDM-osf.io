@@ -53,8 +53,8 @@ def get_creator_auth_header(creator_username):
     creator = OSFUser.objects.get(username=creator_username)
 
     token, created = ApiOAuth2PersonalToken.objects.get_or_create(name='egap_creator', owner=creator)
-    if created:
-        token.save()
+    token.scopes = 'osf.full_read'
+    token.save()
 
     return creator, {'Authorization': 'Bearer {}'.format(token.token_id)}
 
