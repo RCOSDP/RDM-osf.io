@@ -141,7 +141,7 @@ def simplify_subitem(data, field_name, key_name, base_id, lang, cnt):
                     new_entries.append(new_entry)
                 return new_entries, cnt
         except (TypeError, ValueError, json.JSONDecodeError) as exc:
-            logger.debug('Could not parse %s: %s', field_name, exc)
+            logger.warning('Could not parse %s: %s', field_name, exc)
     return [], cnt
 
 
@@ -315,7 +315,7 @@ def _flatten_json_ld_root(object, counts=None):
                         try:
                             subitems = json.loads(item['subitem_filename'])
                         except (TypeError, ValueError) as exc:
-                            logger.debug('Could not parse subitem_filename: %s', exc)
+                            logger.warning('Could not parse subitem_filename: %s', exc)
                         else:
                             if isinstance(subitems, list) and subitems:
                                 new_entries = []
