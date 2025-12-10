@@ -9221,5 +9221,8 @@ msgstr ""
 msgid "The new project cannot be created due to the created project number is greater than or equal the project number can create."
 msgstr ""
 
+msgid "Not enough quota to upload. The total size of all files is %1$s."
+msgstr ""
+
 msgid "The Integrated Admin added ${contributors} as contributor(s) to ${node}"
 msgstr ""
