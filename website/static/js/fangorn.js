@@ -1044,8 +1044,12 @@ function _fangornDropzoneDrop(treebeard, event) {
     treebeard.select('.tb-row').removeClass(dropzoneHoverClass);
     var files = event.dataTransfer.files;
     var totalFilesSize = 0;
+    var lastFile;
     for (var i = 0; i < files.length; i++) {
         totalFilesSize += files[i].size;
+        if (i === files.length-1) {
+            lastFile = files[i];
+        }
     }
 
     var item = treebeard.dropzoneItemCache;
@@ -1055,6 +1059,7 @@ function _fangornDropzoneDrop(treebeard, event) {
     }
 
     // check upload quota for upload folder
+    treebeard.dropzone.options.limitQuota = false;
     if (provider === 'osfstorage' || provider === 's3compatinstitutions') {
         // call api get used quota and max quota
         var quota = $.ajax({
@@ -1062,22 +1067,20 @@ function _fangornDropzoneDrop(treebeard, event) {
             method: 'GET',
             url: item.data.nodeApiUrl + 'get_creator_quota/',
         });
-
-        if (!quota.responseJSON) {
-            $osf.growl('Error', sprintf(gettext('Cannot get quota information.'),
-            formatProperUnit(totalFilesSize)),
-            'danger', 5000);
-            treebeard.dropzone.options.limitQuota = true;
+        if (!quota.responseJSON){
             return;
         }
-
         quota = quota.responseJSON;
         if (parseFloat(quota.used) + parseFloat(totalFilesSize) > quota.max) {
-            $osf.growl('Error', sprintf(gettext('Not enough quota to upload. The total size of all files is %1$s.'),
-            formatProperUnit(totalFilesSize)),
-            'danger', 5000);
             treebeard.dropzone.options.limitQuota = true;
+            treebeard.dropzone.options.lastFile = lastFile;
             return;
+        } else if (parseFloat(quota.used) + parseFloat(totalFilesSize) > quota.max * window.contextVars.threshold) {
+            $osf.growl(
+                gettext('Quota usage alert'),
+                sprintf(gettext('You have used more than %1$s%% of your quota.'),(window.contextVars.threshold * 100)),
+                'warning'
+            );
         }
     }
     // Set Dropzone settings for upload multiple file
@@ -1085,7 +1088,6 @@ function _fangornDropzoneDrop(treebeard, event) {
     if (providerSettings && providerSettings.parallelNum && providerSettings.fileSizeThreshold) {
         treebeard.dropzone.options.parallelUploads = providerSettings.parallelNum;
         treebeard.dropzone.options.fileSizeThreshold = providerSettings.fileSizeThreshold;
-        treebeard.dropzone.options.limitQuota = false;
     }
 }
 /**
@@ -1306,6 +1308,7 @@ function _uploadEvent(event, item, col) {
         }
 
         // check upload quota for upload folder
+        self.dropzone.options.limitQuota = false;
         if (provider === 'osfstorage' || provider === 's3compatinstitutions') {
             // call api get used quota and max quota
             var quota = $.ajax({
@@ -1313,20 +1316,23 @@ function _uploadEvent(event, item, col) {
                 method: 'GET',
                 url: item.data.nodeApiUrl + 'get_creator_quota/',
             });
-
-            if (!quota.responseJSON) {
-                self.dropzone.options.limitQuota = true;
+            if (!quota.responseJSON){
                 return;
             }
-
             quota = quota.responseJSON;
 
             if (parseFloat(quota.used) + parseFloat(totalFilesSize) > quota.max) {
-                $osf.growl('Error', sprintf(gettext('Not enough quota to upload. The total size of all files is %1$s.'),
-                    formatProperUnit(totalFilesSize)),
-                    'danger', 5000);
+                self.dropzone.options.limitQuota = true;
+                var msgText = gettext('Not enough quota to upload the file.');
+                item.notify.update(msgText, 'warning', undefined, 3000);
                 self.uploadStates = [];
                 return;
+            } else if (parseFloat(quota.used) + parseFloat(totalFilesSize) > quota.max * window.contextVars.threshold) {
+                $osf.growl(
+                    gettext('Quota usage alert'),
+                    sprintf(gettext('You have used more than %1$s%% of your quota.'),(window.contextVars.threshold * 100)),
+                    'warning'
+                );
             }
         }
         // Set Dropzone settings for upload multiple file
@@ -1338,7 +1344,6 @@ function _uploadEvent(event, item, col) {
             // Default settings
             self.dropzone.options.parallelUploads = 1;
         }
-        self.dropzone.options.limitQuota = false;
 
         // Add files to Treebeard
         for (var i = 0; i < files.length; i++) {
@@ -1436,6 +1441,13 @@ function _uploadFolderEvent(event, item, mode, col) {
                 formatProperUnit(totalFilesSize)),
                 'danger', 5000);
                 return;
+            }
+            if (parseFloat(quota.used) + parseFloat(totalFilesSize) > quota.max * window.contextVars.threshold) {
+                $osf.growl(
+                    gettext('Quota usage alert'),
+                    sprintf(gettext('You have used more than %1$s%% of your quota.'),(window.contextVars.threshold * 100)),
+                    'warning'
+                );
             }
         }
         // Set Dropzone settings for upload folder\
@@ -4150,10 +4162,15 @@ tbOptions = {
         if (_fangornCanDrop(treebeard, item)) {
             var limitQuota = treebeard.dropzone.options.limitQuota || false;
             if (limitQuota) {
+                if (file === treebeard.dropzone.options.lastFile) {
+                    msgText = gettext('Not enough quota to upload the file.');
+                    item.notify.update(msgText, 'warning', undefined, 3000);
+                }
                 addFileStatus(treebeard, file, false, msgText, '');
                 removeFromUI(file, treebeard);
                 return false;
             }
+
             if (item.data.accept && item.data.accept.maxSize) {
                 size = file.size / 1000000;
                 maxSize = item.data.accept.maxSize;
