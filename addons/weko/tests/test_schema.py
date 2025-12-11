@@ -825,7 +825,7 @@ class TestWEKOSchema(OsfTestCase):
       "wk:isSplited": false,
       "hasPart": [
         {
-          "@id": "data/files/test.jpg"
+          "@id": "files/test.jpg"
         }
       ]
     },
@@ -1160,7 +1160,7 @@ class TestWEKOSchema(OsfTestCase):
       "jpcoar:mimeType": "image/jpeg",
       "jpcoar:format": "preview",
       "name": "test.jpg",
-      "@id": "data/files/test.jpg"
+      "@id": "files/test.jpg"
     },
     {
       "@id": "ro-crate-metadata.json",
@@ -1346,7 +1346,7 @@ class TestWEKOSchema(OsfTestCase):
 
         assert_equal(
             [part['@id'] for part in dataset_primary['hasPart']],
-            ['data/files/sample-manuscript.pdf']
+            ['files/sample-manuscript.pdf']
         )
         # Each supporting dataset now has only one file
         supporting_files = sorted([
@@ -1354,7 +1354,7 @@ class TestWEKOSchema(OsfTestCase):
             for dataset_supporting in datasets_supporting
             for part in dataset_supporting['hasPart']
         ])
-        assert_equal(supporting_files, ['data/files/supporting-data-1.csv', 'data/files/supporting-data-2.csv'])
+        assert_equal(supporting_files, ['files/supporting-data-1.csv', 'files/supporting-data-2.csv'])
 
         assert_equal(dataset_primary['name'], 'MAIN ARTICLE')
         assert_equal(dataset_primary['description'], 'Primary manuscript')
@@ -1420,17 +1420,17 @@ class TestWEKOSchema(OsfTestCase):
         assert_equal(
             set(file_entities.keys()),
             {
-                'data/files/sample-manuscript.pdf',
-                'data/files/supporting-data-1.csv',
-                'data/files/supporting-data-2.csv',
+                'files/sample-manuscript.pdf',
+                'files/supporting-data-1.csv',
+                'files/supporting-data-2.csv',
             }
         )
-        assert_equal(file_entities['data/files/sample-manuscript.pdf']['jpcoar:mimeType'], 'application/pdf')
-        assert_equal(file_entities['data/files/sample-manuscript.pdf']['jpcoar:format'], 'preview')
-        assert_equal(file_entities['data/files/supporting-data-1.csv']['jpcoar:mimeType'], 'text/csv')
-        assert_equal(file_entities['data/files/supporting-data-1.csv']['jpcoar:format'], 'preview')
-        assert_equal(file_entities['data/files/supporting-data-2.csv']['jpcoar:mimeType'], 'text/csv')
-        assert_equal(file_entities['data/files/supporting-data-2.csv']['jpcoar:format'], 'preview')
+        assert_equal(file_entities['files/sample-manuscript.pdf']['jpcoar:mimeType'], 'application/pdf')
+        assert_equal(file_entities['files/sample-manuscript.pdf']['jpcoar:format'], 'preview')
+        assert_equal(file_entities['files/supporting-data-1.csv']['jpcoar:mimeType'], 'text/csv')
+        assert_equal(file_entities['files/supporting-data-1.csv']['jpcoar:format'], 'preview')
+        assert_equal(file_entities['files/supporting-data-2.csv']['jpcoar:mimeType'], 'text/csv')
+        assert_equal(file_entities['files/supporting-data-2.csv']['jpcoar:format'], 'preview')
 
         # Manuscript has links to both supporting datasets
         itemlinks_primary = property_entities(dataset_primary, 'wk:itemLinks')
