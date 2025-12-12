@@ -335,6 +335,10 @@ msgstr ""
 msgid "File size exceeds the maximum allowed size."
 msgstr ""
 
+#: addons/metadata/static/metadata-fields.js:1558
+msgid "No metadata found."
+msgstr ""
+
 #: addons/metadata/static/metadataNodeConfig.js:156
 msgid "Add-on settings configured."
 msgstr ""

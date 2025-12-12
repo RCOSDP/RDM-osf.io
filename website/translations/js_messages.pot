@@ -333,6 +333,10 @@ msgstr ""
 msgid "File size exceeds the maximum allowed size."
 msgstr ""
 
+#: addons/metadata/static/metadata-fields.js:1558
+msgid "No metadata found."
+msgstr ""
+
 #: addons/twofactor/static/twoFactorUserConfig.js:148
 #: addons/twofactor/static/twoFactorUserConfig.js:190
 #: addons/weko/static/wekoFangornConfig.js:621

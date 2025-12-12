@@ -303,6 +303,10 @@ msgstr "このフィールドは必須項目です。"
 msgid "Overwrite already entered value?"
 msgstr "すでに入力されている値を上書きしますか？"
 
+#: addons/metadata/static/metadata-fields.js:1558
+msgid "No metadata found."
+msgstr "メタデータが見つかりません。"
+
 #: addons/metadata/static/metadataImportDatasetButton.js:26
 #: addons/metadata/static/metadataImportDatasetButton.js:57
 #: addons/metadata/static/metadataImportDatasetButton.js:261

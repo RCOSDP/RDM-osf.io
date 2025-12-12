@@ -1554,6 +1554,8 @@ function createSuggestionButton(container, question, buttonSuggestions, options,
             container.after(
               '<div class="'+name+'" style="color: red;">'+ _("File size exceeds the maximum allowed size.")+'</div>'
              );
+          } else if (value === null || value === undefined) {
+            errorContainer.text(_('No metadata found.')).show();
           } else{
             onSuggested(value, suggestion);
           }
