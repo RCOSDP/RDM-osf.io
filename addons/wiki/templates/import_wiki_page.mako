@@ -1,3 +1,4 @@
+## -*- coding: utf-8 -*-
 <%def name="stylesheets()">
     ${parent.stylesheets()}
     <link rel="stylesheet" href="/static/css/pages/wiki-page.css">
@@ -39,7 +40,7 @@
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     <h3 class="modal-title">${_("Duplicate wiki name")}</h3>
                 </div><!-- end modal-header -->
-                <div class="modal-body" style="height: 250px;overflow: auto;">
+                <div class="modal-body" style="height: 550px;overflow: auto;">
                     <p id="attentionValidateInfo" class="partOperationAll" style="display: none">
                         ${_('The following wiki page already exists. Please select the process when importing. When creating a new wiki, the wiki name will be created with a sequential number like [Wiki name](1). If you dismiss this alert, the import will be aborted.')}
                     </p>
@@ -115,6 +116,15 @@
         const WIKI_IMPORT_TIMEOUT = WIKI_IMPORT_INTERVAL * IMPORT_N;
         const WIKI_IMPORT_OPERATION = 'import';
         const VALIDATE_WIKI_IMPORT_OPERATION = 'validate';
+        const MAX_DISPLAY_NAME_LENGTH = 60; // Maximum number of characters to display
+
+        // Function to truncate file name for display
+        function truncateFileName(fileName, maxLength) {
+            if (!fileName || fileName.length <= maxLength) {
+                return fileName;
+            }
+            return fileName.substring(0, maxLength) + '...';
+        }
 
         $wikiImportForm.on('submit', async function (e) {
             e.preventDefault();
@@ -295,11 +305,15 @@
                     if (item.status === 'valid_exists') {
                         valid_exists_ctn++;
                         $alertInfoForm.find('.partOperationAll').css('display', '');
-                        $('#validateInfo ul').append('<li>' + (item.path).slice(1) + '</li>')
-                        $('#perFileDifinitionForm ul').append('<li id="' + (item.path).slice(1) + '" name="WikiImportOperationPerItem">' + '<div name="WikiImportOperationPerName">' +  (item.path).slice(1) + '</div>' + selectOperation + '</li>');
+                        var displayPath = (item.path).slice(1);
+                        var truncatedPath = truncateFileName(displayPath, MAX_DISPLAY_NAME_LENGTH);
+                        $('#validateInfo ul').append('<li title="' + displayPath + '">' + truncatedPath + '</li>')
+                        $('#perFileDifinitionForm ul').append('<li id="' + (item.path).slice(1) + '" name="WikiImportOperationPerItem">' + '<div name="WikiImportOperationPerName" title="' + displayPath + '">' + truncatedPath + '</div>' + selectOperation + '</li>');
                     } else if (item.status === 'valid_duplicated'){
                         $('#attentionDuplicatedInfo').css('display', '');
-                        $('#duplicatedInfo ul').append('<li>' + (item.path).slice(1) + '</li>')
+                        var displayPath = (item.path).slice(1);
+                        var truncatedPath = truncateFileName(displayPath, MAX_DISPLAY_NAME_LENGTH);
+                        $('#duplicatedInfo ul').append('<li title="' + displayPath + '">' + truncatedPath + '</li>')
                     }
                 });
                 if (valid_exists_ctn === 0) {
