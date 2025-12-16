@@ -322,10 +322,11 @@ class UserNodes(JSONAPIBaseView, generics.ListAPIView, UserMixin, UserNodesFilte
     def get_default_queryset(self):
         user = self.get_user()
         # Nodes the requested user has read_permissions on
+        user.include_mapcore_groups = True
         default_queryset = user.nodes_contributor_or_group_member_to
         if user != self.request.user:
             # Further restrict UserNodes to nodes the *requesting* user can view
-            return Node.objects.get_nodes_for_user(self.request.user, base_queryset=default_queryset, include_public=True)
+            return Node.objects.get_nodes_for_user(self.request.user, base_queryset=default_queryset, include_public=True, include_mapcore_groups=True)
         return self.optimize_node_queryset(default_queryset)
 
     # overrides ListAPIView

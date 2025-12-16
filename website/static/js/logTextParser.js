@@ -17,7 +17,7 @@ var nodeCategories = require('json-loader!built/nodeCategories.json');
 
 //Used when calling getContributorList to limit the number of contributors shown in a single log when many are mentioned
 var numContributorsShown = 3;
-
+var numMapcoreGroupsShown = 3;
 /**
  * Utility function to not repeat logging errors to Sentry
  * @param message {String} Custom message for error
@@ -139,6 +139,38 @@ var getContributorList = function (contributors, maxShown){
                }
        }}
        return contribList;
+};
+
+/**
+ * Returns a list of mapcore groups to show in log as well as the trailing punctuation/text after each group.
+ * If a group has a OSF profile, group is returned as a mithril link to user.
+ * @param mapcoreGroups {string} The list of mapcore groups (OSF users or unregistered)
+ * @param maxShown {int} the number of mapcore groups shown before saying "and # others"
+ * Note: if there is only 1 over maxShown, all mapcore groups are shown
+ * @returns {array}
+ */
+var getMapcoreGroupList = function (mapcoreGroups, maxShown){
+       var mapcoreGroupList = [];
+       var justOneMore = numMapcoreGroupsShown === mapcoreGroups.length -1;
+       for(var i = 0; i < mapcoreGroups.length; i++){
+           var item = mapcoreGroups[i];
+           var comma = '';
+           if(i !== mapcoreGroups.length -1 && ((i !== maxShown -1) || justOneMore)){
+               comma = ', ';
+           }
+           if(i === mapcoreGroups.length -2 || ((i === maxShown -1) && !justOneMore) && (i !== mapcoreGroups.length -1)) {
+               if (mapcoreGroups.length === 2)
+                   comma = ' and ';
+               else
+                   comma = ', and ';
+           }
+
+           if (i === maxShown && !justOneMore){
+               mapcoreGroupList.push([((mapcoreGroups.length - i).toString() + ' others'), ' ']);
+               return mapcoreGroupList;
+           }
+           mapcoreGroupList.push([item.name, comma]);}
+       return mapcoreGroupList;
 };
 
 var LogText = {
@@ -274,6 +306,16 @@ var LogPieces = {
             var contributors = logObject.attributes.params.contributors;
             if(paramIsReturned(contributors, logObject)) {
                 return m('span', getContributorList(contributors, numContributorsShown));
+            }
+            return m('span', 'some users');
+        }
+    },
+    // Mapcore group list of added, updated etc.
+    mapcore_groups: {
+        view: function (ctrl, logObject) {
+            var mapcoreGroups = logObject.attributes.params.mapcore_groups;
+            if(paramIsReturned(mapcoreGroups, logObject)) {
+                return m('span', getMapcoreGroupList(mapcoreGroups, numMapcoreGroupsShown));
             }
             return m('span', 'some users');
         }

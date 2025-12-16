@@ -1280,6 +1280,16 @@ def make_url_map(app):
 
         Rule(
             [
+                '/project/<pid>/groups/',
+                '/project/<pid>/node/<nid>/groups/',
+            ],
+            'get',
+            project_views.node.node_groups,
+            OsfWebRenderer('project/groups.mako', trust=False),
+        ),
+
+        Rule(
+            [
                 '/project/<pid>/settings/',
                 '/project/<pid>/node/<nid>/settings/',
             ],

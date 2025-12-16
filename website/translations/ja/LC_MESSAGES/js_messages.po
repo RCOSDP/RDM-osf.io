@@ -4216,8 +4216,8 @@ msgid "Storage location"
 msgstr "ストレージロケーション"
 
 #: website/static/js/addProjectPlugin.js:251
-msgid " Add contributors from "
-msgstr "次からメンバーを追加する："
+msgid " Add contributors and groups from "
+msgstr "次からメンバーとグループを追加する："
 
 #: website/static/js/addProjectPlugin.js:253
 msgid " Admins of "
@@ -10557,3 +10557,73 @@ msgstr "作成したプロジェクト数が作成可能なプロジェクトの
 
 msgid "The Integrated Admin added ${contributors} as contributor(s) to ${node}"
 msgstr "統合管理者代理アカウントが${contributors}をコントリビューターとして${node}に追加しました"
+
+msgid "${user} added group ${mapcore_groups} to ${node}"
+msgstr "${user}が${mapcore_groups}グループを${node}に追加しました"
+
+msgid "${user} removed group ${mapcore_groups} from ${node}"
+msgstr "${user}が${node}から${mapcore_groups}グループを削除しました"
+
+msgid "${user} updated group permissions on ${node}"
+msgstr "${user}が${node}のグループ権限を変更しました"
+
+msgid "Add Groups"
+msgstr "グループを追加"
+
+msgid "Remove Group"
+msgstr "グループを削除"
+
+msgid "Your group list has unsaved changes. Please "
+msgstr "グループリストには未保存の変更があります。 "
+
+msgid "save or cancel your changes before adding groups."
+msgstr "グループを追加する前に、変更を保存またはキャンセルしてください。"
+
+msgid "Unable to delete Group"
+msgstr "グループを削除できません"
+
+msgid "Could not DELETE Group."
+msgstr "グループを削除できませんでした"
+
+msgid "There was a problem trying to add groups%1$s."
+msgstr "グループ%1$sを追加しようとして問題が発生しました。"
+
+msgid "There was a problem trying to add the group."
+msgstr "グループを追加しようとして問題が発生しました。"
+
+msgid "Could not add groups"
+msgstr "グループを追加できませんでした"
+
+msgid "Could not add group"
+msgstr "グループを追加できませんでした"
+
+msgid "Error adding groups"
+msgstr "グループの追加エラー"
+
+msgid ""
+"Only bibliographic groups will be displayed in the Groups "
+"list and in project citations. Non-bibliographic groups can read "
+"and modify the project as normal."
+msgstr "グループリストおよびプロジェクトの引用には、書誌のグループのみが表示されます。 書誌以外のグループは、通常どおりプロジェクトを読んで修正できます。"
+
+msgid "A user reordered groups for a project"
+msgstr ""
+
+msgid "A user made group(s) visible on a project"
+msgstr ""
+
+msgid "A user made group(s) invisible on a project"
+msgstr ""
+
+msgid "${user} reordered groups for ${node}"
+msgstr "${user}が${node}のグループを並べ替えました"
+
+msgid ""
+"${user} made non-bibliographic group ${mapcore_groups} a "
+"bibliographic group on ${node}"
+msgstr "${user}が目録非表示グループ(${mapcore_groups})を${node}の目録表示グループにしました"
+
+msgid ""
+"${user} made bibliographic group ${mapcore_groups} a "
+"non-bibliographic group on ${node}"
+msgstr "${user}が目録表示グループ(${mapcore_groups})を${node}の目録非表示グループにしました"

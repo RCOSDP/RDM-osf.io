@@ -3,6 +3,7 @@ import os
 import logging
 
 from api.base.utils import CREATED_ERROR, check_user_can_create_project, LIMITED_ERROR
+from osf.models.mapcore_node_group import MapCoreNodeGroup
 from rest_framework import status as http_status
 import math
 from collections import defaultdict
@@ -532,6 +533,16 @@ def node_contributors(auth, node, **kwargs):
     ret['adminContributors'] = utils.serialize_contributors(admin_contribs, node, admin=True)
     return ret
 
+@must_be_valid_project
+@must_not_be_retracted_registration
+@must_have_permission(READ)
+@ember_flag_is_active(features.EMBER_PROJECT_CONTRIBUTORS)
+def node_groups(auth, node, **kwargs):
+    ret = _view_project(node, auth, primary=True)
+    ret['groups'] = utils.serialize_mapcore_node_groups(node)
+    current_group = [group['mapcore_group']['id'] for group in ret['groups']]
+    ret['adminGroups'] = utils.serialize_parent_admin_groups(node, current_group)
+    return ret
 
 @must_have_permission(ADMIN)
 def configure_comments(node, **kwargs):
@@ -901,6 +912,7 @@ def _view_project(node, auth, primary=False,
     )
     is_registration = node.is_registration
     timestamp_pattern = get_timestamp_pattern_division(auth, node)
+    mapcore_groups = utils.serialize_mapcore_node_groups(node, visible_only=True)
     data = {
         'node': {
             'disapproval_link': disapproval_link,
@@ -971,6 +983,7 @@ def _view_project(node, auth, primary=False,
             'waterbutler_url': node.osfstorage_region.waterbutler_url,
             'mfr_url': node.osfstorage_region.mfr_url,
             'groups': list(node.osf_groups.values_list('name', flat=True)),
+            'mapcore_groups': mapcore_groups,
         },
         'parent_node': {
             'exists': parent is not None,
@@ -1215,6 +1228,7 @@ def serialize_child_tree(child_list, user, nested):
                     'user__guids___id', 'is_admin', 'user__date_confirmed', 'visible'
                 )
             )
+            mapcore_groups = MapCoreNodeGroup.objects.filter(node=child, is_deleted=False).values('mapcore_group_id')
 
             contributors = [
                 {
@@ -1235,6 +1249,7 @@ def serialize_child_tree(child_list, user, nested):
                     'contributors': contributors,
                     'is_admin': child.has_permission(user, ADMIN),
                     'is_supplemental_project': child.has_linked_published_preprints,
+                    'mapcore_groups': [mapcore_group['mapcore_group_id'] for mapcore_group in mapcore_groups],
                 },
                 'user_id': user._id,
                 'children': serialize_child_tree(nested.get(child._id), user, nested) if child._id in nested.keys() else [],
@@ -1280,6 +1295,7 @@ def node_child_tree(user, node):
     is_admin = node.has_permission(user, ADMIN)
 
     if can_read or node.has_permission_on_children(user, READ):
+        mapcore_groups = MapCoreNodeGroup.objects.filter(node=node, is_deleted=False).values('mapcore_group_id')
         serialized_nodes.append({
             'node': {
                 'id': node._id,
@@ -1289,6 +1305,7 @@ def node_child_tree(user, node):
                 'contributors': contributors,
                 'is_admin': is_admin,
                 'is_supplemental_project': node.has_linked_published_preprints,
+                'mapcore_groups': [mapcore_group['mapcore_group_id'] for mapcore_group in mapcore_groups],
 
             },
             'user_id': user._id,

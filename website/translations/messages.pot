@@ -4345,3 +4345,81 @@ msgstr ""
 msgid "Manage Contributors"
 msgstr ""
 
+msgid "Groups"
+msgstr ""
+
+msgid "Group name"
+msgstr ""
+
+msgid "Registered by"
+msgstr ""
+
+msgid "Add Groups"
+msgstr ""
+
+msgid "Search by group name"
+msgstr ""
+
+msgid "Remove Group"
+msgstr ""
+
+msgid ""
+"<span>Do you want to remove <b %(removedGroup)s></b> from"
+"                                <b %(textTitle)s></b>, or from <b "
+"%(textTitle)s></b> and every component in it?</span>"
+msgstr ""
+
+msgid ""
+"Remove <b %(removedGroup)s></b> from"
+"                                    <span %(textTitle)s></span>."
+msgstr ""
+
+msgid ""
+"Remove <b %(removedGroup)s></b> from"
+"                                    <span %(textTitle)s></span> and every"
+" component in it."
+msgstr ""
+
+msgid "Remove <b %(removedGroup)s></b> from <span %(textTitle)s></span>?"
+msgstr ""
+
+msgid ""
+"<b %(removedGroup)s>                                        </b> "
+"will be removed from the following projects and/or components."
+msgstr ""
+
+msgid ""
+"<b %(removedGroup)s>                                        </b> "
+"cannot be removed from the following projects and/or components."
+msgstr ""
+
+msgid "Searching groups..."
+msgstr ""
+
+msgid "Adding group(s)"
+msgstr ""
+
+msgid "Remove <b %(removedGroup)s></b> from <span %(textTitle)s></span>?"
+msgstr ""
+
+msgid ""
+"You can also add the group(s) to any components on which you are an"
+" admin."
+msgstr ""
+
+msgid "No groups found"
+msgstr ""
+
+msgid ""
+"Please save or discard your existing changes before removing a "
+"groups."
+msgstr ""
+
+msgid "Drag and drop groups to change listing order."
+msgstr ""
+
+msgid "Bibliographic Group"
+msgstr ""
+
+msgid "Bibliographic Group Information"
+msgstr ""
