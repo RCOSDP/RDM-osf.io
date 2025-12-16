@@ -105,6 +105,10 @@
                         % endif
 
                         % if user['is_contributor_or_group_member']:
+                            <li><a href="${node['url']}groups/">${_("Groups")}</a></li>
+                        % endif
+
+                        % if user['is_contributor_or_group_member']:
                             <li><a href="${node['url']}contributors/">${_("Contributors")}</a></li>
                         % endif
 

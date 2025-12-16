@@ -4216,8 +4216,8 @@ msgid "Storage location"
 msgstr "ストレージロケーション"
 
 #: website/static/js/addProjectPlugin.js:251
-msgid " Add contributors from "
-msgstr "次からメンバーを追加する："
+msgid " Add contributors and groups from "
+msgstr "次からメンバーとグループを追加する："
 
 #: website/static/js/addProjectPlugin.js:253
 msgid " Admins of "
@@ -10557,3 +10557,24 @@ msgstr "作成したプロジェクト数が作成可能なプロジェクトの
 
 msgid "The Integrated Admin added ${contributors} as contributor(s) to ${node}"
 msgstr "統合管理者代理アカウントが${contributors}をコントリビューターとして${node}に追加しました"
+
+msgid "${user} added group ${mapcore_groups} to ${node}"
+msgstr "${user}が${mapcore_groups}グループを${node}に追加しました"
+
+msgid "${user} removed group ${mapcore_groups} from ${node}"
+msgstr "${user}が${node}から${mapcore_groups}グループを削除しました"
+
+msgid "${user} updated group permissions on on ${node}"
+msgstr "${user}が${node}のグループ権限を変更しました"
+
+msgid "Add Groups"
+msgstr "グループを追加"
+
+msgid "Remove Group"
+msgstr "グループを削除"
+
+msgid "Your group list has unsaved changes. Please "
+msgstr "グループリストには未保存の変更があります。 "
+
+msgid "save or cancel your changes before adding groups."
+msgstr "グループを追加する前に、変更を保存またはキャンセルしてください。"

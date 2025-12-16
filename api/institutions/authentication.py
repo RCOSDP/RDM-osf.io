@@ -4,6 +4,8 @@ import logging
 
 import jwe
 import jwt
+from osf.models.mapcore_group import MapCoreGroup
+from osf.models.mapcore_user_group import MapCoreUserGroup
 import waffle
 
 #from django.utils import timezone
@@ -23,6 +25,8 @@ from osf.exceptions import BlacklistedEmailError
 from website.mails import send_mail, WELCOME_OSF4I
 from website.settings import OSF_SUPPORT_EMAIL, DOMAIN, to_bool
 from website.util.quota import update_default_storage
+from django_bulk_update.helper import bulk_update
+from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
@@ -466,6 +470,7 @@ class InstitutionAuthentication(BaseAuthentication):
 
         # update every login. (for mAP API v1)
         init_cloud_gateway_groups(user, provider)
+        update_mapcore_groups(user, provider)
 
         return user, None
 
@@ -521,3 +526,40 @@ def init_cloud_gateway_groups(user, provider):
             else:
                 user.add_group(groupname)
     user.save()
+
+def update_mapcore_groups(user, provider):
+    prefix = settings.MAP_GATEWAY_ISMEMBEROF_PREFIX
+    if not prefix:
+        return
+    groups_str = provider['user'].get('groups')
+    if not groups_str:
+        return  # no groups provided
+    import re
+    patt_prefix = re.compile('^' + prefix)
+    groups_str_set = set()
+    for group in groups_str.split(';'):
+        if patt_prefix.match(group):
+            groupname = patt_prefix.sub('', group)
+            if groupname is None or groupname == '':
+                continue
+            groups_str_set.add(groupname)
+    mapcore_user_groups = MapCoreUserGroup.objects.filter(user=user, is_deleted=False)
+    to_delete = []
+    for mapcore_user_group in mapcore_user_groups:
+        groupname = mapcore_user_group.mapcore_group._id
+        if groupname not in groups_str_set:
+            mapcore_user_group.is_deleted = True
+            mapcore_user_group.modified = timezone.now()
+            to_delete.append(mapcore_user_group)
+        else:
+            # keep
+            groups_str_set.remove(groupname)
+    if to_delete:
+        bulk_update(to_delete, update_fields=['is_deleted', 'modified'])
+    # add new groups
+    for groupname in groups_str_set:
+        mapcore_group, created = MapCoreGroup.objects.get_or_create(_id=groupname)
+        MapCoreUserGroup.objects.create(
+            user=user,
+            mapcore_group=mapcore_group,
+        )

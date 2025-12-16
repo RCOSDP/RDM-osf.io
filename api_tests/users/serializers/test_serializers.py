@@ -248,3 +248,43 @@ class TestUserSerializer:
         req.user = user
         result = UserSerializer(user, context={'request': req})
         assert result.get_can_create_new_project(user) is True
+
+
+@pytest.mark.django_db
+@pytest.mark.enable_quickfiles_creation
+class TestUserNodeSerializer:
+    params = {}
+
+    def test_get_mapcore_groups(self, user):
+        from osf.models.mapcore_group import MapCoreGroup
+        from osf.models.mapcore_node_group import MapCoreNodeGroup
+        from django.contrib.auth.models import Group as AuthGroup
+        from api.users.serializers import UserNodeSerializer
+        from osf_tests.factories import ProjectFactory
+
+        node = ProjectFactory(creator=user)
+
+        # Create two MapCoreGroup records
+        g1 = MapCoreGroup.objects.create(_id='group-one')
+        g2 = MapCoreGroup.objects.create(_id='group-two')
+
+        # Create auth groups required by MapCoreNodeGroup
+        ag1 = AuthGroup.objects.create(name=f'node_{node._id}_read')
+        ag2 = AuthGroup.objects.create(name=f'node_{node._id}_write')
+
+        # Attach both groups to the node; add one deleted entry to ensure it's ignored
+        MapCoreNodeGroup.objects.create(node=node, group=ag1, mapcore_group=g1, creator=user)
+        MapCoreNodeGroup.objects.create(node=node, group=ag2, mapcore_group=g2, creator=user)
+        MapCoreNodeGroup.objects.create(node=node, group=ag2, mapcore_group=g2, creator=user, is_deleted=True)
+
+        # Build a request and serializer with context (TaxonomizableSerializerMixin expects request)
+        req = make_drf_request_with_version(version='2.0')
+        req.user = user
+        serializer = UserNodeSerializer(context={'request': req})
+
+        # Serializer should return mapcore group _ids ordered by _id
+        result = serializer.get_mapcore_groups(node)
+        assert result == [g1._id, g2._id]
+
+        # Non-node input should return an empty list
+        assert serializer.get_mapcore_groups({}) == []

@@ -37,7 +37,8 @@ var sparseNodeFields = String([
     'parent',
     'public',
     'tags',
-    'title'
+    'title',
+    'mapcore_groups'
 ]);
 
 var sparseRegistrationFields = String([

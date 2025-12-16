@@ -4,6 +4,9 @@ import mock
 import datetime as dt
 from nose.tools import *  # noqa (PEP8 asserts)
 
+from osf.models.mapcore_group import MapCoreGroup
+from osf.models.mapcore_node_group import MapCoreNodeGroup
+from django.contrib.auth.models import Group as AuthGroup
 import pytest
 from osf_tests.factories import (
     ProjectFactory,
@@ -441,6 +444,35 @@ class TestNodeLogSerializers(OsfTestCase):
         assert_equal(d['is_public'], node.is_public)
         assert_equal(d['is_registration'], node.is_registration)
 
+    def test_get_mapcore_groups(self):
+        from types import SimpleNamespace
+        from api.logs.serializers import NodeLogParamsSerializer
+
+        # Create two MapCoreGroup records
+        g1 = MapCoreGroup.objects.create(_id='group-one')
+        g2 = MapCoreGroup.objects.create(_id='group-two')
+
+        # Params includes integers (PKs) and some non-integer noise
+        params = {'mapcore_groups': [g1.id, 'invalid', g2.id, None]}
+
+        # Non-anonymized request must include a user attribute
+        req = SimpleNamespace(query_params={}, user=UserFactory())
+        data = NodeLogParamsSerializer(params, context={'request': req}).data
+
+        # Serializer should return only the created group objects ordered by _id
+        assert_in('mapcore_groups', data)
+        assert_equal(
+            data['mapcore_groups'],
+            [
+                {'id': g1.id, 'name': g1._id},
+                {'id': g2.id, 'name': g2._id},
+            ]
+        )
+
+        # Anonymized request should hide mapcore groups
+        req_anon = SimpleNamespace(query_params={}, _is_anonymized=True, user=UserFactory())
+        data_anon = NodeLogParamsSerializer(params, context={'request': req_anon}).data
+        assert_equal(data_anon.get('mapcore_groups', None), [])
 
 class TestAddContributorJson(OsfTestCase):
 
@@ -532,3 +564,71 @@ class TestAddContributorJson(OsfTestCase):
         assert_equal(user_info['active'], True)
         assert_in('secure.gravatar.com', user_info['profile_image_url'])
         assert_equal(user_info['profile_url'], self.profile)
+
+
+class TestSerializeMapcoreGroups(OsfTestCase):
+
+    def test_serialize_mapcore_node_groups(self):
+        user = UserFactory()
+        node = NodeFactory(is_public=False)
+
+        # two MapCore groups, one attached, one deleted
+        g1 = MapCoreGroup.objects.create(_id='group-one')
+        g2 = MapCoreGroup.objects.create(_id='group-two')
+
+        auth1 = AuthGroup.objects.get_or_create(name=f'node_{node._id}_admin')[0]
+        auth2 = AuthGroup.objects.get_or_create(name=f'node_{node._id}_read')[0]
+
+        m1 = MapCoreNodeGroup.objects.create(node=node, group=auth1, mapcore_group=g1, creator=user, is_deleted=False)
+        _m2 = MapCoreNodeGroup.objects.create(node=node, group=auth2, mapcore_group=g2, creator=user, is_deleted=True)
+
+        data = utils.serialize_mapcore_node_groups(node)
+
+        # only the non-deleted mapping should appear
+        assert_equal(len(data), 1)
+        item = data[0]
+        assert_equal(item['id'], str(m1.id))
+        assert_equal(item['mapcore_group']['id'], g1.id)
+        assert_equal(item['mapcore_group']['name'], g1._id)
+        assert_equal(item['creator'], user.username)
+        assert_equal(item['is_deleted'], False)
+        assert_equal(item['permission'], m1.get_permission)
+        assert_in(g1._id, item['url'])
+
+    def test_serialize_parent_admin_groups(self):
+        user = UserFactory()
+        root = ProjectFactory()
+        child = NodeFactory(parent=root)
+
+        # admin group on root that should be exposed
+        g_admin = MapCoreGroup.objects.create(_id='parent-admin')
+        auth_admin = AuthGroup.objects.get_or_create(name=f'node_{root._id}_admin')[0]
+        m_admin = MapCoreNodeGroup.objects.create(node=root, group=auth_admin, mapcore_group=g_admin, creator=user, is_deleted=False)
+
+        # admin group on root that should be excluded via current_group
+        g_excl = MapCoreGroup.objects.create(_id='parent-excl')
+        auth_excl = AuthGroup.objects.get_or_create(name=f'node_{root._id}_admin')[0]
+        m_excl = MapCoreNodeGroup.objects.create(node=root, group=auth_excl, mapcore_group=g_excl, creator=user, is_deleted=False)
+
+        # Exclude g_excl by passing its id in current_group
+        current_group = [g_excl.id]
+
+        result = utils.serialize_parent_admin_groups(child, current_group)
+
+        # Only the non-excluded admin mapping should be returned and permission should be 'read' per serializer
+        assert_equal(len(result), 1)
+        r = result[0]
+        assert_equal(r['mapcore_group']['id'], g_admin.id)
+        assert_equal(r['mapcore_group']['name'], g_admin._id)
+        assert_equal(r['permission'], 'read')
+        assert_in(g_admin._id, r['url'])
+
+    def test_serialize_parent_admin_groups_no_parent(self):
+        user = UserFactory()
+        node = NodeFactory()  # node with no parent
+
+        # No current_group filters
+        result = utils.serialize_parent_admin_groups(node, [])
+
+        # Expect empty list when node has no parents
+        assert_equal(result, [])

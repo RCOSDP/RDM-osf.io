@@ -115,6 +115,31 @@ function _poContributors(item) {
     });
 }
 
+
+function _poGroups(item) {
+    var groupList = lodashGet(item, 'data.attributes.mapcore_groups', []);
+
+    if (groupList.length === 0) {
+        return '';
+    }
+
+    return groupList.map(function (group, index) {
+        var comma;
+        if (index === 0) {
+            comma = '';
+        } else {
+            comma = ', ';
+        }
+        if (index > 2) {
+            return m('span');
+        }
+        if (index === 2) {
+            return m('span', ' + ' + (groupList.length - 2)); // We already show names of the two
+        }
+        return m('span', comma + group);
+    });
+}
+
 /**
  * Displays date modified
  * @param {Object} item A Treebeard _item object for the row involved. Node information is inside item.data
@@ -162,6 +187,10 @@ function _poResolveRows(item) {
             data : 'sortDate',
             filter : false,
             custom : _poModified
+        },{
+            data : 'groups',
+            filter : false,
+            custom : _poGroups
         });
     } else {
         defaultColumns.push({
@@ -190,7 +219,7 @@ function _poColumnTitles() {
     if(!mobile){
         columns.push({
             title: _('Name'),
-            width : '55%',
+            width : '35%',
             sort : true,
             sortType : 'text'
         },{
@@ -202,6 +231,10 @@ function _poColumnTitles() {
             width : '20%',
             sort : true,
             sortType : 'date'
+        },{
+            title : _('Groups'),
+            width : '20%',
+            sort : false
         });
     } else {
         columns.push({
@@ -440,6 +473,9 @@ var tbOptions = {
             for(var i = 0; i < arr.length; i++){
                 item = arr[i];
                 formatDataforPO(item.data);
+                // Ensure a plain string on item.data.groups so the Treebeard filter can match group names
+                var groupList = lodashGet(item, 'data.attributes.mapcore_groups', []);
+                item.data.groups = Array.isArray(groupList) ? groupList.join(' ') : (groupList || '');
                 if(item.children.length > 0){
                     formatItems(item.children);
                 }

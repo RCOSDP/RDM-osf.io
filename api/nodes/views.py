@@ -6,10 +6,12 @@ from django.apps import apps
 from django.db.models import Q, OuterRef, Exists, Subquery, F
 from django.utils import timezone
 from django.contrib.contenttypes.models import ContentType
+from osf.models.mapcore_group import MapCoreGroup
+from osf.models.mapcore_node_group import MapCoreNodeGroup
 from rest_framework import generics, permissions as drf_permissions
 from rest_framework.exceptions import PermissionDenied, ValidationError, NotFound, MethodNotAllowed, NotAuthenticated
 from rest_framework.response import Response
-from rest_framework.status import HTTP_204_NO_CONTENT, HTTP_200_OK
+from rest_framework.status import HTTP_204_NO_CONTENT, HTTP_200_OK, HTTP_201_CREATED
 
 from addons.base.exceptions import InvalidAuthError
 from addons.osfstorage.models import OsfStorageFolder
@@ -88,6 +90,8 @@ from api.nodes.permissions import (
     AdminOrPublicOrSuperUser,
 )
 from api.nodes.serializers import (
+    NodeMapCoreGroupCreateSerializer,
+    NodeMapCoreGroupUpdateSerializer,
     NodeSerializer,
     ForwardNodeAddonSettingsSerializer,
     NodeAddonSettingsSerializer,
@@ -110,6 +114,7 @@ from api.nodes.serializers import (
     NodeGroupsSerializer,
     NodeGroupsCreateSerializer,
     NodeGroupsDetailSerializer,
+    NodeMapCoreGroupSerializer,
 )
 from api.nodes.utils import NodeOptimizationMixin, enforce_no_children
 from api.osf_groups.views import OSFGroupMixin
@@ -813,6 +818,7 @@ class NodeChildrenList(BaseChildrenList, bulk_views.ListBulkCreateJSONAPIView, N
     view_category = 'nodes'
     view_name = 'node-children'
     model_class = Node
+    include_mapcore_groups = True
 
     def get_serializer_context(self):
         context = super(NodeChildrenList, self).get_serializer_context()
@@ -2361,3 +2367,297 @@ class NodeSettings(JSONAPIBaseView, generics.RetrieveUpdateAPIView, NodeMixin):
         context['wiki_addon'] = node.get_addon('wiki')
         context['forward_addon'] = node.get_addon('forward')
         return context
+
+
+class NodeMapCoreGroupList(JSONAPIBaseView, generics.ListAPIView, bulk_views.BulkUpdateJSONAPIView, bulk_views.ListBulkCreateJSONAPIView, NodeMixin):
+    """
+    API endpoint that allows the core groups of a node to be viewed and edited.
+    """
+    permission_classes = (
+        AdminOrPublic,
+        drf_permissions.IsAuthenticatedOrReadOnly,
+        ReadOnlyIfRegistration,
+        base_permissions.TokenHasScope,
+    )
+
+    required_read_scopes = [CoreScopes.NODE_CONTRIBUTORS_READ]
+    required_write_scopes = [CoreScopes.NODE_CONTRIBUTORS_WRITE]
+    model_class = OSFUser
+
+    throttle_classes = (AddContributorThrottle, UserRateThrottle, NonCookieAuthThrottle, BurstRateThrottle, )
+
+    pagination_class = MaxSizePagination
+    serializer_class = NodeMapCoreGroupSerializer
+    view_category = 'nodes'
+    view_name = 'node-map-core-groups'
+    ordering = ('mapcore_group___id',)  # default ordering
+
+    def get_serializer_class(self):
+        """
+        Use NodeContributorDetailSerializer which requires 'id'
+        """
+        if self.request.method == 'PUT' or self.request.method == 'PATCH' or self.request.method == 'DELETE':
+            return NodeMapCoreGroupUpdateSerializer
+        elif self.request.method == 'POST':
+            return NodeMapCoreGroupCreateSerializer
+        else:
+            return NodeMapCoreGroupSerializer
+
+    # overrides ListBulkCreateJSON APIView, BulkUpdateJSONAPIView
+    def get_queryset(self):
+        node = self.get_node()
+        qs = MapCoreNodeGroup.objects.filter(node=node, is_deleted=False)
+        # Avoid N+1 on foreign-key relations reported by nplusone
+        qs = qs.select_related('creator', 'mapcore_group').order_by('mapcore_group___id')
+        # Precompute permissions via ORM (no raw SQL)
+        group_ids = list(qs.values_list('group_id', flat=True))
+        perm_map = {}
+        if group_ids:
+            NodeGroupObjectPermission = apps.get_model('osf.NodeGroupObjectPermission')
+            perms_qs = (
+                NodeGroupObjectPermission.objects
+                .filter(group_id__in=group_ids, content_object_id=node.id)
+                .select_related('permission')
+            )
+            for p in perms_qs:
+                codename = getattr(getattr(p, 'permission', None), 'codename', '') or ''
+                short = codename.split('_', 1)[0] if '_' in codename else codename
+                perm_map.setdefault(p.group_id, []).append(short)
+        # Attach computed permission arrays to instances so serializer can read obj.permissions
+        for obj in qs:
+            obj.permissions = perm_map.get(obj.group_id, [])
+
+        # If any related fields are reverse or many-to-many, use prefetch_related:
+        # qs = qs.prefetch_related('some_m2m_field')
+        return qs
+
+    # Overrides BulkDestroyJSONAPIView
+    def perform_destroy(self, instance):
+        pass
+
+    def get_serializer_context(self):
+        """
+        Ensure serializers have the node available as 'node' in context.
+        """
+        context = super(NodeMapCoreGroupList, self).get_serializer_context()
+        node = self.get_node()
+        context['node'] = node
+        return context
+
+    def list(self, request, *args, **kwargs):
+        """List the MapCoreNodeGroup relationships for this node.
+        """
+        queryset = self.get_queryset()
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        data = {
+            'data': serializer.data,
+        }
+        return Response(data)
+
+    def create(self, request, *args, **kwargs):
+        # Normalize incoming payload: accept JSON:API {"data": ...} or raw dict/list
+        request_body = request.data
+        if 'data' in request.data:
+            request_body = request.data['data']
+        attrs = request_body.get('attributes', request_body)
+        node_groups = attrs.get('node_groups')
+        if not node_groups or not isinstance(node_groups, (list, tuple)) or len(node_groups) == 0:
+            raise ValidationError(detail='Request must include a non-empty attributes.node_groups list.')
+        mapcore_group_id_set = set()
+        duplicates = set()
+        allowed_perms = {'read', 'write', 'admin'}
+        for idx, ng in enumerate(node_groups):
+            # Validate required fields
+            if 'mapcore_group_id' not in ng or 'permission' not in ng:
+                raise ValidationError(detail='Each node_group must include a mapcore_group_id and permission.')
+            # Validate permission value
+            perm = ng.get('permission')
+            if perm not in allowed_perms:
+                raise ValidationError(detail=f'Permission "{perm}" is invalid (must be one of {sorted(allowed_perms)}) (failed at index {idx}).')
+            # Check for duplicate mapcore_group_id in request
+            mgid = ng.get('mapcore_group_id')
+            try:
+                mgid = int(mgid)
+            except (TypeError, ValueError):
+                raise ValidationError(detail=f'mapcore_group_id must be an integer (failed at index {idx}).')
+
+            if mgid in mapcore_group_id_set:
+                duplicates.add(mgid)
+            else:
+                mapcore_group_id_set.add(mgid)
+        # If any duplicates found, raise error
+        if duplicates:
+            raise ValidationError(detail=f'Duplicate mapcore_group_id(s) in request: {sorted(list(duplicates))}')
+        # Validate that all mapcore_group_id values exist
+        mapcore_groups = MapCoreGroup.objects.filter(id__in=mapcore_group_id_set)
+        mapcore_groups_found_ids = [mg.id for mg in mapcore_groups]
+        missing_ids = mapcore_group_id_set - set(mapcore_groups_found_ids)
+        if missing_ids:
+            raise ValidationError(detail=f'mapcore_group_id(s) not found: {sorted(list(missing_ids))}')
+
+        # Check for existing MapCoreNodeGroup relationships
+        existing_qs = MapCoreNodeGroup.objects.filter(node=self.get_node(), mapcore_group_id__in=mapcore_group_id_set, is_deleted=False)
+        if existing_qs.exists():
+            existing_pairs = [e.mapcore_group_id for e in existing_qs]
+            raise ValidationError(detail=f'MapCoreNodeGroup already exists for mapcore_group_id(s): {existing_pairs}')
+
+        component_ids = attrs.get('component_ids', [])
+        component_ids_set = set()
+        duplicate_component_ids = []
+        for cid in component_ids:
+            if cid in component_ids_set:
+                duplicate_component_ids.append(cid)
+            else:
+                component_ids_set.add(cid)
+        if duplicate_component_ids:
+            raise ValidationError(detail=f'Duplicate component_ids in request: {sorted(duplicate_component_ids)}')
+        components = Node.objects.filter(guids___id__in=component_ids_set, is_deleted=False, parent_nodes=self.get_node())
+        components_found_ids = set(c.guids.first()._id for c in components)
+        missing_component_ids = component_ids_set - components_found_ids
+        if missing_component_ids:
+            raise ValidationError(detail=f'component_ids not found or not children of this node: {sorted(list(missing_component_ids))}')
+        # Use the create serializer to validate & create objects
+        create_serializer = self.get_serializer(data=request_body)
+        create_serializer.is_valid(raise_exception=True)
+        created_objects = create_serializer.save()
+        data = {
+            'data': created_objects,
+        }
+        return Response(data, status=HTTP_201_CREATED)
+
+    def bulk_update(self, request, *args, **kwargs):
+        """Bulk update MapCoreNodeGroup relationships for this node.
+        """
+        request_body = request.data
+        if 'data' in request.data:
+            request_body = request.data['data']
+        attrs = request_body.get('attributes', request_body)
+        node_groups = attrs.get('node_groups')
+        if not node_groups or not isinstance(node_groups, (list, tuple)) or len(node_groups) == 0:
+            raise ValidationError(detail='Request must include a non-empty attributes.node_groups list.')
+        node_group_id_set = set()
+        duplicates = set()
+        for idx, ng in enumerate(node_groups):
+            # Validate required fields
+            if 'node_group_id' not in ng or 'permission' not in ng:
+                raise ValidationError(detail='Each node_group must include a node_group_id and permission.')
+            # Validate permission value
+            perm = ng.get('permission')
+            allowed_perms = {'read', 'write', 'admin'}
+            if perm not in allowed_perms:
+                raise ValidationError(detail=f'Permission "{perm}" is invalid (must be one of {sorted(allowed_perms)}) (failed at index {idx}).')
+            # Validate that node_group_id exists
+            ngid = ng.get('node_group_id')
+            try:
+                ngid = int(ngid)
+            except (TypeError, ValueError):
+                raise ValidationError(detail=f'node_group_id must be an integer (failed at index {idx}).')
+            # Check for duplicate node_group_id in request
+            if ngid in node_group_id_set:
+                duplicates.add(ngid)
+            else:
+                node_group_id_set.add(ngid)
+        # If any duplicates found, raise error
+        if duplicates:
+            raise ValidationError(detail=f'Duplicate node_group_id(s) in request: {sorted(list(duplicates))}')
+        node_group_db = MapCoreNodeGroup.objects.filter(node=self.get_node(), id__in=node_group_id_set, is_deleted=False)
+        node_group_db_ids = set(ng.id for ng in node_group_db)
+        missing_ids = node_group_id_set - node_group_db_ids
+        if missing_ids:
+            raise ValidationError(detail=f'node_group_id(s) not found: {sorted(list(missing_ids))}')
+        # Use the update serializer to validate & update objects
+        update_serializer = self.get_serializer(data=request_body)
+        update_serializer.is_valid(raise_exception=True)
+        updated_objects = update_serializer.save()
+        data = {
+            'data': updated_objects,
+        }
+        return Response(data, status=HTTP_200_OK)
+
+class NodeMapCoreGroupRemove(JSONAPIBaseView, generics.DestroyAPIView, NodeMixin):
+    """
+    API endpoint that allows the core groups of a node to be removed.
+    """
+    permission_classes = (
+        AdminOrPublic,
+        drf_permissions.IsAuthenticatedOrReadOnly,
+        ReadOnlyIfRegistration,
+        base_permissions.TokenHasScope,
+    )
+
+    required_read_scopes = [CoreScopes.NODE_CONTRIBUTORS_READ]
+    required_write_scopes = [CoreScopes.NODE_CONTRIBUTORS_WRITE]
+
+    view_category = 'nodes'
+    view_name = 'node-map-core-group-remove'
+    def delete(self, request, *args, **kwargs):
+        """Remove a MapCoreNodeGroup relationship from this node.
+        """
+        query_params = self.request.query_params
+        component_ids = query_params.get('component_ids', '')
+        if component_ids:
+            component_ids = component_ids.split(',')
+            component_ids_set = set()
+            duplicate_component_ids = []
+            for cid in component_ids:
+                if cid in component_ids_set:
+                    duplicate_component_ids.append(cid)
+                else:
+                    component_ids_set.add(cid)
+            if duplicate_component_ids:
+                raise ValidationError(detail=f'Duplicate component_ids in request: {sorted(duplicate_component_ids)}')
+            components = Node.objects.filter(guids___id__in=component_ids_set, is_deleted=False, parent_nodes=self.get_node())
+            components_found_ids = set(c.guids.first()._id for c in components)
+            missing_component_ids = component_ids_set - components_found_ids
+            if missing_component_ids:
+                raise ValidationError(detail=f'component_ids not found or not children of this node: {sorted(list(missing_component_ids))}')
+        # Use the create serializer to validate & create objects
+        instance = self.get_object()
+        if component_ids:
+            for component in components:
+                try:
+                    mapcore_node_group = MapCoreNodeGroup.objects.get(
+                        node=component,
+                        mapcore_group_id=instance.mapcore_group_id,
+                        is_deleted=False,
+                    )
+                except MapCoreNodeGroup.DoesNotExist:
+                    raise NotFound(detail=f'MapCoreNodeGroup not found for component {component._id}.')
+                self.perform_destroy(mapcore_node_group)
+        self.perform_destroy(instance)
+        return Response(status=HTTP_204_NO_CONTENT)
+
+    # overrides DestroyAPIView
+    def get_object(self):
+        node = self.get_node()
+        try:
+            mapcore_node_group = MapCoreNodeGroup.objects.get(
+                node=node,
+                id=self.kwargs['node_group_id'],
+                is_deleted=False,
+            )
+        except MapCoreNodeGroup.DoesNotExist:
+            raise NotFound(detail='MapCoreNodeGroup not found.')
+        return mapcore_node_group
+    def perform_destroy(self, instance):
+        assert isinstance(instance, MapCoreNodeGroup), 'instance must be a MapCoreNodeGroup'
+        instance.is_deleted = True
+        instance.modified = timezone.now()
+        instance.save()
+        auth = get_user_auth(self.request)
+        node = instance.node
+        params = node.log_params
+        params['mapcore_groups'] = [instance.mapcore_group_id]
+        node.add_log(
+            action=node.log_class.MAPCORE_GROUP_REMOVED,
+            params=params,
+            auth=auth,
+            save=False,
+        )
+        # Update node modified date
+        node.modified = timezone.now()
+        node.save()

@@ -1,5 +1,7 @@
 from django.db import connection
 from distutils.version import StrictVersion
+from django.db import transaction
+from django.utils import timezone
 
 from api.base.exceptions import (
     Conflict, EndpointNotImplementedError,
@@ -29,6 +31,9 @@ from django.core.exceptions import ValidationError
 from framework.auth.core import Auth
 from framework.exceptions import PermissionsError
 from osf.models import Tag
+from osf.models.mapcore_group import MapCoreGroup
+from osf.models.mapcore_node_group import MapCoreNodeGroup
+from osf.models.node import Node
 from rest_framework import serializers as ser
 from rest_framework import exceptions
 from addons.base.exceptions import InvalidAuthError, InvalidFolderError
@@ -45,7 +50,7 @@ from website.util import quota
 from osf.utils import permissions as osf_permissions
 from api.base import settings as api_settings
 from website import settings as website_settings
-
+from django_bulk_update.helper import bulk_update
 
 class RegistrationProviderRelationshipField(RelationshipField):
     def get_object(self, _id):
@@ -293,6 +298,7 @@ class NodeSerializer(TaxonomizableSerializerMixin, JSONAPISerializer):
         'wiki_enabled',
         'wikis',
         'addons',
+        'mapcore_groups',
     ]
 
     id = IDField(source='_id', read_only=True)
@@ -680,6 +686,22 @@ class NodeSerializer(TaxonomizableSerializerMixin, JSONAPISerializer):
                                 FROM parents
                            ) OR G.content_object_id = %s)
                            AND UG.osfuser_id = %s)
+                )),has_admin_group AS (SELECT EXISTS(
+                    SELECT P.codename
+                    FROM auth_permission AS P
+                    INNER JOIN osf_nodegroupobjectpermission AS G ON (P.id = G.permission_id)
+                    INNER JOIN osf_mapcore_node_group AS OMNG
+                      ON (G.group_id = OMNG.group_id) AND OMNG.is_deleted IS FALSE
+                    INNER JOIN osf_mapcore_user_group AS OMUG
+                      ON (OMNG.mapcore_group_id = OMUG.mapcore_group_id) AND OMUG.is_deleted IS FALSE
+                    INNER JOIN osf_osfuser AS UG
+                      ON (OMUG.user_id = UG.id)
+                    WHERE (P.codename = 'admin_node'
+                           AND (G.content_object_id IN (
+                                SELECT parent_id
+                                FROM parents
+                           ) OR G.content_object_id = %s)
+                           AND UG.id = %s)
                 ))
                 SELECT COUNT(DISTINCT child_id)
                 FROM
@@ -692,6 +714,7 @@ class NodeSerializer(TaxonomizableSerializerMixin, JSONAPISerializer):
                 AND (
                   osf_abstractnode.is_public
                   OR (SELECT exists from has_admin) = TRUE
+                  OR (SELECT exists from has_admin_group) = TRUE
                   OR (SELECT EXISTS(
                       SELECT P.codename
                       FROM auth_permission AS P
@@ -704,7 +727,7 @@ class NodeSerializer(TaxonomizableSerializerMixin, JSONAPISerializer):
                   )
                   OR (osf_privatelink.key = %s AND osf_privatelink.is_deleted = FALSE)
                 );
-            """, [obj.id, obj.id, user_id, obj.id, user_id, auth.private_key],
+            """, [obj.id, obj.id, user_id, obj.id, user_id, obj.id, user_id, auth.private_key],
             )
 
             return int(cursor.fetchone()[0])
@@ -840,6 +863,32 @@ class NodeSerializer(TaxonomizableSerializerMixin, JSONAPISerializer):
             for group in parent.osf_groups:
                 if group.is_manager(user):
                     node.add_osf_group(group, group.get_permission_to_node(parent), auth=auth)
+            parent_node_groups = MapCoreNodeGroup.objects.filter(node=parent, is_deleted=False)
+            auth_groups = get_group_by_node(node.id)
+            to_create = []
+            to_create_mapcore_group_ids = []
+            for node_group in parent_node_groups:
+                parent_permission = 'read'
+                parts = node_group.group.name.rsplit('_', 1)
+                if len(parts) == 2:
+                    parent_permission = parts[1]
+                to_create.append(MapCoreNodeGroup(
+                    node=node,
+                    group_id=auth_groups.get(parent_permission),
+                    mapcore_group=node_group.mapcore_group,
+                    creator=user,
+                ))
+                to_create_mapcore_group_ids.append(node_group.mapcore_group.id)
+            MapCoreNodeGroup.objects.bulk_create(to_create)
+            params = node.log_params
+            params['mapcore_groups'] = to_create_mapcore_group_ids
+            node.add_log(
+                action=node.log_class.MAPCORE_GROUP_ADDED,
+                params=params,
+                auth=auth,
+                save=False,
+            )
+
         if is_truthy(request.GET.get('inherit_subjects')) and validated_data['parent'].has_permission(user, osf_permissions.WRITE):
             parent = validated_data['parent']
             node.subjects.add(parent.subjects.all())
@@ -2025,3 +2074,318 @@ class NodeGroupsDetailSerializer(NodeGroupsSerializer):
             # permission is in writeable_method_fields, so validation happens on OSF Group model
             raise exceptions.ValidationError(detail=str(e))
         return obj
+
+
+class NodeMapCoreGroupSerializer(JSONAPISerializer):
+    """
+    Serializer for MapCore Groups associated with a Node
+    """
+    id = ser.IntegerField(read_only=True)
+    node_group_id = ser.IntegerField(source='id', read_only=True)
+    creator_id = ser.IntegerField(read_only=True)
+    creator = ser.CharField(source='creator.username', read_only=True)
+    permission = ser.SerializerMethodField()
+    mapcore_group_id = ser.IntegerField(read_only=True)
+    name = ser.CharField(source='mapcore_group._id', read_only=True)
+    created = VersionedDateTimeField(read_only=True)
+    modified = VersionedDateTimeField(read_only=True)
+    links = LinksField(
+        {
+            'self': 'get_absolute_url',
+        },
+    )
+    type = TypeField()
+
+    class Meta:
+        type_ = 'node-mapcore-group'
+
+    def get_absolute_url(self, obj):
+        group_id = getattr(getattr(obj, 'mapcore_group', None), '_id', None)
+        return (
+            f'{website_settings.MAPCORE_GROUP_HOSTNAME}{website_settings.MAPCORE_GROUP_API_PATH}{group_id}'
+            if group_id
+            else None
+        )
+
+    def get_permission(self, obj):
+        """
+        Return permission codenames that obj.group has on the node.
+        Expects serializer context to include 'node' (like NodeGroupsSerializer).
+        Falls back to view.get_node() if necessary.
+        """
+        # Remove everything after the first underscore, e.g. 'read_node' -> 'read'
+        short_perms = getattr(obj, 'permissions', [])
+        # Return highest permission only: admin > write > read
+        for perm in ('admin', 'write', 'read'):
+            if perm in short_perms:
+                return perm
+        return None
+
+
+class NodeMapCoreGroupCreateSerializer(NodeMapCoreGroupSerializer):
+    """
+    Serializer for creating MapCore Groups associated with a Node
+    """
+    node_groups = ser.ListField(required=True)
+    component_ids = ser.ListField(required=False)
+
+    def load_mapcore_group(self, mapcore_group_id):
+        try:
+            mapcore_group = MapCoreGroup.objects.get(id=mapcore_group_id)
+        except MapCoreGroup.DoesNotExist:
+            raise exceptions.NotFound(
+                detail='MapCore Group with id {} does not exist.'.format(
+                    mapcore_group_id,
+                ),
+            )
+        return mapcore_group
+
+    def create(self, validated_data):
+        auth = get_user_auth(self.context['request'])
+        node = self.context['node']
+        auth_groups_map = get_group_by_node(node.id)
+        node_groups = validated_data.get('node_groups', [])
+        created_instances = []
+        response_data = []
+
+        # Prepare instances to bulk_create for missing pairs
+        permission_dict = dict()
+        to_create_mapcore_ids = set()
+        to_create = []
+        to_create_node_ids = [node.id]
+        to_update = []
+        for ng in node_groups:
+            mgid = ng.get('mapcore_group_id')
+            permission = ng.get('permission')
+            permission_dict[mgid] = permission
+            to_create_mapcore_ids.add(mgid)
+            to_create.append(
+                MapCoreNodeGroup(
+                    node=node,
+                    mapcore_group_id=mgid,
+                    group_id=auth_groups_map[permission],
+                    creator=auth.user,
+                ),
+            )
+
+        # Handle components if provided
+        component_ids = validated_data.get('component_ids', [])
+        if component_ids:
+            components = Node.objects.filter(guids___id__in=component_ids, parent_nodes=node, is_deleted=False)
+            mapcore_group_components = MapCoreNodeGroup.objects.filter(
+                node_id__in=[component.id for component in components],
+                mapcore_group_id__in=to_create_mapcore_ids,
+                is_deleted=False,
+            )
+            mapcore_group_component_map = {}
+            to_update_node_ids = []
+            for mcg in mapcore_group_components:
+                mapcore_group_component_map[(mcg.node_id, mcg.mapcore_group_id)] = mcg
+                to_update_node_ids.append(mcg.node_id)
+
+            to_update_components = []
+            to_create_components = []
+            component_auth_group_dict = dict()
+            for component in components:
+                auth_group = get_group_by_node(component.id)
+                component_auth_group_dict[component.id] = auth_group
+                if component.id in to_update_node_ids:
+                    to_update_components.append(component)
+                else:
+                    to_create_components.append(component)
+                    to_create_node_ids.append(component.id)
+            for mgid in to_create_mapcore_ids:
+                permission = permission_dict.get(mgid)
+                for component in to_update_components:
+                    component_auth_group = component_auth_group_dict.get(component.id)
+                    mapcore_group_component = mapcore_group_component_map.get((component.id, mgid))
+                    if mapcore_group_component:
+                        mapcore_group_component.group_id = component_auth_group[permission]
+                        mapcore_group_component.modified = timezone.now()
+                        to_update.append(mapcore_group_component)
+                    else:
+                        to_create.append(
+                            MapCoreNodeGroup(
+                                node=component,
+                                mapcore_group_id=mgid,
+                                group_id=component_auth_group[permission],
+                                creator=auth.user,
+                            ),
+                        )
+                for component in to_create_components:
+                    component_auth_group = component_auth_group_dict.get(component.id)
+                    to_create.append(
+                        MapCoreNodeGroup(
+                            node=component,
+                            mapcore_group_id=mgid,
+                            group_id=component_auth_group[permission],
+                            creator=auth.user,
+                        ),
+                    )
+
+        # Check for existing MapCoreNodeGroup entries to avoid duplicates
+        existing_qs = MapCoreNodeGroup.objects.filter(
+            node_id__in=to_create_node_ids, mapcore_group_id__in=to_create_mapcore_ids, is_deleted=False,
+        )
+        if existing_qs.exists():
+            existing_pairs = [e.mapcore_group_id for e in existing_qs]
+            raise exceptions.ValidationError(
+                detail=f'MapCoreNodeGroup already exists for mapcore_group_id(s): {existing_pairs}',
+            )
+
+        # Bulk create MapCoreNodeGroup entries
+        with transaction.atomic():
+            if to_create:
+                MapCoreNodeGroup.objects.bulk_create(to_create)
+                created_instances = MapCoreNodeGroup.objects.filter(
+                    node=node,
+                    mapcore_group_id__in=to_create_mapcore_ids,
+                    is_deleted=False,
+                ).select_related('creator', 'node', 'group', 'mapcore_group').order_by('mapcore_group___id')
+            if to_update:
+                bulk_update(to_update, update_fields=['group_id', 'modified'])
+
+            # Prepare response data
+            for mapcore_node_group in created_instances:
+                response_data.append(
+                    {
+                        'id': mapcore_node_group.id,
+                        'type': 'node-mapcore-group',
+                        'attributes': {
+                            'node_group_id': mapcore_node_group.id,
+                            'creator_id': mapcore_node_group.creator.id,
+                            'creator': mapcore_node_group.creator.username,
+                            'permission': permission_dict.get(mapcore_node_group.mapcore_group_id),
+                            'mapcore_group_id': mapcore_node_group.mapcore_group_id,
+                            'name': getattr(
+                                mapcore_node_group.mapcore_group, '_id', None,
+                            ),
+                            'created': mapcore_node_group.created,
+                            'modified': mapcore_node_group.modified,
+                        },
+                        'links': {
+                            'self': self.get_absolute_url(mapcore_node_group),
+                        },
+                    },
+                )
+        params = node.log_params
+        params['mapcore_groups'] = [mgid for mgid in to_create_mapcore_ids]
+        # Add log entry
+        node.add_log(
+            action=node.log_class.MAPCORE_GROUP_ADDED,
+            params=params,
+            auth=auth,
+            save=False,
+        )
+        # Update node modified date
+        node.modified = timezone.now()
+        node.save()
+        return response_data
+
+class NodeMapCoreGroupUpdateSerializer(NodeMapCoreGroupSerializer):
+    """
+    Serializer for updating MapCore Groups associated with a Node
+    """
+    node_groups = ser.ListField(required=True)
+
+    def load_mapcore_group(self, mapcore_group_id):
+        try:
+            mapcore_group = MapCoreGroup.objects.get(id=mapcore_group_id)
+        except MapCoreGroup.DoesNotExist:
+            raise exceptions.NotFound(
+                detail='MapCore Group with id {} does not exist.'.format(mapcore_group_id),
+            )
+        return mapcore_group
+
+    def create(self, validated_data):
+        auth = get_user_auth(self.context['request'])
+        node = self.context['node']
+        auth_groups_map = get_group_by_node(node.id)
+        node_groups = validated_data.get('node_groups', [])
+        response_data = []
+        # Prepare instances to bulk_create for missing pairs
+        to_update_node_group_ids = set()
+        to_update = []
+        permission_dict = dict()
+        to_update_mapcore_group_ids = []
+        for ng in node_groups:
+            ngid = ng.get('node_group_id')
+            permission = ng.get('permission')
+            permission_dict[ngid] = permission
+            to_update_node_group_ids.add(ngid)
+
+        mapcore_node_groups = list(MapCoreNodeGroup.objects.filter(
+            node=node,
+            id__in=to_update_node_group_ids,
+            is_deleted=False,
+        ))
+        for updated_mapcore_node_group in mapcore_node_groups:
+            permission = permission_dict.get(updated_mapcore_node_group.id)
+            if permission:
+                updated_mapcore_node_group.group_id = auth_groups_map[permission]
+                updated_mapcore_node_group.modified = timezone.now()
+                to_update.append(updated_mapcore_node_group)
+                to_update_mapcore_group_ids.append(updated_mapcore_node_group.mapcore_group_id)
+
+        # Bulk create MapCoreNodeGroup entries
+        with transaction.atomic():
+            if to_update_node_group_ids:
+                bulk_update(to_update, update_fields=['group_id', 'modified'])
+            # Prepare response data
+            for updated_mapcore_node_group in to_update:
+                response_data.append(
+                    {
+                        'id': updated_mapcore_node_group.id,
+                        'type': 'node-mapcore-group',
+                        'attributes': {
+                            'node_group_id': updated_mapcore_node_group.id,
+                            'creator_id': updated_mapcore_node_group.creator.id,
+                            'creator': updated_mapcore_node_group.creator.username,
+                            'permission': permission_dict.get(updated_mapcore_node_group.id),
+                            'mapcore_group_id': updated_mapcore_node_group.mapcore_group_id,
+                            'name': getattr(
+                                updated_mapcore_node_group.mapcore_group, '_id', None,
+                            ),
+                            'created': updated_mapcore_node_group.created,
+                            'modified': updated_mapcore_node_group.modified,
+                        },
+                        'links': {
+                            'self': self.get_absolute_url(updated_mapcore_node_group),
+                        },
+                    },
+                )
+        # Add log entry
+        params = node.log_params
+        params['mapcore_groups'] = to_update_mapcore_group_ids
+        node.add_log(
+            action=node.log_class.MAPCORE_GROUP_PERMISSION_UPDATED,
+            params=params,
+            auth=auth,
+            save=False,
+        )
+        node.modified = timezone.now()
+        node.save()
+        return response_data
+
+def get_group_by_node(node_id):
+    """
+    Return a mapping of permission codename to auth_group id for a given node.
+    E.g. {'read': 1, 'write': 2, 'admin': 3}
+    """
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT *
+            FROM auth_group
+            WHERE name LIKE %s
+            """,
+            [f'node_{node_id}_%'],
+        )
+        rows = cursor.fetchall()
+    perm_map = {}
+    for gid, name in rows:
+        parts = name.rsplit('_', 1)
+        if len(parts) == 2:
+            perm = parts[1]
+            perm_map[perm] = gid
+    return perm_map

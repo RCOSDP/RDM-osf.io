@@ -10,6 +10,7 @@ from osf.utils.permissions import READ
 from osf.utils import workflows
 from api.waffle.utils import storage_i18n_flag_active
 from website.util import quota
+from website.settings import MAPCORE_GROUP_HOSTNAME, MAPCORE_GROUP_API_PATH
 
 
 def get_profile_image_url(user, size=settings.PROFILE_IMAGE_MEDIUM):
@@ -247,3 +248,53 @@ def serialize_access_requests(node):
             machine_state=workflows.DefaultStates.PENDING.value
         ).select_related('creator')
     ]
+
+def serialize_mapcore_node_groups(node):
+    """Serialize MapCore groups associated with a node"""
+    return [
+        {
+            'id': str(mapcore_node_group.id),
+            'mapcore_group': {
+                'id': mapcore_node_group.mapcore_group.id,
+                'name': mapcore_node_group.mapcore_group._id,
+            },
+            'creator': mapcore_node_group.creator.username,
+            'is_deleted': mapcore_node_group.is_deleted,
+            'permission': mapcore_node_group.get_permission,
+            'url': f'{MAPCORE_GROUP_HOSTNAME}{MAPCORE_GROUP_API_PATH}{mapcore_node_group.mapcore_group._id}',
+        } for mapcore_node_group in node.mapcore_node_groups.select_related('mapcore_group', 'group', 'creator').filter(is_deleted=False).order_by('mapcore_group___id')
+    ]
+
+def serialize_parent_admin_groups(node, current_group):
+    """Serialize MapCore groups associated with a node"""
+    result = []
+
+    for mapcore_node_group in _mapcore_node_group_parent(node, current_group):
+        result.append({
+            'id': str(mapcore_node_group.id),
+            'mapcore_group': {
+                'id': mapcore_node_group.mapcore_group.id,
+                'name': mapcore_node_group.mapcore_group._id,
+            },
+            'creator': mapcore_node_group.creator.username,
+            'is_deleted': mapcore_node_group.is_deleted,
+            'permission': 'read',
+            'url': f'{MAPCORE_GROUP_HOSTNAME}{MAPCORE_GROUP_API_PATH}{mapcore_node_group.mapcore_group._id}',
+        })
+    return result
+
+def _mapcore_node_group_parent(node, current_group):
+    """Get list of parent MapCore groups associated with a node"""
+    def get_admin_mapcore_node_groups(node):
+        result = []
+        for mapcore_node_group in node.mapcore_node_groups.select_related('mapcore_group', 'group', 'creator').filter(is_deleted=False).order_by('mapcore_group___id'):
+            if mapcore_node_group.get_permission == 'admin' and mapcore_node_group.mapcore_group.id not in current_group:
+                result.append(mapcore_node_group)
+        return result
+    result = set()
+    for parent in node.parents:
+        admins = get_admin_mapcore_node_groups(parent)
+        for admin in admins:
+            if admin not in result:
+                result.add(admin)
+    return result
