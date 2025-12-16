@@ -1264,7 +1264,7 @@ class TestWEKOSchema(OsfTestCase):
         with open('addons/weko/scripts/example-manuscript-metadata.json') as sample_file:
             sample_payload = json.load(sample_file)
 
-        files = [[(entry['name'], entry['type'])] for entry in sample_payload['files']]
+        files = [[(entry['name'], entry['type']) for entry in group] for group in sample_payload['files']]
 
         file_metadatas = copy.deepcopy(sample_payload['file_metadatas'])
         for metadata in file_metadatas:

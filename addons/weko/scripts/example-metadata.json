@@ -11,18 +11,20 @@
     "title": "Demo Index"
   },
   "files": [
-    {
-      "path": "addons/weko/scripts/example-data.txt",
-      "name": "example-data.txt",
-      "type": "text/plain"
-    }
+    [
+      {
+        "path": "addons/weko/scripts/example-data.txt",
+        "name": "example-data.txt",
+        "type": "text/plain"
+      }
+    ]
   ],
   "additional_files": [],
   "file_metadatas": [
     {
       "items": [
         {
-          "schema": "68ee14f787ad5e00010c4406",
+          "schema": "68f1e42522e35f0001f97723",
           "data": {
             "grdm-file:data-number": {
               "value": "00001"
