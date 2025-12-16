@@ -1139,14 +1139,18 @@ function MetadataButtons() {
     if (self.lastQuestionPage.hasValidationError) {
       message.text(_('There are errors in some fields.')).css('color', 'red');
     }
-    if (self.selectDraftDialog) {
-      self.selectDraftDialog.select.attr('disabled', self.lastQuestionPage.hasValidationError);
-    }
     draftSelectionContainer.empty();
     draftSelectionContainer.append(message);
-    draftSelectionContainer.append(
-      self.createDraftsSelect(schema, self.lastQuestionPage.hasValidationError).css('margin', '1em 0')
-    );
+    const draftsSelect = self.createDraftsSelect(schema, false).css('margin', '1em 0');
+    draftSelectionContainer.append(draftsSelect);
+    if (self.selectDraftDialog) {
+      const updateSelectButton = function() {
+        const hasChecked = draftsSelect.find('input[type="checkbox"]:checked').length > 0;
+        self.selectDraftDialog.select.attr('disabled', !hasChecked);
+      };
+      draftsSelect.find('input[type="checkbox"]').on('change', updateSelectButton);
+      updateSelectButton();
+    }
   };
 
   self.openDraftModal = function(currentMetadata) {
