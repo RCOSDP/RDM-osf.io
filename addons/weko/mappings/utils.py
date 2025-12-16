@@ -219,7 +219,7 @@ FUNDER_DEFS = {
         'ror': 'https://ror.org/004rtk039',
     },
     'MOD': {
-        'ror': None,
+        'ror': 'https://ror.org/05axzm004',
     },
     'NRA': {
         'ror': 'https://ror.org/01169d420',

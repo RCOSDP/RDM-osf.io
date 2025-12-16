@@ -1219,7 +1219,7 @@ class TestWEKOSchema(OsfTestCase):
         }
         project_metadata = {
             'funder': {
-                'value': 'MOD',
+                'value': 'FDMA',  # FDMA has no ROR ID
             },
             'japan-grant-number': {
                 'value': 'JP123456',
@@ -1244,7 +1244,7 @@ class TestWEKOSchema(OsfTestCase):
         graph_items = actual_json.get('@graph', [])
         funder_identifiers = [item for item in graph_items if item.get('@type') == 'jpcoar:funderIdentifier']
         logger.info(f'DEBUG: funder_identifiers={funder_identifiers}')
-        assert_equal(len(funder_identifiers), 0, 'funderIdentifier should not be created for MOD (no ROR ID)')
+        assert_equal(len(funder_identifiers), 0, 'funderIdentifier should not be created for FDMA (no ROR ID)')
         # But fundingReference should still exist with funderName
         funding_refs = [item for item in graph_items if item.get('@type') == 'PropertyValue' and 'jpcoar:funderName' in str(item)]
         assert_true(len(funding_refs) > 0, 'fundingReference with funderName should still be created')
