@@ -428,9 +428,17 @@ msgstr "登録"
 msgid "Error occurred: "
 msgstr "エラーが発生しました: "
 
-#: addons/weko/static/wekoFangornConfig.js:299
+#: addons/weko/static/wekoFangornConfig.js:243
+msgid "Deposit Result"
+msgstr "登録結果"
+
+#: addons/weko/static/wekoFangornConfig.js:245
+msgid "Deposit request was submitted. Awaiting review by repository administrator."
+msgstr "登録申請を送信しました。機関リポジトリ管理者の審査をお待ちください。"
+
+#: addons/weko/static/wekoFangornConfig.js:246
 msgid "Deposit was successful."
-msgstr "登録が成功しました。"
+msgstr "登録が完了しました。"
 
 #: addons/weko/static/wekoFangornConfig.js:553
 msgid "Error occurred while "
@@ -454,11 +462,9 @@ msgstr "送信するファイルメタデータのメタデータ様式を選択
 msgid "Project Metadata"
 msgstr "プロジェクトメタデータ"
 
-#: addons/weko/static/wekoFangornConfig.js:593
-msgid ""
-"Select a registration for the file. You can also select a draft "
-"registration."
-msgstr "送信するプロジェクトメタデータを選択してください。下書きも指定可能です。"
+#: addons/weko/static/wekoFangornConfig.js:626
+msgid "Select a project metadata for the file."
+msgstr "送信するプロジェクトメタデータを選択してください。"
 
 #: addons/weko/static/wekoFangornConfig.js:617
 msgid ""

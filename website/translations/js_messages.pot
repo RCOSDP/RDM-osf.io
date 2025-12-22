@@ -416,7 +416,15 @@ msgstr ""
 msgid "Error occurred: "
 msgstr ""
 
-#: addons/weko/static/wekoFangornConfig.js:299
+#: addons/weko/static/wekoFangornConfig.js:243
+msgid "Deposit Result"
+msgstr ""
+
+#: addons/weko/static/wekoFangornConfig.js:245
+msgid "Deposit request was submitted. Awaiting review by repository administrator."
+msgstr ""
+
+#: addons/weko/static/wekoFangornConfig.js:246
 msgid "Deposit was successful."
 msgstr ""
 
@@ -442,10 +450,8 @@ msgstr ""
 msgid "Project Metadata"
 msgstr ""
 
-#: addons/weko/static/wekoFangornConfig.js:593
-msgid ""
-"Select a registration for the file. You can also select a draft "
-"registration."
+#: addons/weko/static/wekoFangornConfig.js:626
+msgid "Select a project metadata for the file."
 msgstr ""
 
 #: addons/weko/static/wekoFangornConfig.js:617

@@ -390,6 +390,7 @@ def _deposit_metadata(
         return {
             'result': links[0]['@id'] if len(links) > 0 else None,
             'paths': metadata_paths,
+            'response': respbody,
         }
     finally:
         if delete_temp_dir_immediately and tmp_dir and os.path.exists(tmp_dir):

@@ -11,6 +11,108 @@ The WEKO addon implements the SWORD (Simple Web-service Offering Repository Depo
 - **Method**: POST
 - **Authentication**: OAuth2 Bearer token or Basic authentication
 
+### Response Format (Status Document)
+
+WEKO returns a SWORD v3 Status Document after deposit. The response differs based on the repository's workflow configuration.
+
+#### Workflow Mode vs Direct Mode
+
+| Item | Workflow Mode | Direct Mode |
+|------|---------------|-------------|
+| **HTTP Status** | 202 Accepted | 201 Created |
+| **@type** | `ServiceDocument` ※ | `Status` |
+| **state** | `inWorkflow` | `ingested` |
+| **eTag** | (none) | Present (e.g., `"5"`) |
+| **links** | `/workflow/activity/detail/A-...` | `/records/{item_id}` |
+| **Meaning** | Pending review | Published immediately |
+
+※ In Workflow Mode, WEKO returns `@type: ServiceDocument` instead of `Status`. This appears to be a WEKO-specific implementation detail.
+
+#### Workflow Mode Response Example
+```json
+{
+  "@context": "https://swordapp.github.io/swordv3/swordv3.jsonld",
+  "@id": "https://weko3.rdm.nii.ac.jp/sword/deposit/2000105",
+  "@type": "ServiceDocument",
+  "actions": {
+    "appendFiles": false, "appendMetadata": false,
+    "deleteFiles": false, "deleteMetadata": false,
+    "deleteObject": true,
+    "getFiles": false, "getMetadata": false,
+    "replaceFiles": false, "replaceMetadata": false
+  },
+  "fileSet": {},
+  "links": [{
+    "@id": "https://weko3.rdm.nii.ac.jp/workflow/activity/detail/A-20251220-00002",
+    "contentType": "text/html",
+    "rel": ["alternate"]
+  }],
+  "metadata": {},
+  "service": "/sword/service-document",
+  "state": [{"@id": "http://purl.org/net/sword/3.0/state/inWorkflow", "description": ""}]
+}
+```
+
+#### Direct Mode Response Example
+```json
+{
+  "@context": "https://swordapp.github.io/swordv3/swordv3.jsonld",
+  "@id": "https://weko3.rdm.nii.ac.jp/sword/deposit/2000107",
+  "@type": "Status",
+  "eTag": "5",
+  "actions": {
+    "appendFiles": false, "appendMetadata": false,
+    "deleteFiles": false, "deleteMetadata": false,
+    "deleteObject": true,
+    "getFiles": false, "getMetadata": false,
+    "replaceFiles": false, "replaceMetadata": false
+  },
+  "fileSet": {},
+  "links": [{
+    "@id": "https://weko3.rdm.nii.ac.jp/records/2000107",
+    "contentType": "text/html",
+    "rel": ["alternate"]
+  }],
+  "metadata": {},
+  "service": "/sword/service-document",
+  "state": [{"@id": "http://purl.org/net/sword/3.0/state/ingested", "description": ""}]
+}
+```
+
+#### Key Response Fields
+
+| Field | Description |
+|-------|-------------|
+| `@id` | Deposit URL (contains WEKO item ID) |
+| `state[].@id` | Current state: `inWorkflow` (pending) or `ingested` (published) |
+| `links[].@id` | URL to view item (workflow page or public record) |
+| `actions.deleteObject` | Whether delete is allowed (typically `true`) |
+| `eTag` | Version identifier (Direct Mode only) |
+
+#### OSF API Response
+
+The OSF API (`/api/v1/project/{node}/weko/...`) returns the WEKO response to the frontend:
+
+```json
+{
+  "data": {
+    "id": "node_id",
+    "type": "weko-sword-result",
+    "attributes": {
+      "result": "https://weko3.rdm.nii.ac.jp/records/2000107",
+      "response": { /* WEKO SWORD response (JSON-LD) */ }
+    }
+  }
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `result` | HTML link URL from `links[].@id` (for backward compatibility) |
+| `response` | Full WEKO SWORD response (JSON-LD) |
+
+Frontend can use `response.state`, `response.actions`, `response.links` for UI logic.
+
 ### Package Formats
 - **SimpleZip**: `http://purl.org/net/sword/3.0/package/SimpleZip`
 - **SWORDBagIt**: `http://purl.org/net/sword/3.0/package/SWORDBagIt`
