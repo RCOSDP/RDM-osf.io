@@ -653,7 +653,7 @@ li[name="WikiImportOperationPerItem"] {
     -webkit-box-orient: vertical !important;
     flex: 1 1 auto !important;
     min-width: 0 !important;
-    max-width: calc(100% - 200px) !important;
+    max-width: calc(100% - 160px) !important;
     margin-right: 30px !important;
     margin-left: -30px !important;
     cursor: help !important;
