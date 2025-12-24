@@ -655,7 +655,7 @@ li[name="WikiImportOperationPerItem"] {
     min-width: 0 !important;
     max-width: calc(100% - 200px) !important;
     margin-right: 30px !important;
-    margin-left: -18px !important;
+    margin-left: -30px !important;
     cursor: help !important;
     word-wrap: break-word !important;
     word-break: break-word !important;
