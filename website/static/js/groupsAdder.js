@@ -49,7 +49,6 @@ AddGroupViewModel = oop.extend(Paginator, {
             //The subscribe causes treebeard changes to change which nodes will be affected
             var childrenToChange = [];
             for (var key in newValue) {
-                console.log('Node ' + key + ' checked: ' + newValue[key].checked);
                 newValue[key].changed = newValue[key].checked !== self.nodesOriginal[key].checked;
                 if (newValue[key].changed && key !== self.nodeId) {
                     childrenToChange.push(key);
@@ -103,19 +102,11 @@ AddGroupViewModel = oop.extend(Paginator, {
 
         self.addAllVisible = ko.pureComputed(function () {
             var selected_ids = self.selection().map(function (group) {
-                console.log('Group in selection: ');
-                console.log(group);
                 return group.mapcore_group_id;
             });
             var groups = self.groups();
             return ($osf.any(
                 $.map(self.results(), function (result) {
-                    console.log('Checking group ');
-                    console.log(result);
-                    console.log('Existing groups: ');
-                    console.log(groups);
-                    console.log('Selected IDs: ');
-                    console.log(selected_ids);
                     return groups.indexOf(result.mapcore_group_id) === -1 && selected_ids.indexOf(result.mapcore_group_id) === -1;
                 })
             ));
@@ -131,8 +122,6 @@ AddGroupViewModel = oop.extend(Paginator, {
             });
             return names.join(', ');
         });
-        console.log('AddGroupViewModel initialized');
-        console.log(self);
     },
     hide: function () {
         $('.modal').modal('hide');
@@ -193,7 +182,6 @@ AddGroupViewModel = oop.extend(Paginator, {
             this.importFromParent();
         } else {
             var self = this;
-            console.log('page to get: ' + self.pageToGet());
             self.doneSearching(false);
             self.notification(false);
             if (self.query()) {
@@ -458,11 +446,8 @@ AddGroupViewModel = oop.extend(Paginator, {
         var self = this;
         return $.when(self.treeDataPromise).done(function (response) {
             self.nodesOriginal = projectSettingsTreebeardBase.getNodesOriginal(response[0], self.nodesOriginal);
-            console.log(self.nodesOriginal);
-            console.log(self.parentId);
             var nodesState = $.extend(true, {}, self.nodesOriginal);
             var nodeParent = response[0].node.id;
-            console.log('Parent node id: ' + nodeParent);
             //parent node is changed by default
             nodesState[nodeParent].checked = true;
             //parent node cannot be changed

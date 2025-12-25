@@ -389,3 +389,27 @@ class TestUpdateMapcoreGroups:
 
                 # bulk_update should not be called
                 assert not mock_bulk_update.called
+
+    def test_returns_early_when_groups_error_and_groups_empty(self, user):
+        """If groups is empty but groupsError exists, function returns early and logs decoded message."""
+        provider = {
+            'user': {
+                'groups': '',
+                'groupsError': 'Unable%20to%20obtain%20a%20SAML%20response%20from%20attribute%20authority.'
+            }
+        }
+
+        with mock.patch('api.institutions.authentication.settings.MAP_GATEWAY_ISMEMBEROF_PREFIX', 'https://cg.gakunin.jp/gr/'):
+            with mock.patch('api.institutions.authentication.logger') as mock_logger:
+                update_mapcore_groups(user, provider)
+
+                # logger.warning should have been called with a decoded message
+                assert mock_logger.warning.called
+                called_args = mock_logger.warning.call_args
+                # The first positional arg is the formatted message (code creates a formatted string)
+                message = called_args[0][0] if called_args and called_args[0] else ''
+                assert 'MAP Core groups retrieval error for user' in message
+                assert 'Unable to obtain a SAML response' in message
+
+        # Ensure no MapCoreUserGroup rows were created
+        assert MapCoreUserGroup.objects.filter(user=user).count() == 0

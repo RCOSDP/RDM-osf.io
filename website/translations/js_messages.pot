@@ -9246,3 +9246,24 @@ msgstr ""
 
 msgid "save or cancel your changes before adding groups."
 msgstr ""
+
+msgid "Unable to delete Group"
+msgstr ""
+
+msgid "Could not DELETE Group."
+msgstr ""
+
+msgid "There was a problem trying to add groups%1$s."
+msgstr ""
+
+msgid "There was a problem trying to add the group."
+msgstr ""
+
+msgid "Could not add groups"
+msgstr ""
+
+msgid "Could not add group"
+msgstr ""
+
+msgid "Error adding groups"
+msgstr ""

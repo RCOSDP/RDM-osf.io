@@ -1,4 +1,5 @@
 import json
+from urllib.parse import unquote
 import uuid
 import logging
 
@@ -531,9 +532,16 @@ def update_mapcore_groups(user, provider):
     prefix = settings.MAP_GATEWAY_ISMEMBEROF_PREFIX
     if not prefix:
         return
-    groups_str = provider['user'].get('groups')
-    if not groups_str:
-        return  # no groups provided
+    groups_str = provider['user'].get('groups', '')
+    groups_error = provider['user'].get('groupsError')
+    # if get mapcore groups error, do not update groups.
+    if not groups_str and groups_error:
+        try:
+            groups_error = unquote(groups_error)
+            logger.warning('MAP Core groups retrieval error for user {}: {}'.format(user.username, groups_error))
+        except Exception:
+            logger.warning('Failed to URL-decode groups_error: %s', groups_error)
+        return
     import re
     patt_prefix = re.compile('^' + prefix)
     groups_str_set = set()

@@ -115,14 +115,9 @@ var RemoveGroupViewModel = oop.extend(Paginator, {
         self.titlesToRemove = ko.computed(function() {
             var titlesToRemove = [];
             for (var key in self.nodesOriginal()) {
-                console.log('checking node ' + key);
                 if (self.nodesOriginal().hasOwnProperty(key) && self.canRemoveNodes()[key]) {
                     var node = self.nodesOriginal()[key];
-                    console.log('node title: ' + node.title);
                     var groups = node.mapcoreGroups;
-                    console.log('groups: ' + JSON.stringify(groups));
-                    console.log('group to remove : ');
-                    console.log(JSON.stringify(self.groupToRemove()));
                     for (var i = 0; i < groups.length; i++) {
                         if (groups[i] === self.groupToRemove().mapcoreGroupID) {
                             titlesToRemove.push(node.title);
@@ -131,7 +126,6 @@ var RemoveGroupViewModel = oop.extend(Paginator, {
                     }
                 }
             }
-            console.log('titles to remove: ' + JSON.stringify(titlesToRemove));
             return titlesToRemove;
         });
 
@@ -200,7 +194,6 @@ var RemoveGroupViewModel = oop.extend(Paginator, {
         removeNodesGroups(self.groupToRemove().id, self.componentIDsToRemove()).then(function (data) {
             window.location.reload();
         }).fail(function(xhr, status, error) {
-            console.log(error);
             $osf.growl('Error', _('Unable to delete Group'));
             Raven.captureMessage(_('Could not DELETE Group.') + error, {
                 extra: {
@@ -208,7 +201,6 @@ var RemoveGroupViewModel = oop.extend(Paginator, {
                 }
             });
             self.clear();
-            console.log('removal failed');
         });
     },
     deleteAllNodes: function() {

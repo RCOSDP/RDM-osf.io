@@ -138,9 +138,9 @@ var GroupModel = function(group, currentUserCanEdit, pageOwner, isRegistration, 
             window.location.reload();
         }).fail(function(xhr, status, error){
             $osf.unblock();
-            var errorMessage = lodashGet(xhr, 'responseJSON.message') || (sprintf(_('There was a problem trying to add the contributor. ') , osfLanguage.REFRESH_OR_SUPPORT));
-            $osf.growl(_('Could not add contributor'), errorMessage);
-            Raven.captureMessage(_('Error adding contributors'), {
+            var errorMessage = lodashGet(xhr, 'responseJSON.message') || (sprintf(_('There was a problem trying to add the group. ') , osfLanguage.REFRESH_OR_SUPPORT));
+            $osf.growl(_('Could not add group'), errorMessage);
+            Raven.captureMessage(_('Error adding groups'), {
                 extra: {
                     url: url,
                     status: status,

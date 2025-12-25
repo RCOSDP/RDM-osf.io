@@ -10578,3 +10578,24 @@ msgstr "グループリストには未保存の変更があります。 "
 
 msgid "save or cancel your changes before adding groups."
 msgstr "グループを追加する前に、変更を保存またはキャンセルしてください。"
+
+msgid "Unable to delete Group"
+msgstr "グループを削除できません"
+
+msgid "Could not DELETE Group."
+msgstr "グループを削除できませんでした"
+
+msgid "There was a problem trying to add groups%1$s."
+msgstr "グループ%1$sを追加しようとして問題が発生しました。"
+
+msgid "There was a problem trying to add the group."
+msgstr "グループを追加しようとして問題が発生しました。"
+
+msgid "Could not add groups"
+msgstr "グループを追加できませんでした"
+
+msgid "Could not add group"
+msgstr "グループを追加できませんでした"
+
+msgid "Error adding groups"
+msgstr "グループの追加エラー"
