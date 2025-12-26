@@ -8,7 +8,15 @@
             ".@type": "File",
             "name": "{{object_filename}}",
             "jpcoar:mimeType": "{{object_format}}",
-            "jpcoar:format": "preview"
+            "jpcoar:format": "preview",
+            "dcterms:accessRights": "{% if object_grdm_file_access_rights == 'open access' %}open_access{% elif object_grdm_file_access_rights == 'restricted access' %}open_login{% elif object_grdm_file_access_rights == 'embargoed access' %}open_date{% elif object_grdm_file_file_type == 'manuscript' %}open_access{% else %}open_no{% endif %}",
+            "datePublished": "{{nowdate}}",
+            "datacite:date[]": {
+                "@createIf": "{% if object_grdm_file_access_rights == 'embargoed access' %}{{object_grdm_file_available_date}}{% endif %}",
+                ".@type": "Date",
+                "value": "{{object_grdm_file_available_date}}",
+                "dateType": "Available"
+            }
         }
     },
     "@projects": {
@@ -471,7 +479,7 @@
             "jpcoar:contributorType": "DataManager",
             "jpcoar:nameIdentifier[]": {
                 ".@type": "Person",
-                "value": "{{object_number}}",
+                "value": "{{value}}",
                 "nameIdentifierScheme": "e-Rad_Researcher"
             }
         }
@@ -598,7 +606,7 @@
             "conformsTo": {
                 ".@id": "https://w3id.org/ro/crate/1.1"
             },
-            "wk:publishStatus": "private",
+            "wk:publishStatus": "{% if grdm_file_metadata_access_rights_value in ['restricted access', 'closed access'] %}private{% else %}public{% endif %}",
             "wk:index": "{{ index_id }}",
             "datePublished": "{{ nowdate }}"
         },

@@ -844,4 +844,5 @@ def write_ro_crate_json(user, f, target_index, download_file_names, schema_id, f
                 }
             )
 
+    logger.debug(f'Generated RO-Crate: {json.dumps(json_ld, ensure_ascii=False)}')
     json.dump(json_ld, f, indent=2, ensure_ascii=False)

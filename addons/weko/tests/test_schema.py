@@ -971,7 +971,7 @@ class TestWEKOSchema(OsfTestCase):
     {
       "@type": "Person",
       "nameIdentifierScheme": "e-Rad_Researcher",
-      "value": "",
+      "value": "11111",
       "@id": "_:Person8"
     },
     {
@@ -1157,6 +1157,7 @@ class TestWEKOSchema(OsfTestCase):
     },
     {
       "@type": "File",
+      "dcterms:accessRights": "open_login",
       "jpcoar:mimeType": "image/jpeg",
       "jpcoar:format": "preview",
       "name": "test.jpg",
@@ -1657,3 +1658,143 @@ class TestWEKOSchema(OsfTestCase):
         assert_true(version_type_found, 'subitem_version_type not found in CSV')
         assert_true(version_resource_found, 'subitem_version_resource not found in CSV')
         assert_true(peer_reviewed_found, 'subitem_peer_reviewed not found in CSV')
+
+    def test_manuscript_file_access_rights_defaults_to_open_access(self):
+        """Test that manuscript files default to open_access when grdm-file:access-rights is not set"""
+        buf = io.StringIO()
+        index = mock.MagicMock()
+        index.identifier = '1000'
+        index.title = 'Test Index'
+        node_id = 'testnode'
+        files = [[('manuscript.pdf', 'application/pdf')]]
+
+        target_schema = RegistrationSchema.objects \
+            .filter(name='公的資金による研究データのメタデータ登録') \
+            .order_by('-schema_version') \
+            .first()
+
+        # Manuscript metadata WITHOUT grdm-file:access-rights
+        file_metadata = {
+            'items': [
+                {
+                    'schema': target_schema._id,
+                    'data': {
+                        'grdm-file:title-en': {'value': 'Test Manuscript'},
+                        'grdm-file:file-type': {'value': 'manuscript'},
+                        'grdm-file:version': {'value': 'VoR'},
+                        'grdm-file:reviewed': {'value': 'yes'},
+                        'grdm-file:doi': {'value': '10.1234/example.2025'},
+                        'grdm-file:manuscript-type': {'value': 'journal article'},
+                        'grdm-file:date-published': {'value': '2025-01-01'},
+                        'grdm-file:authors': {
+                            'value': [
+                                {
+                                    'number': 'A001',
+                                    'name-ja-last': 'テスト',
+                                    'name-ja-middle': '',
+                                    'name-ja-first': '太郎',
+                                    'name-en-last': 'Test',
+                                    'name-en-middle': '',
+                                    'name-en-first': 'Taro',
+                                }
+                            ]
+                        },
+                        # Note: grdm-file:access-rights is NOT set
+                    },
+                },
+            ],
+        }
+
+        schema.write_ro_crate_json(
+            self.user,
+            buf,
+            index,
+            files,
+            target_schema._id,
+            [file_metadata],
+            [],
+            node_id
+        )
+
+        actual_json = json.loads(buf.getvalue())
+
+        # Find the File entity
+        file_entities = [
+            entity for entity in actual_json['@graph']
+            if entity.get('@type') == 'File'
+        ]
+        assert_equal(len(file_entities), 1)
+        file_entity = file_entities[0]
+
+        # Manuscript should default to open_access when access-rights is not set
+        assert_equal(
+            file_entity.get('dcterms:accessRights'),
+            'open_access',
+            'Manuscript file should default to open_access when grdm-file:access-rights is not set'
+        )
+
+    def test_dataset_file_access_rights_defaults_to_open_no(self):
+        """Test that dataset files default to open_no when grdm-file:access-rights is not set"""
+        buf = io.StringIO()
+        index = mock.MagicMock()
+        index.identifier = '1000'
+        index.title = 'Test Index'
+        node_id = 'testnode'
+        files = [[('data.csv', 'text/csv')]]
+
+        target_schema = RegistrationSchema.objects \
+            .filter(name='公的資金による研究データのメタデータ登録') \
+            .order_by('-schema_version') \
+            .first()
+
+        # Dataset metadata WITHOUT grdm-file:access-rights
+        file_metadata = {
+            'items': [
+                {
+                    'schema': target_schema._id,
+                    'data': {
+                        'grdm-file:title-en': {'value': 'Test Dataset'},
+                        'grdm-file:file-type': {'value': 'dataset'},
+                        'grdm-file:data-type': {'value': 'experimental data'},
+                        'grdm-file:creators': {
+                            'value': [
+                                {
+                                    'number': 'D001',
+                                    'name-ja': 'テスト太郎',
+                                    'name-en': 'Taro Test',
+                                }
+                            ]
+                        },
+                        # Note: grdm-file:access-rights is NOT set
+                    },
+                },
+            ],
+        }
+
+        schema.write_ro_crate_json(
+            self.user,
+            buf,
+            index,
+            files,
+            target_schema._id,
+            [file_metadata],
+            [],
+            node_id
+        )
+
+        actual_json = json.loads(buf.getvalue())
+
+        # Find the File entity
+        file_entities = [
+            entity for entity in actual_json['@graph']
+            if entity.get('@type') == 'File'
+        ]
+        assert_equal(len(file_entities), 1)
+        file_entity = file_entities[0]
+
+        # Dataset should default to open_no when access-rights is not set
+        assert_equal(
+            file_entity.get('dcterms:accessRights'),
+            'open_no',
+            'Dataset file should default to open_no when grdm-file:access-rights is not set'
+        )
