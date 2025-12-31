@@ -10,7 +10,6 @@ from osf.utils.permissions import READ
 from osf.utils import workflows
 from api.waffle.utils import storage_i18n_flag_active
 from website.util import quota
-from website.settings import MAPCORE_GROUP_HOSTNAME, MAPCORE_GROUP_API_PATH
 
 
 def get_profile_image_url(user, size=settings.PROFILE_IMAGE_MEDIUM):
@@ -261,7 +260,7 @@ def serialize_mapcore_node_groups(node):
             'creator': mapcore_node_group.creator.username,
             'is_deleted': mapcore_node_group.is_deleted,
             'permission': mapcore_node_group.get_permission,
-            'url': f'{MAPCORE_GROUP_HOSTNAME}{MAPCORE_GROUP_API_PATH}{mapcore_node_group.mapcore_group._id}',
+            'url': mapcore_node_group.mapcore_group.absolute_url,
         } for mapcore_node_group in node.mapcore_node_groups.select_related('mapcore_group', 'group', 'creator').filter(is_deleted=False).order_by('mapcore_group___id')
     ]
 
@@ -279,7 +278,7 @@ def serialize_parent_admin_groups(node, current_group):
             'creator': mapcore_node_group.creator.username,
             'is_deleted': mapcore_node_group.is_deleted,
             'permission': 'read',
-            'url': f'{MAPCORE_GROUP_HOSTNAME}{MAPCORE_GROUP_API_PATH}{mapcore_node_group.mapcore_group._id}',
+            'url': mapcore_node_group.mapcore_group.absolute_url,
         })
     return result
 

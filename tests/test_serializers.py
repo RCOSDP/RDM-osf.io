@@ -22,7 +22,7 @@ from tests.base import OsfTestCase, get_default_metaschema
 
 from framework.auth import Auth
 from website.project.views.node import _view_project, _serialize_node_search, _get_children, _get_readable_descendants
-from website.views import serialize_node_summary
+from website.views import serialize_node_summary, serialize_mapcore_group_for_summary
 from website.profile import utils
 from website import filters, settings
 
@@ -632,3 +632,40 @@ class TestSerializeMapcoreGroups(OsfTestCase):
 
         # Expect empty list when node has no parents
         assert_equal(result, [])
+
+    def test_serialize_mapcore_group_for_summary(self):
+        user = UserFactory()
+        node = NodeFactory(is_public=True)
+
+        # two MapCore groups, one attached, one deleted
+        g1 = MapCoreGroup.objects.create(_id='group-one')
+        g2 = MapCoreGroup.objects.create(_id='group-two')
+
+        auth1 = AuthGroup.objects.get_or_create(name=f'node_{node._id}_admin')[0]
+        auth2 = AuthGroup.objects.get_or_create(name=f'node_{node._id}_read')[0]
+
+        m1 = MapCoreNodeGroup.objects.create(node=node, group=auth1, mapcore_group=g1, creator=user, is_deleted=False)
+        _m2 = MapCoreNodeGroup.objects.create(node=node, group=auth2, mapcore_group=g2, creator=user, is_deleted=True)
+
+        data = serialize_mapcore_group_for_summary(node)
+
+        # only the non-deleted mapping should appear
+        assert_in('mapcore_groups', data)
+        assert_equal(len(data['mapcore_groups']), 1)
+        item = data['mapcore_groups'][0]
+        assert_equal(item['name'], g1._id)
+        assert_in(g1._id, item['url'])
+
+    def test_serialize_node_summary_includes_mapcore_groups(self):
+        node = NodeFactory(is_public=True)
+        user = node.creator
+
+        # attach a MapCore group to the node
+        g = MapCoreGroup.objects.create(_id='group-summary')
+        auth_group = AuthGroup.objects.get_or_create(name=f'node_{node._id}_admin')[0]
+        MapCoreNodeGroup.objects.create(node=node, group=auth_group, mapcore_group=g, creator=user, is_deleted=False)
+
+        summary = serialize_node_summary(node, Auth(user))
+        assert_in('mapcore_groups', summary)
+        assert_equal(len(summary['mapcore_groups']), 1)
+        assert_equal(summary['mapcore_groups'][0]['name'], g._id)
