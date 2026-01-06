@@ -384,12 +384,12 @@ ATTRIBUTE_NAME_LIST = [
 
 # Setting type
 SETTING_TYPE = [
-    (1, 'free_value_all_match'),  # ????(????)(????)
-    (2, 'free_value_left_suffix_match'),  # ????(????)(????)
-    (3, 'fixed_value_all_match'),  # ???(????)
-    (4, 'fixed_value_left_suffix_match'),  # ???(????)
-    (5, 'list_value_all_match'),  # ???(????)
-    (6, 'list_value_left_suffix_match'),  # ???(????)
+    (1, 'free_value_all_match'),  # 単一の値(自由入力)(完全一致)
+    (2, 'free_value_left_suffix_match'),  # 単一の値(自由入力)(後方一致)
+    (3, 'fixed_value_all_match'),  # 固定値(完全一致)
+    (4, 'fixed_value_left_suffix_match'),  # 固定値(後方一致)
+    (5, 'list_value_all_match'),  # リスト(完全一致)
+    (6, 'list_value_left_suffix_match'),  # リスト(後方一致)
 ]
 
 # Project limit number value
