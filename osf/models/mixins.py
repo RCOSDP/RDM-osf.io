@@ -1953,7 +1953,10 @@ class ContributorMixin(models.Model):
                 NodeGroupPermModel = apps.get_model('osf', 'NodeGroupObjectPermission')
                 for gid in auth_group_ids:
                     perms_qs = NodeGroupPermModel.objects.filter(group_id=gid, content_object_id=self.id)
-                    group_perm = list(perms_qs.values_list('permission__codename', flat=True))
+                    for perm in list(perms_qs.values_list('permission__codename', flat=True)):
+                        if perm not in group_perm:
+                            group_perm.append(perm)
+
         if not user or user.is_anonymous:
             return False
         perm = '{}_{}'.format(permission, object_type)
@@ -2005,7 +2008,9 @@ class ContributorMixin(models.Model):
             NodeGroupPermModel = apps.get_model('osf', 'NodeGroupObjectPermission')
             for gid in auth_group_ids:
                 perms_qs = NodeGroupPermModel.objects.filter(group_id=gid, content_object_id=self.id)
-                group_perms = list(perms_qs.values_list('permission__codename', flat=True))
+                for perm in list(perms_qs.values_list('permission__codename', flat=True)):
+                    if perm not in group_perms:
+                        group_perms.append(perm)
 
         # If base_perms not on model, will error
         perms = self.base_perms

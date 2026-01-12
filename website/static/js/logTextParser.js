@@ -154,7 +154,7 @@ var getMapcoreGroupList = function (mapcoreGroups, maxShown){
        var justOneMore = numMapcoreGroupsShown === mapcoreGroups.length -1;
        for(var i = 0; i < mapcoreGroups.length; i++){
            var item = mapcoreGroups[i];
-           var comma = ' ';
+           var comma = '';
            if(i !== mapcoreGroups.length -1 && ((i !== maxShown -1) || justOneMore)){
                comma = ', ';
            }

@@ -2083,7 +2083,7 @@ class NodeMapCoreGroupSerializer(JSONAPISerializer):
     id = ser.IntegerField(read_only=True)
     node_group_id = ser.IntegerField(source='id', read_only=True)
     creator_id = ser.IntegerField(read_only=True)
-    creator = ser.CharField(source='creator.username', read_only=True)
+    creator = ser.CharField(source='creator.fullname', read_only=True)
     permission = ser.SerializerMethodField()
     mapcore_group_id = ser.IntegerField(read_only=True)
     name = ser.CharField(source='mapcore_group._id', read_only=True)
@@ -2254,7 +2254,7 @@ class NodeMapCoreGroupCreateSerializer(NodeMapCoreGroupSerializer):
                         'attributes': {
                             'node_group_id': mapcore_node_group.id,
                             'creator_id': mapcore_node_group.creator.id,
-                            'creator': mapcore_node_group.creator.username,
+                            'creator': mapcore_node_group.creator.fullname,
                             'permission': permission_dict.get(mapcore_node_group.mapcore_group_id),
                             'mapcore_group_id': mapcore_node_group.mapcore_group_id,
                             'name': getattr(
@@ -2340,7 +2340,7 @@ class NodeMapCoreGroupUpdateSerializer(NodeMapCoreGroupSerializer):
                         'attributes': {
                             'node_group_id': updated_mapcore_node_group.id,
                             'creator_id': updated_mapcore_node_group.creator.id,
-                            'creator': updated_mapcore_node_group.creator.username,
+                            'creator': updated_mapcore_node_group.creator.fullname,
                             'permission': permission_dict.get(updated_mapcore_node_group.id),
                             'mapcore_group_id': updated_mapcore_node_group.mapcore_group_id,
                             'name': getattr(

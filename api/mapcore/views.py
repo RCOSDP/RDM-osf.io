@@ -14,7 +14,7 @@ class MapCoreGroupList(JSONAPIBaseView, generics.ListAPIView):
     List of MapCoreGroups
     """
     permission_classes = (
-        drf_permissions.IsAuthenticatedOrReadOnly,
+        drf_permissions.IsAuthenticated,
         base_permissions.TokenHasScope,
     )
     required_read_scopes = [CoreScopes.NODE_CONTRIBUTORS_READ]
@@ -32,7 +32,7 @@ class MapCoreGroupList(JSONAPIBaseView, generics.ListAPIView):
         if not auth or not auth.user or not auth.user.is_authenticated:
             return self.model_class.objects.none()
 
-        qs = self.model_class.objects.filter(mapcore_user_groups__user=auth.user)
+        qs = self.model_class.objects.filter(mapcore_user_groups__user=auth.user, is_deleted=False)
         q = self.request.GET.get('search') or self.request.query_params.get('search')
         if q:
             q = q.strip()

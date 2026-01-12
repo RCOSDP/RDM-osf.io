@@ -590,7 +590,7 @@ class TestSerializeMapcoreGroups(OsfTestCase):
         assert_equal(item['id'], str(m1.id))
         assert_equal(item['mapcore_group']['id'], g1.id)
         assert_equal(item['mapcore_group']['name'], g1._id)
-        assert_equal(item['creator'], user.username)
+        assert_equal(item['creator'], user.fullname)
         assert_equal(item['is_deleted'], False)
         assert_equal(item['permission'], m1.get_permission)
         assert_in(g1._id, item['url'])

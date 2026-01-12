@@ -70,7 +70,7 @@ class TestNodeMapCoreGroupSerializer:
         attrs = data['attributes']
         assert attrs['node_group_id'] == mapcore_node_group.id
         assert attrs['creator_id'] == mapcore_node_group.creator.id
-        assert attrs['creator'] == mapcore_node_group.creator.username
+        assert attrs['creator'] == mapcore_node_group.creator.fullname
         assert attrs['permission'] == 'admin'
         assert attrs['mapcore_group_id'] == mapcore_node_group.mapcore_group.id
         assert attrs['name'] == mapcore_node_group.mapcore_group._id

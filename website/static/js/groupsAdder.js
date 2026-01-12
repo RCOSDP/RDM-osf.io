@@ -88,16 +88,17 @@ AddGroupViewModel = oop.extend(Paginator, {
         self.parentImport = ko.observable(false);
         self.totalPages = ko.observable(0);
         self.childrenToChange = ko.observableArray();
+        self.hasSearch = ko.observable(false);
         self.foundResults = ko.pureComputed(function () {
             return self.query() && self.results().length && !self.parentImport();
         });
 
         self.noResults = ko.pureComputed(function () {
-            return self.query() && !self.results().length && self.doneSearching();
+            return self.query() && !self.results().length && self.doneSearching() && self.hasSearch();
         });
 
         self.showLoading = ko.pureComputed(function () {
-            return !self.doneSearching() && !!self.query();
+            return !self.doneSearching() && !!self.query() && self.hasSearch();
         });
 
         self.addAllVisible = ko.pureComputed(function () {
@@ -174,6 +175,7 @@ AddGroupViewModel = oop.extend(Paginator, {
      */
     startSearch: function () {
         this.parentImport(false);
+        this.hasSearch(true);
         this.pageToGet(0);
         this.fetchResults();
     },
@@ -185,7 +187,7 @@ AddGroupViewModel = oop.extend(Paginator, {
             self.doneSearching(false);
             self.notification(false);
             if (self.query()) {
-                var url = $osf.apiV2Url('mapcore/groups/');
+                var url = $osf.apiV2Url('map_core/groups/');
                 // url += '?search='+encodeURIComponent(self.query()) + '&page=' + self.pageToGet();
                 return $.ajax({
                     url: url,
@@ -434,6 +436,7 @@ AddGroupViewModel = oop.extend(Paginator, {
         self.selection([]);
         self.childrenToChange([]);
         self.notification(false);
+        self.hasSearch(false);
     },
     hasChildren: function() {
         var self = this;

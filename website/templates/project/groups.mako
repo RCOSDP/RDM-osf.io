@@ -161,13 +161,13 @@
             <span class="fa fa-bars sortable-bars"></span>
             <div class="card-header">
                 <span>
-                    <a class="name-search" data-bind="text: group.mapcore_group.name, attr:{href: profileUrl}"></a>
+                    <a class="name-search" data-bind="text: group.mapcore_group.name, attr:{href: profileUrl, target: '_blank'}"></a>
                 </span>
                 <span data-bind="text: permissionText()" class="permission-filter permission-search"></span>
             </div>
         </td>
         <td class="table-only">
-            <a class="name-search" data-bind="text: group.mapcore_group.name, attr:{href: profileUrl}"></a>
+            <a class="name-search" data-bind="text: group.mapcore_group.name, attr:{href: profileUrl, target: '_blank'}"></a>
         </td>
         <td class="permissions">
             <div class="header" data-bind="visible: group.expanded() && $root.collapsed()"></div>

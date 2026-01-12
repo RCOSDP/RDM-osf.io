@@ -2053,7 +2053,7 @@ MAPCORE_REFRESH_PATH = '/oauth/token.php'
 MAPCORE_AUTHCODE_MAGIC = 'GRDM_mAP_AuthCode'
 MAPCORE_CLIENTID = None
 MAPCORE_SECRET = None
-MAPCORE_GROUP_HOSTNAME = 'https://cg.gakunin.jp'
+MAPCORE_GROUP_HOSTNAME = 'https://sptest.cg.gakunin.jp'
 MAPCORE_GROUP_API_PATH = '/map/rd/'
 
 # allow logged-in-user to search private projects
@@ -2097,4 +2097,4 @@ BABEL_LANGUAGES = {
 BABEL_DEFAULT_LOCALE = 'ja'
 
 # Prefix of isMemberOf attribute for groups.
-MAP_GATEWAY_ISMEMBEROF_PREFIX = 'https://cg.gakunin.jp/gr/'
+MAP_GATEWAY_ISMEMBEROF_PREFIX = 'https://sptest.cg.gakunin.jp/gr/'

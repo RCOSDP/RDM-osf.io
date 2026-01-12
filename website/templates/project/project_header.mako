@@ -105,11 +105,11 @@
                         % endif
 
                         % if user['is_contributor_or_group_member']:
-                            <li><a href="${node['url']}groups/">${_("Groups")}</a></li>
+                            <li><a href="${node['url']}contributors/">${_("Contributors")}</a></li>
                         % endif
 
                         % if user['is_contributor_or_group_member']:
-                            <li><a href="${node['url']}contributors/">${_("Contributors")}</a></li>
+                            <li><a href="${node['url']}groups/">${_("Groups")}</a></li>
                         % endif
 
                         % if permissions.WRITE in user['permissions'] and not node['is_registration']:

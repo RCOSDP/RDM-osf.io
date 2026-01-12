@@ -9230,9 +9230,7 @@ msgstr ""
 msgid "${user} removed group ${mapcore_groups} from ${node}"
 msgstr ""
 
-msgid "${user} updated group permissions on on ${node}"
-
-msgstr ""
+msgid "${user} updated group permissions on ${node}"
 msgstr ""
 
 msgid "Add Groups"

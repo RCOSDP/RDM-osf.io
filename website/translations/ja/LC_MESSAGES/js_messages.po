@@ -10564,7 +10564,7 @@ msgstr "${user}が${mapcore_groups}グループを${node}に追加しました"
 msgid "${user} removed group ${mapcore_groups} from ${node}"
 msgstr "${user}が${node}から${mapcore_groups}グループを削除しました"
 
-msgid "${user} updated group permissions on on ${node}"
+msgid "${user} updated group permissions on ${node}"
 msgstr "${user}が${node}のグループ権限を変更しました"
 
 msgid "Add Groups"
