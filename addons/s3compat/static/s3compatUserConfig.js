@@ -24,6 +24,23 @@ var $modal = $('#s3compatInputCredentials');
 function ViewModel(url) {
     var self = this;
 
+    // Overwrite s3compatSettings
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/js/addons-s3compat-settings.json', false);
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4) {
+        if (xhr.status === 200) {
+          // sucsess
+          var data = JSON.parse(xhr.responseText);
+          s3compatSettings = data
+        } else {
+          // fail
+          console.error('use default.' + xhr.status);
+        }
+      }
+    };
+    xhr.send();
+
     self.properName = 'S3 Compatible Storage';
     self.availableServices = ko.observableArray(s3compatSettings['availableServices']);
     self.selectedService = ko.observable(s3compatSettings['availableServices'][0]);
