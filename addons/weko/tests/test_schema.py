@@ -1798,3 +1798,121 @@ class TestWEKOSchema(OsfTestCase):
             'open_no',
             'Dataset file should default to open_no when grdm-file:access-rights is not set'
         )
+
+    def test_write_ro_crate_json_mebyo_empty_files(self):
+        """Test that MEBYO schema can generate RO-Crate without files (metadata only).
+
+        When allow_empty_files is enabled in the mapping, the RO-Crate should be
+        generated with project metadata only, without requiring file metadata.
+        """
+        buf = io.StringIO()
+        index = mock.MagicMock()
+        index.identifier = '2000'
+        index.title = 'MEBYO Test Index'
+        node_id = 'mebyotest'
+
+        target_schema = RegistrationSchema.objects \
+            .filter(name='ムーンショット目標2データベース（未病DB）のメタデータ登録') \
+            .order_by('-schema_version') \
+            .first()
+
+        # No files - empty lists
+        files = []
+        file_metadatas = []
+
+        # Project metadata with minimal required fields for MEBYO schema
+        project_metadata = {
+            'title-of-dataset': {
+                'value': 'テストデータセット',
+            },
+            'title-of-dataset-en': {
+                'value': 'Test Dataset',
+            },
+            'purpose-of-experiment': {
+                'value': '実験目的の説明',
+            },
+            'purpose-of-experiment-en': {
+                'value': 'Description of experiment purpose',
+            },
+            'data-creator': {
+                'value': '国立情報学研究所',
+            },
+            'data-manager': {
+                'value': 'テスト管理者',
+            },
+            'grdm-files': {
+                'value': [],  # No files
+            },
+        }
+
+        schema.write_ro_crate_json(
+            self.user,
+            buf,
+            index,
+            files,
+            target_schema._id,
+            file_metadatas,
+            [project_metadata],
+            node_id
+        )
+
+        actual_json = json.loads(buf.getvalue())
+        graph = {item['@id']: item for item in actual_json['@graph'] if '@id' in item}
+
+        # Root dataset entity should exist
+        assert_in('./', graph, 'Root dataset entity should exist')
+        root = graph['./']
+        assert_equal(root['@type'], ['Dataset', 'rdm:Dataset'])
+
+        # ro-crate-metadata.json entity should exist
+        assert_in('ro-crate-metadata.json', graph, 'RO-Crate metadata entity should exist')
+        ro_crate_meta = graph['ro-crate-metadata.json']
+        assert_equal(ro_crate_meta['about']['@id'], './')
+
+        # Project metadata should be reflected
+        assert_equal(root['name'], 'Test Dataset')
+        assert_equal(root['description'], 'Description of experiment purpose')
+
+    def test_write_ro_crate_json_erad_requires_files(self):
+        """Test that e-Rad schema (公的資金) requires files and raises error when empty.
+
+        The e-Rad schema should NOT allow empty files, as file metadata is required
+        for public funding data submissions.
+        """
+        buf = io.StringIO()
+        index = mock.MagicMock()
+        index.identifier = '1000'
+        index.title = 'Test Index'
+        node_id = 'testnode'
+
+        target_schema = RegistrationSchema.objects \
+            .filter(name='公的資金による研究データのメタデータ登録') \
+            .order_by('-schema_version') \
+            .first()
+
+        # No files - empty lists
+        files = []
+        file_metadatas = []
+        project_metadata = {
+            'funder': {'value': 'JST'},
+            'japan-grant-number': {'value': 'JP123456'},
+        }
+
+        # Should raise ValueError because e-Rad schema requires files
+        with assert_raises(ValueError) as context:
+            schema.write_ro_crate_json(
+                self.user,
+                buf,
+                index,
+                files,
+                target_schema._id,
+                file_metadatas,
+                [project_metadata],
+                node_id
+            )
+
+        assert_in(
+            'No file metadata available',
+            str(context.exception),
+            'Error message should indicate missing file metadata'
+        )

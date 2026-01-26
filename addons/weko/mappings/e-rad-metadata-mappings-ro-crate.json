@@ -1,6 +1,7 @@
 {
     "@metadata": {
-        "filename": "ro-crate-metadata.json"
+        "filename": "ro-crate-metadata.json",
+        "allow_empty_files": false
     },
     "@files": {
         "@type": "object",

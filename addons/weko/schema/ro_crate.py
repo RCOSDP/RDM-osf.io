@@ -607,8 +607,16 @@ def write_ro_crate_json(user, f, target_index, download_file_names, schema_id, f
 
     mappings = expand_listed_key(mapping_def.rules)
     entries = _prepare_file_metadata_entries(file_metadatas, download_file_names, schema._id)
+    allow_empty_files = mapping_def.rules['@metadata']['allow_empty_files']
     if not entries:
-        raise ValueError('No file metadata available to build RO-Crate dataset')
+        if not allow_empty_files:
+            raise ValueError('No file metadata available to build RO-Crate dataset')
+        # Create a dummy entry to allow processing with project metadata only
+        entries = [{
+            'file_metadata': {'items': [{'schema': schema._id, 'data': {}}]},
+            'download_file_names': [],
+            'file_type': '',
+        }]
 
     should_split = len(entries) > 1
 

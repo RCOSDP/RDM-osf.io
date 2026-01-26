@@ -71,7 +71,7 @@ def _validate_metadata_element(element):
         if key == 'itemtype':
             _validate_itemtype_element(v)
             continue
-        if key in ['filename', 'schemaname']:
+        if key in ['filename', 'schemaname', 'allow_empty_files']:
             continue
         raise ValueError(f'Unexpected key "{key}" in metadata')
 
