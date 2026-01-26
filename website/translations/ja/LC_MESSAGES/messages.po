@@ -4434,6 +4434,18 @@ msgstr "%(summaryTitle)sのフォークを作成"
 msgid "Manage Contributors"
 msgstr "メンバー管理"
 
+#: website/templates/profile.mako:70
+msgid "IAL"
+msgstr ""
+
+#: website/templates/profile.mako:74
+msgid "AuthnContext-Class"
+msgstr ""
+
+#: website/templates/profile.mako:80
+msgid "Log in again using multi-factor authentication"
+msgstr "多要素認証で再ログインする"
+
 #~ msgid ""
 #~ "Because you have not configured the "
 #~ "{addon} add-on, your authentication will"

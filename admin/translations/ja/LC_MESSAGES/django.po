@@ -4039,3 +4039,18 @@ msgstr "有効化する"
 
 msgid "No@encrypt_uploads"
 msgstr "有効化しない"
+
+msgid "LoA update successful."
+msgstr "LoAの更新に成功しました。"
+
+msgid "Show"
+msgstr "表示する"
+
+msgid "Hide"
+msgstr "表示しない"
+
+msgid "Level of Assurance"
+msgstr "要求する保証レベルの設定"
+
+msgid "Display MFA link button"
+msgstr "多要素認証実行ボタンの表示"
