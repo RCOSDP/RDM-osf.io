@@ -189,8 +189,6 @@ class InstitutionAuthentication(BaseAuthentication):
         organization_name_ja = get_next(p_user, 'jao', 'jaOrganizationName')
         # affiliation: 'jaou' is friendlyName
         organizational_unit_ja = get_next(p_user, 'jaou', 'jaOrganizationalUnitName')
-        # login_availability
-        login_availability = p_user.get('login_availability')
 
         # edu_person_affiliation: 'eduPersonAffiliation' is friendlyName
         edu_person_affiliation = get_next(p_user, 'edu_person_affiliation', 'eduPersonAffiliation')
@@ -522,7 +520,6 @@ class InstitutionAuthentication(BaseAuthentication):
                 'organizational_unit': organizational_unit,
                 'organization_name_ja': organization_name_ja,
                 'organizational_unit_ja': organizational_unit_ja,
-                'login_availability': login_availability,
                 'groups': groups,
                 'family_name': family_name,
                 'given_name': given_name,

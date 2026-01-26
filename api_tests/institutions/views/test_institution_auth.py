@@ -11,7 +11,7 @@ from api.base.settings.defaults import API_BASE
 from framework.auth import signals, Auth
 from framework.auth.views import send_confirm_email
 
-from osf.models import OSFUser, UserExtendedData
+from osf.models import OSFUser
 from osf_tests.factories import InstitutionFactory, ProjectFactory, UserFactory
 
 from tests.base import capture_signals
@@ -36,7 +36,6 @@ def make_payload(
         jaOrganizationalUnitName='',
         organizationalUnit='',
         organizationName='',
-        login_availability='',
         edu_person_affiliation='',
         edu_person_scoped_affiliation='',
         edu_person_targeted_id='',
@@ -69,7 +68,6 @@ def make_payload(
                 'jaOrganizationalUnitName': jaOrganizationalUnitName,
                 'organizationalUnitName': organizationalUnit,
                 'organizationName': organizationName,
-                'login_availability': login_availability,
                 'eduPersonAffiliation': edu_person_affiliation,
                 'eduPersonScopedAffiliation': edu_person_scoped_affiliation,
                 'eduPersonTargetedID': edu_person_targeted_id,

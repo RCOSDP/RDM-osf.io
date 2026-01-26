@@ -18,6 +18,22 @@ var s3compatFolderPickerViewModel = oop.extend(OauthAddonFolderPicker, {
         // TODO: [OSF-7069]
         self.super.super.constructor.call(self, addonName, url, selector, folderPicker, tbOpts);
         self.super.construct.call(self, addonName, url, selector, folderPicker, opts, tbOpts);
+        // Overwrite s3compatSettings
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', '/js/addons-s3compat-settings.json', false);
+        xhr.onreadystatechange = function() {
+          if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+              // sucsess
+              var data = JSON.parse(xhr.responseText);
+              s3compatSettings = data
+            } else {
+              // fail
+              console.error('use default.' + xhr.status);
+            }
+          }
+        };
+        xhr.send();
         // Non-OAuth fields
         self.availableServices = ko.observableArray(s3compatSettings['availableServices']);
         self.selectedService = ko.observable(s3compatSettings['availableServices'][0]);
