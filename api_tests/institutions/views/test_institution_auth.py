@@ -12,6 +12,7 @@ from framework.auth import signals, Auth
 from framework.auth.views import send_confirm_email
 
 from osf.models import OSFUser
+from osf.models import UserExtendedData
 from osf_tests.factories import InstitutionFactory, ProjectFactory, UserFactory
 
 from tests.base import capture_signals
