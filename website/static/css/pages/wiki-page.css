@@ -556,3 +556,137 @@ li[name="WikiImportOperationPerItem"] {
   border: 1px solid #ccc;
   padding: 8px;
 }
+
+/* Hide collaborativeStatus and cp-sidebar-content by default */
+#collaborativeStatus,
+.cp-sidebar-content {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    overflow: hidden !important;
+}
+
+/* Ensure icons are visible in wiki tree */
+.tb-expand-icon-holder,
+.tb-expand-icon-holder > i,
+.tb-expand-icon-holder > span {
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Fix long file names in wiki tree - truncate with ellipsis */
+.tb-row .tb-td {
+    overflow: visible !important;
+}
+
+.tb-row .tb-td .fg-file-links {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    display: inline-block !important;
+    max-width: calc(100% - 30px) !important;
+}
+
+/* Fix long file names in wiki import modal - truncate with ellipsis */
+#alertInfo #validateInfo ul,
+#alertInfo #duplicatedInfo ul,
+#alertInfo #duplicatedFolder ul {
+    padding-left: 20px !important;
+    margin: 0 !important;
+    list-style: none !important;
+}
+
+#alertInfo #validateInfo ul li,
+#alertInfo #duplicatedInfo ul li,
+#alertInfo #duplicatedFolder ul li {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    max-width: 100% !important;
+    position: relative !important;
+    padding-left: 15px !important;
+    margin-left: 0 !important;
+    cursor: help !important;
+    word-wrap: break-word !important;
+    word-break: break-word !important;
+    line-height: 1.5 !important;
+    height: auto !important;
+    max-height: none !important;
+}
+
+#alertInfo #validateInfo ul li::before,
+#alertInfo #duplicatedInfo ul li::before,
+#alertInfo #duplicatedFolder ul li::before {
+    content: "・" !important;
+    position: absolute !important;
+    left: 0 !important;
+    display: inline-block !important;
+    width: 15px !important;
+}
+
+#alertInfo #perFileDifinitionForm ul {
+    padding-left: 0 !important;
+    margin: 0 !important;
+}
+
+#alertInfo #perFileDifinitionForm ul li {
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: space-between !important;
+    overflow: visible !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 8px 0 !important;
+    margin: 0 !important;
+    list-style: none !important;
+    position: relative !important;
+    padding-left: 0 !important;
+}
+
+#alertInfo #perFileDifinitionForm ul li::before {
+    content: "・" !important;
+    position: absolute !important;
+    left: 5px !important;
+    top: 8px !important;
+    display: inline-block !important;
+    width: auto !important;
+    line-height: 1.5 !important;
+    margin-right: 0 !important;
+}
+
+#alertInfo #perFileDifinitionForm ul li div[name="WikiImportOperationPerName"] {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    max-width: calc(100% - 160px) !important;
+    margin-right: 30px !important;
+    margin-left: -30px !important;
+    cursor: help !important;
+    word-wrap: break-word !important;
+    word-break: break-word !important;
+    line-height: 1.5 !important;
+    align-self: flex-start !important;
+}
+
+#alertInfo #perFileDifinitionForm ul li div[name="WikiImportOperationPer"] {
+    flex: 0 0 auto !important;
+    min-width: 120px !important;
+    max-width: 130px !important;
+    width: 130px !important;
+    margin-left: auto !important;
+    align-self: center !important;
+    margin-top: 0 !important;
+}
+
+#alertInfo #perFileDifinitionForm ul li div[name="WikiImportOperationPer"] .form-control {
+    width: 100% !important;
+    min-width: 120px !important;
+    max-width: 130px !important;
+}
