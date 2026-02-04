@@ -160,7 +160,10 @@ def _flatten_json_ld_root(object, counts=None):
             clone = values.copy()
             for item in values:
 
-                if '@id' in item:
+                # NOTE: The following transformation assumes Person objects.
+                # Ideally, the mapping should generate the correct structure directly
+                # rather than requiring post-processing here.
+                if '@id' in item and item.get('@type') == 'Person':
                     root_raw_id = item.get('@id')
                     root_base_id = normalize_base_id(root_raw_id)
                     if 'affiliation' in item:

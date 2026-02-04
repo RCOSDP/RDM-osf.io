@@ -82,7 +82,8 @@ def _ensure_schema_id(file_metadatas, schema_id):
         for item in metadata_items:
             items.append(item['schema'])
     if not items:
-        raise ValueError('file_metadatas must contain items')
+        logging.info('No file_metadatas provided (allow_empty_files mode)')
+        return
     if any(item != schema_id for item in items):
         raise ValueError('Schema mismatch between metadata and schema_id')
 
