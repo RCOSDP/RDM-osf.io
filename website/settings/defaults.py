@@ -374,7 +374,6 @@ SHARE_API_TOKEN = None  # Required to send project updates to SHARE
 
 CAS_SERVER_URL = 'http://localhost:8080'
 MFR_SERVER_URL = 'http://localhost:7778'
-OSF_MFA_URL = ''  # R-2022-48
 
 ###### ARCHIVER ###########
 ARCHIVE_PROVIDER = 'osfstorage'
@@ -2094,12 +2093,3 @@ BABEL_LANGUAGES = {
     'ja_jp': '日本語'
 }
 BABEL_DEFAULT_LOCALE = 'ja'
-
-# Default values for IAL2 & AAL2 parameters(R-2023-55)
-# Default values for IAL1 & AAL1 parameters(R-2024-AUTH01)
-OSF_IAL2_STR = 'https://www\.gakunin\.jp/profile/IAL2'
-OSF_AAL1_STR = 'https://www\.gakunin\.jp/profile/AAL1'
-OSF_AAL2_STR = 'https://www\.gakunin\.jp/profile/AAL2'
-OSF_IAL2_VAR = 'https://www.gakunin.jp/profile/IAL2'
-OSF_AAL1_VAR = 'https://www.gakunin.jp/profile/AAL1'
-OSF_AAL2_VAR = 'https://www.gakunin.jp/profile/AAL2'

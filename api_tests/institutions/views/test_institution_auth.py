@@ -118,7 +118,7 @@ class TestInstitutionAuth:
 
         with capture_signals() as mock_signals:
             res = app.post(url_auth_institution, make_payload(institution, username))
-        assert res.status_code == 204 or res.status_code == 200
+        assert res.status_code == 204
         assert mock_signals.signals_sent() == set([signals.user_confirmed])
 
         user = OSFUser.objects.filter(username=username).first()
@@ -135,7 +135,7 @@ class TestInstitutionAuth:
 
         with capture_signals() as mock_signals:
             res = app.post(url_auth_institution, make_payload(institution, username))
-        assert res.status_code == 204 or res.status_code == 200
+        assert res.status_code == 204
         assert not mock_signals.signals_sent()
 
         user.reload()
@@ -151,7 +151,7 @@ class TestInstitutionAuth:
 
         with capture_signals() as mock_signals:
             res = app.post(url_auth_institution, make_payload(institution, username))
-        assert res.status_code == 204 or res.status_code == 200
+        assert res.status_code == 204
         assert not mock_signals.signals_sent()
 
         user.reload()
@@ -175,7 +175,8 @@ class TestInstitutionAuth:
 
         username = 'user_created_with_fullname_only@osf.edu'
         res = app.post(url_auth_institution, make_payload(institution, username))
-        assert res.status_code == 204 or res.status_code == 200
+        assert res.status_code == 204
+
         user = OSFUser.objects.filter(username=username).first()
         assert user
         assert user.fullname == 'Fake User'
@@ -190,7 +191,8 @@ class TestInstitutionAuth:
             url_auth_institution,
             make_payload(institution, username, given_name='Foo', family_name='Bar')
         )
-        assert res.status_code == 204 or res.status_code == 200
+        assert res.status_code == 204
+
         user = OSFUser.objects.filter(username=username).first()
         assert user
         assert user.fullname == 'Fake User'
@@ -217,7 +219,7 @@ class TestInstitutionAuth:
                     department='Fake Department',
                 )
             )
-        assert res.status_code == 204 or res.status_code == 200
+        assert res.status_code == 204
         assert not mock_signals.signals_sent()
 
         user = OSFUser.objects.filter(username=username).first()
@@ -256,7 +258,7 @@ class TestInstitutionAuth:
                     department='Fake Department',
                 )
             )
-        assert res.status_code == 204 or res.status_code == 200
+        assert res.status_code == 204
         assert mock_signals.signals_sent() == set([signals.user_confirmed])
 
         user = OSFUser.objects.filter(username=username).first()
@@ -291,7 +293,7 @@ class TestInstitutionAuth:
                     fullname='Fake User'
                 )
             )
-        assert res.status_code == 204 or res.status_code == 200
+        assert res.status_code == 204
         assert mock_signals.signals_sent() == set([signals.user_confirmed])
 
         user = OSFUser.objects.filter(username=username).first()
@@ -413,7 +415,8 @@ class TestInstitutionAuth:
                          jaGivenName=jagivenname, jaSurname=jasurname),
             expect_errors=True
         )
-        assert res.status_code == 204 or res.status_code == 200
+        assert res.status_code == 204
+
         user = OSFUser.objects.filter(username=username).first()
         assert user
         assert user.ext.data['idp_attr']['fullname_ja'] == jagivenname + ' ' + jasurname
@@ -427,7 +430,7 @@ class TestInstitutionAuth:
             make_payload(institution, username, jaGivenName=jagivenname),
             expect_errors=True
         )
-        assert res.status_code == 204 or res.status_code == 200
+        assert res.status_code == 204
         user = OSFUser.objects.filter(username=username).first()
         assert user
         assert user.given_name_ja == jagivenname
@@ -441,7 +444,7 @@ class TestInstitutionAuth:
             make_payload(institution, username, jaSurname=jasurname),
             expect_errors=True
         )
-        assert res.status_code == 204 or res.status_code == 200
+        assert res.status_code == 204
         user = OSFUser.objects.filter(username=username).first()
         assert user
         assert user.family_name_ja == jasurname
@@ -455,7 +458,7 @@ class TestInstitutionAuth:
             make_payload(institution, username, jaMiddleNames=middlename),
             expect_errors=True
         )
-        assert res.status_code == 204 or res.status_code == 200
+        assert res.status_code == 204
         user = OSFUser.objects.filter(username=username).first()
         assert user
         assert user.middle_names_ja == middlename
@@ -469,7 +472,7 @@ class TestInstitutionAuth:
             make_payload(institution, username, given_name=given_name),
             expect_errors=True
         )
-        assert res.status_code == 204 or res.status_code == 200
+        assert res.status_code == 204
         user = OSFUser.objects.filter(username=username).first()
         assert user
         assert user.given_name == given_name
@@ -483,7 +486,7 @@ class TestInstitutionAuth:
             make_payload(institution, username, family_name=family_name),
             expect_errors=True
         )
-        assert res.status_code == 204 or res.status_code == 200
+        assert res.status_code == 204
         user = OSFUser.objects.filter(username=username).first()
         assert user
         assert user.family_name == family_name
@@ -497,7 +500,7 @@ class TestInstitutionAuth:
             make_payload(institution, username, middle_names=middle_names),
             expect_errors=True
         )
-        assert res.status_code == 204 or res.status_code == 200
+        assert res.status_code == 204
         user = OSFUser.objects.filter(username=username).first()
         assert user
         assert user.middle_names == middle_names
@@ -516,7 +519,7 @@ class TestInstitutionAuth:
                          organizationName=organizationname),
             expect_errors=True
         )
-        assert res.status_code == 204 or res.status_code == 200
+        assert res.status_code == 204
         user = OSFUser.objects.filter(username='tmp_eppn_' + username).first()
         assert user
         assert user.jobs[0]['department_ja'] == jaorganizationname
@@ -535,36 +538,10 @@ class TestInstitutionAuth:
                          organizationName=organizationname),
             expect_errors=True
         )
-        assert res.status_code == 204 or res.status_code == 200
+        assert res.status_code == 204
         user = OSFUser.objects.filter(username='tmp_eppn_' + username).first()
         assert user
         assert user.jobs[0]['department'] == organizationnameunit
-
-    def test_authenticate__check_user_extended_data(self, app, institution, url_auth_institution):
-        username, fullname, password = 'user_active@user.edu', 'Foo Bar', 'FuAsKeEr'
-        user = make_user(username, fullname)
-        user.set_password(password)
-        user.save()
-
-        with capture_signals() as mock_signals:
-            res = app.post(
-                url_auth_institution,
-                make_payload(
-                    institution,
-                    username,
-                    family_name='User',
-                    given_name='Fake',
-                    fullname='Fake User',
-                    department='Fake Department',
-                    login_availability='can login',
-                )
-            )
-        assert res.status_code == 204 or res.status_code == 200
-        assert not mock_signals.signals_sent()
-
-        # confirm login availability extended data
-        extended_data = UserExtendedData.objects.get(user=user)
-        assert extended_data.data.get('idp_attr', {}).get('login_availability') == 'can login'
 
     @mock.patch('api.institutions.authentication.login_by_eppn')
     def test_with_new_attribute(self, mock, app, institution, url_auth_institution):
@@ -596,7 +573,7 @@ class TestInstitutionAuth:
                 gakunin_identity_assurance_method_reference=gakunin_identity_assurance_method_reference,)
         )
 
-        assert res.status_code == 204 or res.status_code == 200
+        assert res.status_code == 204
         user = OSFUser.objects.filter(username='tmp_eppn_' + username).first()
         assert user
 
