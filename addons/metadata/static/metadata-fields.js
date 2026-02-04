@@ -498,6 +498,9 @@ const TextFormField = oop.extend(FormFieldInterface, {
 
   getValue: function() {
     const self = this;
+    if (self.usedTypeahead) {
+      return self.input.typeahead('val');  // typeahead API を使用
+    }
     return self.input.val();
   },
 
