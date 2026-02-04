@@ -90,7 +90,7 @@ class TestGettingShibbolethAttribute:
             make_payload(institution, eppn, fullname, given_name, family_name)
         )
 
-        assert res.status_code == 200
+        assert res.status_code == 204
         user = OSFUser.objects.get(username=tmp_eppn_username)
         assert user
         assert user.fullname == fullname
@@ -114,7 +114,7 @@ class TestGettingShibbolethAttribute:
             make_payload(institution, eppn, fullname, given_name, family_name, email=email)
         )
 
-        assert res.status_code == 200
+        assert res.status_code == 204
         user = OSFUser.objects.get(username=email)
         assert user
         assert user.fullname == fullname
@@ -151,7 +151,7 @@ class TestGettingShibbolethAttribute:
             )
         )
 
-        assert res.status_code == 200
+        assert res.status_code == 204
         user = OSFUser.objects.get(username=email)
         assert user
         assert user.fullname == fullname
@@ -203,7 +203,7 @@ class TestGettingShibbolethAttribute:
             )
         )
 
-        assert res.status_code == 200
+        assert res.status_code == 204
         user = OSFUser.objects.get(username=email)
         assert user
         assert user.fullname == fullname
@@ -230,7 +230,7 @@ class TestGettingShibbolethAttribute:
             make_payload(institution, eppn, fullname, given_name, family_name, email=email)
         )
 
-        assert res.status_code == 200
+        assert res.status_code == 204
 
         # email is ignored
         from django.core.exceptions import ObjectDoesNotExist
@@ -260,7 +260,7 @@ class TestGettingShibbolethAttribute:
             url_auth_institution,
             make_payload(institution, eppn, fullname, given_name, family_name, email=email)
         )
-        assert res.status_code == 200
+        assert res.status_code == 204
         user = OSFUser.objects.get(username=email)
         assert user
         assert user.have_email == True
@@ -272,7 +272,7 @@ class TestGettingShibbolethAttribute:
             url_auth_institution,
             make_payload(institution, eppn2, fullname, given_name, family_name, email=email)
         )
-        assert res.status_code == 200
+        assert res.status_code == 204
 
         # same email is ignored
         user2 = OSFUser.objects.get(username=tmp_eppn_username2)
@@ -315,7 +315,7 @@ class TestGettingShibbolethAttribute:
         )
 
         # user.fullname is not changned
-        assert res.status_code == 200
+        assert res.status_code == 204
         user = OSFUser.objects.get(username=email)
         assert user
         assert user.fullname == fullname

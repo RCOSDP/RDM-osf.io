@@ -4081,15 +4081,3 @@ msgstr ""
 
 msgid "If you do not have an email address registered, please enter or add your email address in the \"Registered email address\" entry field first."
 msgstr ""
-
-#: website/templates/profile.mako:70
-msgid "IAL"
-msgstr ""
-
-#: website/templates/profile.mako:74
-msgid "AuthnContext-Class"
-msgstr ""
-
-#: website/templates/profile.mako:80
-msgid "Log in again using multi-factor authentication"
-msgstr ""
