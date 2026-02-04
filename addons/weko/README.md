@@ -29,4 +29,28 @@ Notes on privacy settings:
     - Items can be uploaded.
  - For non-contributors, when a node is public:
     - The user can access the content of indices and items.
- - For non-contributors, when a node is private, there is no access to the JAIRO Cloud add-on.
+ - For non-contributors, when a node is private, there is no access to the WEKO add-on.
+
+## Developer Documentation
+
+For SWORD protocol implementation, metadata mapping specifications, and testing utilities, see [SWORD.md](SWORD.md).
+
+## Running Tests
+
+Run all WEKO addon unit tests:
+
+```bash
+docker compose run --rm web invoke test_module -n 1 -m addons/weko/tests
+```
+
+Run a specific test file:
+
+```bash
+docker compose run --rm web python3 -m pytest addons/weko/tests/test_schema.py -xvs
+```
+
+Run a specific test:
+
+```bash
+docker compose run --rm web python3 -m pytest addons/weko/tests/test_schema.py::TestWEKOSchema::test_write_ro_crate_json_grouped_supporting_files -xvs
+```
