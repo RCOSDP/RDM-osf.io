@@ -1873,6 +1873,118 @@ class TestWEKOSchema(OsfTestCase):
         assert_equal(root['name'], 'Test Dataset')
         assert_equal(root['description'], 'Description of experiment purpose')
 
+    def test_write_ro_crate_json_mebyo_with_additional_metadata_files(self):
+        """Test MEBYO schema with choose-additional-metadata containing files.
+
+        Regression test for TypeError in _flatten_json_ld_root when hasPart
+        contains File objects with 'name' as a string (filename) rather than
+        a list of dicts (as with Person objects).
+        """
+        buf = io.StringIO()
+        index = mock.MagicMock()
+        index.identifier = '2000'
+        index.title = 'MEBYO Test Index'
+        node_id = 'mebyotest'
+
+        target_schema = RegistrationSchema.objects \
+            .filter(name='ムーンショット目標2データベース（未病DB）のメタデータ登録') \
+            .order_by('-schema_version') \
+            .first()
+
+        # Files from choose-additional-metadata
+        files = [[('text1.csv', 'text/csv')]]
+        file_metadatas = []  # MEBYO uses allow_empty_files
+
+        # Project metadata based on real production data
+        project_metadata = {
+            'title-of-dataset': {
+                'value': '未病DBメタデータテスト',
+            },
+            'title-of-dataset-en': {
+                'value': 'Mebyo DB Metadata Test',
+            },
+            'purpose-of-experiment': {
+                'value': 'test',
+            },
+            'purpose-of-experiment-en': {
+                'value': 'test purpose',
+            },
+            'data-creator': {
+                'value': '[{"name":"test","name-en":"test"}]',
+            },
+            'data-manager': {
+                'value': '[{"name":"test"}]',
+            },
+            'choose-additional-metadata': {
+                'value': '[{"path":"osfstorage/text1.csv","urlpath":"","metadata":{}}]',
+            },
+            'date-registered-in-metadata': {
+                'value': '2026-02-05',
+            },
+            'date-updated-in-metadata': {
+                'value': '2026-02-05',
+            },
+            'access-rights': {
+                'value': '公開|open access',
+            },
+            'dataset-research-field': {
+                'value': '自然科学一般|Natural Science',
+            },
+            'project-name': {
+                'value': 'MS2合原PJ|MS2 Aihara PJ',
+            },
+            'keywords': {
+                'value': '[{"filename":"test"}]',
+            },
+            'grdm-files': {
+                'value': '',
+            },
+        }
+
+        # This should NOT raise TypeError: string indices must be integers
+        schema.write_ro_crate_json(
+            self.user,
+            buf,
+            index,
+            files,
+            target_schema._id,
+            file_metadatas,
+            [project_metadata],
+            node_id
+        )
+
+        actual_json = json.loads(buf.getvalue())
+        graph = {item['@id']: item for item in actual_json['@graph'] if '@id' in item}
+
+        # Root dataset entity should exist
+        assert_in('./', graph, 'Root dataset entity should exist')
+        root = graph['./']
+        assert_equal(root['@type'], ['Dataset', 'rdm:Dataset'])
+
+        # ro-crate-metadata.json entity should exist
+        assert_in('ro-crate-metadata.json', graph, 'RO-Crate metadata entity should exist')
+        ro_crate_meta = graph['ro-crate-metadata.json']
+        assert_equal(ro_crate_meta['about']['@id'], './')
+
+        # Project metadata should be reflected
+        assert_equal(root['name'], 'Mebyo DB Metadata Test')
+        assert_equal(root['description'], 'test purpose')
+
+        # hasPart should contain File reference
+        assert_in('hasPart', root)
+        has_part = root['hasPart']
+        assert_true(isinstance(has_part, list))
+
+        # File entity should exist with name as string (not list)
+        file_entities = [
+            item for item in actual_json['@graph']
+            if item.get('@type') == 'File'
+        ]
+        assert_true(len(file_entities) > 0, 'File entity should exist')
+        file_entity = file_entities[0]
+        assert_equal(file_entity['name'], 'text1.csv')
+        assert_true(isinstance(file_entity['name'], str), 'File name should be a string')
+
     def test_write_ro_crate_json_erad_requires_files(self):
         """Test that e-Rad schema (公的資金) requires files and raises error when empty.
 
