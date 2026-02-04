@@ -47,9 +47,9 @@
                              "": {"name": "us-east-1"}},
                            "serverSideEncryption": false},
                           {"name": "ONION-object @ D3C The University of Osaka",
-                           "host": "s3-osakau.oniongw.hpc.cmc.osaka-u.ac.jp:443",
+                           "host": "s3-osakau.oniongw.onion.osaka-u.ac.jp:443",
                            "bucketLocations": {
-                             "osakau": {"name": "osakau", "host": "s3-osakau.oniongw.hpc.cmc.osaka-u.ac.jp:443"},
+                             "osakau": {"name": "osakau", "host": "s3-osakau.oniongw.onion.osaka-u.ac.jp:443"},
                              "": {"name": "osakau"}},
                            "serverSideEncryption": false},
                           {"name": "MinIO@Kanazawa University",
