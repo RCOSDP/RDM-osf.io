@@ -522,7 +522,9 @@ def write_ro_crate_json(user, f, target_index, download_file_names, schema_id, f
                 value = source_data.get('value', '')
                 if 'choose-additional-metadata' in value:
                     url = value['choose-additional-metadata']
-                    value_data = json.loads(url['value'])
+                    value_data = json.loads(url.get('value') or '[]')
+                    if not value_data:
+                        continue
                     file_path = value_data[0]['path']
                     file_name = file_path.split('/')[-1]
                     for item in value_data:
