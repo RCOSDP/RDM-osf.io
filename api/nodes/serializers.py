@@ -2233,7 +2233,7 @@ class NodeMapCoreGroupCreateSerializer(NodeMapCoreGroupSerializer):
                                 group_id=component_auth_group[permission],
                                 creator=auth.user,
                                 _order=last_index_map.get(component.id, -1) + index + 1,
-                                visible=visible_dict.get(mgid, True)
+                                visible=visible_dict.get(mgid, True),
                             ),
                         )
                 for component in to_create_components:
@@ -2245,7 +2245,7 @@ class NodeMapCoreGroupCreateSerializer(NodeMapCoreGroupSerializer):
                             group_id=component_auth_group[permission],
                             creator=auth.user,
                             _order=last_index_map.get(component.id, -1) + index + 1,
-                            visible=visible_dict.get(mgid, True)
+                            visible=visible_dict.get(mgid, True),
                         ),
                     )
 

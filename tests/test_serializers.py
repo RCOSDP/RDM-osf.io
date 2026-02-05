@@ -644,8 +644,8 @@ class TestSerializeMapcoreGroups(OsfTestCase):
         auth1 = AuthGroup.objects.get_or_create(name=f'node_{node._id}_admin')[0]
         auth2 = AuthGroup.objects.get_or_create(name=f'node_{node._id}_read')[0]
 
-        m1 = MapCoreNodeGroup.objects.create(node=node, group=auth1, mapcore_group=g1, creator=user, is_deleted=False)
-        _m2 = MapCoreNodeGroup.objects.create(node=node, group=auth2, mapcore_group=g2, creator=user, is_deleted=True)
+        m1 = MapCoreNodeGroup.objects.create(node=node, group=auth1, mapcore_group=g1, creator=user, is_deleted=False, visible=True)
+        _m2 = MapCoreNodeGroup.objects.create(node=node, group=auth2, mapcore_group=g2, creator=user, is_deleted=True, visible=True)
 
         data = serialize_mapcore_group_for_summary(node)
 
@@ -663,7 +663,7 @@ class TestSerializeMapcoreGroups(OsfTestCase):
         # attach a MapCore group to the node
         g = MapCoreGroup.objects.create(_id='group-summary')
         auth_group = AuthGroup.objects.get_or_create(name=f'node_{node._id}_admin')[0]
-        MapCoreNodeGroup.objects.create(node=node, group=auth_group, mapcore_group=g, creator=user, is_deleted=False)
+        MapCoreNodeGroup.objects.create(node=node, group=auth_group, mapcore_group=g, creator=user, is_deleted=False, visible=True)
 
         summary = serialize_node_summary(node, Auth(user))
         assert_in('mapcore_groups', summary)

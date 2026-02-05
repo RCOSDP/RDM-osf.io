@@ -26,7 +26,7 @@ class TestMapCoreGroupList(ApiTestCase):
             user=self.user
         )
 
-        self.url = f'/{API_BASE}mapcore/groups/'
+        self.url = f'/{API_BASE}map_core/groups/'
 
     def test_list_mapcore_groups_for_authenticated_user(self):
         res = self.app.get(self.url, auth=self.user.auth)

@@ -204,6 +204,7 @@ class TestNodeMapCoreGroupCreateSerializer:
         auth_groups = self.setup_auth_groups(node)
         component1 = NodeFactory(creator=user, parent=node)
         component2 = NodeFactory(creator=user, parent=node)
+        node.descendants.add(component1, component2)
         mapcore_group = MapCoreGroup.objects.create(_id='test-group-components')
 
         mock_get_user_auth.return_value = MagicMock(user=user)
@@ -217,7 +218,8 @@ class TestNodeMapCoreGroupCreateSerializer:
             'node_groups': [
                 {
                     'mapcore_group_id': mapcore_group.id,
-                    'permission': 'write'
+                    'permission': 'write',
+                    'visible': True
                 }
             ],
             'component_ids': [component1._id, component2._id]
@@ -257,6 +259,7 @@ class TestNodeMapCoreGroupCreateSerializer:
         # Setup
         auth_groups = self.setup_auth_groups(node)
         component = NodeFactory(creator=user, parent=node)
+        node.descendants.add(component)
         mapcore_group = MapCoreGroup.objects.create(_id='test-group-update')
 
         # Create existing relationship with read permission
@@ -431,6 +434,7 @@ class TestNodeMapCoreGroupCreateSerializer:
 
         # Create a component and two mapcore groups (one existing on component, one new)
         component = NodeFactory(creator=user, parent=node)
+        node.descendants.add(component)
         existing_mapcore_group = MapCoreGroup.objects.create(_id='test-component-existing')
         new_mapcore_group = MapCoreGroup.objects.create(_id='test-component-new')
 
@@ -631,7 +635,9 @@ class TestNodeMapCoreGroupUpdateSerializer:
             mapcore_group=mapcore_group,
             group=auth_groups['read'],
             creator=user,
-            is_deleted=False
+            is_deleted=False,
+            visible=True,
+            _order=0
         )
         original_modified = existing_mcng.modified
 
@@ -646,7 +652,9 @@ class TestNodeMapCoreGroupUpdateSerializer:
             'node_groups': [
                 {
                     'node_group_id': existing_mcng.id,
-                    'permission': None  # No permission change
+                    'permission': None,  # No permission change
+                    'visible': True,  # No visible change
+                    '_order': 0
                 }
             ]
         }
@@ -660,10 +668,12 @@ class TestNodeMapCoreGroupUpdateSerializer:
         result = serializer.create(validated_data)
 
         # Verify no changes made
-        assert len(result) == 0
+        assert len(result) == 1
         existing_mcng.refresh_from_db()
         assert existing_mcng.group == auth_groups['read']  # Unchanged
-        assert existing_mcng.modified == original_modified  # Unchanged
+        assert existing_mcng.visible is True  # Unchanged
+        assert existing_mcng._order == 0  # Unchanged
+        assert existing_mcng.modified != original_modified  # Changed
 
     @patch('api.nodes.serializers.get_group_by_node')
     @patch('api.nodes.serializers.get_user_auth')
@@ -936,10 +946,10 @@ class TestNodeMapCoreGroupSerializerEdgeCases:
         result = serializer.create(validated_data)
 
         # Verify no changes made (empty string is falsy)
-        assert len(result) == 0
+        assert len(result) == 1
         existing_mcng.refresh_from_db()
         assert existing_mcng.group == auth_groups['read']  # Unchanged
-        assert existing_mcng.modified == original_modified  # Unchanged
+        assert existing_mcng.modified != original_modified  # Changed
 
     @patch('api.nodes.serializers.get_group_by_node')
     @patch('api.nodes.serializers.get_user_auth')
@@ -990,6 +1000,117 @@ class TestNodeMapCoreGroupSerializerEdgeCases:
         # Verify node was modified (for logging)
         node.refresh_from_db()
         assert node.modified > original_modified
+
+    def setup_auth_groups(self, node):
+        """Helper to create auth groups for a node"""
+        groups = {}
+        for perm in ['read', 'write', 'admin']:
+            groups[perm] = AuthGroup.objects.get_or_create(name=f'node_{node.id}_{perm}')[0]
+        return groups
+
+    @patch('api.nodes.serializers.get_group_by_node')
+    @patch('api.nodes.serializers.get_user_auth')
+    def test_update_visible_only(self, mock_get_user_auth, mock_get_group_by_node, user, node):
+        """Test updating only the visible field"""
+        auth_groups = self.setup_auth_groups(node)
+        mapcore_group = MapCoreGroup.objects.create(_id='test-group-visible')
+        existing_mcng = MapCoreNodeGroup.objects.create(
+            node=node, mapcore_group=mapcore_group, group=auth_groups['read'],
+            creator=user, is_deleted=False, visible=True, _order=0
+        )
+        mock_get_user_auth.return_value = MagicMock(user=user)
+        mock_get_group_by_node.return_value = {'read': auth_groups['read'].id}
+
+        validated_data = {'node_groups': [{'node_group_id': existing_mcng.id, 'visible': False}]}
+        serializer = NodeMapCoreGroupUpdateSerializer(context={'request': make_drf_request_with_version(), 'node': node})
+        serializer.create(validated_data)
+
+        existing_mcng.refresh_from_db()
+        assert existing_mcng.visible is False
+        assert existing_mcng._order == 0  # Unchanged
+
+    @patch('api.nodes.serializers.get_group_by_node')
+    @patch('api.nodes.serializers.get_user_auth')
+    def test_update_order_only(self, mock_get_user_auth, mock_get_group_by_node, user, node):
+        """Test updating only the _order field based on list index"""
+        auth_groups = self.setup_auth_groups(node)
+        mapcore_group = MapCoreGroup.objects.create(_id='test-group-order')
+        existing_mcng = MapCoreNodeGroup.objects.create(
+            node=node, mapcore_group=mapcore_group, group=auth_groups['read'],
+            creator=user, is_deleted=False, visible=True, _order=0
+        )
+        mock_get_user_auth.return_value = MagicMock(user=user)
+        mock_get_group_by_node.return_value = {'read': auth_groups['read'].id}
+
+        # The _order field in the request is ignored; order is based on list index.
+        validated_data = {'node_groups': [{'node_group_id': existing_mcng.id}]}
+        serializer = NodeMapCoreGroupUpdateSerializer(context={'request': make_drf_request_with_version(), 'node': node})
+        serializer.create(validated_data)
+
+        existing_mcng.refresh_from_db()
+        assert existing_mcng.visible is True  # Unchanged
+        assert existing_mcng._order == 0  # Based on index
+
+    @patch('api.nodes.serializers.get_group_by_node')
+    @patch('api.nodes.serializers.get_user_auth')
+    def test_update_visible_and_order(self, mock_get_user_auth, mock_get_group_by_node, user, node):
+        """Test updating both visible and _order fields"""
+        auth_groups = self.setup_auth_groups(node)
+        mapcore_group = MapCoreGroup.objects.create(_id='test-group-visible-order')
+        existing_mcng = MapCoreNodeGroup.objects.create(
+            node=node, mapcore_group=mapcore_group, group=auth_groups['read'],
+            creator=user, is_deleted=False, visible=True, _order=1
+        )
+        mock_get_user_auth.return_value = MagicMock(user=user)
+        mock_get_group_by_node.return_value = {'read': auth_groups['read'].id}
+
+        # _order is determined by index (0), not the passed value.
+        validated_data = {'node_groups': [{'node_group_id': existing_mcng.id, 'visible': False}]}
+        serializer = NodeMapCoreGroupUpdateSerializer(context={'request': make_drf_request_with_version(), 'node': node})
+        serializer.create(validated_data)
+
+        existing_mcng.refresh_from_db()
+        assert existing_mcng.visible is False
+        assert existing_mcng._order == 0  # Updated to 0 based on index
+
+    @patch('api.nodes.serializers.get_group_by_node')
+    @patch('api.nodes.serializers.get_user_auth')
+    def test_reorder_multiple_groups(self, mock_get_user_auth, mock_get_group_by_node, user, node):
+        """Test that sending a list of groups updates their order"""
+        auth_groups = self.setup_auth_groups(node)
+        mc_group1 = MapCoreGroup.objects.create(_id='reorder-1')
+        mc_group2 = MapCoreGroup.objects.create(_id='reorder-2')
+
+        mcng1 = MapCoreNodeGroup.objects.create(
+            node=node, mapcore_group=mc_group1, group=auth_groups['read'],
+            creator=user, _order=0
+        )
+        mcng2 = MapCoreNodeGroup.objects.create(
+            node=node, mapcore_group=mc_group2, group=auth_groups['write'],
+            creator=user, _order=1
+        )
+
+        mock_get_user_auth.return_value = MagicMock(user=user)
+        mock_get_group_by_node.return_value = {
+            'read': auth_groups['read'].id,
+            'write': auth_groups['write'].id
+        }
+
+        # Reverse the order in the request
+        validated_data = {
+            'node_groups': [
+                {'node_group_id': mcng2.id},  # Should become order 0
+                {'node_group_id': mcng1.id},  # Should become order 1
+            ]
+        }
+        serializer = NodeMapCoreGroupUpdateSerializer(context={'request': make_drf_request_with_version(), 'node': node})
+        serializer.create(validated_data)
+
+        mcng1.refresh_from_db()
+        mcng2.refresh_from_db()
+
+        assert mcng1._order == 1
+        assert mcng2._order == 0
 
 
 @pytest.mark.django_db

@@ -2521,7 +2521,7 @@ class NodeMapCoreGroupList(JSONAPIBaseView, generics.ListAPIView, bulk_views.Bul
         node = self.get_node()
         components = node.descendants.prefetch_related('guids').filter(
             guids___id__in=component_ids_set,
-            is_deleted=False
+            is_deleted=False,
         )
         components_found_ids = set(c.guids.first()._id for c in components)
         missing_component_ids = component_ids_set - components_found_ids

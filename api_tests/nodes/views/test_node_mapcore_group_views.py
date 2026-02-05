@@ -113,7 +113,9 @@ class TestNodeMapCoreGroupList(ApiTestCase):
         items = res.json['data']
         assert len(items) == 3
         # Should be ordered by mapcore_group___id
-        assert items[0]['attributes']['name'] == 'aaa-test-mapcore'
+        assert items[0]['attributes']['name'] == 'test-mapcore-1'
+        assert items[1]['attributes']['name'] == 'test-mapcore-2'
+        assert items[2]['attributes']['name'] == 'aaa-test-mapcore'
 
     def test_create_mapcore_group_success(self):
         """Test creating a new MapCoreNodeGroup relationship"""
