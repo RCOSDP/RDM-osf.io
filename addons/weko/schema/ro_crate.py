@@ -667,7 +667,7 @@ def write_ro_crate_json(user, f, target_index, download_file_names, schema_id, f
         file_ids = [
             entity.get('@id')
             for entity in entry_entities
-            if entity.get('@type') == 'File'
+            if entity.get('@type') == 'File' and not entity.get('wk:extendedMetadata')
         ]
         dataset_entity = next(
             (entity for entity in entry_entities if entity.get('@id') == root_id),

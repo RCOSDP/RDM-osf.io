@@ -1975,6 +1975,14 @@ class TestWEKOSchema(OsfTestCase):
         has_part = root['hasPart']
         assert_true(isinstance(has_part, list))
 
+        # hasPart should not contain duplicates
+        has_part_ids = [part['@id'] for part in has_part]
+        assert_equal(
+            len(has_part_ids),
+            len(set(has_part_ids)),
+            f'hasPart contains duplicate entries: {has_part_ids}'
+        )
+
         # File entity should exist with name as string (not list)
         file_entities = [
             item for item in actual_json['@graph']
