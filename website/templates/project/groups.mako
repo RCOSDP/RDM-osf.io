@@ -30,6 +30,22 @@
                 <button class="filter-btn btn-default btn" id="read">${_("Read")}</button>
             </div>
         </div>
+        <h5 class="m-t-md">${_("Bibliographic Group")}
+                <i class="fa fa-question-circle visibility-info"
+                    data-toggle="popover"
+                    data-title=${_('Bibliographic Group Information')}
+                    data-container="body"
+                    data-placement="right"
+                    data-html="true"
+                ></i></h5>
+        <div class="btn-group btn-group-justified-vertical filtergroup" id='visibleFilter'>
+            <div class="btn-group">
+                <button class="filter-btn btn-default btn" id='visible'>${_("Bibliographic")}</button>
+            </div>
+            <div class="btn-group">
+                <button class="filter-btn btn-default btn" id='notVisible'>${_("Non-Bibliographic")}</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -54,6 +70,14 @@
                         admins: '${_("Administrator")}',
                         write: '${_("Read + Write")}',
                         read: '${_("Read")}'
+                    }
+                },
+                visibleFilter: {
+                    filter: '.visible-filter',
+                    type: 'checkbox',
+                    buttons: {
+                        visible: true,
+                        notVisible: false
                     }
                 }
             },
@@ -131,6 +155,16 @@
                     data-html="true"
                 ></i>
             </th>
+            <th class="biblio-contrib" style="min-width: 150px;width: 200px;white-space: nowrap;">
+                ${_("Bibliographic Group")}
+                <i class="fa fa-question-circle visibility-group-info"
+                    data-toggle="popover"
+                    data-title="${_('Bibliographic Group Information')}"
+                    data-container="body"
+                    data-placement="right"
+                    data-html="true"
+                ></i>
+            </th>
             <th class="biblio-contrib" style="min-width:150px;width:300px;white-space: nowrap;">
                 ${_("Registered by")}
             </th>
@@ -142,7 +176,7 @@
             template: 'contribRow',
             data: $root.groups,
             as: 'group',
-            isEnabled:false
+            isEnabled: $root.isSortable
     }"></tbody>
     <!-- /ko -->
     <!--ko if: $data == 'admin' -->
@@ -190,6 +224,15 @@
                 <!-- ko ifnot: group.canEdit() -->
                     <span data-bind="text: permissionText()"></span>
                 <!-- /ko -->
+            </div>
+        </td>
+        <td>
+            <div class="header" data-bind="visible: group.expanded() && $root.collapsed()"></div>
+            <div class="td-content" data-bind="visible: !$root.collapsed() || group.expanded()">
+                <input
+                    type="checkbox" class="biblio visible-filter"
+                    data-bind="checked: visible, enable: group.canEdit()"
+                />
             </div>
         </td>
         <td>

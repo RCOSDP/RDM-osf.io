@@ -9312,3 +9312,31 @@ msgstr ""
 
 msgid "Error adding groups"
 msgstr ""
+
+msgid ""
+"Only bibliographic groups will be displayed in the Groups "
+"list and in project citations. Non-bibliographic groups can read "
+"and modify the project as normal."
+msgstr ""
+
+msgid "A user reordered groups for a project"
+msgstr ""
+
+msgid "A user made group(s) visible on a project"
+msgstr ""
+
+msgid "A user made group(s) invisible on a project"
+msgstr ""
+
+msgid "${user} reordered groups for ${node}"
+msgstr ""
+
+msgid ""
+"${user} made non-bibliographic group ${mapcore_groups} a "
+"bibliographic group on ${node}"
+msgstr ""
+
+msgid ""
+"${user} made bibliographic group ${mapcore_groups} a "
+"non-bibliographic group on ${node}"
+msgstr ""

@@ -201,6 +201,7 @@ var RemoveGroupViewModel = oop.extend(Paginator, {
                 }
             });
             self.clear();
+            window.location.reload();
         });
     },
     deleteAllNodes: function() {

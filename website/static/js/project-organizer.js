@@ -189,7 +189,7 @@ function _poResolveRows(item) {
             custom : _poModified
         },{
             data : 'groups',
-            filter : false,
+            filter : true,
             custom : _poGroups
         });
     } else {
@@ -465,7 +465,7 @@ var tbOptions = {
         }),
         m('.filterReset', { onclick : resetFilter }, tb.options.removeIcon())];
     },
-    hiddenFilterRows : ['tags', 'contributors'],
+    hiddenFilterRows : ['tags', 'contributors', 'groups'],
     lazyLoadOnLoad : function (tree, event) {
         var tb = this;
         function formatItems (arr) {
@@ -473,9 +473,6 @@ var tbOptions = {
             for(var i = 0; i < arr.length; i++){
                 item = arr[i];
                 formatDataforPO(item.data);
-                // Ensure a plain string on item.data.groups so the Treebeard filter can match group names
-                var groupList = lodashGet(item, 'data.attributes.mapcore_groups', []);
-                item.data.groups = Array.isArray(groupList) ? groupList.join(' ') : (groupList || '');
                 if(item.children.length > 0){
                     formatItems(item.children);
                 }

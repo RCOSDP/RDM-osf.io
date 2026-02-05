@@ -12,8 +12,10 @@ class MapCoreNodeGroup(BaseModel):
     mapcore_group = models.ForeignKey(MapCoreGroup, on_delete=models.CASCADE, related_name='mapcore_group_nodes')
     creator = models.ForeignKey('osf.OSFUser', related_name='mapcore_node_group_creator', on_delete=models.CASCADE)
     is_deleted = models.BooleanField(default=False)
+    visible = models.BooleanField(default=False)
     class Meta:
         db_table = 'osf_mapcore_node_group'
+        order_with_respect_to = 'mapcore_group'
 
     @property
     def get_permission(self):

@@ -108,7 +108,17 @@
                                 <thead class="keep-all" data-bind="visible: selection().length">
                                     <th width="10%"></th>
                                     <th width="30%">${_("Name")}</th>
-                                    <th>
+                                    <th width="30%">
+                                        ${_("Bibliographic Groups")}
+                                        <i class="fa fa-question-circle visibility-group-info"
+                                           data-toggle="popover"
+                                           data-title="${_('Bibliographic Group Information')}"
+                                           data-container="body"
+                                           data-placement="right"
+                                           data-html="true">
+                                        </i>
+                                    </th>
+                                    <th width="30%">
                                         ${_("Permissions")}
                                         <i class="fa fa-question-circle permission-info"
                                                 data-toggle="popover"
@@ -130,7 +140,11 @@
                                         <td>
                                             <span data-bind="text: group.name"></span>
                                         </td>
-
+                                        <td>
+                                            <input type="checkbox" class="biblio visible-filter"
+                                                data-bind="checked: group.visible"
+                                            />
+                                        </td>
                                         <td>
                                             <select class="form-control input-sm" data-bind="
                                                 options: $root.permissionList,

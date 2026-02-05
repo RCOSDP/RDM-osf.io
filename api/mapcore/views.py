@@ -32,7 +32,7 @@ class MapCoreGroupList(JSONAPIBaseView, generics.ListAPIView):
         if not auth or not auth.user or not auth.user.is_authenticated:
             return self.model_class.objects.none()
 
-        qs = self.model_class.objects.filter(mapcore_user_groups__user=auth.user, is_deleted=False)
+        qs = self.model_class.objects.filter(mapcore_user_groups__user=auth.user, mapcore_user_groups__is_deleted=False)
         q = self.request.GET.get('search') or self.request.query_params.get('search')
         if q:
             q = q.strip()

@@ -248,8 +248,13 @@ def serialize_access_requests(node):
         ).select_related('creator')
     ]
 
-def serialize_mapcore_node_groups(node):
+def serialize_mapcore_node_groups(node, visible_only=False):
     """Serialize MapCore groups associated with a node"""
+    mapcore_node_groups = node.mapcore_node_groups.select_related('mapcore_group', 'group', 'creator')
+    if visible_only:
+        mapcore_node_groups = mapcore_node_groups.filter(is_deleted=False, visible=True)
+    else:
+        mapcore_node_groups = mapcore_node_groups.filter(is_deleted=False)
     return [
         {
             'id': str(mapcore_node_group.id),
@@ -261,7 +266,9 @@ def serialize_mapcore_node_groups(node):
             'is_deleted': mapcore_node_group.is_deleted,
             'permission': mapcore_node_group.get_permission,
             'url': mapcore_node_group.mapcore_group.absolute_url,
-        } for mapcore_node_group in node.mapcore_node_groups.select_related('mapcore_group', 'group', 'creator').filter(is_deleted=False).order_by('mapcore_group___id')
+            'visible': mapcore_node_group.visible,
+            'index': mapcore_node_group._order,
+        } for mapcore_node_group in mapcore_node_groups
     ]
 
 def serialize_parent_admin_groups(node, current_group):
@@ -279,6 +286,8 @@ def serialize_parent_admin_groups(node, current_group):
             'is_deleted': mapcore_node_group.is_deleted,
             'permission': 'read',
             'url': mapcore_node_group.mapcore_group.absolute_url,
+            'visible': mapcore_node_group.visible,
+            'index': mapcore_node_group._order,
         })
     return result
 
@@ -286,7 +295,7 @@ def _mapcore_node_group_parent(node, current_group):
     """Get list of parent MapCore groups associated with a node"""
     def get_admin_mapcore_node_groups(node):
         result = []
-        for mapcore_node_group in node.mapcore_node_groups.select_related('mapcore_group', 'group', 'creator').filter(is_deleted=False).order_by('mapcore_group___id'):
+        for mapcore_node_group in node.mapcore_node_groups.select_related('mapcore_group', 'group', 'creator').filter(is_deleted=False):
             if mapcore_node_group.get_permission == 'admin' and mapcore_node_group.mapcore_group.id not in current_group:
                 result.append(mapcore_node_group)
         return result

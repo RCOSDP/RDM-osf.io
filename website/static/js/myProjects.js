@@ -355,6 +355,8 @@ function _formatDataforPO(item) {
             }
         });
     }
+    var groupList = lodashGet(item, 'attributes.mapcore_groups', []);
+    item.groups = Array.isArray(groupList) ? groupList.join(' ') : (groupList || '');
     item.date = new $osf.FormattableDate(item.attributes.date_modified);
     item.sortDate = item.date.date;
     //

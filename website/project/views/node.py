@@ -912,6 +912,7 @@ def _view_project(node, auth, primary=False,
     )
     is_registration = node.is_registration
     timestamp_pattern = get_timestamp_pattern_division(auth, node)
+    mapcore_groups = utils.serialize_mapcore_node_groups(node, visible_only=True)
     data = {
         'node': {
             'disapproval_link': disapproval_link,
@@ -982,6 +983,7 @@ def _view_project(node, auth, primary=False,
             'waterbutler_url': node.osfstorage_region.waterbutler_url,
             'mfr_url': node.osfstorage_region.mfr_url,
             'groups': list(node.osf_groups.values_list('name', flat=True)),
+            'mapcore_groups': mapcore_groups,
         },
         'parent_node': {
             'exists': parent is not None,

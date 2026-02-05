@@ -2,6 +2,7 @@ from django.db import connection
 from distutils.version import StrictVersion
 from django.db import transaction
 from django.utils import timezone
+from django.db.models import Max
 
 from api.base.exceptions import (
     Conflict, EndpointNotImplementedError,
@@ -863,7 +864,7 @@ class NodeSerializer(TaxonomizableSerializerMixin, JSONAPISerializer):
             for group in parent.osf_groups:
                 if group.is_manager(user):
                     node.add_osf_group(group, group.get_permission_to_node(parent), auth=auth)
-            parent_node_groups = MapCoreNodeGroup.objects.filter(node=parent, is_deleted=False)
+            parent_node_groups = MapCoreNodeGroup.objects.filter(node=parent, is_deleted=False).select_related('group', 'mapcore_group')
             auth_groups = get_group_by_node(node.id)
             to_create = []
             to_create_mapcore_group_ids = []
@@ -876,6 +877,8 @@ class NodeSerializer(TaxonomizableSerializerMixin, JSONAPISerializer):
                     node=node,
                     group_id=auth_groups.get(parent_permission),
                     mapcore_group=node_group.mapcore_group,
+                    visible=node_group.visible,
+                    _order=node_group._order,
                     creator=user,
                 ))
                 to_create_mapcore_group_ids.append(node_group.mapcore_group.id)
@@ -2089,6 +2092,7 @@ class NodeMapCoreGroupSerializer(JSONAPISerializer):
     name = ser.CharField(source='mapcore_group._id', read_only=True)
     created = VersionedDateTimeField(read_only=True)
     modified = VersionedDateTimeField(read_only=True)
+    visible = ser.BooleanField(read_only=True)
     links = LinksField(
         {
             'self': 'get_absolute_url',
@@ -2154,26 +2158,43 @@ class NodeMapCoreGroupCreateSerializer(NodeMapCoreGroupSerializer):
         to_create = []
         to_create_node_ids = [node.id]
         to_update = []
-        for ng in node_groups:
+        visible_dict = dict()
+        last_index_map = {}
+        last_node_order = MapCoreNodeGroup.objects.filter(node=node, is_deleted=False).values('node_id').annotate(last_order=Max('_order'))
+        if last_node_order:
+            last_index_map = {entry['node_id']: entry['last_order'] for entry in last_node_order}
+
+        for index, ng in enumerate(node_groups):
             mgid = ng.get('mapcore_group_id')
             permission = ng.get('permission')
             permission_dict[mgid] = permission
             to_create_mapcore_ids.add(mgid)
+            visible_dict[mgid] = ng.get('visible', True)
             to_create.append(
                 MapCoreNodeGroup(
                     node=node,
                     mapcore_group_id=mgid,
                     group_id=auth_groups_map[permission],
                     creator=auth.user,
+                    visible=ng.get('visible', True),
+                    _order=last_index_map.get(node.id, -1) + index + 1,
                 ),
             )
 
         # Handle components if provided
         component_ids = validated_data.get('component_ids', [])
         if component_ids:
-            components = Node.objects.filter(guids___id__in=component_ids, parent_nodes=node, is_deleted=False)
+            components = node.descendants.prefetch_related('guids').filter(guids___id__in=component_ids, is_deleted=False)
+            component_ids_found = [component.id for component in components]
+            last_component_order = MapCoreNodeGroup.objects.filter(
+                node_id__in=component_ids_found,
+                is_deleted=False,
+            ).values('node_id').annotate(last_order=Max('_order'))
+            if last_component_order:
+                for entry in last_component_order:
+                    last_index_map[entry['node_id']] = entry['last_order']
             mapcore_group_components = MapCoreNodeGroup.objects.filter(
-                node_id__in=[component.id for component in components],
+                node_id__in=component_ids_found,
                 mapcore_group_id__in=to_create_mapcore_ids,
                 is_deleted=False,
             )
@@ -2194,7 +2215,8 @@ class NodeMapCoreGroupCreateSerializer(NodeMapCoreGroupSerializer):
                 else:
                     to_create_components.append(component)
                     to_create_node_ids.append(component.id)
-            for mgid in to_create_mapcore_ids:
+            for index, ng in enumerate(node_groups):
+                mgid = ng.get('mapcore_group_id')
                 permission = permission_dict.get(mgid)
                 for component in to_update_components:
                     component_auth_group = component_auth_group_dict.get(component.id)
@@ -2210,6 +2232,8 @@ class NodeMapCoreGroupCreateSerializer(NodeMapCoreGroupSerializer):
                                 mapcore_group_id=mgid,
                                 group_id=component_auth_group[permission],
                                 creator=auth.user,
+                                _order=last_index_map.get(component.id, -1) + index + 1,
+                                visible=visible_dict.get(mgid, True)
                             ),
                         )
                 for component in to_create_components:
@@ -2220,6 +2244,8 @@ class NodeMapCoreGroupCreateSerializer(NodeMapCoreGroupSerializer):
                             mapcore_group_id=mgid,
                             group_id=component_auth_group[permission],
                             creator=auth.user,
+                            _order=last_index_map.get(component.id, -1) + index + 1,
+                            visible=visible_dict.get(mgid, True)
                         ),
                     )
 
@@ -2241,7 +2267,7 @@ class NodeMapCoreGroupCreateSerializer(NodeMapCoreGroupSerializer):
                     node=node,
                     mapcore_group_id__in=to_create_mapcore_ids,
                     is_deleted=False,
-                ).select_related('creator', 'node', 'group', 'mapcore_group').order_by('mapcore_group___id')
+                ).select_related('creator', 'node', 'group', 'mapcore_group')
             if to_update:
                 bulk_update(to_update, update_fields=['group_id', 'modified'])
 
@@ -2260,6 +2286,8 @@ class NodeMapCoreGroupCreateSerializer(NodeMapCoreGroupSerializer):
                             'name': getattr(
                                 mapcore_node_group.mapcore_group, '_id', None,
                             ),
+                            'visible': mapcore_node_group.visible,
+                            'index': mapcore_node_group._order,
                             'created': mapcore_node_group.created,
                             'modified': mapcore_node_group.modified,
                         },
@@ -2307,11 +2335,19 @@ class NodeMapCoreGroupUpdateSerializer(NodeMapCoreGroupSerializer):
         to_update_node_group_ids = set()
         to_update = []
         permission_dict = dict()
-        to_update_mapcore_group_ids = []
-        for ng in node_groups:
+        visible_dict = dict()
+        order_dict = dict()
+        update_permission = {}
+        update_visible_list = []
+        update_invisible_list = []
+        update_order_dict = dict()
+        is_sorted = False
+        for index, ng in enumerate(node_groups):
             ngid = ng.get('node_group_id')
             permission = ng.get('permission')
             permission_dict[ngid] = permission
+            visible_dict[ngid] = ng.get('visible', True)
+            order_dict[ngid] = index
             to_update_node_group_ids.add(ngid)
 
         mapcore_node_groups = list(MapCoreNodeGroup.objects.filter(
@@ -2321,16 +2357,28 @@ class NodeMapCoreGroupUpdateSerializer(NodeMapCoreGroupSerializer):
         ))
         for updated_mapcore_node_group in mapcore_node_groups:
             permission = permission_dict.get(updated_mapcore_node_group.id)
-            if permission:
+            if permission and updated_mapcore_node_group.group_id != auth_groups_map[permission]:
                 updated_mapcore_node_group.group_id = auth_groups_map[permission]
-                updated_mapcore_node_group.modified = timezone.now()
-                to_update.append(updated_mapcore_node_group)
-                to_update_mapcore_group_ids.append(updated_mapcore_node_group.mapcore_group_id)
+                update_permission[updated_mapcore_node_group.mapcore_group_id] = permission
+            visible = visible_dict.get(updated_mapcore_node_group.id)
+            if visible is not None and updated_mapcore_node_group.visible != visible:
+                updated_mapcore_node_group.visible = visible
+                if visible:
+                    update_visible_list.append(updated_mapcore_node_group.mapcore_group_id)
+                else:
+                    update_invisible_list.append(updated_mapcore_node_group.mapcore_group_id)
+            index = order_dict.get(updated_mapcore_node_group.id)
+            update_order_dict[updated_mapcore_node_group.mapcore_group_id] = index
+            if index is not None and updated_mapcore_node_group._order != index:
+                updated_mapcore_node_group._order = index
+                is_sorted = True
+            updated_mapcore_node_group.modified = timezone.now()
+            to_update.append(updated_mapcore_node_group)
 
         # Bulk create MapCoreNodeGroup entries
         with transaction.atomic():
             if to_update_node_group_ids:
-                bulk_update(to_update, update_fields=['group_id', 'modified'])
+                bulk_update(to_update, update_fields=['group_id', 'modified', 'visible', '_order'])
             # Prepare response data
             for updated_mapcore_node_group in to_update:
                 response_data.append(
@@ -2346,6 +2394,8 @@ class NodeMapCoreGroupUpdateSerializer(NodeMapCoreGroupSerializer):
                             'name': getattr(
                                 updated_mapcore_node_group.mapcore_group, '_id', None,
                             ),
+                            'visible': updated_mapcore_node_group.visible,
+                            'index': updated_mapcore_node_group._order,
                             'created': updated_mapcore_node_group.created,
                             'modified': updated_mapcore_node_group.modified,
                         },
@@ -2356,13 +2406,43 @@ class NodeMapCoreGroupUpdateSerializer(NodeMapCoreGroupSerializer):
                 )
         # Add log entry
         params = node.log_params
-        params['mapcore_groups'] = to_update_mapcore_group_ids
-        node.add_log(
-            action=node.log_class.MAPCORE_GROUP_PERMISSION_UPDATED,
-            params=params,
-            auth=auth,
-            save=False,
-        )
+        if update_permission:
+            params['mapcore_groups'] = update_permission
+            node.add_log(
+                action=node.log_class.MAPCORE_GROUP_PERMISSION_UPDATED,
+                params=params,
+                auth=auth,
+                save=False,
+            )
+        if update_visible_list:
+            for mgid in update_visible_list:
+                params['mapcore_group'] = mgid
+                node.add_log(
+                    action=node.log_class.MADE_MAPCORE_GROUP_VISIBLE,
+                    params=params,
+                    auth=auth,
+                    save=False,
+                )
+        if update_invisible_list:
+            for mgid in update_invisible_list:
+                params['mapcore_group'] = mgid
+                node.add_log(
+                    action=node.log_class.MADE_MAPCORE_GROUP_INVISIBLE,
+                    params=params,
+                    auth=auth,
+                    save=False,
+                )
+        if is_sorted:
+            update_order_dict = dict(sorted(update_order_dict.items(), key=lambda item: item[1]))
+            update_order_list = [mgid for mgid, index in update_order_dict.items()]
+            params['mapcore_groups'] = update_order_list
+            node.add_log(
+                action=node.log_class.MAPCORE_GROUP_REORDERED,
+                params=params,
+                auth=auth,
+                save=False,
+            )
+        # Update node modified date
         node.modified = timezone.now()
         node.save()
         return response_data

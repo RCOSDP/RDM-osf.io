@@ -74,7 +74,7 @@ def serialize_contributors_for_summary(node, max_count=3):
 
 def serialize_mapcore_group_for_summary(node, max_count=3):
     # # TODO: Use .filter(visible=True) when chaining is fixed in django-include
-    node_mapcore_groups = node.mapcore_node_groups.filter(is_deleted=False)
+    node_mapcore_groups = node.mapcore_node_groups.filter(is_deleted=False, visible=True).select_related('mapcore_group')
     mapcore_groups = []
     n_node_mapcore_groups = node_mapcore_groups.count()
     others_count = ''

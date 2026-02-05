@@ -10599,3 +10599,31 @@ msgstr "グループを追加できませんでした"
 
 msgid "Error adding groups"
 msgstr "グループの追加エラー"
+
+msgid ""
+"Only bibliographic groups will be displayed in the Groups "
+"list and in project citations. Non-bibliographic groups can read "
+"and modify the project as normal."
+msgstr "グループリストおよびプロジェクトの引用には、書誌のグループのみが表示されます。 書誌以外のグループは、通常どおりプロジェクトを読んで修正できます。"
+
+msgid "A user reordered groups for a project"
+msgstr ""
+
+msgid "A user made group(s) visible on a project"
+msgstr ""
+
+msgid "A user made group(s) invisible on a project"
+msgstr ""
+
+msgid "${user} reordered groups for ${node}"
+msgstr "${user}が${node}のグループを並べ替えました"
+
+msgid ""
+"${user} made non-bibliographic group ${mapcore_groups} a "
+"bibliographic group on ${node}"
+msgstr "${user}が目録非表示グループ(${mapcore_groups})を${node}の目録表示グループにしました"
+
+msgid ""
+"${user} made bibliographic group ${mapcore_groups} a "
+"non-bibliographic group on ${node}"
+msgstr "${user}が目録表示グループ(${mapcore_groups})を${node}の目録非表示グループにしました"

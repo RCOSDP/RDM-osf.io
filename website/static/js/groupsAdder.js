@@ -308,6 +308,7 @@ AddGroupViewModel = oop.extend(Paginator, {
         var self = this;
         data.permission = ko.observable(self.permissionList[1]); //default permission write
         // All manually added groups are visible
+        data.visible = true;
         this.selection.push(data);
         // self.query('');
         // Hack: Hide and refresh tooltips
@@ -385,7 +386,8 @@ AddGroupViewModel = oop.extend(Paginator, {
                     node_groups: ko.utils.arrayMap(self.selection(), function (group) {
                         return {
                             mapcore_group_id: group.mapcore_group_id,
-                            permission: group.permission().value
+                            permission: group.permission().value,
+                            visible: group.visible !== undefined ? group.visible : true
                         };
                     }),
                     component_ids: node_ids,

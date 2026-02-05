@@ -674,6 +674,6 @@ class UserNodeSerializer(NodeSerializer):
 
     def get_mapcore_groups(self, obj):
         if isinstance(obj, Node):
-            node_groups = MapCoreNodeGroup.objects.filter(node=obj, is_deleted=False).select_related('mapcore_group').order_by('mapcore_group___id')
+            node_groups = MapCoreNodeGroup.objects.filter(node=obj, is_deleted=False).select_related('mapcore_group')
             return [group.mapcore_group._id for group in node_groups]
         return []

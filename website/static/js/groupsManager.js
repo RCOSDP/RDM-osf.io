@@ -40,15 +40,20 @@ ko.bindingHandlers.filters = {
 
 // TODO: We shouldn't need both pageOwner (the current user) and currentUserCanEdit. Separate
 // out the permissions-related functions and remove currentUserCanEdit.
-var GroupModel = function(group, currentUserCanEdit, pageOwner, isRegistration, isParentAdmin, options, groupShouter, changeShouter) {
+var GroupModel = function(group, currentUserCanEdit, pageOwner, isRegistration, isParentAdmin, index, options, groupShouter, changeShouter) {
     var self = this;
     self.options = options;
     $.extend(self, group);
 
     self.originals = {
-        permission: group.permission
+        permission: group.permission,
+        visible: group.visible,
+        index: index,
     };
-
+    self.visible = ko.observable(group.visible);
+    self.visible.subscribeChanged(function(newValue, oldValue) {
+        self.options.onVisibleChanged(newValue, oldValue);
+    });
     self.toggleExpand = function() {
         self.expanded(!self.expanded());
     };
@@ -72,12 +77,16 @@ var GroupModel = function(group, currentUserCanEdit, pageOwner, isRegistration, 
 
     self.reset = function(adminCount, visibleCount) {
         if (self.deleteStaged()) {
+            if (self.visible()) {
+                visibleCount(visibleCount() + 1);
+            }
             if (self.permission() === 'admin') {
                 adminCount(adminCount() + 1);
             }
             self.deleteStaged(false);
         }
         self.permission(self.originals.permission);
+        self.visible(self.originals.visible);
     };
 
     self.currentUserCanEdit = currentUserCanEdit;
@@ -121,6 +130,7 @@ var GroupModel = function(group, currentUserCanEdit, pageOwner, isRegistration, 
                         {
                             mapcore_group_id: groupData.mapcore_group.id,
                             permission: 'read',
+                            visible: true
                         }
                     ]
                 }
@@ -154,6 +164,7 @@ var GroupModel = function(group, currentUserCanEdit, pageOwner, isRegistration, 
         if (self.deleteStaged()) {
             self.deleteStaged(false);
             self.options.onPermissionChanged(self.permission(), null);
+            self.options.onVisibleChanged(self.visible(), null);
         }
         // Allow default action
         return true;
@@ -169,7 +180,8 @@ var GroupModel = function(group, currentUserCanEdit, pageOwner, isRegistration, 
     });
 
     self.isDirty = ko.pureComputed(function() {
-        return self.permissionChange() || self.deleteStaged();
+        return self.permissionChange() ||
+            self.visible() !== self.originals.visible || self.deleteStaged();
     });
 
     self.optionsText = function(val) {
@@ -265,7 +277,7 @@ var GroupsViewModel = function(groups, adminGroups, user, isRegistration, table,
 
     self.changed = ko.computed(function() {
         for (var i = 0, group; group = self.groups()[i]; i++) {
-            if (group.isDirty()){
+            if (group.isDirty() || group.originals.index !== i){
                 return true;
             }
         }
@@ -303,6 +315,15 @@ var GroupsViewModel = function(groups, adminGroups, user, isRegistration, table,
             self.adminCount(self.adminCount() + 1);
         }
     };
+    self.handleVisibleChanged = function(newVis, oldVis) {
+        if (oldVis) {
+            self.visibleCount(self.visibleCount() - 1);
+        }
+        if (newVis) {
+            self.visibleCount(self.visibleCount() + 1);
+        }
+    };
+
     self.options = {
         onPermissionChanged: self.handlePermissionChanged,
         onVisibleChanged: self.handleVisibleChanged,
@@ -310,12 +331,18 @@ var GroupsViewModel = function(groups, adminGroups, user, isRegistration, table,
     };
 
     self.init = function() {
+        var index = -1;
         self.groups(self.original().map(function(item) {
-            return new GroupModel(item, self.canEdit(), self.user(), isRegistration, false, self.options, groupShouter, pageChangedShouter);
+            index++;
+            if (item.visible) {
+                self.visibleCount(self.visibleCount() + 1);
+            }
+            return new GroupModel(item, self.canEdit(), self.user(), isRegistration, false, index, self.options, groupShouter, pageChangedShouter);
         }));
         self.adminGroups(adminGroups.map(function(item) {
-            return new GroupModel(item, self.canEdit(), self.user(), isRegistration, true, self.options, groupShouter, pageChangedShouter);
+            return new GroupModel(item, self.canEdit(), self.user(), isRegistration, true, index, self.options, groupShouter, pageChangedShouter);
         }));
+
     };
 
     // Warn on add groups if pending changes
@@ -353,6 +380,12 @@ var GroupsViewModel = function(groups, adminGroups, user, isRegistration, table,
        ko.utils.arrayForEach(self.groups(), function(group) {
             group.permission(group.originals.permission);
         });
+       self.groups().forEach(function(group) {
+            group.reset(self.visibleCount);
+        });
+       self.groups(self.groups().sort(function(left, right) {
+            return left.originals.index > right.originals.index ? 1 : -1;
+        }));
     };
 
     self.submit = function() {
@@ -360,8 +393,12 @@ var GroupsViewModel = function(groups, adminGroups, user, isRegistration, table,
         var groups = self.serialize();
         var nodeGroups = [];
         groups.forEach(function(item) {
-            nodeGroups.push({'node_group_id': parseInt(item.id), 'permission': item.permission});
+            nodeGroups.push({
+                'node_group_id': parseInt(item.id),
+                'permission': item.permission,
+                'visible': item.visible
             });
+        });
 
         var updateData = {'data':{
             'type': 'node-mapcore-group',

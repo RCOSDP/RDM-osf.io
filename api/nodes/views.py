@@ -134,7 +134,7 @@ from framework.exceptions import HTTPError, PermissionsError
 from framework.auth.oauth_scopes import CoreScopes
 from framework.sentry import log_exception
 from osf.features import OSF_GROUPS
-from osf.models import AbstractNode, NodeLog
+from osf.models import AbstractNode, NodeLog, node
 from osf.models import (Node, PrivateLink, Institution, Comment, DraftRegistration, Registration, )
 from osf.models import OSFUser
 from osf.models import OSFGroup
@@ -2408,7 +2408,7 @@ class NodeMapCoreGroupList(JSONAPIBaseView, generics.ListAPIView, bulk_views.Bul
         node = self.get_node()
         qs = MapCoreNodeGroup.objects.filter(node=node, is_deleted=False)
         # Avoid N+1 on foreign-key relations reported by nplusone
-        qs = qs.select_related('creator', 'mapcore_group').order_by('mapcore_group___id')
+        qs = qs.select_related('creator', 'mapcore_group')
         # Precompute permissions via ORM (no raw SQL)
         group_ids = list(qs.values_list('group_id', flat=True))
         perm_map = {}
@@ -2448,6 +2448,8 @@ class NodeMapCoreGroupList(JSONAPIBaseView, generics.ListAPIView, bulk_views.Bul
         """List the MapCoreNodeGroup relationships for this node.
         """
         queryset = self.get_queryset()
+        if request.query_params.get('visible'):
+            queryset = queryset.filter(visible=True)
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -2515,7 +2517,12 @@ class NodeMapCoreGroupList(JSONAPIBaseView, generics.ListAPIView, bulk_views.Bul
                 component_ids_set.add(cid)
         if duplicate_component_ids:
             raise ValidationError(detail=f'Duplicate component_ids in request: {sorted(duplicate_component_ids)}')
-        components = Node.objects.filter(guids___id__in=component_ids_set, is_deleted=False, parent_nodes=self.get_node())
+
+        node = self.get_node()
+        components = node.descendants.prefetch_related('guids').filter(
+            guids___id__in=component_ids_set,
+            is_deleted=False
+        )
         components_found_ids = set(c.guids.first()._id for c in components)
         missing_component_ids = component_ids_set - components_found_ids
         if missing_component_ids:
@@ -2610,7 +2617,7 @@ class NodeMapCoreGroupRemove(JSONAPIBaseView, generics.DestroyAPIView, NodeMixin
                     component_ids_set.add(cid)
             if duplicate_component_ids:
                 raise ValidationError(detail=f'Duplicate component_ids in request: {sorted(duplicate_component_ids)}')
-            components = Node.objects.filter(guids___id__in=component_ids_set, is_deleted=False, parent_nodes=self.get_node())
+            components = self.get_node().descendants.prefetch_related('guids').filter(guids___id__in=component_ids_set, is_deleted=False)
             components_found_ids = set(c.guids.first()._id for c in components)
             missing_component_ids = component_ids_set - components_found_ids
             if missing_component_ids:
