@@ -527,7 +527,9 @@ def _build_hierarchical_object(user, target_index, file_metadata, download_file_
                 value = source_data.get('value', '')
                 if 'choose-additional-metadata' in value:
                     url = value['choose-additional-metadata']
-                    value_data = json.loads(url['value'])
+                    value_data = json.loads(url.get('value') or '[]')
+                    if not value_data:
+                        continue
                     file_path = value_data[0]['path']
                     file_name = file_path.split('/')[-1]
                     for item in value_data:
