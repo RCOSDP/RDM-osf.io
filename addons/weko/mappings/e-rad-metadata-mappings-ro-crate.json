@@ -293,6 +293,22 @@
                 ".@type": "Person",
                 "value": "{{object_name_en_middle}}{% if object_name_en_middle %} {% endif %}{{object_name_en_first}}",
                 "language": "en"
+            },
+            "jpcoar:affiliation[AFFILIATION]": {
+                "@createIf": "{{object_affiliation_name_ja}}{{object_affiliation_name_en}}",
+                ".@type": "Organization",
+                "jpcoar:affiliationName[AFFILIATION_NAME_JA]": {
+                    "@createIf": "{{object_affiliation_name_ja}}",
+                    ".@type": "PropertyValue",
+                    "value": "{{object_affiliation_name_ja}}",
+                    "language": "ja"
+                },
+                "jpcoar:affiliationName[AFFILIATION_NAME_EN]": {
+                    "@createIf": "{{object_affiliation_name_en}}",
+                    ".@type": "PropertyValue",
+                    "value": "{{object_affiliation_name_en}}",
+                    "language": "en"
+                }
             }
         }
     },
@@ -499,6 +515,16 @@
                 ".@type": "Person",
                 "value": "{{value}}",
                 "language": "ja"
+            },
+            "jpcoar:affiliation[DATA_MANAGER_AFFILIATION]": {
+                "@createIf": "{{grdm_file_data_man_org_ja_value}}",
+                ".@type": "Organization",
+                "jpcoar:affiliationName[DATA_MANAGER_AFFILIATION_NAME_JA]": {
+                    "@createIf": "{{grdm_file_data_man_org_ja_value}}",
+                    ".@type": "PropertyValue",
+                    "value": "{{grdm_file_data_man_org_ja_value}}",
+                    "language": "ja"
+                }
             }
         }
     },
@@ -516,6 +542,16 @@
                 ".@type": "Person",
                 "value": "{{value}}",
                 "language": "en"
+            },
+            "jpcoar:affiliation[DATA_MANAGER_AFFILIATION]": {
+                "@createIf": "{{grdm_file_data_man_org_en_value}}",
+                ".@type": "Organization",
+                "jpcoar:affiliationName[DATA_MANAGER_AFFILIATION_NAME_EN]": {
+                    "@createIf": "{{grdm_file_data_man_org_en_value}}",
+                    ".@type": "PropertyValue",
+                    "value": "{{grdm_file_data_man_org_en_value}}",
+                    "language": "en"
+                }
             }
         }
     },

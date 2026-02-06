@@ -780,16 +780,10 @@ class TestWEKOSchema(OsfTestCase):
           "@id": "_:Person5"
         },
         {
-          "@id": "_:Organization4"
+          "@id": "_:Organization5"
         }
       ],
       "dc:rights": [
-        {
-          "@id": "_:PropertyValue11"
-        },
-        {
-          "@id": "_:PropertyValue12"
-        },
         {
           "@id": "_:PropertyValue13"
         },
@@ -801,9 +795,7 @@ class TestWEKOSchema(OsfTestCase):
         },
         {
           "@id": "_:PropertyValue16"
-        }
-      ],
-      "jpcoar:subject": [
+        },
         {
           "@id": "_:PropertyValue17"
         },
@@ -811,15 +803,23 @@ class TestWEKOSchema(OsfTestCase):
           "@id": "_:PropertyValue18"
         }
       ],
+      "jpcoar:subject": [
+        {
+          "@id": "_:PropertyValue19"
+        },
+        {
+          "@id": "_:PropertyValue20"
+        }
+      ],
       "dc:type": {
-        "@id": "_:PropertyValue19"
+        "@id": "_:PropertyValue21"
       },
       "dc:title": [
         {
-          "@id": "_:PropertyValue20"
+          "@id": "_:PropertyValue22"
         },
         {
-          "@id": "_:PropertyValue21"
+          "@id": "_:PropertyValue23"
         }
       ],
       "wk:isSplited": false,
@@ -861,44 +861,56 @@ class TestWEKOSchema(OsfTestCase):
     },
     {
       "@type": "Organization",
-      "additionalType": {
-        "@id": "https://github.com/JPCOAR/schema/blob/master/2.0/#HostingInstitution"
-      },
-      "jpcoar:contributorName": [
+      "jpcoar:affiliationName": [
         {
-          "@id": "_:Organization5"
+          "@id": "_:PropertyValue11"
         },
         {
-          "@id": "_:Organization6"
-        }
-      ],
-      "jpcoar:contributorType": "HostingInstitution",
-      "jpcoar:nameIdentifier": [
-        {
-          "@id": "_:Organization7"
+          "@id": "_:PropertyValue12"
         }
       ],
       "@id": "_:Organization4"
     },
     {
       "@type": "Organization",
+      "additionalType": {
+        "@id": "https://github.com/JPCOAR/schema/blob/master/2.0/#HostingInstitution"
+      },
+      "jpcoar:contributorName": [
+        {
+          "@id": "_:Organization6"
+        },
+        {
+          "@id": "_:Organization7"
+        }
+      ],
+      "jpcoar:contributorType": "HostingInstitution",
+      "jpcoar:nameIdentifier": [
+        {
+          "@id": "_:Organization8"
+        }
+      ],
+      "@id": "_:Organization5"
+    },
+    {
+      "@type": "Organization",
       "language": "en",
       "nameType": "Organizational",
       "value": "National Institute of Informatics",
-      "@id": "_:Organization5"
+      "@id": "_:Organization6"
     },
     {
       "@type": "Organization",
       "language": "ja",
       "nameType": "Organizational",
       "value": "国立情報学研究所",
-      "@id": "_:Organization6"
+      "@id": "_:Organization7"
     },
     {
       "@type": "Organization",
       "nameIdentifierScheme": "ROR",
       "value": "https://ror.org/04ksd4g47",
-      "@id": "_:Organization7"
+      "@id": "_:Organization8"
     },
     {
       "@type": "Person",
@@ -952,6 +964,11 @@ class TestWEKOSchema(OsfTestCase):
       "jpcoar:nameIdentifier": [
         {
           "@id": "_:Person8"
+        }
+      ],
+      "jpcoar:affiliation": [
+        {
+          "@id": "_:Organization4"
         }
       ],
       "@id": "_:Person5"
@@ -1021,60 +1038,72 @@ class TestWEKOSchema(OsfTestCase):
     {
       "@type": "PropertyValue",
       "language": "en",
-      "value": "Test for license",
+      "value": "National Institute of Informatics",
       "@id": "_:PropertyValue11"
     },
     {
       "@type": "PropertyValue",
       "language": "ja",
-      "value": "ライセンスのテスト",
+      "value": "国立情報学研究所",
       "@id": "_:PropertyValue12"
     },
     {
       "@type": "PropertyValue",
       "language": "en",
-      "value": "free",
+      "value": "Test for license",
       "@id": "_:PropertyValue13"
     },
     {
       "@type": "PropertyValue",
       "language": "ja",
-      "value": "無償",
+      "value": "ライセンスのテスト",
       "@id": "_:PropertyValue14"
+    },
+    {
+      "@type": "PropertyValue",
+      "language": "en",
+      "value": "free",
+      "@id": "_:PropertyValue15"
+    },
+    {
+      "@type": "PropertyValue",
+      "language": "ja",
+      "value": "無償",
+      "@id": "_:PropertyValue16"
     },
     {
       "@type": "PropertyValue",
       "language": "en",
       "rdf:resource": "https://creativecommons.org/publicdomain/zero/1.0/deed.en",
       "value": "CC0 1.0 Universal",
-      "@id": "_:PropertyValue15"
+      "@id": "_:PropertyValue17"
     },
     {
       "@type": "PropertyValue",
       "language": "ja",
       "rdf:resource": "https://creativecommons.org/publicdomain/zero/1.0/deed.en",
       "value": "CC0 1.0 Universal",
-      "@id": "_:PropertyValue16"
+      "@id": "_:PropertyValue18"
     },
     {
       "@type": "PropertyValue",
       "language": "en",
       "subjectScheme": "e-Rad_field",
       "value": "Life Science",
-      "@id": "_:PropertyValue17"
+      "@id": "_:PropertyValue19"
     },
     {
       "@type": "PropertyValue",
       "language": "ja",
       "subjectScheme": "e-Rad_field",
       "value": "ライフサイエンス",
-      "@id": "_:PropertyValue18"
+      "@id": "_:PropertyValue20"
     },
     {
       "@type": "PropertyValue",
       "rdf:resource": "http://purl.org/coar/resource_type/63NG-B465/",
       "value": "experimental data",
-      "@id": "_:PropertyValue19"
+      "@id": "_:PropertyValue21"
     },
     {
       "@type": "PropertyValue",
@@ -1086,13 +1115,13 @@ class TestWEKOSchema(OsfTestCase):
       "@type": "PropertyValue",
       "language": "en",
       "value": "TEST DATA",
-      "@id": "_:PropertyValue20"
+      "@id": "_:PropertyValue22"
     },
     {
       "@type": "PropertyValue",
       "language": "ja",
       "value": "テストデータ",
-      "@id": "_:PropertyValue21"
+      "@id": "_:PropertyValue23"
     },
     {
       "@type": "PropertyValue",
@@ -1511,6 +1540,8 @@ class TestWEKOSchema(OsfTestCase):
                                     'name-en-last': 'Test',
                                     'name-en-middle': '',
                                     'name-en-first': 'Taro',
+                                    'affiliation-name-ja': 'テスト大学',
+                                    'affiliation-name-en': 'Test University',
                                 }
                             ]
                         },
@@ -1565,6 +1596,20 @@ class TestWEKOSchema(OsfTestCase):
         related_id = related_id_entities[0]
         assert_equal(related_id['identifierType'], 'DOI')
         assert_true('10.1234/example.vor.2025' in related_id['value'])
+
+        # Verify author affiliation (jpcoar:affiliation)
+        creator_entities = property_entities(dataset_root, 'jpcoar:creator')
+        assert_true(len(creator_entities) > 0, 'No jpcoar:creator found')
+        creator = creator_entities[0]
+        affiliation_entities = property_entities(creator, 'jpcoar:affiliation')
+        assert_equal(len(affiliation_entities), 1, 'Expected 1 affiliation entity')
+        aff = affiliation_entities[0]
+        assert_equal(aff['@type'], 'Organization')
+        aff_name_entities = property_entities(aff, 'jpcoar:affiliationName')
+        assert_equal(len(aff_name_entities), 2, 'Expected 2 affiliationName entries (ja and en)')
+        affiliation_names = [(n['value'], n['language']) for n in aff_name_entities]
+        assert_true(('テスト大学', 'ja') in affiliation_names, 'Japanese affiliation name not found')
+        assert_true(('Test University', 'en') in affiliation_names, 'English affiliation name not found')
 
     def test_write_csv_manuscript_version_am(self):
         """Test CSV output for manuscript with version type AM and peer reviewed status"""
