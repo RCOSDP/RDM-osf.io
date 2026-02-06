@@ -2415,7 +2415,7 @@ class NodeMapCoreGroupUpdateSerializer(NodeMapCoreGroupSerializer):
             )
         if update_visible_list:
             for mgid in update_visible_list:
-                params['mapcore_group'] = mgid
+                params['mapcore_groups'] = [mgid]
                 node.add_log(
                     action=node.log_class.MADE_MAPCORE_GROUP_VISIBLE,
                     params=params,
@@ -2424,7 +2424,7 @@ class NodeMapCoreGroupUpdateSerializer(NodeMapCoreGroupSerializer):
                 )
         if update_invisible_list:
             for mgid in update_invisible_list:
-                params['mapcore_group'] = mgid
+                params['mapcore_groups'] = [mgid]
                 node.add_log(
                     action=node.log_class.MADE_MAPCORE_GROUP_INVISIBLE,
                     params=params,

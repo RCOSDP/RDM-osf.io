@@ -31,7 +31,7 @@
             </div>
         </div>
         <h5 class="m-t-md">${_("Bibliographic Group")}
-                <i class="fa fa-question-circle visibility-info"
+                <i class="fa fa-question-circle visibility-group-info"
                     data-toggle="popover"
                     data-title=${_('Bibliographic Group Information')}
                     data-container="body"
