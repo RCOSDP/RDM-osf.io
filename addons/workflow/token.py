@@ -17,8 +17,8 @@ ALLOWED_TOKEN_ROLES = frozenset({'creator', 'manager', 'executor'})
 REQUIRED_DELEGATION_FIELDS = frozenset({'token_id', 'token_value', 'scope', 'token_owner'})
 
 TOKEN_MODE_TO_SCOPE = {
-    'read': ['osf.full_read'],
-    'readwrite': ['osf.full_read', 'osf.full_write'],
+    'read': ['osf.full_read', 'osf.users.email_read', 'osf.users.profile_read'],
+    'readwrite': ['osf.full_read', 'osf.full_write', 'osf.users.email_read', 'osf.users.profile_read'],
 }
 
 
