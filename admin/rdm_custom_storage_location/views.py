@@ -192,6 +192,13 @@ class TestConnectionView(InstitutionalStorageBaseView, View):
                 data.get('s3compat_secret_key'),
                 data.get('s3compat_bucket'),
             )
+        elif provider_short_name == 's3compatsigv4':
+            result = utils.test_s3compatsigv4_connection(
+                data.get('s3compatsigv4_endpoint_url'),
+                data.get('s3compatsigv4_access_key'),
+                data.get('s3compatsigv4_secret_key'),
+                data.get('s3compatsigv4_bucket'),
+            )
         elif provider_short_name == 's3compatb3':
             result = utils.test_s3compatb3_connection(
                 data.get('s3compatb3_endpoint_url'),
@@ -304,6 +311,16 @@ class SaveCredentialsView(InstitutionalStorageBaseView, View):
                 data.get('s3compat_secret_key'),
                 data.get('s3compat_bucket'),
                 bool(strtobool(data.get('s3compat_server_side_encryption'))),
+            )
+        elif provider_short_name == 's3compatsigv4':
+            result = utils.save_s3compatsigv4_credentials(
+                institution_id,
+                storage_name,
+                data.get('s3compatsigv4_endpoint_url'),
+                data.get('s3compatsigv4_access_key'),
+                data.get('s3compatsigv4_secret_key'),
+                data.get('s3compatsigv4_bucket'),
+                bool(strtobool(data.get('s3compatsigv4_server_side_encryption'))),
             )
         elif provider_short_name == 's3compatb3':
             result = utils.save_s3compatb3_credentials(
