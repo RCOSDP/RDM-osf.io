@@ -160,7 +160,10 @@ def _flatten_json_ld_root(object, counts=None):
             clone = values.copy()
             for item in values:
 
-                if '@id' in item:
+                # NOTE: The following transformation assumes Person objects.
+                # Ideally, the mapping should generate the correct structure directly
+                # rather than requiring post-processing here.
+                if '@id' in item and item.get('@type') == 'Person':
                     root_raw_id = item.get('@id')
                     root_base_id = normalize_base_id(root_raw_id)
                     if 'affiliation' in item:
@@ -666,7 +669,7 @@ def write_ro_crate_json(user, f, target_index, download_file_names, schema_id, f
         file_ids = [
             entity.get('@id')
             for entity in entry_entities
-            if entity.get('@type') == 'File'
+            if entity.get('@type') == 'File' and not entity.get('wk:extendedMetadata')
         ]
         dataset_entity = next(
             (entity for entity in entry_entities if entity.get('@id') == root_id),
