@@ -3183,10 +3183,14 @@ msgstr "プロフィールを表示"
 
 #: website/templates/profile/settings.mako:47
 msgid ""
+"The following fields are required: "
 "\"Full name\", \"Family name\", \"Given name\", \"Family name (EN)\", "
 "\"Given name (EN)\" on the Name tab, and \"Affiliation\" and "
-"\"Affiliation (English)\" on the Employment tab is required."
-msgstr "名前タブの「氏名」「姓」「名前」「姓(英語)」「名前(英語)」、ならびに職歴タブの「所属」「所属(英語)」は必須入力(*)です。"
+"\"Affiliation (English)\" on the Employment tab. "
+"(For students: Please add your university and faculty/graduate school information in the Employment tab.)"
+msgstr ""
+"名前タブの「氏名」「姓」「名前」「姓(英語)」「名前(英語)」、ならびに職歴タブの「所属」「所属(英語)」は必須入力(*)です。"
+"（学生の方は、在籍する大学と学部/研究科情報を職歴タブへ入力してください）"
 
 #: website/templates/profile/settings.mako:50
 #: website/templates/project/contributors.mako:182
