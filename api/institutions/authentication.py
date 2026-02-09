@@ -544,13 +544,18 @@ def update_mapcore_groups(user, provider):
         return
     import re
     patt_prefix = re.compile('^' + prefix)
+    patt_admin = re.compile('(.+)/admin$')
     groups_str_set = set()
     for group in groups_str.split(';'):
         if patt_prefix.match(group):
             groupname = patt_prefix.sub('', group)
             if groupname is None or groupname == '':
                 continue
-            groups_str_set.add(groupname)
+            m = patt_admin.search(groupname)
+            if m:  # is admin
+                groups_str_set.add(m.group(1))
+            else:
+                groups_str_set.add(groupname)
     mapcore_user_groups = MapCoreUserGroup.objects.filter(user=user, is_deleted=False)
     to_delete = []
     for mapcore_user_group in mapcore_user_groups:
