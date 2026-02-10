@@ -1,5 +1,7 @@
 {
-    "availableServices": [{"name": "IDCF Cloud",
+    "availableServices": [ {"name": "play.min.io",
+                           "host": "play.min.io:443"},
+                           {"name": "IDCF Cloud",
                            "host": "ds.jp-east.idcfcloud.com",
                            "bucketLocations": {"us-east-1": {"name": "Fukushima"}}},
                           {"name": "SAKURA Cloud",
