@@ -145,6 +145,7 @@ COPY ./admin/static/ ./admin/static/
 COPY ./addons/bitbucket/static/ ./addons/bitbucket/static/
 COPY ./addons/box/static/ ./addons/box/static/
 COPY ./addons/citations/static/ ./addons/citations/static/
+COPY ./addons/datasteward/static/ ./addons/datasteward/static/
 COPY ./addons/dataverse/static/ ./addons/dataverse/static/
 COPY ./addons/dropbox/static/ ./addons/dropbox/static/
 COPY ./addons/dropboxbusiness/static/ ./addons/dropboxbusiness/static/
