@@ -25,7 +25,6 @@
                   condensed = condensed[:23] + "..." + condensed[-23:]
                   is_condensed = True
           %>
-            <a class='user-profile' rel="${'tooltip' if is_condensed else ''}" title="${group['mapcore_group']['name']}" href="${group['url']}" target="_blank">${condensed}</a>
-       </li>
+            <a class='user-profile' rel="${'tooltip' if is_condensed else ''}" title="${group['mapcore_group']['name']}" href="${group['url']}" target="_blank">${condensed}</a></li>
   % endfor
 </%def>

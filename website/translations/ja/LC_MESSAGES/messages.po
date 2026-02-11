@@ -4630,3 +4630,12 @@ msgid ""
 "Please save or discard your existing changes before removing a "
 "groups."
 msgstr "グループを削除する前に、既存の変更を保存または破棄してください。"
+
+msgid "Drag and drop groups to change listing order."
+msgstr "グループをドラッグ&ドロップして、リストの順序を変更します。"
+
+msgid "Bibliographic Group"
+msgstr "目録表示グループ"
+
+msgid "Bibliographic Group Information"
+msgstr "目録表示グループの情報"

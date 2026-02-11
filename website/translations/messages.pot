@@ -4414,3 +4414,12 @@ msgid ""
 "Please save or discard your existing changes before removing a "
 "groups."
 msgstr ""
+
+msgid "Drag and drop groups to change listing order."
+msgstr ""
+
+msgid "Bibliographic Group"
+msgstr ""
+
+msgid "Bibliographic Group Information"
+msgstr ""

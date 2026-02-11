@@ -58,6 +58,11 @@
                 </a>
             <!-- /ko -->
         </h3>
+
+        % if permissions.ADMIN in user['permissions'] and not node['is_registration']:
+            <p class="m-b-xs">${_("Drag and drop groups to change listing order.")}</p>
+        % endif
+
     <div data-bind="filters: {
             items: ['.contrib', '.admin'],
             toggleClass: 'btn-default btn-primary',
