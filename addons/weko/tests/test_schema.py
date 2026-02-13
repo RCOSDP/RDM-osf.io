@@ -2081,3 +2081,133 @@ class TestWEKOSchema(OsfTestCase):
             str(context.exception),
             'Error message should indicate missing file metadata'
         )
+
+    def test_write_ro_crate_json_additional_funding(self):
+        buf = io.StringIO()
+        index = mock.MagicMock()
+        index.identifier = '1000'
+        index.title = 'TITLE'
+        node_id = 'rvm3q'
+        files = [
+            [('test.jpg', 'image/jpeg')],
+        ]
+        target_schema = RegistrationSchema.objects \
+            .filter(name='公的資金による研究データのメタデータ登録') \
+            .order_by('-schema_version') \
+            .first()
+        file_metadata = {
+            'items': [
+                {
+                    'schema': target_schema._id,
+                    'data': dict([(k, {
+                        'value': v,
+                    })for k, v in {
+                        'grdm-file:title-en': 'TEST DATA',
+                        'grdm-file:data-description-ja': 'テスト説明',
+                    }.items()]),
+                },
+            ],
+        }
+        project_metadata = {
+            'funder': {
+                'value': 'JST',
+            },
+            'japan-grant-number': {
+                'value': 'JP100001',
+            },
+            'project-name-ja': {
+                'value': 'メインプロジェクト',
+            },
+            'project-name-en': {
+                'value': 'Main Project',
+            },
+            'additional-funding': {
+                'value': [
+                    {
+                        'funder': 'JSPS',
+                        'japan-grant-number': 'JP200002',
+                        'project-name-ja': '追加プロジェクト1',
+                        'project-name-en': 'Additional Project 1',
+                    },
+                    {
+                        'funder': 'AMED',
+                        'japan-grant-number': 'JP300003',
+                        'project-name-ja': '追加プロジェクト2',
+                        'project-name-en': 'Additional Project 2',
+                    },
+                ],
+            },
+        }
+
+        schema.write_ro_crate_json(
+            self.user,
+            buf,
+            index,
+            files,
+            target_schema._id,
+            [file_metadata],
+            [project_metadata],
+            node_id
+        )
+
+        actual_json = json.loads(buf.getvalue())
+        graph = actual_json['@graph']
+        entities = {e['@id']: e for e in graph if '@id' in e}
+
+        def resolve_ref(ref):
+            return entities[ref['@id']]
+
+        dataset = entities['./']
+        funding_refs = dataset['jpcoar:fundingReference']
+        assert_equal(len(funding_refs), 3)
+
+        resolved_fundings = []
+        for ref in funding_refs:
+            fr = resolve_ref(ref)
+            assert_equal(fr['@type'], 'PropertyValue')
+
+            award_number = resolve_ref(fr['jpcoar:awardNumber'])
+            assert_equal(award_number['@type'], 'jpcoar:awardNumber')
+            assert_equal(award_number['jpcoar:awardNumberType'], 'JGN')
+
+            funder_names = [resolve_ref(r) for r in fr['jpcoar:funderName']]
+            assert_equal(len(funder_names), 2)
+            funder_ja = next(n for n in funder_names if n['language'] == 'ja')
+            funder_en = next(n for n in funder_names if n['language'] == 'en')
+
+            award_titles = [resolve_ref(r) for r in fr['jpcoar:awardTitle']]
+            assert_equal(len(award_titles), 2)
+            title_ja = next(t for t in award_titles if t['language'] == 'ja')
+            title_en = next(t for t in award_titles if t['language'] == 'en')
+
+            resolved_fundings.append({
+                'grant_number': award_number['value'],
+                'funder_ja': funder_ja['value'],
+                'funder_en': funder_en['value'],
+                'title_ja': title_ja['value'],
+                'title_en': title_en['value'],
+            })
+
+        resolved_fundings.sort(key=lambda f: f['grant_number'])
+
+        assert_equal(resolved_fundings[0], {
+            'grant_number': 'JP100001',
+            'funder_ja': '国立研究開発法人科学技術振興機構(JST)',
+            'funder_en': 'Japan Science and Technology Agency(JST)',
+            'title_ja': 'メインプロジェクト',
+            'title_en': 'Main Project',
+        })
+        assert_equal(resolved_fundings[1], {
+            'grant_number': 'JP200002',
+            'funder_ja': '独立行政法人日本学術振興会(JSPS)',
+            'funder_en': 'Japan Society for the Promotion of Science(JSPS)',
+            'title_ja': '追加プロジェクト1',
+            'title_en': 'Additional Project 1',
+        })
+        assert_equal(resolved_fundings[2], {
+            'grant_number': 'JP300003',
+            'funder_ja': '国立研究開発法人日本医療研究開発機構(AMED)',
+            'funder_en': 'Japan Agency for Medical Research and Development(AMED)',
+            'title_ja': '追加プロジェクト2',
+            'title_en': 'Additional Project 2',
+        })

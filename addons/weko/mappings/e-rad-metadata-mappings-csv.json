@@ -77,6 +77,55 @@
             }
         }
     },
+    "additional-funding": {
+        "@type": "jsonarray",
+        "metadata.item_30002_funding_reference21[]": {
+            "subitem_funder_identifiers": {
+                "@createIf": "{{ object_funder }}",
+                "subitem_funder_identifier_type": "e-Rad_funder"
+            },
+            "subitem_funder_names[FUNDER_NAME_JA]": {
+                "@createIf": "{{ object_funder }}",
+                "subitem_funder_name": "{{object_funder_tooltip_0}}({{object_funder}})",
+                "subitem_funder_name_language": "ja"
+            },
+            "subitem_funder_names[FUNDER_NAME_EN]": {
+                "@createIf": "{{ object_funder }}",
+                "subitem_funder_name": "{{object_funder_tooltip_1}}({{object_funder}})",
+                "subitem_funder_name_language": "en"
+            },
+            "subitem_funding_stream_identifiers": {
+                "@createIf": "{{ object_funding_stream_code }}",
+                "subitem_funding_stream_identifier": "{{object_funding_stream_code}}",
+                "subitem_funding_stream_identifier_type": "JGN_fundingStream"
+            },
+            "subitem_funding_streams[FUNDING_STREAM_JA]": {
+                "@createIf": "{{ object_program_name_ja }}",
+                "subitem_funding_stream": "{{object_program_name_ja}}",
+                "subitem_funding_stream_language": "ja"
+            },
+            "subitem_funding_streams[FUNDING_STREAM_EN]": {
+                "@createIf": "{{ object_program_name_en }}",
+                "subitem_funding_stream": "{{object_program_name_en}}",
+                "subitem_funding_stream_language": "en"
+            },
+            "subitem_award_numbers": {
+                "@createIf": "{{ object_japan_grant_number }}",
+                "subitem_award_number_type": "JGN",
+                "subitem_award_number": "{{object_japan_grant_number}}"
+            },
+            "subitem_award_titles[PROJECT_NAME_JA]": {
+                "@createIf": "{{ object_project_name_ja }}",
+                "subitem_award_title_language": "ja",
+                "subitem_award_title": "{{object_project_name_ja}}"
+            },
+            "subitem_award_titles[PROJECT_NAME_EN]": {
+                "@createIf": "{{ object_project_name_en }}",
+                "subitem_award_title_language": "en",
+                "subitem_award_title": "{{object_project_name_en}}"
+            }
+        }
+    },
     "grdm-file:data-number": {
         "@type": "string",
         "@createIf": "{% if grdm_file_file_type_value != \"manuscript\" %}{{value}}{% endif %}"

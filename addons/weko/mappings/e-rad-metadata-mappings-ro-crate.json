@@ -80,6 +80,66 @@
             }
         }
     },
+    "additional-funding": {
+        "@type": "jsonarray",
+        "root.jpcoar:fundingReference[]": {
+            ".@type": "PropertyValue",
+            "jpcoar:funderIdentifier": {
+                "@createIf": "{{ object_funder | to_funder_ror_id }}",
+                ".@type": "jpcoar:funderIdentifier",
+                "jpcoar:funderIdentifierType": "ROR",
+                "value": "{{ object_funder | to_funder_ror_id }}"
+            },
+            "jpcoar:funderName[FUNDER_NAME_JA]": {
+                "@createIf": "{{ object_funder }}",
+                ".@type": "PropertyValue",
+                "value": "{{object_funder_tooltip_0}}({{object_funder}})",
+                "language": "ja"
+            },
+            "jpcoar:funderName[FUNDER_NAME_EN]": {
+                "@createIf": "{{ object_funder }}",
+                ".@type": "PropertyValue",
+                "value": "{{object_funder_tooltip_1}}({{object_funder}})",
+                "language": "en"
+            },
+            "jpcoar:fundingStreamIdentifier": {
+                "@createIf": "{{ object_funding_stream_code }}",
+                ".@type": "jpcoar:fundingStreamIdentifier",
+                "value": "{{object_funding_stream_code}}",
+                "jpcoar:fundingStreamIdentifierType": "JGN_fundingStream"
+            },
+            "jpcoar:fundingStream[FUNDING_STREAM_JA]": {
+                "@createIf": "{{ object_program_name_ja }}",
+                ".@type": "PropertyValue",
+                "value": "{{object_program_name_ja}}",
+                "language": "ja"
+            },
+            "jpcoar:fundingStream[FUNDING_STREAM_EN]": {
+                "@createIf": "{{ object_program_name_en }}",
+                ".@type": "PropertyValue",
+                "value": "{{object_program_name_en}}",
+                "language": "en"
+            },
+            "jpcoar:awardNumber": {
+                "@createIf": "{{ object_japan_grant_number }}",
+                ".@type": "jpcoar:awardNumber",
+                "jpcoar:awardNumberType": "JGN",
+                "value": "{{object_japan_grant_number}}"
+            },
+            "jpcoar:awardTitle[PROJECT_NAME_JA]": {
+                "@createIf": "{{ object_project_name_ja }}",
+                ".@type": "PropertyValue",
+                "language": "ja",
+                "value": "{{object_project_name_ja}}"
+            },
+            "jpcoar:awardTitle[PROJECT_NAME_EN]": {
+                "@createIf": "{{ object_project_name_en }}",
+                ".@type": "PropertyValue",
+                "language": "en",
+                "value": "{{object_project_name_en}}"
+            }
+        }
+    },
     "grdm-file:data-number": {
         "@type": "string",
         "@createIf": "{% if grdm_file_file_type_value != \"manuscript\" %}{{value}}{% endif %}"
