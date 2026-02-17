@@ -11,6 +11,9 @@
  ******************************************************************************************/
 
 const $ = require('jquery');
+
+// Style definitions
+const AUTOFILLED_BG_COLOR = '#fffbf0';
 const $osf = require('js/osfHelpers');
 const fangorn = require('js/fangorn');
 const rdmGettext = require('js/rdmGettext');
@@ -96,7 +99,7 @@ const QuestionPage = oop.defclass({
       }
       const value = suggestion.value[autofillMap[path]];
       if (value != null) {
-        field.setValue(value);
+        field.setValue(value, true); // Mark as autofilled
       }
     });
   },
@@ -144,9 +147,9 @@ const QuestionPage = oop.defclass({
           walk(childField, field.fields);
         });
       } else if (field instanceof ArrayFormField) {
-        field.fields.forEach(function (row) {
-          row.forEach(function (childField) {
-            walk(childField, row);
+        field.fields.forEach(function (fieldGroup) {
+          fieldGroup.subFormFields.forEach(function (childField) {
+            walk(childField, fieldGroup.subFormFields);
           });
         });
       }
@@ -158,8 +161,11 @@ const QuestionPage = oop.defclass({
   },
 
   _updateEnabledQuestionField: function(questionField, questionFields) {
+    const self = this;
     const cond = questionField.question.enabled_if;
-    questionField.updateEnabled(!cond || evaluateCond(cond, questionFields));
+    const commonValues = self.options.commonValues;
+    const defaultValues = self.options.defaultValues;
+    questionField.updateEnabled(!cond || evaluateCond(cond, questionFields, commonValues, defaultValues));
   },
 });
 
@@ -281,6 +287,7 @@ const QuestionField = oop.extend(Emitter, {
         } else {
           self.formField.disable(false);
         }
+        self.emit('change');
       });
       header.append(clearFormBlock);
     }
@@ -333,9 +340,9 @@ const QuestionField = oop.extend(Emitter, {
     return self.formField.getValue();
   },
 
-  setValue: function(value) {
+  setValue: function(value, isAutofilled) {
     const self = this;
-    self.formField.setValue(value);
+    self.formField.setValue(value, isAutofilled);
   },
 
   checkedClear: function() {
@@ -405,6 +412,9 @@ const FormFieldInterface = oop.extend(Emitter, {
   setValue: noImplementation,
   reset: noImplementation,
   disable: noImplementation,
+  getChildFields: function() {
+    return [];
+  },
 });
 
 const TextFormField = oop.extend(FormFieldInterface, {
@@ -424,6 +434,10 @@ const TextFormField = oop.extend(FormFieldInterface, {
     if (self.options.readonly) {
       self.input.attr('readonly', true);
     }
+    self.input.on('input', function() {
+      // Reset background color when user edits the field
+      self.input.css('background-color', '');
+    });
     self.input.change(function(event) {
       const value = event.target.value;
       if (value && self.question.space_normalization) {
@@ -441,17 +455,29 @@ const TextFormField = oop.extend(FormFieldInterface, {
       return suggestion.button;
     });
     if (!self.options.readonly && !self.options.multiple && buttonSuggestions.length) {
-      function onSuggested(value) {
-        self.setValue(value);
+      function onSuggested(value, suggestion) {
+        // If value is null (no suggestions found for autofill), don't update anything
+        if (value === null) {
+          return;
+        }
+        // If there's autofill configuration, emit suggestionSelected event for autofill
+        if (suggestion && suggestion.autofill && value) {
+          self.emit('suggestionSelected', {
+            suggestion: suggestion,
+            value: value
+          }, [self]);
+        } else if (value !== undefined) {
+          // Otherwise, just set the value on the current field (but not if undefined)
+          self.setValue(value);
+        }
       }
-      function enteredValue() {
-        const value = self.getValue();
-        return value != null && value !== '';
+      function getFieldValue() {
+        return self.getValue();
       }
       const suggestionContainer = createSuggestionButton(
         self.container,
         self.question, buttonSuggestions, self.options,
-        onSuggested, enteredValue
+        onSuggested, getFieldValue
       );
       self.container
         .css('display', 'flex')
@@ -501,11 +527,14 @@ const TextFormField = oop.extend(FormFieldInterface, {
     return self.input.val();
   },
 
-  setValue: function(value) {
+  setValue: function(value, isAutofilled) {
     const self = this;
     if (self.getValue() === '' && value === '') {
       // to avoid typehead bug
       return;
+    }
+    if (isAutofilled) {
+      self.input.css('background-color', AUTOFILLED_BG_COLOR);
     }
     if (self.usedTypeahead) {
       self.input.typeahead('val', value).change();
@@ -541,6 +570,10 @@ const TextareaFormField = oop.extend(FormFieldInterface, {
     if (self.options.readonly) {
       self.input.attr('readonly', true);
     }
+    self.input.on('input', function() {
+      // Reset background color when user edits the field
+      self.input.css('background-color', '');
+    });
     self.input.change(function(event) {
       const value = event.target.value;
       if (value && self.question.space_normalization) {
@@ -560,9 +593,12 @@ const TextareaFormField = oop.extend(FormFieldInterface, {
     return self.input.val();
   },
 
-  setValue: function(value) {
+  setValue: function(value, isAutofilled) {
     const self = this;
     self.input.val(value);
+    if (isAutofilled) {
+      self.input.css('background-color', AUTOFILLED_BG_COLOR);
+    }
   },
 
   reset: function() {
@@ -594,6 +630,10 @@ const DatePickerFormField = oop.extend(FormFieldInterface, {
     if (self.options.readonly) {
       self.input.attr('readonly', true);
     }
+    self.input.on('input', function() {
+      // Reset background color when user edits the field
+      self.input.css('background-color', '');
+    });
     self.input.change(function(event) {
       self.emit('change', event.target.value);
     });
@@ -605,9 +645,12 @@ const DatePickerFormField = oop.extend(FormFieldInterface, {
     return self.input.val();
   },
 
-  setValue: function(value) {
+  setValue: function(value, isAutofilled) {
     const self = this;
     self.input.datepicker('update', value);
+    if (isAutofilled) {
+      self.input.css('background-color', AUTOFILLED_BG_COLOR);
+    }
   },
 
   reset: function() {
@@ -666,6 +709,10 @@ const SingleSelectFormField = oop.extend(FormFieldInterface, {
         }
       }
     });
+    self.select.on('input change', function() {
+      // Reset background color when user edits the field
+      self.select.css('background-color', '');
+    });
     self.select.change(function(event) {
       self.emit('change', event.target.value);
     });
@@ -688,7 +735,7 @@ const SingleSelectFormField = oop.extend(FormFieldInterface, {
     return defaultValue;
   },
 
-  setValue: function(value) {
+  setValue: function(value, isAutofilled) {
     const self = this;
     // assign default value if value is not in the options
     const defaultValue = self.getDefaultValue();
@@ -697,6 +744,9 @@ const SingleSelectFormField = oop.extend(FormFieldInterface, {
       return;
     }
     self.select.val(value);
+    if (isAutofilled) {
+      self.select.css('background-color', AUTOFILLED_BG_COLOR);
+    }
   },
 
   reset: function() {
@@ -756,13 +806,50 @@ const ArrayFormField = oop.extend(FormFieldInterface, {
     }
   },
 
-  addRow: function(value) {
+  _createVerticalEditCell: function(subFormFields) {
     const self = this;
+    // Calculate colspan from display_template
+    const columnCount = self.question.display_template.split('|').length + 1; // +1 for button column
+    const editCell = $('<td>').attr('colspan', columnCount);
+    const fieldsContainer = $('<div>').css('padding', '10px');
+
+    // Add each field with its label in vertical layout
+    self.question.properties.forEach(function(prop, index) {
+      const fieldWrapper = $('<div>').addClass('form-group');
+
+      // Create label
+      const fieldLabel = $('<label>')
+        .text(prop.title ? getLocalizedText(prop.title) : prop.label);
+      if (prop.required) {
+        fieldLabel.append($('<span>')
+          .css('color', 'red')
+          .css('font-weight', 'bold')
+          .text('*'));
+      }
+
+      fieldWrapper.append(fieldLabel);
+      fieldWrapper.append(subFormFields[index].container);
+      fieldsContainer.append(fieldWrapper);
+    });
+
+    editCell.append(fieldsContainer);
+    return editCell;
+  },
+
+  addRow: function(value, isAutofilled) {
+    const self = this;
+
+    // Create display row first (if display_template exists)
+    let displayTr = null;
+    if (self.question.display_template) {
+      displayTr = $('<tr class="metadata-display-mode">');
+    }
+
     const subFormFields = self.question.properties.map(function(prop) {
       const subFormField = createFormField(prop, self.options);
       subFormField.create();
       if (value && value[prop.id]) {
-        subFormField.setValue(value[prop.id]);
+        subFormField.setValue(value[prop.id], isAutofilled);
       }
       subFormField.on('change', function() {
         self.emit('change', self.getValue());
@@ -778,39 +865,325 @@ const ArrayFormField = oop.extend(FormFieldInterface, {
         self.emit('suggestionSelected', suggestion, nextTree);
       });
     });
-    const tr = $('<tr>');
-    subFormFields.forEach(function(subFormField) {
-      tr.append($('<td>').append(subFormField.container));
-    });
-    if (!self.options || !self.options.readonly) {
-      const removeButton = $('<span class="remove-row"><i class="fa fa-times fa-2x remove-or-reject"></i></span>');
-      removeButton.on('click', function (e) {
-        e.preventDefault();
-        self.removeRow(subFormFields, tr);
-        self.emit('change', self.getValue());
+
+    // Create edit row (always)
+    const editTr = $('<tr class="metadata-edit-mode">');
+    let editCell = null;
+
+    if (self.question.display_template) {
+      // For display_template mode: use vertical layout
+      editCell = self._createVerticalEditCell(subFormFields);
+      editTr.append(editCell);
+    } else {
+      // Standard mode: horizontal layout with one field per column
+      subFormFields.forEach(function(subFormField) {
+        editTr.append($('<td>').append(subFormField.container));
       });
-      tr.append($('<td>').append(removeButton));
     }
-    self.tbody.append(tr);
+
+    // Add buttons
+    if (!self.options || !self.options.readonly) {
+      // Create move buttons (for both display_template and normal mode)
+      const moveButtons = $('<span>')
+        .css('white-space', 'nowrap')
+        .css('margin-right', '5px');
+
+      const moveUpButton = $('<span class="move-up-row">')
+        .css('cursor', 'pointer')
+        .css('padding', '0 2px')
+        .css('vertical-align', 'middle')
+        .append($('<i class="fa fa-arrow-up"></i>'))
+        .attr('title', _('Move up'));
+
+      const moveDownButton = $('<span class="move-down-row">')
+        .css('cursor', 'pointer')
+        .css('padding', '0 2px')
+        .css('vertical-align', 'middle')
+        .append($('<i class="fa fa-arrow-down"></i>'))
+        .attr('title', _('Move down'));
+
+      moveUpButton.on('click', function(e) {
+        e.preventDefault();
+        self.moveRow(subFormFields, -1);
+      });
+
+      moveDownButton.on('click', function(e) {
+        e.preventDefault();
+        self.moveRow(subFormFields, 1);
+      });
+
+      moveButtons.append(moveUpButton).append(' ').append(moveDownButton);
+
+      if (self.question.display_template) {
+        // For display_template mode: add toggle edit button, move buttons, and remove button
+        const displayButtonCell = $('<td>').css('text-align', 'right').css('vertical-align', 'middle');
+
+        const showEditButton = $('<span class="show-edit-row" style="cursor: pointer; padding: 0 2px; vertical-align: middle;">')
+          .append($('<i class="fa fa-pencil"></i>'))
+          .attr('title', _('Edit'));
+        const hideEditButton = $('<span class="hide-edit-row" style="cursor: pointer; padding: 0 5px;">')
+          .append($('<i class="fa fa-times"></i>'))
+          .attr('title', _('Done'));
+        const removeButtonDisplay = $('<span class="remove-row" style="cursor: pointer; padding: 0 2px; vertical-align: middle;"><i class="fa fa-trash"></i></span>')
+          .attr('title', _('Delete'));
+
+        // Clone move buttons for display mode
+        const moveButtonsDisplay = moveButtons.clone(true);
+
+        showEditButton.on('click', function(e) {
+          e.preventDefault();
+          displayTr.hide();
+          editTr.show();
+        });
+
+        hideEditButton.on('click', function(e) {
+          e.preventDefault();
+          // Update display row when switching to display mode
+          self.updateDisplayRow(displayTr, subFormFields);
+          editTr.hide();
+          displayTr.show();
+        });
+
+        removeButtonDisplay.on('click', function(e) {
+          e.preventDefault();
+          self.removeRow(subFormFields, [editTr, displayTr]);
+        });
+
+        // Add buttons to display row
+        displayButtonCell.append(moveButtonsDisplay).append(' ').append(showEditButton).append(' ').append(removeButtonDisplay);
+        displayTr.append(displayButtonCell);
+
+        // Add buttons to the edit cell's button container
+        const editButtonContainer = $('<div>')
+          .css('text-align', 'right')
+          .css('margin-top', '10px');
+        editButtonContainer.append(hideEditButton);
+        editCell.append(editButtonContainer);
+
+        // Initialize display row and show appropriate mode
+        if (value && Object.keys(value).some(function(key) { return value[key]; })) {
+          self.updateDisplayRow(displayTr, subFormFields);
+          editTr.hide();
+        } else {
+          displayTr.hide();
+        }
+
+        self.tbody.append(displayTr);
+        self.tbody.append(editTr);
+      } else {
+        // Normal mode: move buttons and remove button
+        const removeButton = $('<span class="remove-row" style="cursor: pointer; vertical-align: middle;"><i class="fa fa-trash"></i></span>')
+          .attr('title', _('Delete'));
+        removeButton.on('click', function (e) {
+          e.preventDefault();
+          self.removeRow(subFormFields, editTr);
+        });
+        const buttonCell = $('<td>').css('vertical-align', 'middle');
+        buttonCell.append(moveButtons).append(' ').append(removeButton);
+        editTr.append(buttonCell);
+        self.tbody.append(editTr);
+      }
+    } else {
+      // Readonly mode
+      if (self.question.display_template) {
+        // In readonly mode with display_template, still need an empty cell for alignment
+        const emptyButtonCell = $('<td>');
+        displayTr.append(emptyButtonCell);
+
+        self.updateDisplayRow(displayTr, subFormFields);
+        editTr.hide();
+        self.tbody.append(displayTr);
+        self.tbody.append(editTr);
+      } else {
+        self.tbody.append(editTr);
+      }
+    }
+
     self.emptyLine.hide();
-    self.fields.push(subFormFields);
+
+    // Store field group with row references
+    const fieldGroup = {
+      subFormFields: subFormFields,
+      displayTr: displayTr,
+      editTr: editTr
+    };
+    self.fields.push(fieldGroup);
+
+    // Update move button states after adding row
+    self.updateMoveButtons();
   },
 
   removeRow: function(subquestion, tr) {
     const self = this;
-    tr.remove();
-    self.fields.splice(self.fields.indexOf(subquestion), 1);
+    // Handle both single tr and array of trs
+    if (Array.isArray(tr)) {
+      tr.forEach(function(row) { row.remove(); });
+    } else {
+      tr.remove();
+    }
+
+    // Find and remove the field group
+    const fieldGroupIndex = self.fields.findIndex(function(group) {
+      return group.subFormFields === subquestion;
+    });
+    if (fieldGroupIndex !== -1) {
+      self.fields.splice(fieldGroupIndex, 1);
+    }
+
     if (self.fields.length === 0) {
       self.emptyLine.show();
     }
+
+    // Update move button states after removing row
+    self.updateMoveButtons();
+    self.emit('change', self.getValue());
+  },
+
+  moveRow: function(subFormFields, direction) {
+    const self = this;
+
+    // Find current field group index
+    const currentIndex = self.fields.findIndex(function(group) {
+      return group.subFormFields === subFormFields;
+    });
+
+    if (currentIndex === -1) {
+      return; // Field group not found
+    }
+
+    const newIndex = currentIndex + direction;
+
+    if (newIndex < 0 || newIndex >= self.fields.length) {
+      return; // Cannot move beyond boundaries
+    }
+
+    // Swap array elements
+    const temp = self.fields[currentIndex];
+    self.fields[currentIndex] = self.fields[newIndex];
+    self.fields[newIndex] = temp;
+
+    // Get the field groups
+    const currentGroup = self.fields[newIndex]; // After swap, current is at new position
+    const targetGroup = self.fields[currentIndex]; // Target is at old position
+
+    // Move DOM elements
+    if (direction === -1) {
+      // Moving up: insert current rows before target rows
+      if (currentGroup.displayTr) {
+        currentGroup.displayTr.insertBefore(targetGroup.displayTr || targetGroup.editTr);
+      }
+      currentGroup.editTr.insertBefore(targetGroup.displayTr || targetGroup.editTr);
+    } else {
+      // Moving down: insert current rows after target rows
+      const lastTargetRow = targetGroup.editTr;
+      currentGroup.editTr.insertAfter(lastTargetRow);
+      if (currentGroup.displayTr) {
+        currentGroup.displayTr.insertAfter(lastTargetRow);
+      }
+    }
+
+    // Update button states
+    self.updateMoveButtons();
+    self.emit('change', self.getValue());
+  },
+
+  updateMoveButtons: function() {
+    const self = this;
+
+    self.fields.forEach(function(fieldGroup, index) {
+      const isFirst = index === 0;
+      const isLast = index === self.fields.length - 1;
+
+      // Find move buttons in both display and edit rows
+      const moveButtons = [];
+
+      if (fieldGroup.displayTr) {
+        moveButtons.push({
+          up: fieldGroup.displayTr.find('.move-up-row'),
+          down: fieldGroup.displayTr.find('.move-down-row')
+        });
+      }
+
+      moveButtons.push({
+        up: fieldGroup.editTr.find('.move-up-row'),
+        down: fieldGroup.editTr.find('.move-down-row')
+      });
+
+      // Update button states
+      moveButtons.forEach(function(buttons) {
+        if (buttons.up.length > 0) {
+          buttons.up.css('opacity', isFirst ? '0.3' : '1')
+                    .css('pointer-events', isFirst ? 'none' : 'auto');
+        }
+        if (buttons.down.length > 0) {
+          buttons.down.css('opacity', isLast ? '0.3' : '1')
+                      .css('pointer-events', isLast ? 'none' : 'auto');
+        }
+      });
+    });
+  },
+
+  updateDisplayRow: function(displayTr, subFormFields) {
+    const self = this;
+    if (!displayTr) {
+      throw new Error('updateDisplayRow called without displayTr');
+    }
+    if (!self.question.display_template) {
+      throw new Error('updateDisplayRow called without display_template');
+    }
+
+    // Check if button cell exists (should always have at least one td for button column)
+    if (displayTr.find('td').length === 0) {
+      console.warn(logPrefix + 'updateDisplayRow: No button cell found in display row. The caller should add a button cell first.');
+    }
+
+    // Clear existing cells except button cell
+    displayTr.find('td:not(:last)').remove();
+
+    // Split template by pipe and create cells
+    const templates = self.question.display_template.split('|');
+    templates.forEach(function(template) {
+      const displayText = self.evaluateTemplate(template.trim(), subFormFields);
+      const td = $('<td>').text(displayText);
+      // Insert before button cell
+      displayTr.find('td:last').before(td);
+    });
+  },
+
+  evaluateTemplate: function(template, subFormFields) {
+    const self = this;
+    let result = template;
+
+    // Helper function to recursively process fields
+    function processField(field, prefix) {
+      const fieldId = prefix ? prefix + '.' + field.question.id : field.question.id;
+      const value = field.getValue();
+
+      // Replace simple property
+      const regex = new RegExp('{{' + fieldId + '}}', 'g');
+      result = result.replace(regex, value || '');
+
+      // Recursively handle nested fields using getChildFields
+      const childFields = field.getChildFields();
+      childFields.forEach(function(childField) {
+        processField(childField, fieldId);
+      });
+    }
+
+    // Process all fields
+    subFormFields.forEach(function(field) {
+      processField(field, '');
+    });
+
+    return result;
   },
 
   getValue: function() {
     const self = this;
     const res = [];
-    self.fields.forEach(function(subquestionGroup) {
+    self.fields.forEach(function(fieldGroup) {
       const row = {};
-      subquestionGroup.forEach(function(subquestion) {
+      fieldGroup.subFormFields.forEach(function(subquestion) {
         row[subquestion.question.id] = subquestion.getValue();
       });
       if (Object.values(row).some(function(value) {
@@ -822,7 +1195,7 @@ const ArrayFormField = oop.extend(FormFieldInterface, {
     return res.length ? res : null;
   },
 
-  setValue: function(value) {
+  setValue: function(value, isAutofilled) {
     const self = this;
     self.reset();
     var rows = [];
@@ -842,7 +1215,7 @@ const ArrayFormField = oop.extend(FormFieldInterface, {
     }
 
     rows.forEach(function(row) {
-      self.addRow(row);
+      self.addRow(row, isAutofilled);
     });
 
     if(self.question.hasOwnProperty('initial_row_addition') && self.question.initial_row_addition ){
@@ -858,8 +1231,8 @@ const ArrayFormField = oop.extend(FormFieldInterface, {
 
   disable: function(disabled) {
     const self = this;
-    self.fields.forEach(function(subquestionGroup) {
-      subquestionGroup.forEach(function(subquestion) {
+    self.fields.forEach(function(fieldGroup) {
+      fieldGroup.subFormFields.forEach(function(subquestion) {
         subquestion.disable(disabled);
       });
     });
@@ -928,7 +1301,7 @@ const ObjectFormField = oop.extend(FormFieldInterface, {
     return null;
   },
 
-  setValue: function(value) {
+  setValue: function(value, isAutofilled) {
     const self = this;
     self.reset();
     var rows = value || {};
@@ -946,7 +1319,7 @@ const ObjectFormField = oop.extend(FormFieldInterface, {
     }
     self.fields.forEach(function(subquestion) {
       const value = rows[subquestion.question.id];
-      subquestion.setValue(value);
+      subquestion.setValue(value, isAutofilled);
     });
   },
 
@@ -963,6 +1336,11 @@ const ObjectFormField = oop.extend(FormFieldInterface, {
       subquestion.disable(disabled);
     });
   },
+
+  getChildFields: function() {
+    const self = this;
+    return self.fields || [];
+  },
 });
 
 
@@ -971,6 +1349,9 @@ const ObjectFormField = oop.extend(FormFieldInterface, {
 
 function validateField(question, value, questionFields, options) {
   const multiple = (options || {}).multiple;
+  if (question.enabled_if && !evaluateCond(question.enabled_if, questionFields)) {
+    return;
+  }
   validateRequired(question, value, questionFields, multiple);
   validatePattern(question, value);
 }
@@ -983,9 +1364,6 @@ function validatePattern(question, value) {
 
 function validateRequired(question, value, questionFields, multiple) {
   if (multiple || value) {
-    return;
-  }
-  if (question.enabled_if && !evaluateCond(question.enabled_if, questionFields)) {
     return;
   }
   const cond = question.required_if;
@@ -1049,7 +1427,7 @@ function requestSuggestion(filepath, key, keyword) {
   });
 }
 
-function suggestForButton(question, suggestion, options) {
+function suggestForButton(question, suggestion, options, getFieldValue) {
   if (suggestion.key === 'file-size') {
     const wbcache = options.wbcache;
     const filepath = options.filepath;
@@ -1076,13 +1454,27 @@ function suggestForButton(question, suggestion, options) {
       })
   } else if (suggestion.key === 'file-url') {
     return Promise.resolve(fangorn.getPersistentLinkFor(options.fileitem));
-  } else { // for key === file-data-number
+  } else { // for other keys including crossref:doi
+    if (!getFieldValue) {
+      throw new Error('getFieldValue function is required for suggestion key: ' + suggestion.key);
+    }
+
     const fileitem = options.fileitem;
     const itemUrl = fangorn.getPersistentLinkFor(fileitem);
     const filepath = itemUrl.substr(itemUrl.indexOf('files/'));
-    return requestSuggestion(filepath, suggestion.key)
+
+    // Get the current field value as keyword for suggestions that need it (like Crossref)
+    const keyword = getFieldValue();
+
+    return requestSuggestion(filepath, suggestion.key, keyword)
       .then(function (suggestions) {
-        return (suggestions.find(function (s) { return s.key === suggestion.key}) || {}).value;
+        const found = suggestions.find(function (s) { return s.key === suggestion.key});
+        // If no suggestions found and this is an autofill button, return null to indicate no data
+        // This prevents clearing existing field values
+        if (!found && suggestion.autofill) {
+          return null;
+        }
+        return found ? found.value : undefined;
       });
   }
 }
@@ -1117,75 +1509,172 @@ function suggestForTypeahead(question, templateSuggestions, keyword, options) {
     });
 }
 
-function createSuggestionButton(container, question, buttonSuggestions, options, onSuggested, enteredValue) {
+function createSuggestionButton(container, question, buttonSuggestions, options, onSuggested, getFieldValue) {
   const suggestionContainer = $('<div>')
     .css('margin', 'auto 0 auto 8px');
-  buttonSuggestions.forEach(function(suggestion) {
-    const errorContainer = $('<span>')
-      .css('color', 'red').hide();
-    const indicator = $('<i class="fa fa-spinner fa-pulse">')
-      .hide();
+
+  if (buttonSuggestions.length === 0) {
+    return suggestionContainer;
+  }
+
+  const errorContainer = $('<span>')
+    .css('color', 'red')
+    .css('margin-left', '8px')
+    .hide();
+  const indicator = $('<i class="fa fa-spinner fa-pulse">')
+    .hide();
+
+  var processing = false;
+
+  // Function to handle suggestion click
+  function handleSuggestionClick(suggestion) {
+    // If suggestion has autofill, it fills other fields, not the current field
+    // So we only check for overwrite if there's no autofill configuration
+    if (!suggestion.autofill) {
+      const currentValue = getFieldValue();
+      if (currentValue && currentValue !== '' && !window.confirm(_('Overwrite already entered value?'))) {
+        return;
+      }
+    }
+    if (!processing) {
+      processing = true;
+      mainButton.attr('disabled', true);
+      if (dropdownButton) {
+        dropdownButton.attr('disabled', true);
+      }
+      errorContainer.hide().text('');
+      indicator.show();
+      suggestForButton(question, suggestion, options, getFieldValue)
+        .then(function (value) {
+          if(value == 'error'){
+            return;
+          }else if( value == 'get-filesize-over-error'){
+            var name = question.qid.split(':')[1].replace('/', '-');
+            $('.'+name).remove();
+            container.after(
+              '<div class="'+name+'" style="color: red;">'+ _("File size exceeds the maximum allowed size.")+'</div>'
+             );
+          } else if (value === null || value === undefined) {
+            errorContainer.text(_('No metadata found.')).show();
+          } else{
+            onSuggested(value, suggestion);
+          }
+        })
+        .catch(function (err) {
+          console.error(err);
+          Raven.captureMessage(_('Could not list files'), {
+            extra: {
+              error: err.toString()
+            }
+          });
+          errorContainer.text('Suggestion error: ' + err).show();
+        })
+        .then(function () {
+          processing = false;
+          mainButton.attr('disabled', false);
+          if (dropdownButton) {
+            dropdownButton.attr('disabled', false);
+          }
+          indicator.hide();
+        });
+    }
+  }
+
+  // If only one suggestion, create a simple button
+  if (buttonSuggestions.length === 1) {
+    const suggestion = buttonSuggestions[0];
     const button = $('<a class="btn btn-default btn-sm">')
       .append($('<i class="fa fa-refresh"></i>'))
       .append($('<span></span>').text(getLocalizedText(suggestion.button)))
       .append(indicator);
-    var processing = false;
+
     button.on('click', function (e) {
       e.preventDefault();
-      if (enteredValue() && !window.confirm(_('Overwrite already entered value?'))) {
-        return;
-      }
-      if (!processing) {
-        processing = true;
-        button.attr('disabled', true);
-        errorContainer.hide().text('');
-        indicator.show();
-        suggestForButton(question, suggestion, options)
-          .then(function (value) {
-            if(value == 'error'){
-              return;
-            }else if( value == 'get-filesize-over-error'){
-              var name = question.qid.split(':')[1].replace('/', '-');
-              $('.'+name).remove();
-              container.after(
-                '<div class="'+name+'" style="color: red;">'+ _("File size exceeds the maximum allowed size.")+'</div>'
-               );
-            } else{
-              onSuggested(value);
-            }
-          })
-          .catch(function (err) {
-            console.error(err);
-            Raven.captureMessage(_('Could not list files'), {
-              extra: {
-                error: err.toString()
-              }
-            });
-            errorContainer.text('Suggestion error: ' + err).show();
-          })
-          .then(function () {
-            processing = false;
-            button.attr('disabled', false);
-            indicator.hide();
-          });
-      }
+      handleSuggestionClick(suggestion);
     });
+
     suggestionContainer
       .append(button)
       .append(errorContainer);
-  });
+
+    var mainButton = button; // For use in handleSuggestionClick
+    var dropdownButton = null;
+  } else {
+    // Multiple suggestions: create a button group with dropdown
+    const buttonGroup = $('<div class="btn-group">')
+      .css('display', 'flex');
+
+    // Main button (uses first suggestion by default)
+    const mainSuggestion = buttonSuggestions[0];
+    var mainButton = $('<button class="btn btn-default btn-sm">')
+      .css('border-top-right-radius', '0')
+      .css('border-bottom-right-radius', '0')
+      .append($('<i class="fa fa-refresh"></i>'))
+      .append(' ')  // Add space between icon and text
+      .append($('<span class="button-label"></span>').text(getLocalizedText(mainSuggestion.button)))
+      .append(indicator);
+
+    mainButton.on('click', function (e) {
+      e.preventDefault();
+      const currentIndex = mainButton.data('suggestionIndex') || 0;
+      handleSuggestionClick(buttonSuggestions[currentIndex]);
+    });
+
+    // Dropdown toggle button
+    var dropdownButton = $('<button class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown">')
+      .css('border-top-left-radius', '0')
+      .css('border-bottom-left-radius', '0')
+      .css('margin-left', '-1px')  // Overlap borders for seamless appearance
+      .append($('<span class="caret"></span>'));
+
+    // Dropdown menu
+    const dropdownMenu = $('<ul class="dropdown-menu dropdown-menu-right">');  // Use dropdown-menu-right to prevent overflow
+    buttonSuggestions.forEach(function(suggestion, index) {
+      const menuItem = $('<li>')
+        .append($('<a href="#">').text(getLocalizedText(suggestion.button)));
+
+      menuItem.on('click', function(e) {
+        e.preventDefault();
+        // Update main button text and data
+        mainButton.find('.button-label').text(getLocalizedText(suggestion.button));
+        mainButton.data('suggestionIndex', index);
+        // Execute the suggestion
+        handleSuggestionClick(suggestion);
+      });
+
+      dropdownMenu.append(menuItem);
+    });
+
+    buttonGroup
+      .append(mainButton)
+      .append(dropdownButton)
+      .append(dropdownMenu);
+
+    suggestionContainer
+      .append(buttonGroup)
+      .append(errorContainer);
+  }
+
   return suggestionContainer;
 }
 
 
 // helper
 
-function evaluateCond(cond, questionFields) {
+function evaluateCond(cond, questionFields, commonValues, defaultValues) {
   const values = {};
   questionFields.forEach(function(field) {
+    const qid = field.question.qid;
     const value = field.getValue();
-    if (value != null && value !== '') {
-      values[field.question.qid] = value;
+    const cleared = field.checkedClear && field.checkedClear();
+    if (cleared) {
+      if (defaultValues && defaultValues[qid]) {
+        values[qid] = defaultValues[qid];
+      }
+    } else if (value != null && value !== '') {
+      values[qid] = value;
+    } else if (commonValues && commonValues[qid]) {
+      values[qid] = commonValues[qid];
     }
   });
   return sift(cond)(values);

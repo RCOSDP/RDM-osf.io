@@ -115,6 +115,171 @@ LICENSE_DEFS = [
     },
 ]
 
+ACCESS_RIGHT_DEFS = {
+    'embargoed access': {
+        'uri': 'http://purl.org/coar/access_right/c_f1cf',
+    },
+    'metadata only access': {
+        'uri': 'http://purl.org/coar/access_right/c_14cb',
+    },
+    'open access': {
+        'uri': 'http://purl.org/coar/access_right/c_abf2',
+    },
+    'restricted access': {
+        'uri': 'http://purl.org/coar/access_right/c_16ec',
+    },
+}
+
+RESOURCE_TYPE_DEFS = {
+    'aggregated data': {
+        'uri': 'http://purl.org/coar/resource_type/ACF7-8YT9/',
+    },
+    'clinical trial data': {
+        'uri': 'http://purl.org/coar/resource_type/c_cb28/',
+    },
+    'compiled data': {
+        'uri': 'http://purl.org/coar/resource_type/FXF3-D3G7/',
+    },
+    'dataset': {
+        'uri': 'http://purl.org/coar/resource_type/c_ddb1',
+    },
+    'encoded data': {
+        'uri': 'http://purl.org/coar/resource_type/AM6W-6QAW/',
+    },
+    'experimental data': {
+        'uri': 'http://purl.org/coar/resource_type/63NG-B465/',
+    },
+    'genomic data': {
+        'uri': 'http://purl.org/coar/resource_type/A8F1-NPV9/',
+    },
+    'geospatial data': {
+        'uri': 'http://purl.org/coar/resource_type/2H0M-X761/',
+    },
+    'laboratory notebook': {
+        'uri': 'http://purl.org/coar/resource_type/H41Y-FW7B/',
+    },
+    'measurement and test data': {
+        'uri': 'http://purl.org/coar/resource_type/DD58-GFSX/',
+    },
+    'observational data': {
+        'uri': 'http://purl.org/coar/resource_type/FF4C-28RK/',
+    },
+    'recorded data': {
+        'uri': 'http://purl.org/coar/resource_type/CQMR-7K63/',
+    },
+    'simulation data': {
+        'uri': 'http://purl.org/coar/resource_type/W2XT-7017/',
+    },
+    'survey data': {
+        'uri': 'http://purl.org/coar/resource_type/NHD0-W6SY/',
+    },
+}
+
+MANUSCRIPT_TYPE_DEFS = {
+    'conference paper': {
+        'uri': 'http://purl.org/coar/resource_type/c_5794',
+    },
+    'data paper': {
+        'uri': 'http://purl.org/coar/resource_type/c_beb9',
+    },
+    'departmental bulletin paper': {
+        'uri': 'http://purl.org/coar/resource_type/c_6501',
+    },
+    'editorial': {
+        'uri': 'http://purl.org/coar/resource_type/c_b239',
+    },
+    'journal article': {
+        'uri': 'http://purl.org/coar/resource_type/c_6501',
+    },
+    'review article': {
+        'uri': 'http://purl.org/coar/resource_type/c_dcae04bc',
+    },
+    'software paper': {
+        'uri': 'http://purl.org/coar/resource_type/c_7bab',
+    },
+    'article': {
+        'uri': 'http://purl.org/coar/resource_type/c_6501',
+    },
+}
+
+VERSION_TYPE_DEFS = {
+    'AO': {
+        'uri': 'http://purl.org/coar/version/c_b1a7d7d4d402bcce',
+    },
+    'AM': {
+        'uri': 'http://purl.org/coar/version/c_ab4af688f83e57aa',
+    },
+    'VoR': {
+        'uri': 'http://purl.org/coar/version/c_970fb48d4fbd8a85',
+    },
+}
+
+FUNDER_DEFS = {
+    'AMED': {
+        'ror': 'https://ror.org/004rtk039',
+    },
+    'MOD': {
+        'ror': 'https://ror.org/05axzm004',
+    },
+    'NRA': {
+        'ror': 'https://ror.org/01169d420',
+    },
+    'ERCA': {
+        'ror': 'https://ror.org/01c9agy38',
+    },
+    'CAO': {
+        'ror': 'https://ror.org/007f5s288',
+    },
+    'SOUMU': {
+        'ror': 'https://ror.org/00vs1pz50',
+    },
+    'FDMA': {
+        'ror': None,
+    },
+    'NICT': {
+        'ror': 'https://ror.org/016bgq349',
+    },
+    'MEXT': {
+        'ror': 'https://ror.org/048rj2z13',
+    },
+    'JST': {
+        'ror': 'https://ror.org/00097mb19',
+    },
+    'JSPS': {
+        'ror': 'https://ror.org/00hhkn466',
+    },
+    'MHLW': {
+        'ror': 'https://ror.org/03mwa7s65',
+    },
+    'MAFF': {
+        'ror': 'https://ror.org/02zdz1m23',
+    },
+    'PRIMAFF': {
+        'ror': 'https://ror.org/042wasb67',
+    },
+    'NARO': {
+        'ror': 'https://ror.org/023v4bd62',
+    },
+    'METI': {
+        'ror': 'https://ror.org/055tm7f07',
+    },
+    'NEDO': {
+        'ror': 'https://ror.org/0055k7a87',
+    },
+    'MLIT': {
+        'ror': 'https://ror.org/00b0p4j69',
+    },
+    'NILIM': {
+        'ror': 'https://ror.org/044bxz342',
+    },
+    'ENV': {
+        'ror': 'https://ror.org/03rybxa06',
+    },
+    'BIBIOHN': {
+        'ror': 'https://ror.org/001rkbe13',
+    },
+}
+
 def _get_license_for_jpcoar2(value):
     for license in LICENSE_DEFS:
         if license['text'] == value:
@@ -142,9 +307,70 @@ def _get_license_url_for_jpcoar2(license):
         return None
     return license['url'] if 'url' in license else ''
 
+def _get_access_rights(value):
+    if value is None:
+        return None
+    return ACCESS_RIGHT_DEFS.get(str(value).strip().lower())
+
+def _get_access_rights_uri(value):
+    definition = _get_access_rights(value)
+    if definition is None:
+        return ''
+    return definition['uri']
+
+def _get_resource_type(value):
+    if value is None:
+        return None
+    return RESOURCE_TYPE_DEFS.get(str(value).strip().lower())
+
+def _get_resource_type_uri(value):
+    definition = _get_resource_type(value)
+    if definition is None:
+        return value
+    return definition['uri']
+
+def _get_manuscript_type(value):
+    if value is None:
+        return None
+    return MANUSCRIPT_TYPE_DEFS.get(str(value).strip().lower())
+
+def _get_manuscript_type_uri(value):
+    definition = _get_manuscript_type(value)
+    if definition is None:
+        return ''
+    return definition['uri']
+
+def _get_version_type(value):
+    if value is None:
+        return None
+    return VERSION_TYPE_DEFS.get(str(value).strip())
+
+def _get_version_type_uri(value):
+    definition = _get_version_type(value)
+    if definition is None:
+        return ''
+    return definition['uri']
+
+def _get_funder(value):
+    if value is None:
+        return None
+    return FUNDER_DEFS.get(str(value).strip())
+
+def _get_funder_ror_id(value):
+    definition = _get_funder(value)
+    if definition is None:
+        return ''
+    ror = definition.get('ror')
+    return ror if ror is not None else ''
+
 JINJA2_FILTERS = {
     'has_license_def_for_jpcoar2': _has_license_def_for_jpcoar2,
     'to_normalized_ja_license_name_for_jpcoar2': _get_ja_license_name_for_jpcoar2,
     'to_normalized_en_license_name_for_jpcoar2': _get_en_license_name_for_jpcoar2,
     'to_license_url_for_jpcoar2': _get_license_url_for_jpcoar2,
+    'to_access_rights_uri': _get_access_rights_uri,
+    'to_resource_type_uri': _get_resource_type_uri,
+    'to_manuscript_type_uri': _get_manuscript_type_uri,
+    'to_version_type_uri': _get_version_type_uri,
+    'to_funder_ror_id': _get_funder_ror_id,
 }

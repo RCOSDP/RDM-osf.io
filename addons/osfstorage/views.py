@@ -141,6 +141,10 @@ def osfstorage_move_hook(source, destination, name=None, **kwargs):
         raise HTTPError(http_status.HTTP_405_METHOD_NOT_ALLOWED, data={
             'message_long': 'Cannot move file as it is checked out.'
         })
+    except exceptions.FileNodeLockedError:
+        raise HTTPError(http_status.HTTP_405_METHOD_NOT_ALLOWED, data={
+            'message_long': 'Cannot move file as it is locked.'
+        })
     except exceptions.FileNodeIsPrimaryFile:
         raise HTTPError(http_status.HTTP_403_FORBIDDEN, data={
             'message_long': 'Cannot move file as it is the primary file of preprint.'
@@ -200,6 +204,7 @@ def osfstorage_get_children(file_node, **kwargs):
                         , 'modified', LATEST_VERSION.created
                         , 'created', EARLIEST_VERSION.created
                         , 'checkout', CHECKOUT_GUID
+                        , 'locked', LOCKED_GUID
                         , 'md5', LATEST_VERSION.metadata ->> 'md5'
                         , 'sha256', LATEST_VERSION.metadata ->> 'sha256'
                         , 'sha512', LATEST_VERSION.metadata ->> 'sha512'
@@ -237,6 +242,12 @@ def osfstorage_get_children(file_node, **kwargs):
                 AND content_type_id = %s
                 LIMIT 1
             ) CHECKOUT_GUID ON TRUE
+            LEFT JOIN LATERAL (
+                SELECT _id from osf_guid
+                WHERE object_id = F.locked_id
+                AND content_type_id = %s
+                LIMIT 1
+            ) LOCKED_GUID ON TRUE
             LEFT JOIN LATERAL (
                 SELECT P.total AS DOWNLOAD_COUNT FROM osf_pagecounter AS P
                 WHERE P.resource_id = %s
@@ -276,6 +287,7 @@ def osfstorage_get_children(file_node, **kwargs):
             WHERE parent_id = %s
             AND (NOT F.type IN ('osf.trashedfilenode', 'osf.trashedfile', 'osf.trashedfolder'))
         """, [
+            user_content_type_id,
             user_content_type_id,
             file_node.target.guids.first().id,
             user_pk,
@@ -344,6 +356,11 @@ def osfstorage_create_child(file_node, payload, **kwargs):
             'message_long': 'File cannot be updated due to checkout status.'
         })
 
+    if file_node.is_locked and is_check_permission:
+        raise HTTPError(http_status.HTTP_403_FORBIDDEN, data={
+            'message_long': 'File cannot be updated due to locked status.'
+        })
+
     if not is_folder:
         try:
             metadata = dict(payload['metadata'], **payload['hashes'])
@@ -393,6 +410,8 @@ def osfstorage_delete(file_node, payload, target, **kwargs):
         file_node.delete(user=user)
 
     except exceptions.FileNodeCheckedOutError:
+        raise HTTPError(http_status.HTTP_403_FORBIDDEN)
+    except exceptions.FileNodeLockedError:
         raise HTTPError(http_status.HTTP_403_FORBIDDEN)
     except exceptions.FileNodeIsPrimaryFile:
         raise HTTPError(http_status.HTTP_403_FORBIDDEN, data={

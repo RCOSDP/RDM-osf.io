@@ -97,10 +97,15 @@ def write_csv(user, f, target_index, download_file_names, schema_id, file_metada
     itemtype_metadata = mapping_metadata['itemtype']
     header = ['#ItemType', itemtype_metadata['name'], itemtype_metadata['schema']]
 
+    flat_download_file_names = [file for files in download_file_names for file in files]
+    expanded_file_metadatas = []
+    for metadata, files in zip(file_metadatas, download_file_names):
+        expanded_file_metadatas.extend([metadata] * len(files))
+
     columns = [('.publish_status', '.PUBLISH_STATUS', '', 'Required', 'private')]
     columns.append(('.metadata.path[0]', '.IndexID[0]', '', 'Allow Multiple', target_index.identifier))
     columns.append(('.pos_index[0]', '.POS_INDEX[0]', '', 'Allow Multiple', target_index.title))
-    for i, (download_file_name, download_file_type) in enumerate(download_file_names):
+    for i, (download_file_name, download_file_type) in enumerate(flat_download_file_names):
         columns += _generate_file_columns(i, download_file_name, download_file_type)
 
     mappings = expand_listed_key(mapping_def.rules)
@@ -108,7 +113,7 @@ def write_csv(user, f, target_index, download_file_names, schema_id, file_metada
     weko_key_counts = {}
     for key in sorted(mappings.keys()):
         for source, commonvars in get_sources_for_key(
-            user, target_index, file_metadatas, download_file_names, project_metadatas, schema, key
+            user, target_index, expanded_file_metadatas, flat_download_file_names, project_metadatas, schema, key
         ):
             if key not in mappings:
                 logger.warning(f'No mappings: {key}')

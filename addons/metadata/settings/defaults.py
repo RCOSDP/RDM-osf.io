@@ -20,7 +20,6 @@ DEFAULT_DATASET_TIMEOUT = 60  # seconds
 EXCLUDED_ADDONS_FOR_EXPORT = ['mendeley', 'zotero', 'iqbrims']
 EXCLUDED_ADDONS_FOR_EXPORT += ['dropboxbusiness', 'nextcloudinstitutions', 'ociinstitutions', 'onedrivebusiness', 's3compatinstitutions']
 
-
 # KAKEN Elasticsearch settings
 # If None, KAKEN functionality is disabled
 KAKEN_ELASTIC_URI = os.getenv('KAKEN_ELASTIC_URI')
@@ -51,3 +50,6 @@ KAKEN_ELASTIC_ANALYZER_CONFIG = {
         }
     }
 }
+
+# PubMed API key for accessing external metadata (Optional)
+PUBMED_API_KEY = None
