@@ -139,6 +139,7 @@ INSTALLED_APPS = (
     'addons.ociinstitutions',
     'addons.onedrivebusiness',
     'addons.metadata',
+    'addons.workflow',
 )
 
 MIGRATION_MODULES = {

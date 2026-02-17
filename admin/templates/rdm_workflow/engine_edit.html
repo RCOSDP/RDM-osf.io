@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}
+<title>{% trans "Edit Workflow Engine" %}</title>
+{% endblock title %}
+
+{% block content %}
+<h2>{% trans "Edit Workflow Engine" %}</h2>
+
+<p class="text-muted">
+    {% trans "Update the configuration for this workflow engine." %}
+</p>
+
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <strong>{% trans "Workflow Engine Configuration" %} - {{ engine.engine_id }}</strong>
+    </div>
+    <div class="panel-body">
+        <form method="post" novalidate>
+            {% csrf_token %}
+            {% if engine_form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {% for error in engine_form.non_field_errors %}
+                        <div>{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <div class="row">
+                {% for field in engine_form %}
+                    {% if field.is_hidden %}
+                        {{ field }}
+                    {% elif field.name == 'verify_ssl' %}
+                        <div class="col-sm-12 col-md-4">
+                            <div class="form-group">
+                                <div class="checkbox">
+                                    <label>
+                                        {{ field }} {{ field.label }}
+                                    </label>
+                                </div>
+                                {% if field.help_text %}
+                                    <p class="help-block">{{ field.help_text }}</p>
+                                {% endif %}
+                                {% for error in field.errors %}
+                                    <span class="text-danger small">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="col-sm-12 col-md-4">
+                            <div class="form-group">
+                                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                {{ field }}
+                                {% if field.help_text %}
+                                    <p class="help-block">{{ field.help_text }}</p>
+                                {% endif %}
+                                {% for error in field.errors %}
+                                    <span class="text-danger small">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            <div class="form-group">
+                <button class="btn btn-primary" type="submit">{% trans "Save changes" %}</button>
+                <a class="btn btn-default" href="{% url 'rdm_workflow:engine-list' institution.id %}">{% trans "Cancel" %}</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock content %}

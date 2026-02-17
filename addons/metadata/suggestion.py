@@ -21,6 +21,22 @@ import imghdr
 import csv
 import chardet
 from addons.metadata.apps import AddonAppConfig as AddonAppConfig
+from addons.metadata.suggestions.crossref import (
+    valid_crossref_key,
+    suggestion_crossref
+)
+from addons.metadata.suggestions.jalc import (
+    valid_jalc_key,
+    suggestion_jalc
+)
+from addons.metadata.suggestions.pubmed import (
+    valid_pubmed_key,
+    suggestion_pubmed
+)
+from addons.metadata.suggestions.arxiv import (
+    valid_arxiv_key,
+    suggestion_arxiv
+)
 
 import mimetypes
 from api.base.utils import waterbutler_api_url_for
@@ -49,6 +65,14 @@ def valid_suggestion_key(key):
         return True
     elif key.startswith('contributor:'):
         return True
+    elif valid_crossref_key(key):
+        return True
+    elif valid_jalc_key(key):
+        return True
+    elif valid_pubmed_key(key):
+        return True
+    elif valid_arxiv_key(key):
+        return True
     return False
 
 
@@ -68,6 +92,14 @@ def suggestion_metadata(key, keyword, filepath, node):
         suggestions.extend(suggestion_asset(key, keyword, node))
     elif key.startswith('contributor:'):
         suggestions.extend(suggestion_contributor(key, keyword, node))
+    elif key.startswith('crossref:'):
+        suggestions.extend(suggestion_crossref(key, keyword))
+    elif key.startswith('jalc:'):
+        suggestions.extend(suggestion_jalc(key, keyword))
+    elif key.startswith('pubmed:'):
+        suggestions.extend(suggestion_pubmed(key, keyword))
+    elif key.startswith('arxiv:'):
+        suggestions.extend(suggestion_arxiv(key, keyword))
     else:
         raise KeyError('Invalid key: {}'.format(key))
     return suggestions

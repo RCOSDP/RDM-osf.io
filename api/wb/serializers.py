@@ -23,6 +23,7 @@ class WaterbutlerMetadataSerializer(ser.Serializer):
     modified = ser.CharField(read_only=True)
     path = ser.CharField(read_only=True)
     checkout = ser.SerializerMethodField(read_only=True)
+    locked = ser.BooleanField(read_only=True)
     version = ser.IntegerField(help_text='Latest file version', read_only=True, source='current_version_number')
     downloads = ser.SerializerMethodField()
 
@@ -59,6 +60,8 @@ class WaterbutlerMetadataSerializer(ser.Serializer):
             raise exceptions.ValidationError('File already exists with this name.')
         except file_exceptions.FileNodeCheckedOutError:
             raise exceptions.ValidationError('Cannot move file as it is checked out.')
+        except file_exceptions.FileNodeLockedError:
+            raise exceptions.ValidationError('Cannot move file as it is locked.')
         except file_exceptions.FileNodeIsPrimaryFile:
             raise exceptions.ValidationError('Cannot move file as it is the primary file of preprint.')
 
