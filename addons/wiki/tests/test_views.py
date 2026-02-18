@@ -222,7 +222,7 @@ class TestRenameNodeWiki(OsfTestCase):
             self.second_wiki.rename(invalid_name, self.auth)
 
     def test_rename_name_maximum_length(self):
-        new_name = 'a' * 201
+        new_name = 'a' * 101
         with pytest.raises(NameMaximumLengthError):
             self.second_wiki.rename(new_name, self.auth)
 
