@@ -449,29 +449,6 @@ select.form-control {
     list-style-type: disc;
 }
 
-.milkdown .editor ul li:has(>h1),
-.milkdown .editor ul li:has(>h2),
-.milkdown .editor ul li:has(>h3),
-.milkdown .editor ul li:has(>h4),
-.milkdown .editor ul li:has(>h5),
-.milkdown .editor ul li:has(>h6) {
-    list-style-type: disc !important;
-}
-
-/* Fallback: Add bullet point using ::before on li when it contains a heading */
-.milkdown .editor ul li:has(>h1)::before,
-.milkdown .editor ul li:has(>h2)::before,
-.milkdown .editor ul li:has(>h3)::before,
-.milkdown .editor ul li:has(>h4)::before,
-.milkdown .editor ul li:has(>h5)::before,
-.milkdown .editor ul li:has(>h6)::before {
-    content: "•";
-    display: inline-block;
-    width: 1em;
-    margin-left: -1em;
-    margin-right: 0.5em;
-}
-
 .milkdown .editor li[data-list-type="ordered"] {
     list-style-type: decimal;
 }
