@@ -33,7 +33,8 @@
         "binderhub",
         "onedrivebusiness",
         "metadata",
-        "onlyoffice"
+        "onlyoffice",
+        "workflow"
     ],
     "addons_default": [
         "osfstorage",
@@ -142,7 +143,8 @@
         "binderhub": "GakuNin Federated Computing Services (Jupyter) is a web-based interactive computational environment. Files on a GakuNin RDM project can be imported to/exported from GakuNin Federated Computing Services (Jupyter)",
         "onedrivebusiness": "OneDrive for Office365 is a file storage add-on. Connect your Microsoft OneDrive account to a GakuNin RDM project to interact with files hosted on Microsoft OneDrive via the GakuNin RDM.",
         "metadata": "The Metadata addon provides the functionality to register metadata to files and generate reports.",
-        "onlyoffice": "ONLYOFFICE document server."
+        "onlyoffice": "ONLYOFFICE document server.",
+        "workflow": "Workflow gateway integration that serves engine key material to trusted services."
     },
     "addons_url": {
         "box": "http://www.box.com",
@@ -171,7 +173,8 @@
         "binderhub": "https://binder.cs.rcos.nii.ac.jp",
         "onedrivebusiness": "https://onedrive.live.com",
         "metadata": "https://rcos.nii.ac.jp/service/rdm/",
-        "onlyoffice": "https://onlyoffice.com/"
+        "onlyoffice": "https://onlyoffice.com/",
+        "workflow": "https://rcos.nii.ac.jp/service/rdm/"
     },
     "institutional_storage_add_on_method": [
         "nextcloudinstitutions",

@@ -14,8 +14,8 @@ pytestmark = pytest.mark.django_db
 class TestWikiPageModel:
 
     @pytest.mark.enable_implicit_clean
-    def test_page_name_cannot_be_greater_than_200_characters(self):
-        bad_name = 'a' * 201
+    def test_page_name_cannot_be_greater_than_100_characters(self):
+        bad_name = 'a' * 101
         page = WikiPage(page_name=bad_name)
         with pytest.raises(NameMaximumLengthError):
             page.save()

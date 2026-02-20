@@ -17,6 +17,12 @@ class FileNodeCheckedOutError(FileException):
     """
     pass
 
+class FileNodeLockedError(FileException):
+    """
+    This is to be raised if a fileNode (file or folder) is locked
+    """
+    pass
+
 
 class FileNodeIsPrimaryFile(FileException):
     pass

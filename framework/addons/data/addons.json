@@ -738,6 +738,36 @@
                 "status": "none",
                 "text": "ONLYOFFICE information will not be registered."
             }
+        },
+        "Workflow": {
+            "Permissions": {
+                "status": "none",
+                "text": "The workflow add-on does not change project permissions or external workflow engine access policies."
+            },
+            "View / download file versions": {
+                "status": "none",
+                "text": "The workflow add-on does not expose file storage or versioning capabilities."
+            },
+            "Add / update files": {
+                "status": "none",
+                "text": "The workflow add-on does not upload or update files within GakuNin RDM or external systems."
+            },
+            "Delete files": {
+                "status": "none",
+                "text": "The workflow add-on does not delete files within GakuNin RDM or external systems."
+            },
+            "Logs": {
+                "status": "partial",
+                "text": "Workflow template and activation actions performed via GakuNin RDM are recorded in project logs; activity inside the external workflow engine is not."
+            },
+            "Forking": {
+                "status": "partial",
+                "text": "Forking a project copies workflow templates in a disabled state; administrators must review engine connections before use."
+            },
+            "Registering": {
+                "status": "partial",
+                "text": "Workflow template metadata is captured when creating a template, but live workflow tasks are not executed inside the template."
+            }
         }
     },
     "disclaimers": [

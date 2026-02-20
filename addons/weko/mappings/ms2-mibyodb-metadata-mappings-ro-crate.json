@@ -1,7 +1,8 @@
 {
     "@metadata": {
         "filename": "ro-crate-metadata.json",
-        "schemaname": "ms2-mibyodb"
+        "schemaname": "ms2-mibyodb",
+        "allow_empty_files": true
     },
     "@files": {
         "@type": "object",

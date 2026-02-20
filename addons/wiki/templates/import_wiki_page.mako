@@ -1,4 +1,3 @@
-## -*- coding: utf-8 -*-
 <%def name="stylesheets()">
     ${parent.stylesheets()}
     <link rel="stylesheet" href="/static/css/pages/wiki-page.css">
@@ -116,15 +115,6 @@
         const WIKI_IMPORT_TIMEOUT = WIKI_IMPORT_INTERVAL * IMPORT_N;
         const WIKI_IMPORT_OPERATION = 'import';
         const VALIDATE_WIKI_IMPORT_OPERATION = 'validate';
-        const MAX_DISPLAY_NAME_LENGTH = 60; // Maximum number of characters to display
-
-        // Function to truncate file name for display
-        function truncateFileName(fileName, maxLength) {
-            if (!fileName || fileName.length <= maxLength) {
-                return fileName;
-            }
-            return fileName.substring(0, maxLength) + '...';
-        }
 
         $wikiImportForm.on('submit', async function (e) {
             e.preventDefault();
@@ -305,15 +295,11 @@
                     if (item.status === 'valid_exists') {
                         valid_exists_ctn++;
                         $alertInfoForm.find('.partOperationAll').css('display', '');
-                        var displayPath = (item.path).slice(1);
-                        var truncatedPath = truncateFileName(displayPath, MAX_DISPLAY_NAME_LENGTH);
-                        $('#validateInfo ul').append('<li title="' + displayPath + '">' + truncatedPath + '</li>')
-                        $('#perFileDifinitionForm ul').append('<li id="' + (item.path).slice(1) + '" name="WikiImportOperationPerItem">' + '<div name="WikiImportOperationPerName" title="' + displayPath + '">' + truncatedPath + '</div>' + selectOperation + '</li>');
+                        $('#validateInfo ul').append('<li>' + (item.path).slice(1) + '</li>')
+                        $('#perFileDifinitionForm ul').append('<li id="' + (item.path).slice(1) + '" name="WikiImportOperationPerItem">' + '<div name="WikiImportOperationPerName">' +  (item.path).slice(1) + '</div>' + selectOperation + '</li>');
                     } else if (item.status === 'valid_duplicated'){
                         $('#attentionDuplicatedInfo').css('display', '');
-                        var displayPath = (item.path).slice(1);
-                        var truncatedPath = truncateFileName(displayPath, MAX_DISPLAY_NAME_LENGTH);
-                        $('#duplicatedInfo ul').append('<li title="' + displayPath + '">' + truncatedPath + '</li>')
+                        $('#duplicatedInfo ul').append('<li>' + (item.path).slice(1) + '</li>')
                     }
                 });
                 if (valid_exists_ctn === 0) {
