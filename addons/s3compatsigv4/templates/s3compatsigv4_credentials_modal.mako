@@ -15,7 +15,7 @@
                         <div class="col-sm-6">
                             <div class="form-group">
                                 <label for="s3compatsigv4Addon">${_("S3 Compatible Service")}</label>
-                                <select class="form-control" data-bind="value: selectedService, options: availableServices, optionsText: 'name'" id="selected_service" name="selected_service" ${'disabled' if disabled else ''}></select>
+                                <select class="form-control" data-bind="value: selectedService, options: availableServices, optionsText: 'name'" id="s3compatsigv4_selected_service" name="selected_service" ${'disabled' if disabled else ''}></select>
                             </div>
                             <div class="form-group">
                                 <label for="s3compatsigv4Addon">${_("Access Key")}</label>
