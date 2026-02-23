@@ -239,6 +239,36 @@ function showError(tb, message) {
     tb.modal.update(modalContent, modalActions, m('h3.break-word.modal-title', 'Error'));
 }
 
+function showDepositResult(isInWorkflow, resultUrl) {
+    const title = _('Deposit Result');
+    const message = isInWorkflow
+        ? _('Deposit request was submitted. Awaiting review by repository administrator.')
+        : _('Deposit was successful.');
+    const dialog = $('<div class="modal fade" data-backdrop="static"></div>');
+    const okButton = $('<a href="#" class="btn btn-primary" data-dismiss="modal"></a>').text(_('OK'));
+    okButton.click(function() {
+        dialog.modal('hide');
+    });
+    const body = $('<div class="modal-body"></div>').append($('<p></p>').text(message));
+    if (resultUrl && !isInWorkflow) {
+        const link = $('<a></a>').attr('href', resultUrl).attr('target', '_blank').text(resultUrl);
+        body.append($('<p></p>').append(link));
+    }
+    dialog
+        .append($('<div class="modal-dialog"></div>')
+            .append($('<div class="modal-content"></div>')
+                .append($('<div class="modal-header"></div>')
+                    .append($('<h3></h3>').text(title)))
+                .append(body)
+                .append($('<div class="modal-footer"></div>')
+                    .append(okButton))));
+    dialog.appendTo($('body'));
+    dialog.modal('show');
+    dialog.on('hidden.bs.modal', function() {
+        dialog.remove();
+    });
+}
+
 function performDeposit(tb, contextItem, options) {
     console.log(logPrefix, 'publish', contextItem, options);
     const extra = contextItem.data.extra;
@@ -289,6 +319,13 @@ function checkDepositing(tb, contextItem, url) {
         }
         if (data.data && data.data.attributes && data.data.attributes.result) {
             console.log(logPrefix, 'uploaded', data.data.attributes.result);
+            const response = data.data.attributes.response;
+            const stateUri = response && response.state && response.state[0] && response.state[0]['@id'];
+            if (!stateUri) {
+                console.warn(logPrefix, 'Missing state in response', response);
+            }
+            const isInWorkflow = stateUri && stateUri.endsWith('/inWorkflow');
+            showDepositResult(isInWorkflow, data.data.attributes.result);
             if (tb && findItem(tb.treeData, contextItem.parentID)) {
                 tb.updateFolder(null, findItem(tb.treeData, contextItem.parentID));
             } else {
@@ -296,10 +333,6 @@ function checkDepositing(tb, contextItem, url) {
                     .addClass('fa-upload')
                     .removeClass('fa-spinner fa-pulse');
                 $('#weko-deposit').removeClass('disabled');
-                $osf.growl('Success', _('Deposit was successful.'), 'success');
-                const baseUrl = contextVars.node.urls.web + 'files/dir/' + contextItem.data.provider;
-                const index = contextItem.data.materialized.lastIndexOf('/');
-                window.location.href = baseUrl + contextItem.data.materialized.substring(0, index + 1);
             }
             return;
         }
@@ -590,7 +623,7 @@ function createMetadataSelectorForJQuery(item, changedCallback) {
         .append(metadataLoading)
         .append(refreshButton)
         .append(metadataSelect)
-        .append($('<div></div>').addClass('help-block').text(_('Select a registration for the file. You can also select a draft registration.')));
+        .append($('<div></div>').addClass('help-block').text(_('Select a project metadata for the file.')));
     return $('<div></div>')
         .append(errorView)
         .append(schemaSelectPanel)

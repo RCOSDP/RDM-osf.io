@@ -58,6 +58,8 @@
     "file_metadata_updated": "${user} updated the file metadata for ${path}",
     "checked_out":  "${user} checked out ${kind} ${path} from ${node}",
     "checked_in":   "${user} checked in ${kind} ${path} to ${node}",
+    "locked":  "${user} locked ${kind} ${path} in ${node}",
+    "unlocked":    "${user} unlocked ${kind} ${path} in ${node}",
     "comment_added":    "${user} added a comment ${comment_location} in ${node}",
     "comment_removed":  "${user} deleted a comment ${comment_location} in ${node}",
     "comment_restored":  "${user} restored a comment ${comment_location}  in ${node}",

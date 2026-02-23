@@ -274,6 +274,14 @@ msgstr ""
 msgid "Add"
 msgstr ""
 
+#: addons/metadata/static/metadata-fields.js:892
+msgid "Move up"
+msgstr ""
+
+#: addons/metadata/static/metadata-fields.js:899
+msgid "Move down"
+msgstr ""
+
 #: addons/metadata/static/metadata-fields.js:916
 msgid "Please enter the correct value. "
 msgstr ""
@@ -325,6 +333,10 @@ msgstr ""
 
 #: addons/metadata/static/metadata-fields.js:1187
 msgid "File size exceeds the maximum allowed size."
+msgstr ""
+
+#: addons/metadata/static/metadata-fields.js:1558
+msgid "No metadata found."
 msgstr ""
 
 #: addons/metadata/static/metadataNodeConfig.js:156
@@ -414,7 +426,15 @@ msgstr ""
 msgid "Error occurred: "
 msgstr ""
 
-#: addons/weko/static/wekoFangornConfig.js:299
+#: addons/weko/static/wekoFangornConfig.js:243
+msgid "Deposit Result"
+msgstr ""
+
+#: addons/weko/static/wekoFangornConfig.js:245
+msgid "Deposit request was submitted. Awaiting review by repository administrator."
+msgstr ""
+
+#: addons/weko/static/wekoFangornConfig.js:246
 msgid "Deposit was successful."
 msgstr ""
 
@@ -440,10 +460,8 @@ msgstr ""
 msgid "Project Metadata"
 msgstr ""
 
-#: addons/weko/static/wekoFangornConfig.js:593
-msgid ""
-"Select a registration for the file. You can also select a draft "
-"registration."
+#: addons/weko/static/wekoFangornConfig.js:626
+msgid "Select a project metadata for the file."
 msgstr ""
 
 #: addons/weko/static/wekoFangornConfig.js:617

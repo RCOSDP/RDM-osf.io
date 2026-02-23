@@ -46,7 +46,7 @@ def _response_files_metadata(addon, files):
         }
     }
 
-def _response_file_metadata(addon, path, progress=None, result=None, error=None):
+def _response_file_metadata(addon, path, progress=None, result=None, error=None, response=None):
     attr = {
         'path': path,
     }
@@ -58,6 +58,8 @@ def _response_file_metadata(addon, path, progress=None, result=None, error=None)
         attr['progress_url'] = request.path
     if error is not None:
         attr['error'] = error
+    if response is not None:
+        attr['response'] = response
     return {
         'data': {
             'id': addon.owner._id,
@@ -66,7 +68,7 @@ def _response_file_metadata(addon, path, progress=None, result=None, error=None)
         }
     }
 
-def _response_project_metadata(addon, metadata_type, metadata_id, progress=None, result=None, error=None):
+def _response_project_metadata(addon, metadata_type, metadata_id, progress=None, result=None, error=None, response=None):
     attr = {
         'metadata_type': metadata_type,
         'metadata_id': metadata_id,
@@ -79,6 +81,8 @@ def _response_project_metadata(addon, metadata_type, metadata_id, progress=None,
         attr['progress_url'] = request.path
     if error is not None:
         attr['error'] = error
+    if response is not None:
+        attr['response'] = response
     return {
         'data': {
             'id': addon.owner._id,
@@ -281,6 +285,7 @@ def weko_get_publishing_file(auth, did=None, index_id=None, mnode=None, filepath
     error = None
     progress = None
     result = None
+    response = None
     if aresult.failed():
         error = str(aresult.info)
     elif aresult.info is not None and 'progress' in aresult.info:
@@ -290,7 +295,8 @@ def weko_get_publishing_file(auth, did=None, index_id=None, mnode=None, filepath
         }
     elif aresult.info is not None and 'result' in aresult.info:
         result = aresult.info['result']
-    return _response_file_metadata(addon, filepath, progress=progress, error=error, result=result)
+        response = aresult.info.get('response')
+    return _response_file_metadata(addon, filepath, progress=progress, error=error, result=result, response=response)
 
 def _publish_project_metadata(auth, node, addon, index_id, metadata_type, metadata_id, schema_id, project_metadata):
     if not addon.validate_index_id(index_id):
@@ -351,6 +357,7 @@ def _get_publishing_project_metadata_progress(addon, metadata_type, metadata_id)
     error = None
     progress = None
     result = None
+    response = None
     if aresult.failed():
         error = str(aresult.info)
     elif aresult.info is not None and 'progress' in aresult.info:
@@ -360,7 +367,8 @@ def _get_publishing_project_metadata_progress(addon, metadata_type, metadata_id)
         }
     elif aresult.info is not None and 'result' in aresult.info:
         result = aresult.info['result']
-    return _response_project_metadata(addon, metadata_type, metadata_id, progress=progress, error=error, result=result)
+        response = aresult.info.get('response')
+    return _response_project_metadata(addon, metadata_type, metadata_id, progress=progress, error=error, result=result, response=response)
 
 
 @must_have_permission('write')

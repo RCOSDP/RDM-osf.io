@@ -3897,6 +3897,11 @@ msgstr "ナビゲーション"
 msgid "Metadata"
 msgstr "メタデータ"
 
+#: website/templates/project/project_header.mako:86
+#: website/templates/util/render_addon_widget.mako:8
+msgid "Workflow"
+msgstr "ワークフロー"
+
 #: website/templates/project/project_header.mako:76
 #: website/templates/project/project_header.mako:78
 msgid "Export"
@@ -4639,3 +4644,509 @@ msgstr "目録表示グループ"
 
 msgid "Bibliographic Group Information"
 msgstr "目録表示グループの情報"
+#: addons/workflow/templates/workflow_node_settings.mako:380
+#: addons/workflow/templates/workflow_node_settings.mako:415
+#: addons/workflow/templates/workflow_node_settings.mako:450
+#: addons/workflow/templates/workflow_node_settings.mako:485
+msgid "Access connected services (e.g., WEKO)"
+msgstr "接続済みサービス(例: WEKO)へアクセス"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:45
+#: addons/workflow/templates/workflow_node_settings.mako:289
+#: website/templates/util/render_addon_widget.mako:382
+msgid "Actions"
+msgstr "操作"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:348
+msgid "Activate"
+msgstr "有効化"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:329
+msgid "Activate workflow"
+msgstr "ワークフローを有効化"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:347
+msgid "Activating"
+msgstr "有効化しています"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:476
+msgid "Activating this workflow will issue your Manager Token to access project resources."
+msgstr "このワークフローを有効化すると、プロジェクトリソースにアクセスするための管理者トークンが発行されます。"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:518
+msgid "All associated workflow activations and delegation tokens will be revoked and removed."
+msgstr "関連するすべてのワークフローと委任トークンは失効し削除されます。"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:512
+msgid "Are you sure you want to delete"
+msgstr "削除してもよろしいですか"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:373
+#: addons/workflow/templates/workflow_node_settings.mako:408
+#: addons/workflow/templates/workflow_node_settings.mako:443
+msgid "Creator Token"
+msgstr "作成者トークン"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:221
+msgid "Creator token"
+msgstr "作成者トークン"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:288
+msgid "Defined in"
+msgstr "定義元"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:42
+#: addons/workflow/templates/workflow_node_settings.mako:149
+#: addons/workflow/templates/workflow_node_settings.mako:286
+msgid "Definition"
+msgstr "定義"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:164
+#: addons/workflow/templates/workflow_node_settings.mako:296
+msgid "Visibility"
+msgstr "公開範囲"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:167
+msgid "This project's members only (default)"
+msgstr "このプロジェクトのメンバーのみ（既定）"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:168
+msgid "Users at this project's institutions"
+msgstr "このプロジェクトと同じ所属機関のユーザー"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:169
+msgid "All users"
+msgstr "すべてのユーザー"
+
+#: addons/workflow/templates/workflow_node_settings.mako
+msgid "project(s)"
+msgstr "件のプロジェクト"
+
+#: addons/workflow/templates/workflow_node_settings.mako
+msgid "Activated in:"
+msgstr "有効化されているプロジェクト:"
+
+#: addons/workflow/templates/workflow_node_settings.mako:171
+msgid "Sets who can use this workflow template."
+msgstr "このワークフローテンプレートを利用できるユーザーを設定します。"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:172
+msgid "You must be an institutional admin to select \"Users at this project's institutions\"."
+msgstr "「このプロジェクトと同じ所属機関のユーザー」を選択するには機関管理者である必要があります。"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:211
+msgid "You must be an Integrated Admin to select \"All users\"."
+msgstr "「すべてのユーザー」を選択するには統合管理者である必要があります。"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:508
+msgid "Delete Workflow Template"
+msgstr "ワークフローテンプレートの削除"
+
+#: addons/workflow/templates/workflow_node_settings.mako
+msgid "Delete Workflow"
+msgstr "ワークフローの削除"
+
+#: addons/workflow/templates/workflow_node_settings.mako:616
+msgid "Disable Workflow Template"
+msgstr "ワークフローテンプレートの無効化"
+
+#: addons/workflow/templates/workflow_node_settings.mako:620
+msgid "When disabled:"
+msgstr "無効にすると："
+
+#: addons/workflow/templates/workflow_node_settings.mako:622
+msgid "This template cannot be used to activate new workflows"
+msgstr "このテンプレートを使って新しいワークフローを有効化できなくなります"
+
+#: addons/workflow/templates/workflow_node_settings.mako:623
+msgid "Existing workflows using this template will be disabled"
+msgstr "このテンプレートを使用している既存のワークフローは無効になります"
+
+#: addons/workflow/templates/workflow_node_settings.mako:624
+msgid "Running workflow processes will continue to execute"
+msgstr "実行中のワークフロープロセスは継続して実行されます"
+
+#: addons/workflow/templates/workflow_node_settings.mako:626
+msgid "You can re-enable this template at any time."
+msgstr "このテンプレートはいつでも再度有効にできます。"
+
+#: addons/workflow/templates/workflow_node_settings.mako:670
+msgid "Disable Workflow"
+msgstr "ワークフローの無効化"
+
+#: addons/workflow/templates/workflow_node_settings.mako:676
+msgid "New workflow processes cannot be started"
+msgstr "新しいワークフロープロセスを開始できなくなります"
+
+#: addons/workflow/templates/workflow_node_settings.mako:679
+msgid "You can re-enable this workflow at any time."
+msgstr "このワークフローはいつでも再度有効にできます。"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:224
+#: addons/workflow/templates/workflow_node_settings.mako:235
+#: addons/workflow/templates/workflow_node_settings.mako:246
+msgid "Do not use"
+msgstr "使用しない"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:441
+msgid "Enabling this workflow template for this project will issue your Creator Token to access project resources."
+msgstr "このプロジェクトでワークフローテンプレートを利用可能にすると、プロジェクトリソースにアクセスする作成者トークンが発行されます。"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:406
+msgid "Enabling this workflow will re-issue your Creator Token to access project resources."
+msgstr "このワークフローを有効化すると、プロジェクトリソースにアクセスするための作成者トークンが再発行されます。"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:43
+#: addons/workflow/templates/workflow_node_settings.mako:101
+#: addons/workflow/templates/workflow_node_settings.mako:253
+msgid "Workflow Engine"
+msgstr "ワークフローエンジン"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:243
+msgid "Executor token"
+msgstr "実行者トークン"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:496
+msgid "Grant Permission and Activate"
+msgstr "権限を付与して有効化"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:426
+#: addons/workflow/templates/workflow_node_settings.mako:461
+msgid "Grant Permission and Enable"
+msgstr "権限を付与して有効にする"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:391
+msgid "Grant Permission and Register Workflow Template"
+msgstr "権限を付与してワークフローテンプレートを登録"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:368
+#: addons/workflow/templates/workflow_node_settings.mako:438
+#: addons/workflow/templates/workflow_node_settings.mako:473
+msgid "Grant Workflow Permissions"
+msgstr "ワークフロー権限の付与"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:194
+msgid "Grant workflow access using the template creator's credentials."
+msgstr "テンプレート作成者の認証情報を用いてワークフローにアクセス権を与えます。"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:250
+msgid "Grant workflow access using the executor's credentials."
+msgstr "実行者の認証情報を用いてワークフローにアクセス権を与えます。"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:239
+msgid "Grant workflow access using the project manager's credentials."
+msgstr "プロジェクト管理者の認証情報を用いてワークフローにアクセス権を与えます。"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:103
+msgid "Loading available engines..."
+msgstr "利用可能なエンジンを読み込み中..."
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:12
+msgid "Loading workflow templates..."
+msgstr "ワークフローテンプレートを読み込み中..."
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:478
+msgid "Manager Token"
+msgstr "管理者トークン"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:232
+msgid "Manager token"
+msgstr "管理者トークン"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:120
+msgid "No workflow engines are currently available. Please contact your administrator."
+msgstr "利用可能なワークフローエンジンがありません。管理者にお問い合わせください。"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:324
+msgid "No workflows are currently activated."
+msgstr "現在有効化されているワークフローはありません。"
+
+#: addons/workflow/templates/workflow_node_settings.mako:94
+msgid "No workflow templates have been registered in this project yet."
+msgstr "このプロジェクトにはまだワークフローテンプレートが登録されていません。"
+
+#: addons/workflow/templates/workflow_node_settings.mako:141
+msgid "Not allowed for this project"
+msgstr "このプロジェクトでは許可されていません"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:385
+#: addons/workflow/templates/workflow_node_settings.mako:420
+#: addons/workflow/templates/workflow_node_settings.mako:455
+#: addons/workflow/templates/workflow_node_settings.mako:490
+msgid "Only grant permissions to workflows you trust."
+msgstr "信頼できるワークフローにのみ権限を付与してください。"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:379
+#: addons/workflow/templates/workflow_node_settings.mako:414
+#: addons/workflow/templates/workflow_node_settings.mako:449
+#: addons/workflow/templates/workflow_node_settings.mako:484
+msgid "Post comments"
+msgstr "コメントの投稿"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:403
+msgid "Re-grant Workflow Permissions"
+msgstr "ワークフロー権限を再付与"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:377
+#: addons/workflow/templates/workflow_node_settings.mako:412
+#: addons/workflow/templates/workflow_node_settings.mako:447
+#: addons/workflow/templates/workflow_node_settings.mako:482
+msgid "Read and write files"
+msgstr "ファイルの読み書き"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:33
+#: addons/workflow/templates/workflow_node_settings.mako:277
+#: website/templates/util/render_addon_widget.mako:307
+#: website/templates/util/render_addon_widget.mako:359
+msgid "Refresh"
+msgstr "更新"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:94
+msgid "Register workflow template"
+msgstr "ワークフローテンプレートを登録"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:257
+msgid "Register workflow template"
+msgstr "ワークフローテンプレートを登録"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:256
+msgid "Registering workflow template"
+msgstr "ワークフローテンプレートを登録しています"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:340
+msgid "Select a workflow template…"
+msgstr "ワークフローテンプレートを選択…"
+
+
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:375
+#: addons/workflow/templates/workflow_node_settings.mako:410
+#: addons/workflow/templates/workflow_node_settings.mako:445
+#: addons/workflow/templates/workflow_node_settings.mako:480
+msgid "The workflow can perform the following actions on your behalf:"
+msgstr "このワークフローはあなたに代わって次の操作を行えます:"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:517
+msgid "This action cannot be undone."
+msgstr "この操作は取り消せません。"
+
+#: addons/workflow/templates/workflow_node_settings.mako
+msgid "All workflow process history related to this project will be permanently removed."
+msgstr "このプロジェクトに関連するすべてのワークフロープロセス履歴が完全に削除されます。"
+
+#: addons/workflow/templates/workflow_node_settings.mako
+msgid "If there are running workflow processes, deletion will fail."
+msgstr "実行中のワークフロープロセスがある場合、エラーになります。"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:371
+msgid "This workflow will use your credentials to access project resources."
+msgstr "このワークフローはあなたの認証情報を使ってプロジェクトリソースにアクセスします。"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:378
+#: addons/workflow/templates/workflow_node_settings.mako:413
+#: addons/workflow/templates/workflow_node_settings.mako:448
+#: addons/workflow/templates/workflow_node_settings.mako:483
+msgid "Update metadata"
+msgstr "メタデータの更新"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:196
+msgid "Upload a ZIP file containing BPMN and form definitions exported from Flowable Design."
+msgstr "Flowable Design からエクスポートした BPMN とフォーム定義を含む ZIP ファイルをアップロードしてください。"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:139
+msgid "Upload workflow ZIP"
+msgstr "ワークフローZIPをアップロード"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:225
+#: addons/workflow/templates/workflow_node_settings.mako:236
+#: addons/workflow/templates/workflow_node_settings.mako:247
+msgid "Use with Read permission"
+msgstr "閲覧権限で使用"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:226
+#: addons/workflow/templates/workflow_node_settings.mako:237
+#: addons/workflow/templates/workflow_node_settings.mako:248
+msgid "Use with ReadWrite permission"
+msgstr "閲覧＆編集権限で使用"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:332
+msgid "Workflow template"
+msgstr "ワークフローテンプレート"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:272
+msgid "Workflows"
+msgstr "ワークフロー"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:28
+msgid "Workflow Templates"
+msgstr "ワークフローテンプレート"
+
+
+#: addons/workflow/templates/workflow_node_settings.mako:191
+msgid "Workflow ZIP"
+msgstr "ワークフローZIP"
+
+
+#: website/templates/util/render_addon_widget.mako:379
+msgid "Assignee"
+msgstr "担当者"
+
+
+#: website/templates/util/render_addon_widget.mako:329
+msgid "Completed"
+msgstr "完了"
+
+
+#: website/templates/util/render_addon_widget.mako:380
+msgid "Created"
+msgstr "作成日"
+
+
+#: website/templates/util/render_addon_widget.mako:381
+msgid "Due"
+msgstr "期限"
+
+
+#: website/templates/util/render_addon_widget.mako:252
+msgid "Launch workflow"
+msgstr "ワークフローを起動"
+
+
+#: website/templates/util/render_addon_widget.mako:314
+msgid "Loading runs..."
+msgstr "実行履歴を読み込み中..."
+
+
+#: website/templates/util/render_addon_widget.mako:366
+msgid "Loading tasks..."
+msgstr "タスクを読み込み中..."
+
+
+#: website/templates/util/render_addon_widget.mako:240
+msgid "Loading workflows..."
+msgstr "ワークフローを読み込み中..."
+
+
+#: website/templates/util/render_addon_widget.mako:282
+msgid "No active workflows are available for this project."
+msgstr "このプロジェクトで利用できる有効なワークフローはありません。"
+
+
+#: website/templates/util/render_addon_widget.mako:412
+msgid "No open tasks for this project."
+msgstr "このプロジェクトに未処理のタスクはありません。"
+
+
+#: website/templates/util/render_addon_widget.mako:349
+msgid "No workflow runs have been recorded yet."
+msgstr "ワークフローの実行履歴はまだありません。"
+
+
+#: website/templates/util/render_addon_widget.mako:293
+msgid "Open tasks"
+msgstr "対応中タスク"
+
+
+#: website/templates/util/render_addon_widget.mako:289
+msgid "Recent runs"
+msgstr "最近の実行"
+
+
+#: website/templates/util/render_addon_widget.mako:273
+msgid "Select a workflow to open the workflow console and start a run."
+msgstr "ワークフローコンソールを開いて実行を開始するワークフローを選択してください。"
+
+
+#: website/templates/util/render_addon_widget.mako:328
+msgid "Started"
+msgstr "開始"
+
+
+#: website/templates/util/render_addon_widget.mako:378
+msgid "Task"
+msgstr "タスク"
+
+
+#: website/templates/util/render_addon_widget.mako:260
+msgid "Toggle workflow selection"
+msgstr "ワークフロー選択を切り替え"
+
+#: addons/workflow/templates/workflow_node_settings.mako:177
+msgid "Auto-activate"
+msgstr "自動有効化"
+
+#: addons/workflow/templates/workflow_node_settings.mako:182
+msgid "Automatically activate this template when the workflow addon is enabled"
+msgstr "ワークフローアドオンが有効化されたときに、このテンプレートを自動的に有効化する"
+
+#: addons/workflow/templates/workflow_node_settings.mako:185
+msgid "When checked, this template will be automatically activated for users who have access to it when they enable the workflow addon on a project."
+msgstr "チェックすると、このテンプレートにアクセス可能なユーザーがプロジェクトでワークフローアドオンを有効化した際に、このテンプレートが自動的に有効化されます。"
+
+#: addons/workflow/templates/workflow_node_settings.mako:375
+msgid "Edit Workflow Template"
+msgstr "ワークフローテンプレートを編集"
+
+#: addons/workflow/static/workflowNodeConfig.js:871
+msgid "Workflow template updated."
+msgstr "ワークフローテンプレートを更新しました。"
+
+#: addons/workflow/static/workflowNodeConfig.js:876
+msgid "Failed to update workflow template."
+msgstr "ワークフローテンプレートの更新に失敗しました。"

@@ -107,7 +107,7 @@
           >
           {% for message in messages %}
             <div class="container-fluid p-0">
-              <div class="alert {{ message.tags }} alert-dismissible bg-danger" role="alert" >
+              <div class="alert alert-{% if 'text-danger' in message.tags %}danger{% elif 'text-warning' in message.tags %}warning{% elif 'text-success' in message.tags %}success{% else %}info{% endif %} alert-dismissible" role="alert">
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                   <span aria-hidden="True">&times;</span>
                 </button>
@@ -338,6 +338,7 @@
             <li><a href="{% url 'addons:institutions' %}"><i class='fa fa-link'></i> <span>{% trans "RDM Addons" %}</span></a></li>
             <li><a href="{% url 'statistics:institutions' %}"><i class='fa fa-link'></i> <span>{% trans "RDM Statistics" %}</span></a></li>
             <li><a href="{% url 'announcement:index' %}"><i class='fa fa-link'></i> <span>{% trans "RDM Announcement" %}</span></a></li>
+            <li><a href="{% url 'rdm_workflow:home' %}"><i class='fa fa-link'></i> <span>{% trans "RDM Workflow" %}</span></a></li>
             <li><a href="{% url 'timestampadd:institutions' %}"><i class='fa fa-link'></i> <span>{% trans "Timestamp Control" %}</span></a></li>
 {% comment GRDM 7117 disable some timestamp features %}
             <li><a href="{% url 'keymanagement:institutions' %}"><i class='fa fa-link'></i> <span>{% trans "User Keys Management" %}</span></a></li>

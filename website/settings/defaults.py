@@ -523,6 +523,7 @@ class CeleryConfig:
         'nii.mapcore_refresh_tokens',
         'admin.rdm_custom_storage_location.tasks',
         'addons.metadata.tasks',
+        'addons.workflow.tasks',
     )
 
     # Modules that need metrics and release requirements

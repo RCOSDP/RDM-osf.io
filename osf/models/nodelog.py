@@ -63,6 +63,9 @@ class NodeLog(ObjectIDMixin, BaseModel):
     CHECKED_IN = 'checked_in'
     CHECKED_OUT = 'checked_out'
 
+    LOCKED = 'locked'
+    UNLOCKED = 'unlocked'
+
     PERMISSIONS_UPDATED = 'permissions_updated'
 
     MADE_PRIVATE = 'made_private'

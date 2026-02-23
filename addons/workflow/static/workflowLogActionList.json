@@ -1,0 +1,3 @@
+{
+  "workflow_notification": "${title} from workflow ${workflow_name} in ${node}"
+}
