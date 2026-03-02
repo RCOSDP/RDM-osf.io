@@ -412,6 +412,7 @@
             "dateCreated": "{{ date_registered_in_metadata_value }}",
             "hasPart[]": [
                 {
+                    "@createIf": "{{ choose_additional_metadata_value }}",
                     ".@type": "File",
                     ".@id": "files/{{choose_additional_metadata_value}}",
                     "name": "{{choose_additional_metadata_value}}",
