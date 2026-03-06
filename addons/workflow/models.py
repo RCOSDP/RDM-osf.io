@@ -308,6 +308,7 @@ class WorkflowActivation(BaseModel):
     )
     delegation_tokens = DateTimeAwareJSONField(default=dict, blank=True)
     is_enabled = models.BooleanField(default=True)
+    is_dismissed = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ('node', 'template')

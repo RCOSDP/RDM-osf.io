@@ -51,6 +51,7 @@ from addons.workflow.services import (
     can_delete_template,
     cancel_workflow_run,
     deactivate_workflow_activation,
+    dismiss_workflow_activation,
     deactivate_workflow_template,
     delete_workflow_activation,
     delete_workflow_engine,
@@ -933,6 +934,7 @@ def list_activations(auth, **kwargs):
 
     activations = WorkflowActivation.objects.filter(
         node=node,
+        is_dismissed=False,
     ).select_related('template__definition__engine', 'template__node', 'activated_by')
 
     data = [_serialize_activation(activation) for activation in activations]
@@ -983,24 +985,40 @@ def upsert_activation(auth, template_id: str, **kwargs):
     except Exception as error:
         raise HTTPError(http_status.HTTP_400_BAD_REQUEST, data={'message': 'Invalid JSON payload.'}) from error
 
+    is_dismissed = payload.get('is_dismissed', False)
     is_enabled = payload.get('is_enabled', True)
-    if not isinstance(is_enabled, bool):
-        raise HTTPError(http_status.HTTP_400_BAD_REQUEST, data={'message': 'is_enabled must be a boolean.'})
 
-    defaults = {
-        'activated_by': user,
-        'is_enabled': is_enabled,
-    }
-    activation, created = WorkflowActivation.objects.get_or_create(
-        node=node,
-        template=template,
-        defaults=defaults,
-    )
-
-    if is_enabled:
-        activate_workflow_activation(activation, user)
+    if is_dismissed:
+        defaults = {
+            'activated_by': user,
+            'is_enabled': False,
+            'is_dismissed': True,
+        }
+        activation, created = WorkflowActivation.objects.get_or_create(
+            node=node,
+            template=template,
+            defaults=defaults,
+        )
+        if not created:
+            dismiss_workflow_activation(activation)
     else:
-        deactivate_workflow_activation(activation)
+        if not isinstance(is_enabled, bool):
+            raise HTTPError(http_status.HTTP_400_BAD_REQUEST, data={'message': 'is_enabled must be a boolean.'})
+
+        defaults = {
+            'activated_by': user,
+            'is_enabled': is_enabled,
+        }
+        activation, created = WorkflowActivation.objects.get_or_create(
+            node=node,
+            template=template,
+            defaults=defaults,
+        )
+
+        if is_enabled:
+            activate_workflow_activation(activation, user)
+        else:
+            deactivate_workflow_activation(activation)
 
     status = http_status.HTTP_201_CREATED if created else http_status.HTTP_200_OK
     return {

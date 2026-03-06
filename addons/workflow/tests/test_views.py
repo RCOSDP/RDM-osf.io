@@ -1110,3 +1110,86 @@ class WorkflowEngineViewTests(OsfTestCase):
         )
 
         assert response.status_code == http_status.HTTP_400_BAD_REQUEST
+
+    def test_upsert_activation_dismiss(self):
+        owner = AuthUserFactory()
+        node = self._create_project_with_workflow(owner)
+
+        engine = self._create_engine(owner=owner)
+        definition_id = 'dismiss-view-test'
+        WorkflowDefinitionSnapshot.objects.create(
+            engine=engine,
+            definition_id=definition_id,
+            definition_key='dismiss-view-test',
+            name='Dismiss View Test',
+            version=1,
+        )
+
+        template, activation = self._register_template(node, owner, engine, definition_id)
+
+        response = self.app.put_json(
+            self._activation_url('upsert_activation', node, template),
+            {'is_dismissed': True},
+            auth=owner.auth,
+        )
+        assert response.status_code == http_status.HTTP_200_OK
+
+        activation.refresh_from_db()
+        assert activation.is_dismissed is True
+        assert activation.is_enabled is False
+
+    def test_list_activations_excludes_dismissed(self):
+        owner = AuthUserFactory()
+        node = self._create_project_with_workflow(owner)
+
+        engine = self._create_engine(owner=owner)
+        definition_id = 'dismissed-list-test'
+        WorkflowDefinitionSnapshot.objects.create(
+            engine=engine,
+            definition_id=definition_id,
+            definition_key='dismissed-list-test',
+            name='Dismissed List Test',
+            version=1,
+        )
+
+        template, activation = self._register_template(node, owner, engine, definition_id)
+        activation.is_dismissed = True
+        activation.is_enabled = False
+        activation.save(update_fields=['is_dismissed', 'is_enabled'])
+
+        response = self.app.get(
+            api_url_for('list_activations', pid=node._id),
+            auth=owner.auth,
+        )
+        assert response.status_code == http_status.HTTP_200_OK
+        assert len(response.json['data']) == 0
+
+    def test_upsert_activation_enable_clears_dismissed(self):
+        owner = AuthUserFactory()
+        node = self._create_project_with_workflow(owner)
+
+        engine = self._create_engine(owner=owner)
+        definition_id = 'reactivate-dismissed-test'
+        WorkflowDefinitionSnapshot.objects.create(
+            engine=engine,
+            definition_id=definition_id,
+            definition_key='reactivate-dismissed-test',
+            name='Reactivate Dismissed Test',
+            version=1,
+        )
+
+        template, activation = self._register_template(node, owner, engine, definition_id)
+        activation.is_dismissed = True
+        activation.is_enabled = False
+        activation.save(update_fields=['is_dismissed', 'is_enabled'])
+
+        response = self.app.put_json(
+            self._activation_url('upsert_activation', node, template),
+            {'is_enabled': True},
+            auth=owner.auth,
+        )
+        assert response.status_code == http_status.HTTP_200_OK
+
+        activation.refresh_from_db()
+        assert activation.is_dismissed is False
+        assert activation.is_enabled is True

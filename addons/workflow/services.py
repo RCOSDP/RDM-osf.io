@@ -739,8 +739,10 @@ def _serialize_task_payload(
     from addons.workflow.views import STATUS_RUNNING, STATUS_COMPLETED, STATUS_CANCELLED
 
     metadata = _extract_metadata(instance)
-    process_instance_id = task_payload.get('processInstanceId')
+    process_instance_id = task_payload['processInstanceId']
     end_time = task_payload.get('endTime')
+    # Runtime tasks use 'createTime'; historic tasks use 'startTime'
+    created = task_payload.get('createTime') or task_payload.get('startTime')
 
     if end_time:
         delete_reason = task_payload.get('deleteReason')
@@ -752,14 +754,14 @@ def _serialize_task_payload(
         task_status = STATUS_RUNNING
 
     return {
-        'id': task_payload.get('id'),
-        'name': task_payload.get('name'),
+        'id': task_payload['id'],
+        'name': task_payload['name'],
         'description': task_payload.get('description'),
         'assignee': task_payload.get('assignee'),
         'owner': task_payload.get('owner'),
         'task_status': task_status,
         'delete_reason': task_payload.get('deleteReason'),
-        'created': task_payload.get('createTime'),
+        'created': created,
         'end_time': end_time,
         'completed': end_time,
         'due': task_payload.get('dueDate'),
@@ -767,7 +769,7 @@ def _serialize_task_payload(
         'category': task_payload.get('category'),
         'form_key': task_payload.get('formKey'),
         'engine_id': engine_id,
-        'process_definition_id': task_payload.get('processDefinitionId'),
+        'process_definition_id': task_payload['processDefinitionId'],
         'process_instance_id': process_instance_id,
         'business_key': task_payload.get('processInstanceBusinessKey'),
         'run_id': process_instance_id,
@@ -784,6 +786,8 @@ def list_workflow_tasks(
     limit: int = 100,
     status_filter: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
+    from addons.workflow.views import STATUS_RUNNING
+
     all_activations = _get_visible_activations(node, user)
 
     activation_map: Dict[int, WorkflowActivation] = {}
@@ -793,74 +797,71 @@ def list_workflow_tasks(
     if not activation_map:
         return []
 
-    # Fetch tasks for each activation
-    all_tasks: List[Dict[str, Any]] = []
-
+    # Build per-activation context
+    contexts: List[tuple] = []
     for activation in activation_map.values():
-        activation_node = activation.node
-        if activation_node.is_deleted:
+        if activation.node.is_deleted:
             continue
-
         template = activation.template
         engine_id = template.definition.engine.engine_id
-        business_key = f'rdm:node:{activation_node._id}:activation:{activation.id}'
-
+        business_key = f'rdm:node:{activation.node._id}:activation:{activation.id}'
         client = get_gateway_client(engine_id)
+        contexts.append((activation, client, engine_id, business_key))
 
-        # Runtime and historic tasks use different parameter names for business key filtering
-        runtime_params = {
+    if not contexts:
+        return []
+
+    def _serialize_entry(entry, activation, engine_id):
+        serialized = _serialize_task_payload(entry, engine_id=engine_id, instance=entry)
+        serialized['can_complete'] = (
+            serialized['task_status'] == STATUS_RUNNING and
+            _can_complete_task(activation.node, user, entry['assignee'], _extract_metadata(entry))
+        )
+        return serialized
+
+    # Phase 1: Collect runtime tasks from all activations
+    runtime_tasks: List[Dict[str, Any]] = []
+    runtime_ids: set = set()
+
+    for activation, client, engine_id, business_key in contexts:
+        response = client.list_tasks({
             'processInstanceBusinessKey': business_key,
             'includeProcessVariables': 'true',
+            'sort': 'createTime',
+            'order': 'desc',
             'size': limit,
-        }
-        historic_params = {
-            'processBusinessKey': business_key,
-            'includeProcessVariables': 'true',
-            'size': limit,
-        }
+        })
+        for entry in response['data']:
+            runtime_tasks.append(_serialize_entry(entry, activation, engine_id))
+            runtime_ids.add(entry['id'])
 
-        # Fetch both runtime and historic tasks
-        runtime_response = client.list_tasks(runtime_params)
-        runtime_payload = runtime_response.get('data')
+    if status_filter == 'active':
+        runtime_tasks.sort(key=lambda item: item['created'], reverse=True)
+        return runtime_tasks[:limit]
 
-        if status_filter == 'active':
-            # Only include runtime (active) tasks
-            payload = runtime_payload or []
-        else:
-            historic_response = client.list_historic_tasks(historic_params)
-            historic_payload = historic_response.get('data')
+    # Phase 2: Collect historic tasks from all activations
+    remaining = limit - len(runtime_tasks)
+    historic_tasks: List[Dict[str, Any]] = []
 
-            # Merge runtime and historic tasks, removing duplicates (prefer runtime for active tasks)
-            task_map: Dict[str, Dict[str, Any]] = {}
-            for entry in (historic_payload or []):
-                task_map[entry['id']] = entry
-            for entry in (runtime_payload or []):
-                task_map[entry['id']] = entry
+    if remaining > 0:
+        for activation, client, engine_id, business_key in contexts:
+            response = client.list_historic_tasks({
+                'processBusinessKey': business_key,
+                'includeProcessVariables': 'true',
+                'sort': 'startTime',
+                'order': 'desc',
+                'size': remaining,
+            })
+            for entry in response['data']:
+                if entry['id'] in runtime_ids:
+                    continue
+                historic_tasks.append(_serialize_entry(entry, activation, engine_id))
 
-            payload = list(task_map.values())
-
-        for entry in payload:
-            if not isinstance(entry, dict):
-                continue
-
-            metadata = _extract_metadata(entry)
-
-            serialized = _serialize_task_payload(entry, engine_id=engine_id, instance=entry)
-            assignee = entry.get('assignee')
-            from addons.workflow.views import STATUS_RUNNING
-            serialized['can_complete'] = (
-                serialized['task_status'] == STATUS_RUNNING and
-                _can_complete_task(activation_node, user, assignee, metadata)
-            )
-            all_tasks.append(serialized)
-
-            if len(all_tasks) >= limit:
-                break
-        if len(all_tasks) >= limit:
-            break
-
-    all_tasks.sort(key=lambda item: item.get('created') or '', reverse=True)
-    return all_tasks[:limit]
+    # Runtime tasks are always included; limit applies only to historic
+    historic_tasks.sort(key=lambda item: item['created'], reverse=True)
+    all_tasks = runtime_tasks + historic_tasks[:max(0, remaining)]
+    all_tasks.sort(key=lambda item: item['created'], reverse=True)
+    return all_tasks
 
 
 def _fetch_task_from_engines(
@@ -1057,6 +1058,10 @@ def activate_workflow_activation(activation: WorkflowActivation, activated_by: '
         activation.is_enabled = True
         update_fields.append('is_enabled')
 
+    if activation.is_dismissed:
+        activation.is_dismissed = False
+        update_fields.append('is_dismissed')
+
     if activation.activated_by_id != activated_by.id:
         activation.activated_by = activated_by
         update_fields.append('activated_by')
@@ -1066,6 +1071,19 @@ def activate_workflow_activation(activation: WorkflowActivation, activated_by: '
 
     update_fields.append('modified')
     activation.save(update_fields=update_fields)
+
+
+def dismiss_workflow_activation(activation: WorkflowActivation) -> None:
+    """Dismiss a pending auto-activate template for a node.
+
+    Creates a disabled+dismissed activation record to suppress the pending banner.
+    """
+    if activation.is_dismissed:
+        return
+
+    activation.is_dismissed = True
+    activation.is_enabled = False
+    activation.save(update_fields=['is_dismissed', 'is_enabled', 'modified'])
 
 
 def deactivate_workflow_activation(activation: WorkflowActivation) -> None:
@@ -1417,6 +1435,7 @@ def send_workflow_notification(
                 html_text=html_text,
                 node_title=node.title,
                 node_url=node.absolute_url,
+                can_change_preferences=False,
             )
 
     return [user._id for user in recipients]

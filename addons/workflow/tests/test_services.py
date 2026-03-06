@@ -605,3 +605,68 @@ class WorkflowTaskServiceTests(OsfTestCase):
 
         assert context.value.code == http_status.HTTP_403_FORBIDDEN
         mock_get_client.assert_not_called()
+
+
+class DismissWorkflowActivationTests(OsfTestCase):
+    def setUp(self):
+        super().setUp()
+        self.owner = AuthUserFactory()
+        self.node = ProjectFactory(creator=self.owner)
+        self.node.add_addon('workflow', auth=Auth(self.owner))
+        institution = InstitutionFactory()
+        self.engine = WorkflowEngine.objects.create(
+            engine_id=str(uuid.uuid4()),
+            gateway_base_url='https://gateway.example.com/',
+            signing_kid='kid-test',
+            institution=institution,
+        )
+        definition = WorkflowDefinitionSnapshot.objects.create(
+            engine=self.engine,
+            definition_id='dismiss-test-def',
+            definition_key='dismiss-test-def',
+            name='Dismiss Test',
+            version=1,
+        )
+        self.template = WorkflowTemplate.objects.create(
+            node=self.node,
+            definition=definition,
+            registered_by=self.owner,
+            auto_activate=True,
+        )
+
+    def test_dismiss_sets_is_dismissed_and_disables(self):
+        activation = WorkflowActivation.objects.create(
+            node=self.node,
+            template=self.template,
+            activated_by=self.owner,
+            is_enabled=True,
+        )
+        services.dismiss_workflow_activation(activation)
+        activation.refresh_from_db()
+        assert activation.is_dismissed is True
+        assert activation.is_enabled is False
+
+    def test_dismiss_is_idempotent(self):
+        activation = WorkflowActivation.objects.create(
+            node=self.node,
+            template=self.template,
+            activated_by=self.owner,
+            is_enabled=False,
+            is_dismissed=True,
+        )
+        services.dismiss_workflow_activation(activation)
+        activation.refresh_from_db()
+        assert activation.is_dismissed is True
+
+    def test_activate_clears_is_dismissed(self):
+        activation = WorkflowActivation.objects.create(
+            node=self.node,
+            template=self.template,
+            activated_by=self.owner,
+            is_enabled=False,
+            is_dismissed=True,
+        )
+        services.activate_workflow_activation(activation, self.owner)
+        activation.refresh_from_db()
+        assert activation.is_dismissed is False
+        assert activation.is_enabled is True
