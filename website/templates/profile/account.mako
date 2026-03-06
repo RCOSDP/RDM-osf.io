@@ -64,8 +64,6 @@
                                             ${_("To merge an existing account with this one or to log in with multiple email addresses, add an alternate email address below.")}
                                             <span class="fa fa-info-circle" data-bind="tooltip: {title: '${_("Merging accounts will move all projects and components associated with two emails into one account. All projects and components will be displayed under the email address listed as primary.")}',
                                              placement: 'bottom', container : 'body'}"></span>
-                                            % else:
-                                            ${_("To log in with multiple email addresses, add an alternate email address below.")}
 					    % endif
                                             </p>
                                             <div class="form-group">
