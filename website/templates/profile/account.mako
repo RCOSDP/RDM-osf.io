@@ -233,6 +233,7 @@
                   </div>
                 </div>
                 %endif
+                %if use_export_account:
                 <div id="exportAccount" class="panel panel-default">
                     <div class="panel-heading clearfix"><h3 class="panel-title">${_("Export Account Data")}</h3></div>
                     <div class="panel-body">
@@ -240,6 +241,7 @@
                         <a class="btn btn-primary" data-bind="click: submit, css: success() === true ? 'disabled' : ''">${_("Request export")}</a>
                     </div>
                 </div>
+                %endif
                 <div id="deactivateAccount" class="panel panel-default">
                     <div class="panel-heading clearfix"><h3 class="panel-title">${_("Deactivate Account")}</h3></div>
                     <div class="panel-body">
