@@ -242,6 +242,7 @@
                     </div>
                 </div>
                 %endif
+                %if use_deactivate_account:
                 <div id="deactivateAccount" class="panel panel-default">
                     <div class="panel-heading clearfix"><h3 class="panel-title">${_("Deactivate Account")}</h3></div>
                     <div class="panel-body">
@@ -252,6 +253,7 @@
                         <a class="btn btn-success" data-bind="click: cancel, visible: requestPending()">${_("Cancel deactivation request")}</a>
                     </div>
                 </div>
+                %endif
             </div>
         </div>
     </div>
