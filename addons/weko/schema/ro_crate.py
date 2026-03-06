@@ -528,6 +528,9 @@ def _build_hierarchical_object(user, target_index, file_metadata, download_file_
                 continue
             if weko_mapping['@type'] in ['object', 'jsonobject']:
                 value = source_data.get('value', '')
+                if value is None:
+                    logger.warn(f'Unexpected value: {value}, {key}')
+                    continue
                 if 'choose-additional-metadata' in value:
                     url = value['choose-additional-metadata']
                     value_data = json.loads(url.get('value') or '[]')

@@ -23,6 +23,7 @@
     "@projects": {
         "@type": "object",
         "root.jpcoar:fundingReference[]": {
+            "@createIf": "{{funder_value}}{{funding_stream_code_value}}{{japan_grant_number_value}}{{project_name_ja_value}}{{project_name_en_value}}{{program_name_ja_value}}{{program_name_en_value}}",
             ".@type": "PropertyValue",
             "jpcoar:funderIdentifier": {
                 "@createIf": "{{ funder_value | to_funder_ror_id }}",
@@ -83,6 +84,7 @@
     "additional-funding": {
         "@type": "jsonarray",
         "root.jpcoar:fundingReference[]": {
+            "@createIf": "{{object_funder}}{{object_funding_stream_code}}{{object_japan_grant_number}}{{object_project_name_ja}}{{object_project_name_en}}{{object_program_name_ja}}{{object_program_name_en}}",
             ".@type": "PropertyValue",
             "jpcoar:funderIdentifier": {
                 "@createIf": "{{ object_funder | to_funder_ror_id }}",
@@ -479,16 +481,53 @@
                 "nameIdentifierScheme": "e-Rad_Researcher"
             },
             "jpcoar:creatorName[CREATOR_NAME_JA]": {
-                "@createIf": "{{object_name_ja}}",
+                "@createIf": "{{object_name_ja_last}}{{object_name_ja_middle}}{{object_name_ja_first}}",
                 ".@type": "Person",
-                "value": "{{object_name_ja}}",
+                "value": "{{object_name_ja_last}}{% if object_name_ja_first %}, {{object_name_ja_middle}}{% if object_name_ja_middle %} {% endif %}{{object_name_ja_first}}{% endif %}",
                 "language": "ja"
             },
             "jpcoar:creatorName[CREATOR_NAME_EN]": {
-                "@createIf": "{{object_name_en}}",
+                "@createIf": "{{object_name_en_last}}{{object_name_en_middle}}{{object_name_en_first}}",
                 ".@type": "Person",
-                "value": "{{object_name_en}}",
+                "value": "{{object_name_en_last}}{% if object_name_en_first %}, {{object_name_en_middle}}{% if object_name_en_middle %} {% endif %}{{object_name_en_first}}{% endif %}",
                 "language": "en"
+            },
+            "jpcoar:familyName[FAMILY_NAME_JA]": {
+                "@createIf": "{% if object_name_ja_last and object_name_ja_first %}true{% endif %}",
+                ".@type": "Person",
+                "value": "{{object_name_ja_last}}",
+                "language": "ja"
+            },
+            "jpcoar:familyName[FAMILY_NAME_EN]": {
+                "@createIf": "{% if object_name_en_last and object_name_en_first %}true{% endif %}",
+                ".@type": "Person",
+                "value": "{{object_name_en_last}}",
+                "language": "en"
+            },
+            "jpcoar:givenName[GIVEN_NAME_JA]": {
+                "@createIf": "{{object_name_ja_middle}}{{object_name_ja_first}}",
+                ".@type": "Person",
+                "value": "{{object_name_ja_middle}}{% if object_name_ja_middle %} {% endif %}{{object_name_ja_first}}",
+                "language": "ja"
+            },
+            "jpcoar:givenName[GIVEN_NAME_EN]": {
+                "@createIf": "{{object_name_en_middle}}{{object_name_en_first}}",
+                ".@type": "Person",
+                "value": "{{object_name_en_middle}}{% if object_name_en_middle %} {% endif %}{{object_name_en_first}}",
+                "language": "en"
+            },
+            "jpcoar:affiliation[]": {
+                "@createIf": "{{object_affiliation_name_ja}}{{object_affiliation_name_en}}",
+                "jpcoar:affiliationName[AFFILIATION_JA]": {
+                    "@createIf": "{{object_affiliation_name_ja}}",
+                    "value": "{{object_affiliation_name_ja}}",
+                    "language": "ja"
+                },
+                "jpcoar:affiliationName[AFFILIATION_EN]": {
+                    "@createIf": "{{object_affiliation_name_en}}",
+                    "value": "{{object_affiliation_name_en}}",
+                    "language": "en"
+                }
             }
         }
     },
@@ -562,8 +601,8 @@
         }
     },
     "grdm-file:data-man-name-ja": {
-        "@type": "string",
-        "@createIf": "{% if grdm_file_data_man_type_value == \"individual\" and grdm_file_file_type_value != \"manuscript\" %}{{value}}{% endif %}",
+        "@type": "object",
+        "@createIf": "{% if grdm_file_data_man_type_value == \"individual\" and grdm_file_file_type_value != \"manuscript\" %}{{object_last}}{% endif %}",
         "root.jpcoar:contributor[DATA_MANAGER]": {
             ".@type": "Person",
             "additionalType": {
@@ -571,9 +610,21 @@
             },
             "jpcoar:contributorType": "DataManager",
             "jpcoar:contributorName[DATA_MANAGER_JA]": {
-                "@createIf": "{{value}}",
+                "@createIf": "{{object_last}}",
                 ".@type": "Person",
-                "value": "{{value}}",
+                "value": "{{object_last}}{% if object_first %}, {{object_middle}}{% if object_middle %} {% endif %}{{object_first}}{% endif %}",
+                "language": "ja"
+            },
+            "jpcoar:familyName[DATA_MANAGER_FAMILY_NAME_JA]": {
+                "@createIf": "{% if object_last and object_first %}true{% endif %}",
+                ".@type": "Person",
+                "value": "{{object_last}}",
+                "language": "ja"
+            },
+            "jpcoar:givenName[DATA_MANAGER_GIVEN_NAME_JA]": {
+                "@createIf": "{{object_middle}}{{object_first}}",
+                ".@type": "Person",
+                "value": "{{object_middle}}{% if object_middle %} {% endif %}{{object_first}}",
                 "language": "ja"
             },
             "jpcoar:affiliation[DATA_MANAGER_AFFILIATION]": {
@@ -589,8 +640,8 @@
         }
     },
     "grdm-file:data-man-name-en": {
-        "@type": "string",
-        "@createIf": "{% if grdm_file_data_man_type_value == \"individual\" and grdm_file_file_type_value != \"manuscript\" %}{{value}}{% endif %}",
+        "@type": "object",
+        "@createIf": "{% if grdm_file_data_man_type_value == \"individual\" and grdm_file_file_type_value != \"manuscript\" %}{{object_last}}{% endif %}",
         "root.jpcoar:contributor[DATA_MANAGER]": {
             ".@type": "Person",
             "additionalType": {
@@ -598,9 +649,21 @@
             },
             "jpcoar:contributorType": "DataManager",
             "jpcoar:contributorName[DATA_MANAGER_EN]": {
-                "@createIf": "{{value}}",
+                "@createIf": "{{object_last}}",
                 ".@type": "Person",
-                "value": "{{value}}",
+                "value": "{{object_last}}{% if object_first %}, {{object_middle}}{% if object_middle %} {% endif %}{{object_first}}{% endif %}",
+                "language": "en"
+            },
+            "jpcoar:familyName[DATA_MANAGER_FAMILY_NAME_EN]": {
+                "@createIf": "{% if object_last and object_first %}true{% endif %}",
+                ".@type": "Person",
+                "value": "{{object_last}}",
+                "language": "en"
+            },
+            "jpcoar:givenName[DATA_MANAGER_GIVEN_NAME_EN]": {
+                "@createIf": "{{object_middle}}{{object_first}}",
+                ".@type": "Person",
+                "value": "{{object_middle}}{% if object_middle %} {% endif %}{{object_first}}",
                 "language": "en"
             },
             "jpcoar:affiliation[DATA_MANAGER_AFFILIATION]": {

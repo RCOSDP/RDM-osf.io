@@ -11,6 +11,180 @@ from osf.models.metaschema import RegistrationSchema
 logger = logging.getLogger(__name__)
 
 
+class FileMetadataMigrator:
+    """Migrate file metadata across FileMetadata, Registration, and DraftRegistration.
+
+    transform_item: fn(item_data: dict) -> bool
+        Mutates item_data in-place. Returns True if changed.
+    transform_filemetadata_entry: fn(entry: dict) -> bool
+        Mutates a filemetadata entry (with 'metadata' key) in-place. Returns True if changed.
+        Used for Registration/DraftRegistration where filemetadata is nested.
+    """
+
+    def __init__(self, schema_name, transform_item, transform_filemetadata_entry=None):
+        self.schema_name = schema_name
+        self.transform_item = transform_item
+        self.transform_filemetadata_entry = transform_filemetadata_entry or self._default_transform_entry
+
+    @staticmethod
+    def _default_transform_entry(entry):
+        return False
+
+    def _get_schema_ids(self):
+        schemas = list(RegistrationSchema.objects.filter(name=self.schema_name))
+        if not schemas:
+            logger.warning(f'Skipped: No schema found for "{self.schema_name}"')
+            return None
+        return [s._id for s in schemas]
+
+    def run(self):
+        schema_ids = self._get_schema_ids()
+        if schema_ids is None:
+            return
+        self._migrate_filemetadata(schema_ids)
+        self._migrate_registration(schema_ids)
+        self._migrate_draft_registration(schema_ids)
+
+    def _migrate_filemetadata(self, schema_ids):
+        from addons.metadata.models import FileMetadata
+        for fm in FileMetadata.objects.filter(metadata__isnull=False, deleted__isnull=True):
+            try:
+                metadata = json.loads(fm.metadata)
+            except json.JSONDecodeError:
+                logger.warning(f'Skipped: bad JSON for FileMetadata {fm._id}', exc_info=True)
+                continue
+            dirty = False
+            for item in metadata.get('items', []):
+                if item.get('schema') not in schema_ids:
+                    continue
+                if self.transform_item(item.get('data', {})):
+                    dirty = True
+            if dirty:
+                fm.metadata = json.dumps(metadata, ensure_ascii=False)
+                fm.save()
+                logger.info(f'Migrated FileMetadata {fm._id} path="{fm.path}"')
+
+    def _migrate_registration(self, schema_ids):
+        from osf.models import Registration
+        registrations = Registration.objects.filter(
+            registered_meta__isnull=False,
+            registered_schema__name=self.schema_name,
+        )
+        for reg in registrations:
+            dirty = False
+            for meta_key, meta_value in reg.registered_meta.items():
+                try:
+                    filemetadatas = json.loads(meta_value.get('grdm-files', {}).get('value', '[]'))
+                except json.JSONDecodeError:
+                    logger.warning(f'Skipped: bad JSON for Registration {reg._id}', exc_info=True)
+                    continue
+                entry_dirty = False
+                for entry in filemetadatas:
+                    if self.transform_filemetadata_entry(entry):
+                        entry_dirty = True
+                if entry_dirty:
+                    meta_value['grdm-files']['value'] = json.dumps(filemetadatas, ensure_ascii=False)
+                    reg.registered_meta[meta_key] = meta_value
+                    dirty = True
+            if dirty:
+                reg.save()
+                logger.info(f'Migrated Registration {reg._id}')
+
+    def _migrate_draft_registration(self, schema_ids):
+        from osf.models import DraftRegistration
+        drafts = DraftRegistration.objects.filter(
+            registration_metadata__isnull=False,
+            registration_schema__name=self.schema_name,
+        )
+        for draft in drafts:
+            meta_value = draft.registration_metadata
+            try:
+                file_list = meta_value.get('grdm-files', {}).get('value', '[]')
+                if not file_list:
+                    continue
+                filemetadatas = json.loads(file_list)
+            except json.JSONDecodeError:
+                logger.warning(f'Skipped: bad JSON for DraftRegistration {draft._id}', exc_info=True)
+                continue
+            entry_dirty = False
+            for entry in filemetadatas:
+                if self.transform_filemetadata_entry(entry):
+                    entry_dirty = True
+            if entry_dirty:
+                meta_value['grdm-files']['value'] = json.dumps(filemetadatas, ensure_ascii=False)
+                draft.save()
+                logger.info(f'Migrated DraftRegistration {draft._id}')
+
+
+def _name_string_to_object(value):
+    """Convert a string name to {last, middle, first} object. Returns None if already object."""
+    if isinstance(value, dict):
+        return None
+    if isinstance(value, str):
+        return {'last': value, 'middle': '', 'first': ''}
+    logger.warning(f'Unexpected name value type: {type(value).__name__}')
+    return None
+
+
+def _transform_creators_rows(rows):
+    """Convert creator rows: rename name_ja -> name-ja, string -> object."""
+    dirty = False
+    for row in rows:
+        for old_key, new_key in [('name_ja', 'name-ja'), ('name_en', 'name-en')]:
+            if old_key in row:
+                converted = _name_string_to_object(row.pop(old_key))
+                row[new_key] = converted if converted is not None else row.get(new_key, '')
+                dirty = True
+            elif new_key in row:
+                converted = _name_string_to_object(row[new_key])
+                if converted is not None:
+                    row[new_key] = converted
+                    dirty = True
+    return dirty
+
+
+def transform_name_fields_item(data):
+    """Transform name fields in FileMetadata item data (has {value: ...} wrappers)."""
+    dirty = False
+    # creators: data['grdm-file:creators'] = {'value': [...]}
+    creators = data.get('grdm-file:creators')
+    if creators is not None:
+        rows = creators['value']
+        if isinstance(rows, str):
+            rows = json.loads(rows)
+            creators['value'] = rows
+        if isinstance(rows, list) and _transform_creators_rows(rows):
+            dirty = True
+    # data-man-name: data['grdm-file:data-man-name-ja'] = {'value': 'Full Name'}
+    for key in ('grdm-file:data-man-name-ja', 'grdm-file:data-man-name-en'):
+        field = data.get(key)
+        if field is not None:
+            converted = _name_string_to_object(field['value'])
+            if converted is not None:
+                field['value'] = converted
+                dirty = True
+    return dirty
+
+
+def transform_name_fields_entry(entry):
+    """Transform name fields in Registration/DraftRegistration filemetadata entry (no {value:} wrappers)."""
+    metadata = entry.get('metadata', {})
+    dirty = False
+    # creators: metadata['grdm-file:creators'] = [...]
+    creators = metadata.get('grdm-file:creators')
+    if isinstance(creators, list) and _transform_creators_rows(creators):
+        dirty = True
+    # data-man-name: metadata['grdm-file:data-man-name-ja'] = 'Full Name'
+    for key in ('grdm-file:data-man-name-ja', 'grdm-file:data-man-name-en'):
+        value = metadata.get(key)
+        if value is not None:
+            converted = _name_string_to_object(value)
+            if converted is not None:
+                metadata[key] = converted
+                dirty = True
+    return dirty
+
+
 def _convert_metadata_key(key):
     if '-' not in key:
         return [key]
