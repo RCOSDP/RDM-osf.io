@@ -25,6 +25,7 @@ from addons.nextcloud import settings as nextcloud_settings
 from addons.s3 import utils as s3_utils
 from addons.s3compat import utils as s3compat_utils
 from addons.s3compatb3 import utils as s3compatb3_utils
+from addons.s3compatsigv4 import utils as s3compatsigv4_utils
 from addons.swift import settings as swift_settings, utils as swift_utils
 from addons.swift.provider import SwiftProvider
 from addons.dropboxbusiness import utils as dropboxbusiness_utils
@@ -68,6 +69,7 @@ enabled_providers_forinstitutions_list = [
 enabled_providers_list = [
     's3', 'osfstorage',
     'swift', 's3compat',
+    's3compatsigv4',
 ]
 enabled_providers_list.extend(enabled_providers_forinstitutions_list)
 
@@ -318,6 +320,54 @@ def test_s3compat_connection(host_url, access_key, secret_key, bucket):
         'data': {
             'id': user_info.id,
             'display_name': user_info.display_name,
+        }
+    }, http_status.HTTP_200_OK)
+
+def test_s3compatsigv4_connection(host_url, access_key, secret_key, bucket):
+    host = host_url.rstrip('/').replace('https://', '').replace('http://', '')
+    if not (host and access_key and secret_key and bucket):
+        return ({
+            'message': 'All the fields above are required.'
+        }, http_status.HTTP_400_BAD_REQUEST)
+
+    try:
+        user_info = s3compatsigv4_utils.get_user_info(host, access_key, secret_key)
+    except Exception as e:
+        user_info = None
+        logger.error(f'Failed to get user info for s3compatsigv4: {e}')
+    if not user_info:
+        return ({
+            'message': 'Unable to access account.\n'
+            'Check to make sure that the above credentials are valid, '
+            'and that they have permission to list buckets.',
+        }, http_status.HTTP_400_BAD_REQUEST)
+
+    try:
+        res = s3compatsigv4_utils.can_list(host, access_key, secret_key)
+    except Exception as e:
+        res = False
+        logger.error(f'Failed to list buckets for s3compatsigv4: {e}')
+    if not res:
+        return ({
+            'message': 'Unable to list buckets.\n'
+            'Listing buckets is required permission that can be changed via IAM',
+        }, http_status.HTTP_400_BAD_REQUEST)
+
+    try:
+        res = s3compatsigv4_utils.bucket_exists(host, access_key, secret_key, bucket)
+    except Exception as e:
+        res = False
+        logger.error(f'Failed to check bucket existence for s3compatsigv4: {e}')
+    if not res:
+        return ({
+            'message': 'Invalid bucket.',
+        }, http_status.HTTP_400_BAD_REQUEST)
+
+    return ({
+        'message': 'Credentials are valid',
+        'data': {
+            'id': user_info['id'],
+            'display_name': user_info['display_name'],
         }
     }, http_status.HTTP_200_OK)
 
@@ -656,6 +706,39 @@ def save_s3compat_credentials(institution_id, storage_name, host_url, access_key
             'encrypt_uploads': server_side_encryption,
             'bucket': bucket,
             'provider': 's3compat',
+            'type': Region.INSTITUTIONS,
+        }
+    }
+
+    region = update_storage(institution_id, storage_name, wb_credentials, wb_settings)
+    external_util.remove_region_external_account(region)
+
+    return ({
+        'message': 'Saved credentials successfully!!'
+    }, http_status.HTTP_200_OK)
+
+def save_s3compatsigv4_credentials(institution_id, storage_name, host_url, access_key, secret_key,
+                              bucket, server_side_encryption=False):
+
+    test_connection_result = test_s3compatsigv4_connection(host_url, access_key, secret_key, bucket)
+    if test_connection_result[1] != http_status.HTTP_200_OK:
+        return test_connection_result
+
+    host = host_url.rstrip('/').replace('https://', '').replace('http://', '')
+
+    wb_credentials = {
+        'storage': {
+            'access_key': access_key,
+            'secret_key': secret_key,
+            'host': host,
+        }
+    }
+    wb_settings = {
+        'storage': {
+            'folder': '',
+            'encrypt_uploads': server_side_encryption,
+            'bucket': bucket,
+            'provider': 's3compatsigv4',
             'type': Region.INSTITUTIONS,
         }
     }
@@ -1198,6 +1281,19 @@ def get_s3compat_info(waterbutler_credentials_storage, waterbutler_settings_stor
     }
 
 
+def get_s3compatsigv4_info(waterbutler_credentials_storage, waterbutler_settings_storage):
+    """Get storage information for S3 Compatible (SigV4) Storage."""
+    return {
+        'host': create_storage_info_template('Endpoint URL', waterbutler_credentials_storage.get('host')),
+        'access_key': create_storage_info_template('Access Key', waterbutler_credentials_storage.get('access_key')),
+        'bucket': create_storage_info_template('Bucket', waterbutler_settings_storage.get('bucket')),
+        'encrypt_uploads': create_storage_info_template(
+            'Enable Server Side Encryption',
+            waterbutler_settings_storage.get('encrypt_uploads', False)
+        )
+    }
+
+
 def get_s3compatinstitutions_info(institution, provider_name, region):
     """Get storage information for S3 Compatible Storage for Institutions."""
     rdm_addon_option, external_account = get_institution_addon_info(institution.id, provider_name)
@@ -1253,6 +1349,7 @@ def get_institutional_storage_information(provider_name, region, institution):
         'osfstorage': lambda: get_osfstorage_info(waterbutler_settings_storage),
         's3': lambda: get_s3_info(waterbutler_credentials_storage, waterbutler_settings_storage),
         's3compat': lambda: get_s3compat_info(waterbutler_credentials_storage, waterbutler_settings_storage),
+        's3compatsigv4': lambda: get_s3compatsigv4_info(waterbutler_credentials_storage, waterbutler_settings_storage),
         's3compatinstitutions': lambda: get_s3compatinstitutions_info(institution, provider_name, region),
         'ociinstitutions': lambda: get_ociinstitutions_info(institution, provider_name),
         'nextcloudinstitutions': lambda: get_nextcloudinstitutions_info(institution, provider_name),
