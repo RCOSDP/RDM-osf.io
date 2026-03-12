@@ -132,7 +132,8 @@ def s3compatsigv4_add_user_account(auth, **kwargs):
             account.oauth_key = access_key
             account.oauth_secret = secret_key
             account.save()
-    assert account is not None
+    if account is None:
+        raise HTTPError(http_status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     if not auth.user.external_accounts.filter(id=account.id).exists():
         auth.user.external_accounts.add(account)
@@ -166,14 +167,14 @@ def s3compatsigv4_create_bucket(auth, node_addon, **kwargs):
 
     try:
         utils.create_bucket(node_addon, bucket_name, bucket_location)
-    except ClientError as e:
+    except ClientError:
         return {
-            'message': str(e),
+            'message': 'Problem creating bucket. Please check your permissions and try again.',
             'title': 'Problem connecting to S3 Compatible Storage (SigV4)',
         }, http_status.HTTP_400_BAD_REQUEST
-    except BotoCoreError as e:  # Base class catchall
+    except BotoCoreError:
         return {
-            'message': str(e),
+            'message': 'Error connecting to S3 Compatible Storage (SigV4). Please try again later.',
             'title': 'Error connecting to S3 Compatible Storage (SigV4)',
         }, http_status.HTTP_400_BAD_REQUEST
 

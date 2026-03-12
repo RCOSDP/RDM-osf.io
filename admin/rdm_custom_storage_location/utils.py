@@ -332,41 +332,35 @@ def test_s3compatsigv4_connection(host_url, access_key, secret_key, bucket):
 
     try:
         user_info = s3compatsigv4_utils.get_user_info(host, access_key, secret_key)
-        e_message = ''
     except Exception as e:
         user_info = None
-        e_message = traceback.format_exception_only(type(e), e)[0].rstrip('\n')
+        logger.error(f'Failed to get user info for s3compatsigv4: {e}')
     if not user_info:
         return ({
             'message': 'Unable to access account.\n'
             'Check to make sure that the above credentials are valid, '
             'and that they have permission to list buckets.',
-            'e_message': e_message
         }, http_status.HTTP_400_BAD_REQUEST)
 
     try:
         res = s3compatsigv4_utils.can_list(host, access_key, secret_key)
-        e_message = ''
     except Exception as e:
         res = False
-        e_message = traceback.format_exception_only(type(e), e)[0].rstrip('\n')
+        logger.error(f'Failed to list buckets for s3compatsigv4: {e}')
     if not res:
         return ({
             'message': 'Unable to list buckets.\n'
             'Listing buckets is required permission that can be changed via IAM',
-            'e_message': e_message
         }, http_status.HTTP_400_BAD_REQUEST)
 
     try:
         res = s3compatsigv4_utils.bucket_exists(host, access_key, secret_key, bucket)
-        e_message = ''
     except Exception as e:
         res = False
-        e_message = traceback.format_exception_only(type(e), e)[0].rstrip('\n')
+        logger.error(f'Failed to check bucket existence for s3compatsigv4: {e}')
     if not res:
         return ({
             'message': 'Invalid bucket.',
-            'e_message': e_message
         }, http_status.HTTP_400_BAD_REQUEST)
 
     return ({

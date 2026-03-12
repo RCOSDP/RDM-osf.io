@@ -5,14 +5,18 @@ from addons.base.models import (BaseOAuthNodeSettings, BaseOAuthUserSettings,
 from django.db import models
 from framework.auth.core import Auth
 from osf.models.files import File, Folder, BaseFileNode
+import logging
 from addons.base import exceptions
 from addons.s3compatsigv4.provider import S3CompatSigV4Provider
 from addons.s3compatsigv4.serializer import S3CompatSigV4Serializer
 from addons.s3compatsigv4.settings import ENCRYPT_UPLOADS_DEFAULT
+from framework.exceptions import HTTPError
 from addons.s3compatsigv4.utils import (bucket_exists,
                                      get_bucket_location_or_error,
                                      get_bucket_names,
                                      find_service_by_host)
+
+logger = logging.getLogger(__name__)
 
 class S3CompatSigV4FileNode(BaseFileNode):
     _provider = 's3compatsigv4'
@@ -67,6 +71,7 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
             folder_id
         )
         self.folder_location = bucket_location
+        service = None
         try:
             service = find_service_by_host(host)
             bucket_location = service['bucketLocations'][bucket_location]['name']
@@ -77,7 +82,7 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
             bucket_location = 'Default'
 
         self.folder_name = '{} ({})'.format(folder_id, bucket_location)
-        self.encrypt_uploads = service.get('serverSideEncryption', True)
+        self.encrypt_uploads = service.get('serverSideEncryption', True) if service else True
         self.save()
 
         self.nodelogger.log(action='bucket_linked', extra={'bucket': str(folder_id)}, save=True)
@@ -87,7 +92,10 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
         # as that's all we want to be linkable on a node.
         try:
             buckets = get_bucket_names(self)
-        except Exception:
+        except HTTPError:
+            raise exceptions.InvalidAuthError()
+        except Exception as e:
+            logger.error(f'Unexpected error in get_folders: {e}')
             raise exceptions.InvalidAuthError()
 
         return [
