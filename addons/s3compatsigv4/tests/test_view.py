@@ -305,4 +305,4 @@ class TestCreateBucket(S3CompatSigV4AddonTestCase, OsfTestCase):
         url = '/api/v1/project/{0}/s3compatsigv4/newbucket/'.format(self.project._id)
         ret = self.app.post_json(url, {'bucket_name': 'doesntevenmatter'}, auth=self.user.auth, expect_errors=True)
 
-        assert_equals(ret.body.decode(), '{"message": "An error occurred (418) when calling the CreateBucket operation: This should work", "title": "Problem connecting to S3 Compatible Storage (SigV4)"}')
+        assert_equals(ret.body.decode(), '{"message": "Problem creating bucket. Please check your permissions and try again.", "title": "Problem connecting to S3 Compatible Storage (SigV4)"}')
