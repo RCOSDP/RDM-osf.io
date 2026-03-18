@@ -11,7 +11,7 @@
     ${render_group_dict(group) if isinstance(group, dict) else render_user_obj(group)}
   % endfor
   % if others_count:
-      <a href="${node_url}">${_("%(othersCount)s more") % dict(othersCount=others_count)}</a>
+      <a href="${node_url}">${_("%(groupOthersCount)s more") % dict(groupOthersCount=others_count)}</a>
   % endif
 </%def>
 

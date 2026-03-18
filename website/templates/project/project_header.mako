@@ -47,7 +47,7 @@
                         <!-- Add-on tabs  -->
                         % for addon in addons_enabled:
 
-                            % if addon not in ['binderhub', 'metadata', 'workflow'] and addons[addon]['has_page']:
+                            % if addon not in ['binderhub', 'metadata', 'workflow', 'groups'] and addons[addon]['has_page']:
                                 <li>
                                     <a href="${node['url']}${addons[addon]['short_name']}">
 
@@ -118,8 +118,7 @@
                         % if user['is_contributor_or_group_member']:
                             <li><a href="${node['url']}contributors/">${_("Contributors")}</a></li>
                         % endif
-
-                        % if user['is_contributor_or_group_member']:
+                        % if 'groups' in addons_enabled and addons['groups']['has_page']:
                             <li><a href="${node['url']}groups/">${_("Groups")}</a></li>
                         % endif
 

@@ -28,7 +28,7 @@ if (isContribPage) {
 
 if (isGroupPage) {
     // cm = new ContribManager('#manageContributors', ctx.contributors, ctx.adminContributors, ctx.currentUser, ctx.isRegistration, '#manageContributorsTable', '#adminContributorsTable');
-    gm = new GroupManager('#manageGroups', ctx.groups,ctx.adminGroups, ctx.currentUser, ctx.isRegistration, '#manageGroupsTable', '#adminGroupsTable');
+    gm = new GroupManager('#manageGroups', ctx.groups, ctx.adminGroups, ctx.currentUser, ctx.isRegistration, '#manageGroupsTable', '#adminGroupsTable', ctx.baseUrl);
 }
 
 if (hasAccessRequests) {

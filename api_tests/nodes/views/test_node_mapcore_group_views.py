@@ -7,6 +7,8 @@ from osf.models.mapcore_node_group import MapCoreNodeGroup
 from osf.models.mapcore_user_group import MapCoreUserGroup
 from osf_tests.factories import AuthUserFactory, NodeFactory, ProjectFactory, UserFactory
 from tests.base import ApiTestCase
+from framework.auth import Auth
+
 
 @pytest.mark.django_db
 class TestNodeMapCoreGroupList(ApiTestCase):
@@ -21,6 +23,7 @@ class TestNodeMapCoreGroupList(ApiTestCase):
         self.node = ProjectFactory(creator=self.admin_user, is_public=False)
         self.node.add_contributor(self.user, permissions='admin')
         self.node.add_contributor(self.read_only_user, permissions='read')
+        self.node.add_addon('groups', auth=Auth(self.user))  # Enable groups addon
         self.node.save()
 
         # Create auth groups for the node
@@ -764,8 +767,9 @@ class TestMixinMapCorePermissions:
         from osf.models.node import NodeGroupObjectPermission
 
         node = ProjectFactory()
-        # user that will be "in" the mapcore group
         mapcore_user = UserFactory()
+        node.add_addon('groups', auth=Auth(mapcore_user))  # Enable groups addon
+        # user that will be "in" the mapcore group
         # other user not in group
         other_user = UserFactory()
 
@@ -794,7 +798,9 @@ class TestMixinMapCorePermissions:
 
         # Create a root node and a child node
         root = ProjectFactory()
+        root.add_addon('groups', auth=Auth(root.creator))  # Enable groups addon on root
         child = NodeFactory(creator=root.creator, parent=root)
+        child.add_addon('groups', auth=Auth(root.creator))  # Enable groups addon on child
 
         # Users
         mapcore_user = UserFactory()
@@ -841,6 +847,7 @@ class TestMixinMapCorePermissions:
         from osf.models.node import NodeGroupObjectPermission
 
         node = ProjectFactory()
+        node.add_addon('groups', auth=Auth(node.creator))  # Enable groups addon
         mapcore_user = UserFactory()
         other_user = UserFactory()
 
@@ -888,3 +895,190 @@ class TestMixinMapCorePermissions:
 
         with mock.patch('osf.models.mapcore_node_group.MapCoreNodeGroup.objects.filter', side_effect=Exception('boom')):
             assert is_admin_group_parent(parent, user_mapcore_group_ids) is False
+
+    def test_has_permission_mapcore_groups_addon_disabled(self):
+        """When groups addon is disabled, MapCore permission logic is skipped and user is denied."""
+        from django.contrib.auth.models import Permission
+        from osf.models.node import NodeGroupObjectPermission
+
+        node = ProjectFactory()
+        mapcore_user = UserFactory()
+
+        # Ensure groups addon is disabled
+        if node.has_addon('groups'):
+            node.delete_addon('groups', auth=Auth(mapcore_user))
+        assert not node.has_addon('groups')
+
+        mg = MapCoreGroup.objects.create(_id='mcg-addon-disabled-hasperm')
+        ag = AuthGroup.objects.create(name=f'node_{node._id}_read')
+
+        MapCoreNodeGroup.objects.create(node=node, group=ag, mapcore_group=mg, creator=node.creator)
+        MapCoreUserGroup.objects.create(user=mapcore_user, mapcore_group=mg, is_deleted=False)
+
+        perm = Permission.objects.get(codename='read_node')
+        NodeGroupObjectPermission.objects.create(group=ag, permission=perm, content_object=node)
+
+        # Without groups addon, MapCore permissions are not applied
+        assert node.has_permission(mapcore_user, 'read') is False
+
+    def test_has_permission_mapcore_groups_addon_enabled(self):
+        """When groups addon is enabled, MapCore permission logic grants access."""
+        from django.contrib.auth.models import Permission
+        from osf.models.node import NodeGroupObjectPermission
+        node = ProjectFactory()
+        mapcore_user = UserFactory()
+        node.add_addon('groups', auth=Auth(mapcore_user))  # Enable groups addon
+
+        mg = MapCoreGroup.objects.create(_id='mcg-addon-enabled-hasperm')
+        ag = AuthGroup.objects.create(name=f'node_{node._id}_read')
+
+        MapCoreNodeGroup.objects.create(node=node, group=ag, mapcore_group=mg, creator=node.creator)
+        MapCoreUserGroup.objects.create(user=mapcore_user, mapcore_group=mg, is_deleted=False)
+
+        perm = Permission.objects.get(codename='read_node')
+        NodeGroupObjectPermission.objects.create(group=ag, permission=perm, content_object=node)
+
+        # With groups addon enabled, MapCore permissions ARE applied
+        assert node.has_permission(mapcore_user, 'read') is True
+
+    def test_get_permissions_mapcore_groups_addon_disabled(self):
+        """When groups addon is disabled, MapCore-derived permissions are not included."""
+        from django.contrib.auth.models import Permission
+        from osf.models.node import NodeGroupObjectPermission
+
+        node = ProjectFactory()
+        mapcore_user = UserFactory()
+
+        # groups addon is NOT enabled
+        # Ensure groups addon is disabled
+        if node.has_addon('groups'):
+            node.delete_addon('groups', auth=Auth(mapcore_user))
+        assert not node.has_addon('groups')
+
+        mg = MapCoreGroup.objects.create(_id='mcg-addon-disabled-getperms')
+        ag = AuthGroup.objects.create(name=f'node_{node._id}_read')
+
+        MapCoreNodeGroup.objects.create(node=node, group=ag, mapcore_group=mg, creator=node.creator)
+        MapCoreUserGroup.objects.create(user=mapcore_user, mapcore_group=mg, is_deleted=False)
+
+        perm = Permission.objects.get(codename='read_node')
+        NodeGroupObjectPermission.objects.create(group=ag, permission=perm, content_object=node)
+
+        # Without groups addon, MapCore-derived permissions are not included
+        perms = node.get_permissions(mapcore_user)
+        assert 'read' not in perms
+
+    def test_get_permissions_mapcore_groups_addon_enabled(self):
+        """When groups addon is enabled, MapCore-derived permissions are included."""
+        from django.contrib.auth.models import Permission
+        from osf.models.node import NodeGroupObjectPermission
+
+        node = ProjectFactory()
+        mapcore_user = UserFactory()
+        node.add_addon('groups', auth=Auth(mapcore_user))  # Enable groups addon
+
+        mg = MapCoreGroup.objects.create(_id='mcg-addon-enabled-getperms')
+        ag = AuthGroup.objects.create(name=f'node_{node._id}_read')
+
+        MapCoreNodeGroup.objects.create(node=node, group=ag, mapcore_group=mg, creator=node.creator)
+        MapCoreUserGroup.objects.create(user=mapcore_user, mapcore_group=mg, is_deleted=False)
+
+        perm = Permission.objects.get(codename='read_node')
+        NodeGroupObjectPermission.objects.create(group=ag, permission=perm, content_object=node)
+
+        # With groups addon enabled, MapCore-derived permissions ARE included
+        perms = node.get_permissions(mapcore_user)
+        assert 'read' in perms
+
+    def test_has_permission_parent_admin_via_mapcore_groups_addon_disabled(self):
+        """When groups addon is disabled, parent admin via MapCore does NOT grant child read."""
+        from django.contrib.auth.models import Permission
+        from osf.models.node import NodeGroupObjectPermission
+
+        root = ProjectFactory()
+        root.add_addon('groups', auth=Auth(root.creator))  # Enable groups addon on root
+        child = NodeFactory(creator=root.creator, parent=root)
+        mapcore_user = UserFactory()
+
+        # groups addon NOT enabled on child
+        if child.has_addon('groups'):
+            child.delete_addon('groups', auth=Auth(mapcore_user))
+        assert not child.has_addon('groups')
+
+        mg = MapCoreGroup.objects.create(_id='mcg-parent-admin-disabled')
+        ag = AuthGroup.objects.create(name=f'node_{root._id}_admin')
+
+        MapCoreNodeGroup.objects.create(node=root, group=ag, mapcore_group=mg, creator=root.creator)
+        MapCoreUserGroup.objects.create(user=mapcore_user, mapcore_group=mg, is_deleted=False)
+
+        perm = Permission.objects.get(codename='admin_node')
+        NodeGroupObjectPermission.objects.create(group=ag, permission=perm, content_object=root)
+
+        # Without groups addon on child, is_admin_group_parent path is not taken
+        assert child.has_permission(mapcore_user, 'read') is True
+
+    def test_has_permission_parent_admin_via_mapcore_groups_addon_enabled(self):
+        """When groups addon is enabled, parent admin via MapCore grants child read."""
+        from django.contrib.auth.models import Permission
+        from osf.models.node import NodeGroupObjectPermission
+
+        root = ProjectFactory()
+        child = NodeFactory(creator=root.creator, parent=root)  # Enable groups addon on child
+        mapcore_user = UserFactory()
+        child.add_addon('groups', auth=Auth(mapcore_user))
+
+        mg = MapCoreGroup.objects.create(_id='mcg-parent-admin-enabled')
+        ag = AuthGroup.objects.create(name=f'node_{root._id}_admin')
+
+        MapCoreNodeGroup.objects.create(node=root, group=ag, mapcore_group=mg, creator=root.creator)
+        MapCoreUserGroup.objects.create(user=mapcore_user, mapcore_group=mg, is_deleted=False)
+
+        perm = Permission.objects.get(codename='admin_node')
+        NodeGroupObjectPermission.objects.create(group=ag, permission=perm, content_object=root)
+
+        # With groups addon enabled on child, is_admin_group_parent path grants read
+        assert child.has_permission(mapcore_user, 'read') is True
+
+    def test_has_permission_mapcore_groups_addon_deleted_acts_as_disabled(self):
+        """A deleted (soft-removed) groups addon is treated as disabled."""
+        from django.contrib.auth.models import Permission
+        from osf.models.node import NodeGroupObjectPermission
+
+        node = ProjectFactory()
+        mapcore_user = UserFactory()
+        node.add_addon('groups', auth=Auth(mapcore_user))
+        node.delete_addon('groups', auth=Auth(mapcore_user))  # Soft-delete the addon
+
+        mg = MapCoreGroup.objects.create(_id='mcg-addon-deleted-hasperm')
+        ag = AuthGroup.objects.create(name=f'node_{node._id}_read')
+
+        MapCoreNodeGroup.objects.create(node=node, group=ag, mapcore_group=mg, creator=node.creator)
+        MapCoreUserGroup.objects.create(user=mapcore_user, mapcore_group=mg, is_deleted=False)
+
+        perm = Permission.objects.get(codename='read_node')
+        NodeGroupObjectPermission.objects.create(group=ag, permission=perm, content_object=node)
+
+        # Deleted addon is not returned by get_addons, so MapCore logic is skipped
+        assert node.has_permission(mapcore_user, 'read') is False
+
+    def test_get_permissions_mapcore_groups_addon_deleted_acts_as_disabled(self):
+        """A deleted (soft-removed) groups addon means MapCore permissions are not included."""
+        from django.contrib.auth.models import Permission
+        from osf.models.node import NodeGroupObjectPermission
+
+        node = ProjectFactory()
+        mapcore_user = UserFactory()
+        node.add_addon('groups', auth=Auth(mapcore_user))
+        node.delete_addon('groups', auth=Auth(mapcore_user))  # Soft-delete the addon
+
+        mg = MapCoreGroup.objects.create(_id='mcg-addon-deleted-getperms')
+        ag = AuthGroup.objects.create(name=f'node_{node._id}_read')
+
+        MapCoreNodeGroup.objects.create(node=node, group=ag, mapcore_group=mg, creator=node.creator)
+        MapCoreUserGroup.objects.create(user=mapcore_user, mapcore_group=mg, is_deleted=False)
+
+        perm = Permission.objects.get(codename='read_node')
+        NodeGroupObjectPermission.objects.create(group=ag, permission=perm, content_object=node)
+
+        perms = node.get_permissions(mapcore_user)
+        assert 'read' not in perms

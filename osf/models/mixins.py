@@ -628,6 +628,9 @@ class AddonModelMixin(models.Model):
             config = apps.get_app_config('addons_{}'.format(addon_model))
         return getattr(config, '{}_settings'.format(self.settings_type))
 
+    def mapcore_groups_addon_enabled(self):
+        return self.has_addon('groups')
+
 
 class NodeLinkMixin(models.Model):
 
@@ -1941,8 +1944,12 @@ class ContributorMixin(models.Model):
         """
         object_type = self.guardian_object_type
         group_perm = []
+        enabled_groups = False
+        if hasattr(self, 'mapcore_groups_addon_enabled'):
+            enabled_groups = self.mapcore_groups_addon_enabled()
+
         # Also check Auth Groups linked via MapCoreNodeGroup (by auth_group id)
-        if object_type == 'node':
+        if object_type == 'node' and enabled_groups:
             try:
                 user_mapcore_group_ids = MapCoreUserGroup.objects.filter(user=user, is_deleted=False).values_list('mapcore_group_id', flat=True)
                 # get auth group ids linked to this object
@@ -1968,7 +1975,7 @@ class ContributorMixin(models.Model):
         has_permission = perm in get_group_perms(user, self)
         if object_type == 'node':
             if not has_permission and permission == READ and check_parent:
-                if is_admin_group_parent(self.root, user_mapcore_group_ids):
+                if enabled_groups and is_admin_group_parent(self.root, user_mapcore_group_ids):
                     return True
                 else:
                     return self.is_admin_parent(user)
@@ -1995,22 +2002,27 @@ class ContributorMixin(models.Model):
         # Overrides guardian mixin - returns readable perms instead of literal perms
         if isinstance(user, AnonymousUser):
             return []
-
-        try:
-            user_mapcore_group_ids = MapCoreUserGroup.objects.filter(user=user, is_deleted=False).values_list('mapcore_group_id', flat=True)
-            # get auth group ids linked to this object
-            auth_group_ids = MapCoreNodeGroup.objects.filter(node=self, mapcore_group_id__in=user_mapcore_group_ids, is_deleted=False).values_list('group_id', flat=True)
-        except Exception:
-            auth_group_ids = []
+        enabled_groups = False
+        if hasattr(self, 'mapcore_groups_addon_enabled'):
+            enabled_groups = self.mapcore_groups_addon_enabled()
         group_perms = []
-        if auth_group_ids:
-            # Try OSF-specific node-group-permission model(s), then fallback to guardian's GroupObjectPermission
-            NodeGroupPermModel = apps.get_model('osf', 'NodeGroupObjectPermission')
-            for gid in auth_group_ids:
-                perms_qs = NodeGroupPermModel.objects.filter(group_id=gid, content_object_id=self.id)
-                for perm in list(perms_qs.values_list('permission__codename', flat=True)):
-                    if perm not in group_perms:
-                        group_perms.append(perm)
+        # Also check Auth Groups linked via MapCoreNodeGroup (by auth_group id) if node and groups addon enabled
+        if enabled_groups:
+            try:
+                user_mapcore_group_ids = MapCoreUserGroup.objects.filter(user=user, is_deleted=False).values_list('mapcore_group_id', flat=True)
+                # get auth group ids linked to this object
+                auth_group_ids = MapCoreNodeGroup.objects.filter(node=self, mapcore_group_id__in=user_mapcore_group_ids, is_deleted=False).values_list('group_id', flat=True)
+            except Exception:
+                auth_group_ids = []
+
+            if auth_group_ids:
+                # Try OSF-specific node-group-permission model(s), then fallback to guardian's GroupObjectPermission
+                NodeGroupPermModel = apps.get_model('osf', 'NodeGroupObjectPermission')
+                for gid in auth_group_ids:
+                    perms_qs = NodeGroupPermModel.objects.filter(group_id=gid, content_object_id=self.id)
+                    for perm in list(perms_qs.values_list('permission__codename', flat=True)):
+                        if perm not in group_perms:
+                            group_perms.append(perm)
 
         # If base_perms not on model, will error
         perms = self.base_perms

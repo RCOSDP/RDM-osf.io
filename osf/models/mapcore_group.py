@@ -12,3 +12,7 @@ class MapCoreGroup(BaseModel):
     @property
     def absolute_url(self):
         return f'{MAPCORE_GROUP_HOSTNAME}{MAPCORE_GROUP_API_PATH}{self._id}/'
+
+    @property
+    def display_name(self):
+        return self._id

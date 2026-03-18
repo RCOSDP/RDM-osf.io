@@ -17,6 +17,7 @@ from django.utils import timezone
 from django.urls import resolve, reverse
 
 from osf.models import QuickFilesNode
+from framework.auth.core import Auth
 
 @pytest.fixture()
 def user():
@@ -263,6 +264,7 @@ class TestUserNodeSerializer:
         from osf_tests.factories import ProjectFactory
 
         node = ProjectFactory(creator=user)
+        node.add_addon('groups', auth=Auth(node.creator))  # Enable groups addon
 
         # Create two MapCoreGroup records
         g1 = MapCoreGroup.objects.create(_id='group-one')

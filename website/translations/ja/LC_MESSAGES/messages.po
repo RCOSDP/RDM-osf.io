@@ -5150,3 +5150,12 @@ msgstr "ワークフローテンプレートを更新しました。"
 #: addons/workflow/static/workflowNodeConfig.js:876
 msgid "Failed to update workflow template."
 msgstr "ワークフローテンプレートの更新に失敗しました。"
+
+msgid "※ Group members can be edited using the GakuNin mAP {baseUrl}."
+msgstr "※グループのメンバー編集は、学認mAP機能 {baseUrl} で実施します。"
+
+msgid "If a group member currently logged into GakuNin RDM is deleted on the mAP, they will not be removed from the project until they log out."
+msgstr "GakuNin RDMログイン中のグループメンバーをmAP機能上で削除する場合、当該ユーザがログアウトするまでプロジェクトからは削除されません。"
+
+msgid "%(groupOthersCount)s more"
+msgstr "あと%(groupOthersCount)sグループ"
