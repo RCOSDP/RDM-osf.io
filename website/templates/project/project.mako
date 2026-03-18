@@ -175,6 +175,7 @@
                     </ol>
                 % endif
                 </div>
+                % if node['enabled_mapcore_groups']:
                 <div id="groupsList" style="height: 25px; overflow: hidden">
                 % if user['is_contributor_or_group_member']:
                     <a class="link-dashed" href="${node['url']}groups/">${_("Groups")}</a>:
@@ -185,11 +186,16 @@
                 % if node['anonymous']:
                     <ol>${_("Anonymous Groups")}</ol>
                 % else:
+                    % if node['mapcore_groups'] != []:
                     <ol>
                         ${group_list.render_groups_full(groups=node['mapcore_groups'])}
                     </ol>
+                    % else:
+                    <span> ${_("None")} </span>
+                    % endif
                 % endif
                 </div>
+                % endif
                 % if node['groups']:
                     <div>
                         Groups:

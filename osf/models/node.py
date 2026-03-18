@@ -5,6 +5,7 @@ import logging
 import re
 from future.moves.urllib.parse import urljoin
 import warnings
+from osf.models.mapcore_group import MapCoreGroup
 from osf.models.mapcore_node_group import MapCoreNodeGroup
 from osf.models.mapcore_user_group import MapCoreUserGroup
 from rest_framework import status as http_status
@@ -2550,6 +2551,12 @@ class Node(AbstractNode):
         """Return node's GUID if it exists, otherwise return None."""
         guid = self.guids.first()
         return guid._id if guid else guid
+
+    @property
+    def mapcore_groups(self):
+        if not self.has_addon('groups'):
+            return MapCoreGroup.objects.none()
+        return MapCoreGroup.objects.filter(mapcore_group_nodes__node=self, mapcore_group_nodes__is_deleted=False)
 
 def remove_addons(auth, resource_object_list):
     for config in AbstractNode.ADDONS_AVAILABLE:

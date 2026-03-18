@@ -140,6 +140,7 @@ INSTALLED_APPS = (
     'addons.onedrivebusiness',
     'addons.metadata',
     'addons.workflow',
+    'addons.groups',
 )
 
 MIGRATION_MODULES = {
@@ -186,7 +187,8 @@ UNSUPPORTED_FORCE_TO_USE_ADDONS = [
     'nextcloud',
     'gitlab',
     'onedrive',
-    'iqbrims'
+    'iqbrims',
+    'groups'
 ]
 
 USE_TZ = True

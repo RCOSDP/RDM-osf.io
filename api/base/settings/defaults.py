@@ -128,6 +128,7 @@ INSTALLED_APPS = (
     'addons.metadata',
     'addons.workflow',
     'addons.onlyoffice',
+    'addons.groups',
 )
 
 # local development using https

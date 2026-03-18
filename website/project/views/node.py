@@ -40,6 +40,7 @@ from website.project.decorators import (
     must_have_permission,
     must_not_be_registration,
     must_not_be_retracted_registration,
+    must_have_addon,
 )
 from osf.utils.tokens import process_token_or_pass
 from website.util.rubeus import collect_addon_js
@@ -538,11 +539,13 @@ def node_contributors(auth, node, **kwargs):
 @must_not_be_retracted_registration
 @must_have_permission(READ)
 @ember_flag_is_active(features.EMBER_PROJECT_CONTRIBUTORS)
+@must_have_addon('groups', 'node')
 def node_groups(auth, node, **kwargs):
     ret = _view_project(node, auth, primary=True)
     ret['groups'] = utils.serialize_mapcore_node_groups(node)
     current_group = [group['mapcore_group']['id'] for group in ret['groups']]
     ret['adminGroups'] = utils.serialize_parent_admin_groups(node, current_group)
+    ret['baseUrl'] = settings.MAPCORE_GROUP_HOSTNAME
     return ret
 
 @must_have_permission(ADMIN)
@@ -918,6 +921,9 @@ def _view_project(node, auth, primary=False,
     is_registration = node.is_registration
     timestamp_pattern = get_timestamp_pattern_division(auth, node)
     mapcore_groups = utils.serialize_mapcore_node_groups(node, visible_only=True)
+    enabled_mapcore_groups = False
+    if hasattr(node, 'mapcore_groups_addon_enabled'):
+        enabled_mapcore_groups = node.mapcore_groups_addon_enabled()
     data = {
         'node': {
             'disapproval_link': disapproval_link,
@@ -989,6 +995,7 @@ def _view_project(node, auth, primary=False,
             'mfr_url': node.osfstorage_region.mfr_url,
             'groups': list(node.osf_groups.values_list('name', flat=True)),
             'mapcore_groups': mapcore_groups,
+            'enabled_mapcore_groups': enabled_mapcore_groups,
         },
         'parent_node': {
             'exists': parent is not None,

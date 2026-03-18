@@ -101,9 +101,11 @@
         <div class="project-authors">
             ${contributor_list.render_contributors(contributors=summary['contributors'], others_count=summary['others_count'], node_url=summary['url'])}
         </div>
+        % if summary['enabled_mapcore_groups']:
         <div class="project-authors">
             ${group_list.render_groups(groups=summary['mapcore_groups'], others_count=summary['mapcore_groups_others_count'], node_url=summary['url'])}
         </div>
+        % endif
         % if summary['groups']:
             <div class="project-authors">
                 ${summary['groups']}

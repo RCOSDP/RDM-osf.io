@@ -212,7 +212,7 @@ var MessageModel = function(text, level) {
 
 };
 
-var GroupsViewModel = function(groups, adminGroups, user, isRegistration, table, adminTable, groupShouter, pageChangedShouter) {
+var GroupsViewModel = function(groups, adminGroups, user, isRegistration, table, adminTable, groupShouter, pageChangedShouter, baseUrl) {
 
     var self = this;
 
@@ -228,6 +228,7 @@ var GroupsViewModel = function(groups, adminGroups, user, isRegistration, table,
 
     self.permissionList = Object.keys(self.permissionMap);
     self.groupToRemove = ko.observable('');
+    self.baseUrl = baseUrl;
 
     self.groups = ko.observableArray();
     self.adminGroups = ko.observableArray();
@@ -473,7 +474,7 @@ var GroupsViewModel = function(groups, adminGroups, user, isRegistration, table,
 // Public API //
 ////////////////
 
-function GroupManager(selector, groups, adminGroups, user, isRegistration, table, adminTable) {
+function GroupManager(selector, groups, adminGroups, user, isRegistration, table, adminTable, baseUrl) {
     var self = this;
     //shouter allows communication between GroupManager and GroupsRemover, in particular which group needs to
     // be removed is passed to GroupsRemover
@@ -483,7 +484,8 @@ function GroupManager(selector, groups, adminGroups, user, isRegistration, table
     self.$element = $(selector);
     self.groups = groups;
     self.adminGroups = adminGroups;
-    self.viewModel = new GroupsViewModel(groups, adminGroups, user, isRegistration, table, adminTable, groupShouter, pageChangedShouter);
+    self.baseUrl = baseUrl;
+    self.viewModel = new GroupsViewModel(groups, adminGroups, user, isRegistration, table, adminTable, groupShouter, pageChangedShouter, baseUrl);
     $('body').on('nodeLoad', function(event, data) {
         // If user is a group, initialize the group modal
         // controller

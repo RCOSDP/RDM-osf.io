@@ -2406,6 +2406,9 @@ class NodeMapCoreGroupList(JSONAPIBaseView, generics.ListAPIView, bulk_views.Bul
     # overrides ListBulkCreateJSON APIView, BulkUpdateJSONAPIView
     def get_queryset(self):
         node = self.get_node()
+        enabled_mapcore_groups = node.mapcore_groups_addon_enabled()
+        if not enabled_mapcore_groups:
+            return MapCoreNodeGroup.objects.none()
         qs = MapCoreNodeGroup.objects.filter(node=node, is_deleted=False)
         # Avoid N+1 on foreign-key relations reported by nplusone
         qs = qs.select_related('creator', 'mapcore_group')
@@ -2427,8 +2430,6 @@ class NodeMapCoreGroupList(JSONAPIBaseView, generics.ListAPIView, bulk_views.Bul
         for obj in qs:
             obj.permissions = perm_map.get(obj.group_id, [])
 
-        # If any related fields are reverse or many-to-many, use prefetch_related:
-        # qs = qs.prefetch_related('some_m2m_field')
         return qs
 
     # Overrides BulkDestroyJSONAPIView

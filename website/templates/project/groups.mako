@@ -51,6 +51,10 @@
 
 <div class="col-md-9 col-xs-12">
     <div id="manageGroups" class="scripted">
+        <div id= "groupsNotes" class="groupsNotes">
+            <h3>${_("※ Group members can be edited using the GakuNin mAP {baseUrl}.").format(baseUrl="<a data-bind='attr: {href: $root.baseUrl}, text: $root.baseUrl' target='_blank'></a>") | n}</h3>
+            <h3>${_("If a group member currently logged into GakuNin RDM is deleted on the mAP, they will not be removed from the project until they log out.")}</h3>
+        </div>
         <h3> ${_("Groups")}
             <!-- ko if: canEdit -->
                 <a href="#addGroups" data-toggle="modal" class="btn btn-success btn-sm m-l-md">
@@ -285,6 +289,7 @@
       window.contextVars.isRegistration = ${ node['is_registration'] | sjson, n };
       window.contextVars.groups = ${ groups | sjson, n };
       window.contextVars.adminGroups = ${ adminGroups | sjson, n };
+      window.contextVars.baseUrl = ${ baseUrl | sjson, n };
       window.contextVars.analyticsMeta = $.extend(true, {}, window.contextVars.analyticsMeta, {
           pageMeta: {
               title: 'Groups',

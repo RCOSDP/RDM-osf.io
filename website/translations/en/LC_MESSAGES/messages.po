@@ -4160,3 +4160,12 @@ msgstr ""
 
 msgid "Bibliographic Group Information"
 msgstr ""
+
+msgid "※ Group members can be edited using the GakuNin mAP {baseUrl}."
+msgstr ""
+
+msgid "If a group member currently logged into GakuNin RDM is deleted on the mAP, they will not be removed from the project until they log out."
+msgstr ""
+
+msgid "%(groupOthersCount)s more"
+msgstr ""

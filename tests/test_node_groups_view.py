@@ -38,6 +38,7 @@ class TestNodeGroupsView(OsfTestCase):
         """
         with self.context:
             node = ProjectFactory(is_public=False)
+            node.add_addon('groups', auth=Auth(node.creator))  # Enable groups addon
             creator = node.creator
             # Create a user and grant READ permission
             user = UserFactory()

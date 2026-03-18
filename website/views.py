@@ -141,6 +141,9 @@ def serialize_node_summary(node, auth, primary=True, show_path=False):
     if node.can_view(auth):
         contributor_data = serialize_contributors_for_summary(node)
         mapcore_group_data = serialize_mapcore_group_for_summary(node)
+        enabled_mapcore_groups = False
+        if hasattr(node, 'mapcore_groups_addon_enabled'):
+            enabled_mapcore_groups = node.mapcore_groups_addon_enabled()
         summary.update({
             'can_view': True,
             'can_edit': node.can_edit(auth),
@@ -178,6 +181,7 @@ def serialize_node_summary(node, auth, primary=True, show_path=False):
             'groups': serialize_groups_for_summary(node),
             'mapcore_groups': mapcore_group_data['mapcore_groups'],
             'mapcore_groups_others_count': mapcore_group_data['mapcore_groups_others_count'],
+            'enabled_mapcore_groups': enabled_mapcore_groups,
             'description': node.description if len(node.description) <= 150 else node.description[0:150] + '...',
         })
     else:

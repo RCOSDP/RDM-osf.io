@@ -96,6 +96,9 @@ class AddonListView(RdmPermissionMixin, UserPassesTestMixin, TemplateView):
 
         with app.test_request_context():
             ctx['addon_settings'] = utils.get_addons_by_config_type('accounts', self.request.user)
+            ctx['addon_settings'].append(
+                utils.get_addon_template_config(utils.get_addon_config('node', 'groups'), self.request.user))
+
             accounts_addons = [addon for addon in website_settings.ADDONS_AVAILABLE
                                if 'accounts' in addon.configs and not addon.for_institutions]
             ctx.update({
@@ -126,6 +129,8 @@ class IconView(RdmPermissionMixin, UserPassesTestMixin, View):
     def get(self, request, *args, **kwargs):
         addon_name = kwargs['addon_name']
         addon = utils.get_addon_config('accounts', addon_name)
+        if addon_name == 'groups':
+            addon = utils.get_addon_config('node', addon_name)
         if addon:
             # get addon's icon
             image_path = os.path.join('addons', addon_name, 'static', addon.icon)
