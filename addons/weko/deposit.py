@@ -287,7 +287,7 @@ def _deposit_metadata(
         if update_task_state:
             update_task_state(state='packaging', meta={
                 'progress': 50,
-                'paths': path,
+                'paths': ad_metadata_paths,
             })
 
         c = weko_addon.create_client()
