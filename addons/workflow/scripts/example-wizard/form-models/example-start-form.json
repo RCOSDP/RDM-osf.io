@@ -1,0 +1,137 @@
+{
+  "id": "example-start-form-001",
+  "name": "Example Start Form",
+  "key": "example-start-form",
+  "description": "Demonstrates _PROJECT_METADATA, _FILE_METADATA, and _FILE_SELECTOR special placeholders.",
+  "editorJson": {
+    "name": "Example Start Form",
+    "key": "example-start-form",
+    "version": 0,
+    "fields": [
+      {
+        "fieldType": "FormField",
+        "id": "pm_heading",
+        "name": "_PROJECT_METADATA",
+        "type": "headline-with-line",
+        "value": null,
+        "required": false,
+        "readOnly": false,
+        "overrideId": false,
+        "placeholder": null,
+        "layout": null
+      },
+      {
+        "fieldType": "ExpressionFormField",
+        "id": "pm_description",
+        "name": "pm_description",
+        "type": "expression",
+        "value": null,
+        "required": false,
+        "readOnly": false,
+        "overrideId": false,
+        "placeholder": null,
+        "layout": null,
+        "expression": "Select project metadata records. The first field allows single selection, the second allows multiple."
+      },
+      {
+        "fieldType": "FormField",
+        "id": "project_metadata",
+        "name": "Project Metadata (single)",
+        "type": "multi-line-text",
+        "value": null,
+        "required": false,
+        "readOnly": false,
+        "overrideId": true,
+        "placeholder": "_PROJECT_METADATA(公的資金による研究データのメタデータ登録)",
+        "layout": null
+      },
+      {
+        "fieldType": "FormField",
+        "id": "project_metadata_multi",
+        "name": "Project Metadata (multi-select)",
+        "type": "multi-line-text",
+        "value": null,
+        "required": false,
+        "readOnly": false,
+        "overrideId": true,
+        "placeholder": "_PROJECT_METADATA(公的資金による研究データのメタデータ登録, MULTISELECT)",
+        "layout": null
+      },
+      {
+        "fieldType": "FormField",
+        "id": "fm_heading",
+        "name": "_FILE_METADATA",
+        "type": "headline-with-line",
+        "value": null,
+        "required": false,
+        "readOnly": false,
+        "overrideId": false,
+        "placeholder": null,
+        "layout": null
+      },
+      {
+        "fieldType": "ExpressionFormField",
+        "id": "fm_description",
+        "name": "fm_description",
+        "type": "expression",
+        "value": null,
+        "required": false,
+        "readOnly": false,
+        "overrideId": false,
+        "placeholder": null,
+        "layout": null,
+        "expression": "Select a file metadata record."
+      },
+      {
+        "fieldType": "FormField",
+        "id": "file_metadata",
+        "name": "File Metadata",
+        "type": "multi-line-text",
+        "value": null,
+        "required": false,
+        "readOnly": false,
+        "overrideId": true,
+        "placeholder": "_FILE_METADATA(公的資金による研究データのメタデータ登録)",
+        "layout": null
+      },
+      {
+        "fieldType": "FormField",
+        "id": "fs_heading",
+        "name": "_FILE_SELECTOR",
+        "type": "headline-with-line",
+        "value": null,
+        "required": false,
+        "readOnly": false,
+        "overrideId": false,
+        "placeholder": null,
+        "layout": null
+      },
+      {
+        "fieldType": "ExpressionFormField",
+        "id": "fs_description",
+        "name": "fs_description",
+        "type": "expression",
+        "value": null,
+        "required": false,
+        "readOnly": false,
+        "overrideId": false,
+        "placeholder": null,
+        "layout": null,
+        "expression": "Browse and select files from the project storage."
+      },
+      {
+        "fieldType": "FormField",
+        "id": "selected_files",
+        "name": "Files",
+        "type": "multi-line-text",
+        "value": null,
+        "required": false,
+        "readOnly": false,
+        "overrideId": true,
+        "placeholder": "_FILE_SELECTOR()",
+        "layout": null
+      }
+    ],
+    "outcomes": []
+  }
+}
