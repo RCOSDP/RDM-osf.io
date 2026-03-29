@@ -19,7 +19,7 @@ def ensure_registration_mappings(*args):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('osf', '0264_merge_20260208_0831'),
+        ('osf', '0264_merge_20260218_0749'),
     ]
 
     operations = [
