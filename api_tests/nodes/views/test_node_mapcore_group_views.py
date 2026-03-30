@@ -566,6 +566,7 @@ class TestNodeMapCoreGroupRemove(ApiTestCase):
         self.node = ProjectFactory(creator=self.admin_user, is_public=False)
         self.node.add_contributor(self.user, permissions='admin')
         self.node.add_contributor(self.read_only_user, permissions='read')
+        self.node.add_addon('groups', auth=Auth(self.user))  # Enable groups addon
         self.node.save()
 
         # Create auth groups for the node
@@ -739,6 +740,235 @@ class TestNodeMapCoreGroupRemove(ApiTestCase):
 
         res = self.app.delete(url, auth=self.admin_user.auth)
         assert res.status_code == 204
+
+
+@pytest.mark.django_db
+class TestGroupsAddonEnabledPermission(ApiTestCase):
+    """
+    Verify that GroupsAddonEnabled blocks when the groups addon
+    is disabled on the node, and allows them when the addon is enabled.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.admin_user = AuthUserFactory()
+
+        # Node WITHOUT the groups addon enabled
+        self.node = ProjectFactory(creator=self.admin_user, is_public=True)
+        # Ensure addon is absent
+        if self.node.has_addon('groups'):
+            self.node.delete_addon('groups', auth=Auth(self.admin_user))
+        self.node.save()
+
+        # Create auth groups and data so payloads are otherwise valid
+        self.auth_groups = {}
+        for perm in ['read', 'write', 'admin']:
+            self.auth_groups[perm] = AuthGroup.objects.get_or_create(
+                name=f'node_{self.node.id}_{perm}'
+            )[0]
+
+        self.mapcore_group = MapCoreGroup.objects.create(_id='addon-perm-mcg')
+        self.mcng = MapCoreNodeGroup.objects.create(
+            node=self.node,
+            group=self.auth_groups['admin'],
+            mapcore_group=self.mapcore_group,
+            creator=self.admin_user,
+        )
+
+        self.list_url = f'/{API_BASE}nodes/{self.node._id}/map_core/groups/'
+        self.detail_url = f'/{API_BASE}nodes/{self.node._id}/map_core/groups/{self.mcng.id}/'
+
+    def test_get_list_addon_disabled_returns_200(self):
+        """GET list is allowed even when groups addon is disabled (safe methods bypass GroupsAddonEnabled)."""
+        assert not self.node.has_addon('groups')
+        res = self.app.get(self.list_url, auth=self.admin_user.auth)
+        assert res.status_code == 200
+
+    def test_get_list_addon_enabled_returns_200(self):
+        """GET list is allowed when groups addon is enabled."""
+        self.node.add_addon('groups', auth=Auth(self.admin_user))
+        self.node.save()
+
+        res = self.app.get(self.list_url, auth=self.admin_user.auth)
+        assert res.status_code == 200
+
+    def test_post_addon_disabled_returns_403(self):
+        """POST (create) is blocked when groups addon is disabled."""
+        assert not self.node.has_addon('groups')
+        mapcore_group2 = MapCoreGroup.objects.create(_id='addon-perm-mcg-2')
+
+        payload = {
+            'data': {
+                'type': 'node-mapcore-group',
+                'attributes': {
+                    'node_groups': [
+                        {
+                            'mapcore_group_id': mapcore_group2.id,
+                            'permission': 'write',
+                        }
+                    ]
+                },
+            }
+        }
+
+        res = self.app.post_json(self.list_url, payload, auth=self.admin_user.auth, expect_errors=True)
+        assert res.status_code == 403
+
+    def test_post_addon_enabled_returns_201(self):
+        """POST (create) is allowed when groups addon is enabled."""
+        self.node.add_addon('groups', auth=Auth(self.admin_user))
+        self.node.save()
+
+        mapcore_group2 = MapCoreGroup.objects.create(_id='addon-perm-mcg-2-enabled')
+
+        payload = {
+            'data': {
+                'type': 'node-mapcore-group',
+                'attributes': {
+                    'node_groups': [
+                        {
+                            'mapcore_group_id': mapcore_group2.id,
+                            'permission': 'write',
+                        }
+                    ]
+                },
+            }
+        }
+
+        res = self.app.post_json(self.list_url, payload, auth=self.admin_user.auth)
+        assert res.status_code == 201
+
+    def test_patch_addon_disabled_returns_403(self):
+        """PATCH (update) is blocked when groups addon is disabled."""
+        assert not self.node.has_addon('groups')
+
+        payload = {
+            'data': {
+                'type': 'node-mapcore-group',
+                'attributes': {
+                    'node_groups': [
+                        {
+                            'node_group_id': self.mcng.id,
+                            'permission': 'read',
+                        }
+                    ]
+                },
+            }
+        }
+
+        res = self.app.patch_json(self.list_url, payload, auth=self.admin_user.auth, expect_errors=True)
+        assert res.status_code == 403
+
+    def test_patch_addon_enabled_returns_200(self):
+        """PATCH (update) is allowed when groups addon is enabled."""
+        self.node.add_addon('groups', auth=Auth(self.admin_user))
+        self.node.save()
+
+        payload = {
+            'data': {
+                'type': 'node-mapcore-group',
+                'attributes': {
+                    'node_groups': [
+                        {
+                            'node_group_id': self.mcng.id,
+                            'permission': 'read',
+                        }
+                    ]
+                },
+            }
+        }
+
+        res = self.app.patch_json(self.list_url, payload, auth=self.admin_user.auth)
+        assert res.status_code == 200
+
+    def test_delete_addon_disabled_returns_403(self):
+        """DELETE is blocked when groups addon is disabled."""
+        assert not self.node.has_addon('groups')
+        res = self.app.delete(self.detail_url, auth=self.admin_user.auth, expect_errors=True)
+        assert res.status_code == 403
+
+    def test_delete_addon_enabled_returns_204(self):
+        """DELETE is allowed when groups addon is enabled."""
+        self.node.add_addon('groups', auth=Auth(self.admin_user))
+        self.node.save()
+
+        res = self.app.delete(self.detail_url, auth=self.admin_user.auth)
+        assert res.status_code == 204
+
+        self.mcng.refresh_from_db()
+        assert self.mcng.is_deleted is True
+
+    def test_get_list_addon_soft_deleted_returns_200(self):
+        """GET list is allowed even when groups addon is soft-deleted (safe methods bypass GroupsAddonEnabled)."""
+        self.node.add_addon('groups', auth=Auth(self.admin_user))
+        self.node.delete_addon('groups', auth=Auth(self.admin_user))
+        assert not self.node.has_addon('groups')
+
+        res = self.app.get(self.list_url, auth=self.admin_user.auth)
+        assert res.status_code == 200
+
+    def test_post_addon_soft_deleted_returns_403(self):
+        """POST is blocked when groups addon was added then soft-deleted."""
+        self.node.add_addon('groups', auth=Auth(self.admin_user))
+        self.node.delete_addon('groups', auth=Auth(self.admin_user))
+        assert not self.node.has_addon('groups')
+
+        mapcore_group2 = MapCoreGroup.objects.create(_id='addon-soft-del-mcg')
+        payload = {
+            'data': {
+                'type': 'node-mapcore-group',
+                'attributes': {
+                    'node_groups': [
+                        {
+                            'mapcore_group_id': mapcore_group2.id,
+                            'permission': 'write',
+                        }
+                    ]
+                },
+            }
+        }
+        res = self.app.post_json(self.list_url, payload, auth=self.admin_user.auth, expect_errors=True)
+        assert res.status_code == 403
+
+    def test_patch_addon_soft_deleted_returns_403(self):
+        """PATCH is blocked when groups addon was added then soft-deleted."""
+        self.node.add_addon('groups', auth=Auth(self.admin_user))
+        self.node.delete_addon('groups', auth=Auth(self.admin_user))
+        assert not self.node.has_addon('groups')
+
+        payload = {
+            'data': {
+                'type': 'node-mapcore-group',
+                'attributes': {
+                    'node_groups': [
+                        {
+                            'node_group_id': self.mcng.id,
+                            'permission': 'read',
+                        }
+                    ]
+                },
+            }
+        }
+        res = self.app.patch_json(self.list_url, payload, auth=self.admin_user.auth, expect_errors=True)
+        assert res.status_code == 403
+
+    def test_delete_addon_soft_deleted_returns_403(self):
+        """DELETE is blocked when groups addon was added then soft-deleted."""
+        # Create a fresh mcng so it is not already deleted
+        mcng2 = MapCoreNodeGroup.objects.create(
+            node=self.node,
+            group=self.auth_groups['write'],
+            mapcore_group=self.mapcore_group,
+            creator=self.admin_user,
+        )
+        self.node.add_addon('groups', auth=Auth(self.admin_user))
+        self.node.delete_addon('groups', auth=Auth(self.admin_user))
+        assert not self.node.has_addon('groups')
+
+        url = f'/{API_BASE}nodes/{self.node._id}/map_core/groups/{mcng2.id}/'
+        res = self.app.delete(url, auth=self.admin_user.auth, expect_errors=True)
+        assert res.status_code == 403
+
 
 @pytest.mark.django_db
 class TestMixinMapCorePermissions:

@@ -6,6 +6,7 @@ from osf.models.mapcore_user_group import MapCoreUserGroup
 from osf.models.node import Node
 from osf.models.node import NodeGroupObjectPermission
 from osf_tests.factories import PrivateLinkFactory, UserFactory, NodeFactory
+from framework.auth import Auth
 
 pytestmark = pytest.mark.django_db
 
@@ -30,6 +31,7 @@ class TestCanViewMapcoreGroups:
         # Setup: node, user, mapcore group, auth group that follows 'node_<id>_admin' naming.
         user = UserFactory()
         node = NodeFactory(is_public=False)
+        node.add_addon('groups', auth=Auth(user))  # Enable groups addon
         # Create the MapCoreGroup
         mc_group = MapCoreGroup.objects.create(_id='mc-1')
 
@@ -73,6 +75,7 @@ class TestCanViewMapcoreGroups:
         # Same setup but do NOT include mapcore groups in the queryset
         user = UserFactory()
         node = NodeFactory(is_public=False)
+        node.add_addon('groups', auth=Auth(user))  # Enable groups addon
         mc_group = MapCoreGroup.objects.create(_id='mc-2')
         auth_group = AuthGroup.objects.create(name=f'node_{node._id}_admin')
         MapCoreNodeGroup.objects.create(node=node, group=auth_group, mapcore_group=mc_group, creator=user, is_deleted=False)
@@ -98,6 +101,7 @@ class TestCanViewMapcoreGroups:
     def test_get_nodes_for_user_include_mapcore_group(self):
         user = UserFactory()
         node = NodeFactory(is_public=False)
+        node.add_addon('groups', auth=Auth(user))  # Enable groups addon
         mc_group = MapCoreGroup.objects.create(_id='mc-4')
         auth_group = AuthGroup.objects.create(name=f'node_{node._id}_admin')
         MapCoreNodeGroup.objects.create(node=node, group=auth_group, mapcore_group=mc_group, creator=user, is_deleted=False)
