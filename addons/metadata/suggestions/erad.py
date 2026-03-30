@@ -14,6 +14,8 @@ ERAD_COLUMNS = [
 
 
 def _split_pipe_delimited(text):
+    if not text:
+        return '', ''
     pos = text.rfind('|')
     if pos == -1:
         return text, ''
@@ -22,7 +24,7 @@ def _split_pipe_delimited(text):
 
 def _enrich_candidate(candidate):
     """Add derived fields to an erad candidate dict."""
-    names = candidate['kenkyusha_shimei'].split('|')
+    names = (candidate['kenkyusha_shimei'] or '').split('|')
     ja_parts = names[:len(names) // 2]
     en_parts = names[len(names) // 2:]
     kikan_ja, kikan_en = _split_pipe_delimited(candidate['kenkyukikan_mei'])

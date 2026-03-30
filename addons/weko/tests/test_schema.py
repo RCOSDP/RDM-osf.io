@@ -2266,7 +2266,7 @@ class TestWEKOSchema(OsfTestCase):
                 'value': 'Main Project',
             },
             'additional-funding': {
-                'value': [
+                'value': json.dumps([
                     {
                         'funder': 'JSPS',
                         'japan-grant-number': 'JP200002',
@@ -2279,7 +2279,7 @@ class TestWEKOSchema(OsfTestCase):
                         'project-name-ja': '追加プロジェクト2',
                         'project-name-en': 'Additional Project 2',
                     },
-                ],
+                ]),
             },
         }
 
