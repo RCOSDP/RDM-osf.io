@@ -72,6 +72,7 @@ from api.institutions.serializers import InstitutionSerializer
 from api.logs.serializers import NodeLogSerializer, NodeLogDownloadSerializer
 from api.nodes.filters import NodesFilterMixin
 from api.nodes.permissions import (
+    GroupsAddonEnabled,
     IsAdmin,
     IsPublic,
     AdminOrPublic,
@@ -2376,6 +2377,7 @@ class NodeMapCoreGroupList(JSONAPIBaseView, generics.ListAPIView, bulk_views.Bul
     permission_classes = (
         AdminOrPublic,
         drf_permissions.IsAuthenticatedOrReadOnly,
+        GroupsAddonEnabled,
         ReadOnlyIfRegistration,
         base_permissions.TokenHasScope,
     )
@@ -2593,6 +2595,7 @@ class NodeMapCoreGroupRemove(JSONAPIBaseView, generics.DestroyAPIView, NodeMixin
     permission_classes = (
         AdminOrPublic,
         drf_permissions.IsAuthenticatedOrReadOnly,
+        GroupsAddonEnabled,
         ReadOnlyIfRegistration,
         base_permissions.TokenHasScope,
     )

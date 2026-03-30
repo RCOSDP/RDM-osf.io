@@ -252,7 +252,8 @@ class AbstractNodeManager(TypedModelManager, IncludeManager):
         query = Q(id__in=node_groups)
         if include_mapcore_groups and user and not isinstance(user, AnonymousUser):
             mapcore_user_groups = MapCoreUserGroup.objects.filter(user=user, is_deleted=False).values_list('mapcore_group_id', flat=True)
-            node_mapcore_groups = MapCoreNodeGroup.objects.filter(mapcore_group_id__in=mapcore_user_groups, is_deleted=False).values_list('node_id', flat=True)
+            node_mapcore_groups = MapCoreNodeGroup.objects.filter(mapcore_group_id__in=mapcore_user_groups, is_deleted=False,
+                                                                   node__addons_groups_node_settings__is_deleted=False).values_list('node_id', flat=True)
             query = Q(id__in=node_groups) | Q(id__in=node_mapcore_groups)
         if include_public:
             query |= Q(is_public=True)
