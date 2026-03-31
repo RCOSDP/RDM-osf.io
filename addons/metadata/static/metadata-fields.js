@@ -59,7 +59,7 @@ function appendTagBadges(container, tags) {
           content: getLocalizedText(info),
           html: true,
           trigger: 'focus',
-          placement: 'bottom',
+          placement: 'right',
           container: 'body'
         }).attr('tabindex', '-1');
     }
@@ -107,6 +107,7 @@ function GroupContainer(def, isChild) {
   this.id = def.id;
   this.parent = def.parent || null;
   this.isChild = isChild;
+  this.enabledIf = def.enabled_if || null;
   this.children = [];
   this.checkMark = isChild ? null : $('<i></i>')
     .addClass('fa fa-check')
@@ -120,8 +121,7 @@ function GroupContainer(def, isChild) {
   this.element.append(this._heading);
   this.content = $('<div></div>');
   if (def.bar) {
-    this.content.css('border-left', '3px solid #ddd')
-      .css('padding-left', '12px');
+    this.content.addClass('metadata-group-bar');
   }
   this.element.append(this.content);
   this._renderHeading(def);
@@ -148,7 +148,7 @@ GroupContainer.prototype._renderHeading = function(def) {
       content: getLocalizedText(def.info),
       html: true,
       trigger: 'focus',
-      placement: 'bottom',
+      placement: 'right',
       container: 'body'
     }).attr('tabindex', '-1');
     this._heading.append(infoMark);
@@ -174,6 +174,11 @@ GroupContainer.prototype.refresh = function(questionFields) {
         this._renderHeading(def);
       }
     }
+  }
+  // Update enabled state (dim heading and bar when disabled)
+  if (this.enabledIf) {
+    var isEnabled = evaluateCond(this.enabledIf, questionFields);
+    this.element.toggleClass('metadata-group-disabled', !isEnabled);
   }
   // Update visibility
   var hasVisibleChild = this.content.children().toArray().some(function(child) {
@@ -345,7 +350,11 @@ const QuestionPage = oop.defclass({
       if (!field) {
         throw new Error('No field for path: ' + path);
       }
-      const value = suggestion.value[autofillMap[path]];
+      const sourceKey = autofillMap[path];
+      if (!(sourceKey in suggestion.value)) {
+        console.warn(logPrefix + 'autofill: source key not found in suggestion: ' + sourceKey);
+      }
+      const value = suggestion.value[sourceKey];
       if (value != null) {
         field.setValue(value, true); // Mark as autofilled
       }
@@ -540,7 +549,7 @@ const QuestionField = oop.extend(Emitter, {
         content: getLocalizedText(infoText),
         html: true,
         trigger: 'focus',
-        placement: 'bottom',
+        placement: 'right',
         container: 'body'
       }).attr('tabindex', '-1');
       header.append(infoMark);
@@ -593,6 +602,15 @@ const QuestionField = oop.extend(Emitter, {
         self.emit('change');
       });
       header.append(clearFormBlock);
+    }
+
+    // construct description
+    var description = uiItem && uiItem.description;
+    if (description) {
+      self.element.append($('<p></p>')
+        .addClass('help-block')
+        .css('margin-top', '0')
+        .text(getLocalizedText(description)));
     }
 
     // apply field width

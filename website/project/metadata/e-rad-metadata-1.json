@@ -11,7 +11,7 @@
     {
       "id": "page1",
       "title": "助成情報登録|Funding Information Registration",
-      "description": "「公的資金による研究データの管理・利活用に関する基本的な考え方」（内閣府）におけるメタデータの共通項目に準拠しています。 https://www8.cao.go.jp/cstp/metadatainstructions.pdf|Conforms to the common metadata items in the \"Basic Approach to Management and Utilization of Publicly Funded Research Data\" (Cabinet Office). https://www8.cao.go.jp/cstp/metadatainstructions.pdf",
+      "description": "公的資金による研究プロジェクトの成果情報を登録できます。助成情報とファイルメタデータを紐づけ、資金配分機関への専用データ形式や機関リポジトリ登録にご利用できます。「公的資金による研究データの管理・利活用に関する基本的な考え方」（内閣府）におけるメタデータの共通項目に準拠しています。 https://www8.cao.go.jp/cstp/metadatainstructions.pdf|You can register research output information for publicly funded research projects. Link funding information with file metadata for use in funding agency submission formats and institutional repository registration. Conforms to the common metadata items in the \"Basic Approach to Management and Utilization of Publicly Funded Research Data\" (Cabinet Office). https://www8.cao.go.jp/cstp/metadatainstructions.pdf",
       "ui": [
         {
           "condition": { "grdm-file:file-type": "dataset" },
@@ -184,7 +184,7 @@
           "nav": "プロジェクト名 (日本語)",
           "title": "プロジェクト名 (日本語)|Project name (Japanese)",
           "ui": {
-            "group": { "id": "project-name", "marker": "circle", "title": "プロジェクト名|Project name", "tags": ["共通|Common"], "info": "研究代表者が統括する研究開発の範囲の名称です（e-Rad課題名称等）。公式な名称がない場合は、所属機関のルールに従って入力してください。|Name of the scope of R&D overseen by the PI (e.g., e-Rad project title). If no official name exists, follow your institution's rules." },
+            "group": { "id": "project-name", "marker": "circle", "title": "プロジェクト名|Project name", "tags": ["共通|Common"], "info": "研究代表者が統括する研究開発の範囲の名称です（e-Rad課題名称等）。公式な名称がない場合は、所属機関のルールに従って入力してください。|Name of the scope of R&D overseen by the PI (e.g., e-Rad project title). If no official name exists, follow your institution's rules.", "help": "「日本語」か「English」いずれかのフィールドは入力必須|Either the Japanese or English field is required" },
             "sub_label": "（日本語）|(Japanese)"
           },
           "type": "string",
@@ -787,7 +787,7 @@
               "title": "e-Rad 研究者番号|e-Rad Researcher Number",
               "type": "string",
               "format": "text",
-              "ui": { "item": { "width": "narrow", "placeholder": "e-Rad 研究者番号(半角数字)|e-Rad Researcher Number" } },
+              "ui": { "item": { "width": "narrow" } },
               "space_normalization": true,
               "suggestion": [
                 {
@@ -808,8 +808,8 @@
                     "number": "erad",
                     "name-ja": "name-ja",
                     "name-en": "name-en",
-                    "affiliation-name-ja": "affiliation-name-ja",
-                    "affiliation-name-en": "affiliation-name-en"
+                    "affiliation-name-ja": "affiliated-institution-name-ja",
+                    "affiliation-name-en": "affiliated-institution-name-en"
                   }
                 },
                 {
@@ -859,8 +859,8 @@
                         "../number": "erad",
                         "../name-ja": "name-ja",
                         "../name-en": "name-en",
-                        "../affiliation-name-ja": "affiliation-name-ja",
-                        "../affiliation-name-en": "affiliation-name-en"
+                        "../affiliation-name-ja": "affiliated-institution-name-ja",
+                        "../affiliation-name-en": "affiliated-institution-name-en"
                       }
                     },
                     {
@@ -901,8 +901,8 @@
                         "../number": "erad",
                         "../name-ja": "name-ja",
                         "../name-en": "name-en",
-                        "../affiliation-name-ja": "affiliation-name-ja",
-                        "../affiliation-name-en": "affiliation-name-en"
+                        "../affiliation-name-ja": "affiliated-institution-name-ja",
+                        "../affiliation-name-en": "affiliated-institution-name-en"
                       }
                     },
                     {
@@ -943,8 +943,8 @@
                         "../number": "erad",
                         "../name-ja": "name-ja",
                         "../name-en": "name-en",
-                        "../affiliation-name-ja": "affiliation-name-ja",
-                        "../affiliation-name-en": "affiliation-name-en"
+                        "../affiliation-name-ja": "affiliated-institution-name-ja",
+                        "../affiliation-name-en": "affiliated-institution-name-en"
                       }
                     },
                     {
@@ -996,8 +996,8 @@
                         "../number": "erad",
                         "../name-ja": "name-ja",
                         "../name-en": "name-en",
-                        "../affiliation-name-ja": "affiliation-name-ja",
-                        "../affiliation-name-en": "affiliation-name-en"
+                        "../affiliation-name-ja": "affiliated-institution-name-ja",
+                        "../affiliation-name-en": "affiliated-institution-name-en"
                       }
                     },
                     {
@@ -1038,8 +1038,8 @@
                         "../number": "erad",
                         "../name-ja": "name-ja",
                         "../name-en": "name-en",
-                        "../affiliation-name-ja": "affiliation-name-ja",
-                        "../affiliation-name-en": "affiliation-name-en"
+                        "../affiliation-name-ja": "affiliated-institution-name-ja",
+                        "../affiliation-name-en": "affiliated-institution-name-en"
                       }
                     },
                     {
@@ -1080,8 +1080,8 @@
                         "../number": "erad",
                         "../name-ja": "name-ja",
                         "../name-en": "name-en",
-                        "../affiliation-name-ja": "affiliation-name-ja",
-                        "../affiliation-name-en": "affiliation-name-en"
+                        "../affiliation-name-ja": "affiliated-institution-name-ja",
+                        "../affiliation-name-en": "affiliated-institution-name-en"
                       }
                     },
                     {
@@ -1334,22 +1334,22 @@
         },
         {
           "qid": "grdm-file:data-policy-free",
-          "nav": "管理対象データの利活用・提供方針 (有償/無償)",
-          "title": "管理対象データの利活用・提供方針 (有償/無償)|Data utilization and provision policy (free/consideration)",
+          "nav": "有償/無償",
+          "title": "有償/無償|Free/Consideration",
           "type": "choose",
           "format": "singleselect",
           "ui": {
-            "group": { "id": "data-policy", "marker": "circle", "title": "管理対象データの利活用・提供方針|Data utilization and provision policy", "bar": true, "tags": ["共通|Common"], "info": "データ提供者が利用者に求める利用条件（有償/無償、ライセンス、引用方法等）を入力してください。|Enter the terms of use required by the data provider (free/paid, license, citation information, etc.)." },
-            "item": { "widget": "radio" }
+            "group": { "id": "data-policy", "marker": "circle", "title": "管理対象データの利活用・提供方針|Data utilization and provision policy", "bar": true, "info": "データ提供者が利用者に求める利用条件（有償/無償、ライセンス、引用方法等）を入力してください。|Enter the terms of use required by the data provider (free/paid, license, citation information, etc.)." },
+            "item": { "widget": "radio", "tags": ["共通|Common"] }
           },
           "options": [
               {
-                  "text": "free",
-                  "tooltip": "無償|free"
-              },
-              {
                   "text": "consideration",
                   "tooltip": "有償|consideration"
+              },
+              {
+                  "text": "free",
+                  "tooltip": "無償|free"
               }
           ],
           "enabled_if": {
@@ -1358,9 +1358,9 @@
         },
         {
           "qid": "grdm-file:data-policy-license",
-          "nav": "管理対象データの利活用・提供方針 (ライセンス)",
-          "title": "管理対象データの利活用・提供方針 (ライセンス)|Data utilization and provision policy (License)",
-          "ui": { "group": "data-policy", "item": { "width": "half" } },
+          "nav": "ライセンス",
+          "title": "ライセンス|License",
+          "ui": { "group": "data-policy", "item": { "width": "half", "tags": ["共通|Common"] } },
           "type": "choose",
           "format": "singleselect",
           "enabled_if": {
@@ -1486,7 +1486,7 @@
           "nav": "管理対象データの利活用・提供方針 (引用方法等・日本語)",
           "title": "管理対象データの利活用・提供方針 (引用方法等・日本語)|Data utilization and provision policy (citation information, Japanese)",
           "ui": {
-            "group": { "id": "data-policy-cite", "parent": "data-policy", "title": "引用方法等|Citation information", "help": "「日本語」か「English」いずれかのフィールドは入力必須|Either the Japanese or English field is required" },
+            "group": { "id": "data-policy-cite", "parent": "data-policy", "title": "引用方法等|Citation information", "tags": ["共通|Common"], "help": "「日本語」か「English」いずれかのフィールドは入力必須|Either the Japanese or English field is required" },
             "sub_label": "（日本語）|(Japanese)"
           },
           "type": "string",
@@ -1538,10 +1538,10 @@
         {
           "qid": "grdm-file:available-date",
           "nav": "公開予定日",
-          "title": "公開予定日 (公開期間猶予の場合)|Publication date (for embargoed access)",
+          "title": "公開予定日|Publication date",
           "type": "string",
           "format": "date",
-          "ui": { "item": { "marker": "circle", "tags": ["共通|Common"], "width": "narrow", "placeholder": "2020-01-01" } },
+          "ui": { "item": { "marker": "circle", "tags": ["共通|Common"], "width": "narrow", "placeholder": "2020-01-01", "description": "アクセス権が「公開期間猶予」の場合は入力必須|Required when access rights is \"Embargoed Access\"", "info": "公開予定日を迎えた後、データ管理者がリポジトリ等でデータの公開手続きを行う必要があります。|After the publication date, the data manager must complete the data publication process in the repository." } },
           "enabled_if": {
             "grdm-file:file-type": "dataset"
           }
@@ -1551,7 +1551,7 @@
           "nav": "リポジトリ情報 (日本語)",
           "title": "リポジトリ情報 (日本語)|Repository information (Japanese)",
           "ui": {
-            "group": { "id": "repo-information", "marker": "circle", "title": "リポジトリ情報|Repository information", "tags": ["共通|Common"], "help": "「日本語」か「English」いずれかのフィールドは入力必須|Either the Japanese or English field is required", "info": "現在のリポジトリ情報、あるいはプロジェクト終了後のリポジトリ情報を入力してください。|Enter the current repository information, or the repository information after the project ends." },
+            "group": { "id": "repo-information", "marker": "circle", "title": "リポジトリ情報|Repository information", "tags": ["共通|Common"], "info": "現在のリポジトリ情報、あるいはプロジェクト終了後のリポジトリ情報を入力してください。|Enter the current repository information or the repository information after the project ends.", "help": "「日本語」か「English」いずれかのフィールドは入力必須|Either the Japanese or English field is required" },
             "sub_label": "（日本語）|(Japanese)"
           },
           "type": "string",
@@ -1763,7 +1763,7 @@
               "title": "e-Rad 研究者番号|e-Rad Researcher Number",
               "type": "string",
               "format": "text",
-              "ui": { "item": { "width": "narrow", "placeholder": "e-Rad 研究者番号(半角数字)|e-Rad Researcher Number" } },
+              "ui": { "item": { "width": "narrow" } },
               "space_normalization": true,
               "suggestion": [
                 {
@@ -1784,8 +1784,8 @@
                     "number": "erad",
                     "name-ja": "name-ja",
                     "name-en": "name-en",
-                    "affiliation-name-ja": "affiliation-name-ja",
-                    "affiliation-name-en": "affiliation-name-en"
+                    "affiliation-name-ja": "affiliated-institution-name-ja",
+                    "affiliation-name-en": "affiliated-institution-name-en"
                   }
                 },
                 {
@@ -1835,8 +1835,8 @@
                         "../number": "erad",
                         "../name-ja": "name-ja",
                         "../name-en": "name-en",
-                        "../affiliation-name-ja": "affiliation-name-ja",
-                        "../affiliation-name-en": "affiliation-name-en"
+                        "../affiliation-name-ja": "affiliated-institution-name-ja",
+                        "../affiliation-name-en": "affiliated-institution-name-en"
                       }
                     },
                     {
@@ -1877,8 +1877,8 @@
                         "../number": "erad",
                         "../name-ja": "name-ja",
                         "../name-en": "name-en",
-                        "../affiliation-name-ja": "affiliation-name-ja",
-                        "../affiliation-name-en": "affiliation-name-en"
+                        "../affiliation-name-ja": "affiliated-institution-name-ja",
+                        "../affiliation-name-en": "affiliated-institution-name-en"
                       }
                     },
                     {
@@ -1919,8 +1919,8 @@
                         "../number": "erad",
                         "../name-ja": "name-ja",
                         "../name-en": "name-en",
-                        "../affiliation-name-ja": "affiliation-name-ja",
-                        "../affiliation-name-en": "affiliation-name-en"
+                        "../affiliation-name-ja": "affiliated-institution-name-ja",
+                        "../affiliation-name-en": "affiliated-institution-name-en"
                       }
                     },
                     {
@@ -1972,8 +1972,8 @@
                         "../number": "erad",
                         "../name-ja": "name-ja",
                         "../name-en": "name-en",
-                        "../affiliation-name-ja": "affiliation-name-ja",
-                        "../affiliation-name-en": "affiliation-name-en"
+                        "../affiliation-name-ja": "affiliated-institution-name-ja",
+                        "../affiliation-name-en": "affiliated-institution-name-en"
                       }
                     },
                     {
@@ -2014,8 +2014,8 @@
                         "../number": "erad",
                         "../name-ja": "name-ja",
                         "../name-en": "name-en",
-                        "../affiliation-name-ja": "affiliation-name-ja",
-                        "../affiliation-name-en": "affiliation-name-en"
+                        "../affiliation-name-ja": "affiliated-institution-name-ja",
+                        "../affiliation-name-en": "affiliated-institution-name-en"
                       }
                     },
                     {
@@ -2056,8 +2056,8 @@
                         "../number": "erad",
                         "../name-ja": "name-ja",
                         "../name-en": "name-en",
-                        "../affiliation-name-ja": "affiliation-name-ja",
-                        "../affiliation-name-en": "affiliation-name-en"
+                        "../affiliation-name-ja": "affiliated-institution-name-ja",
+                        "../affiliation-name-en": "affiliated-institution-name-en"
                       }
                     },
                     {
@@ -2207,11 +2207,14 @@
         },
         {
           "qid": "grdm-file:data-man-number",
-          "nav": "データ管理者の e-Rad 研究者番号",
-          "title": "データ管理者の e-Rad 研究者番号|Data manager identifier (e-Rad)",
+          "nav": "e-Rad研究者番号",
+          "title": "e-Rad研究者番号|e-Rad Researcher Number",
           "type": "string",
           "format": "text",
-          "ui": { "item": { "marker": "circle", "enabled_if": { "disabled": { "grdm-file:file-type": "dataset" } }, "placeholder": "e-Rad 研究者番号(半角数字)|e-Rad Researcher Number", "info": "e-Radの研究者番号を登録している場合、非公開にしたい場合を除き必ず記入してください。研究者番号がない管理者や、管理者が組織の場合は不要です。|Enter the e-Rad researcher number unless you wish to keep it private. Not required for managers without a researcher number or when the manager is an organization." } },
+          "ui": {
+            "group": { "id": "data-man-individual", "marker": "circle", "title": "データ管理者（個人）|Data manager (individual)", "bar": true, "tags": ["共通|Common"], "enabled_if": { "grdm-file:data-man-type": "individual" }, "info": "管理対象データを管理する担当者の情報を入力してください。データ管理者の異動により変更する場合は、メタデータを更新してください。|Enter information about the person who manages the data. Update the metadata when the data manager changes." },
+            "item": { "enabled_if": { "disabled": { "grdm-file:file-type": "dataset" } } }
+          },
           "enabled_if": {
             "$and": [
               {
@@ -2264,7 +2267,7 @@
           "title": "データ管理者 (日本語)|Data manager (Japanese)",
           "type": "object",
           "ui": {
-            "group": { "id": "data-man-name", "marker": "circle", "title": "データ管理者|Data manager", "tags": ["共通|Common"], "info": "管理対象データを管理する担当者の名前を入力してください。データ管理者の異動により変更する場合は、メタデータを更新してください。|Enter the name of the person who manages the data. Update the metadata when the data manager changes." },
+            "group": { "id": "data-man-name", "parent": "data-man-individual", "title": "名前|Name" },
             "sub_label": "（日本語）|(Japanese)",
             "item": { "enabled_if": { "disabled": { "grdm-file:file-type": "dataset" } } }
           },

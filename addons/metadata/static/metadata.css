@@ -2,3 +2,13 @@
     color: #a6a6a6;
     opacity: 1;
 }
+
+.metadata-group-bar {
+    border-left: 3px solid #ddd;
+    padding-left: 12px;
+    margin-left: 2em;
+}
+
+.metadata-group-disabled {
+    opacity: 0.6;
+}
