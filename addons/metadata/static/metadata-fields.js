@@ -11,10 +11,11 @@
  ******************************************************************************************/
 
 const $ = require('jquery');
+require('./metadata.css');
 
 // Style definitions
 const AUTOFILLED_BG_COLOR = '#fffbf0';
-const INPUT_BG_COLOR = '#f2f6fa';
+const INPUT_BG_COLOR = '#f9fbfd';
 const INPUT_BORDER_COLOR = '#cad9e6';
 const $osf = require('js/osfHelpers');
 const fangorn = require('js/fangorn');
@@ -30,13 +31,39 @@ const util = require('./util');
 const sizeofFormat = require("./util").sizeofFormat;
 const getLocalizedText = util.getLocalizedText;
 const normalizeText = util.normalizeText;
+const template = require('./template');
+
+var tagDefs = {};  // id -> { info: "..." }
 
 function appendTagBadges(container, tags) {
   tags.forEach(function(tag) {
-    container.append($('<span></span>')
+    var id, info;
+    if (typeof tag === 'object') {
+      id = tag.id;
+      tagDefs[id] = { info: tag.info };
+      info = tag.info;
+    } else {
+      id = tag;
+      if (!tagDefs[id]) {
+        throw new Error('Tag definition not found: ' + id);
+      }
+      info = tagDefs[id].info;
+    }
+    var badge = $('<span></span>')
       .addClass('label label-default metadata-group-tag')
       .css('margin-left', '6px')
-      .text(getLocalizedText(tag)));
+      .text(getLocalizedText(id));
+    if (info) {
+      badge.css('cursor', 'pointer')
+        .popover({
+          content: getLocalizedText(info),
+          html: true,
+          trigger: 'focus',
+          placement: 'bottom',
+          container: 'body'
+        }).attr('tabindex', '-1');
+    }
+    container.append(badge);
   });
 }
 
@@ -123,7 +150,7 @@ GroupContainer.prototype._renderHeading = function(def) {
       trigger: 'focus',
       placement: 'bottom',
       container: 'body'
-    }).attr('tabindex', '0');
+    }).attr('tabindex', '-1');
     this._heading.append(infoMark);
   }
   if (this.checkMark) this._heading.append(this.checkMark);
@@ -233,7 +260,7 @@ const QuestionPage = oop.defclass({
 
   _buildContainer: function() {
     const self = this;
-    self.container = $('<div></div>');
+    self.container = $('<div></div>').addClass('metadata-form');
 
     // Page-level header note (A-7)
     self.headers = [];
@@ -515,7 +542,7 @@ const QuestionField = oop.extend(Emitter, {
         trigger: 'focus',
         placement: 'bottom',
         container: 'body'
-      }).attr('tabindex', '0');
+      }).attr('tabindex', '-1');
       header.append(infoMark);
     }
     header.append(self.checkMark);
@@ -1251,7 +1278,7 @@ const ArrayFormField = oop.extend(FormFieldInterface, {
   _createVerticalEditCell: function(subFormFields) {
     const self = this;
     // Calculate colspan from display_template
-    const columnCount = self.question.display_template.split('|').length + 1; // +1 for button column
+    const columnCount = template.splitCells(self.question.display_template).length + 1; // +1 for button column
     const editCell = $('<td>').attr('colspan', columnCount);
     const fieldsContainer = $('<div>').css({ padding: '8px', border: '1px solid #eee', 'border-radius': '8px' });
 
@@ -1614,7 +1641,7 @@ const ArrayFormField = oop.extend(FormFieldInterface, {
     displayTr.find('td:not(:last)').remove();
 
     // Split template by pipe and create cells
-    const templates = self.question.display_template.split('|');
+    const templates = template.splitCells(self.question.display_template);
     templates.forEach(function(template) {
       const displayText = self.evaluateTemplate(template.trim(), subFormFields);
       const td = $('<td>').text(displayText);
@@ -1623,32 +1650,19 @@ const ArrayFormField = oop.extend(FormFieldInterface, {
     });
   },
 
-  evaluateTemplate: function(template, subFormFields) {
-    const self = this;
-    let result = template;
-
-    // Helper function to recursively process fields
-    function processField(field, prefix) {
-      const fieldId = prefix ? prefix + '.' + field.question.id : field.question.id;
-      const value = field.getValue();
-
-      // Replace simple property
-      const regex = new RegExp('{{' + fieldId + '}}', 'g');
-      result = result.replace(regex, value || '');
-
-      // Recursively handle nested fields using getChildFields
-      const childFields = field.getChildFields();
-      childFields.forEach(function(childField) {
-        processField(childField, fieldId);
+  evaluateTemplate: function(tmpl, subFormFields) {
+    var context = {};
+    function collectFields(field, prefix) {
+      var fieldId = prefix ? prefix + '.' + field.question.id : field.question.id;
+      context[fieldId] = field.getValue();
+      field.getChildFields().forEach(function(childField) {
+        collectFields(childField, fieldId);
       });
     }
-
-    // Process all fields
     subFormFields.forEach(function(field) {
-      processField(field, '');
+      collectFields(field, '');
     });
-
-    return result;
+    return template.render(tmpl, context);
   },
 
   getValue: function() {

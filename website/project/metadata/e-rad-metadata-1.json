@@ -10,12 +10,12 @@
   "pages": [
     {
       "id": "page1",
-      "title": "メタデータ登録|Metadata Registration",
-      "description": "公的資金による研究データの管理・利活用に関するメタデータの入力画面です。GakuNin RDMをお使いの方は、登録することで資金配分機関へデータ提出するフォーマットでダウンロードできます。|This is the metadata input form for the Management and Utilization of Publicly Funded Research Data. You may download the file in the format that can be submitted to the funding agencies by registering this form.",
+      "title": "助成情報登録|Funding Information Registration",
+      "description": "「公的資金による研究データの管理・利活用に関する基本的な考え方」（内閣府）におけるメタデータの共通項目に準拠しています。 https://www8.cao.go.jp/cstp/metadatainstructions.pdf|Conforms to the common metadata items in the \"Basic Approach to Management and Utilization of Publicly Funded Research Data\" (Cabinet Office). https://www8.cao.go.jp/cstp/metadatainstructions.pdf",
       "ui": [
         {
           "condition": { "grdm-file:file-type": "dataset" },
-          "header": "<ul><li>ファイル種別「データセット」は、「公的資金による研究データの管理・利活用に関する基本的な考え方」（内閣府）におけるメタデータの共通項目に準拠しています。<b>[共通]</b> フラグの項目は、共通項目において必須（リポジトリや助成機関側で補完される場合あり）とされています。</li><li><b>[リポジトリ]</b> フラグの項目は、機関リポジトリ登録時に必須となります。</li></ul>|<ul><li>The \"Dataset\" file type conforms to the common metadata items in the \"Basic Approach to Management and Utilization of Publicly Funded Research Data\" (Cabinet Office). <b>[Common]</b> flagged items are required as common items (may be supplemented by repositories or funding agencies).</li><li><b>[Repository]</b> flagged items are required when registering with an institutional repository.</li></ul>"
+          "header": "ファイル種別「データセット」は、<a href=\"https://www8.cao.go.jp/cstp/metadatainstructions.pdf\" target=\"_blank\" rel=\"noopener noreferrer\">「公的資金による研究データの管理・利活用に関する基本的な考え方」（内閣府）</a>におけるメタデータの共通項目に準拠しています。|The \"Dataset\" file type conforms to the common metadata items in <a href=\"https://www8.cao.go.jp/cstp/metadatainstructions.pdf\" target=\"_blank\" rel=\"noopener noreferrer\">the \"Basic Approach to Management and Utilization of Publicly Funded Research Data\" (Cabinet Office)</a>."
         },
         {}
       ],
@@ -26,7 +26,7 @@
           "title": "体系的番号|Japan Grant Number",
           "type": "string",
           "format": "text",
-          "ui": { "item": { "width": "narrow" } },
+          "ui": { "item": { "marker": "circle", "width": "narrow", "info": "研究費ごとに付与される体系的な番号です。公募型の研究資金以外の場合は記入不要です。|A systematic number assigned to each research grant. Not required for non-competitive funding.", "tags": [{ "id": "共通|Common", "info": "共通項目において必須（リポジトリや助成機関側で補完される場合あり）とされている項目です。|An item required as a common metadata item (may be supplemented by the repository or funding agency)." }] } },
           "suggestion": [
             {
               "key": "erad:japan_grant_number",
@@ -63,7 +63,7 @@
           "help": "資金配分機関情報を選択してください。一覧に無い場合は英語略称を記入してください。|Please select the funder. If not listed, please enter the English abbreviation.",
           "type": "choose",
           "format": "singleselect-pulldown",
-          "ui": { "item": { "width": "half", "freetext": true } },
+          "ui": { "item": { "marker": "circle", "width": "half", "freetext": true, "info": "研究資金を配分した資金配分機関（府省含む）の名称です（英語略称可）。公募型の研究資金以外の場合は記入不要です。|Name of the funding agency (including government ministries) that distributed the research funds (English abbreviation acceptable). Not required for non-competitive funding.", "tags": ["共通|Common"] } },
           "options": [
             {
               "text": "AMED",
@@ -149,8 +149,7 @@
               "text": "BIBIOHN",
               "tooltip": "国立研究開発法人医薬基盤・健康・栄養研究所|National Institutes of Biomedical Innovation|1106"
             }
-          ],
-          "pattern": "^[a-zA-Z0-9]+$"
+          ]
         },
         {
           "qid": "funding-stream-code",
@@ -158,8 +157,7 @@
           "title": "体系的番号におけるプログラム情報コード|Funding stream code in Japan Grant Number",
           "type": "string",
           "format": "text",
-          "ui": { "item": { "width": "narrow" } },
-          "pattern": "^[a-zA-Z0-9]{0,5}$",
+          "ui": { "item": { "marker": "circle", "width": "narrow", "info": "体系的番号のうち、「機関コード」および「施策・事業の特定コード」を表すコードです。公募型の研究資金以外の場合は記入不要です。|The code representing the \"agency code\" and \"policy/project identification code\" within the systematic number. Not required for non-competitive funding." } },
           "space_normalization": true
         },
         {
@@ -167,7 +165,7 @@
           "nav": "プログラム名 (日本語)",
           "title": "プログラム名 (日本語)|Program name (Japanese)",
           "ui": {
-            "group": { "id": "program-name", "title": "プログラム名|Program name" },
+            "group": { "id": "program-name", "marker": "circle", "title": "プログラム名|Program name", "info": "競争的研究費制度の名称です。|Name of the competitive research funding program." },
             "sub_label": "（日本語）|(Japanese)"
           },
           "type": "string",
@@ -186,7 +184,7 @@
           "nav": "プロジェクト名 (日本語)",
           "title": "プロジェクト名 (日本語)|Project name (Japanese)",
           "ui": {
-            "group": { "id": "project-name", "title": "プロジェクト名|Project name" },
+            "group": { "id": "project-name", "marker": "circle", "title": "プロジェクト名|Project name", "tags": ["共通|Common"], "info": "研究代表者が統括する研究開発の範囲の名称です（e-Rad課題名称等）。公式な名称がない場合は、所属機関のルールに従って入力してください。|Name of the scope of R&D overseen by the PI (e.g., e-Rad project title). If no official name exists, follow your institution's rules." },
             "sub_label": "（日本語）|(Japanese)"
           },
           "type": "string",
@@ -268,7 +266,7 @@
           "title": "プロジェクトの分野|Research field",
           "type": "choose",
           "format": "singleselect-pulldown",
-          "ui": { "item": { "width": "narrow" } },
+          "ui": { "item": { "marker": "circle", "width": "narrow", "info": "e-Radの研究分野（主分野）です。|The primary research field registered in e-Rad.", "tags": ["共通|Common"] } },
           "options": [
               {
                 "text": "189",
@@ -588,7 +586,7 @@
           "type": "string",
           "format": "text",
           "space_normalization": true,
-          "ui": { "item": { "marker": "circle", "tags": ["共通|Common"], "width": "narrow", "info": "管理対象データを特定するために付与する番号です。資金配分機関やデータ管理機関から指定がある場合はそれに従ってください。|A number assigned to identify the managed data. Follow any numbering designated by the funding agency or data management institution." } },
+          "ui": { "item": { "marker": "circle", "tags": [{ "id": "共通|Common", "info": "共通項目において必須（リポジトリや助成機関側で補完される場合あり）とされている項目です。|An item required as a common metadata item (may be supplemented by the repository or funding agency)." }], "width": "narrow", "info": "管理対象データを特定するために付与する番号です。資金配分機関やデータ管理機関から指定がある場合はそれに従ってください。|A number assigned to identify the managed data. Follow any numbering designated by the funding agency or data management institution." } },
           "enabled_if": {
             "grdm-file:file-type": "dataset"
           }
@@ -779,7 +777,7 @@
           "title": "著者名|Author Name",
           "type": "array",
           "ui": { "item": { "marker": "circle", "initial_rows": 1 } },
-          "display_template": "{{number}}|{{name-ja.last}} {{name-ja.middle}} {{name-ja.first}}|{{name-en.last}}, {{name-en.first}} {{name-en.middle}}|{{affiliation-name-ja}}|{{affiliation-name-en}}",
+          "display_template": "{{number}}|{% if name-ja.last || name-ja.first || name-ja.middle %}{% if name-ja.last %}{{name-ja.last}} {% endif %}{{name-ja.middle}} {{name-ja.first}}{% endif %}|{% if name-en.last || name-en.first || name-en.middle %}{% if name-en.last %}{{name-en.last}}, {% endif %}{{name-en.first}} {{name-en.middle}}{% endif %}|{{affiliation-name-ja}}|{{affiliation-name-en}}",
           "enabled_if": {
             "grdm-file:file-type": "manuscript"
           },
@@ -790,7 +788,6 @@
               "type": "string",
               "format": "text",
               "ui": { "item": { "width": "narrow", "placeholder": "e-Rad 研究者番号(半角数字)|e-Rad Researcher Number" } },
-              "pattern": "^[0-9a-zA-Z]*$",
               "space_normalization": true,
               "suggestion": [
                 {
@@ -1105,6 +1102,10 @@
             {
               "id": "affiliation-name-ja",
               "title": "所属機関名(日本語)|Affiliation (Japanese)",
+              "ui": {
+                "group": { "id": "author-affiliation", "title": "所属機関名|Affiliation" },
+                "sub_label": "（日本語）|(Japanese)"
+              },
               "type": "string",
               "format": "text",
               "space_normalization": true,
@@ -1125,6 +1126,7 @@
             {
               "id": "affiliation-name-en",
               "title": "所属機関名(英語)|Affiliation (English)",
+              "ui": { "group": "author-affiliation", "sub_label": "（English）|(English)" },
               "type": "string",
               "format": "text",
               "space_normalization": true,
@@ -1150,7 +1152,6 @@
           "title": "掲載日・掲載更新日|Date (Issued / Updated)",
           "type": "string",
           "format": "date",
-          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
           "ui": { "item": { "marker": "circle", "tags": ["共通|Common"], "width": "narrow", "placeholder": "2020-01-01", "info": "メタデータを公開した日、または更新した日を入力してください。|Enter the date the metadata was published or updated." } },
           "enabled_if": {
             "grdm-file:file-type": "dataset"
@@ -1250,7 +1251,7 @@
           "title": "データ種別|Data type",
           "type": "choose",
           "format": "singleselect",
-          "ui": { "item": { "marker": "circle", "tags": ["共通|Common", "リポジトリ|Repository"], "width": "narrow", "info": "「dataset」またはより具体的な詳細項目の選択を推奨します。|Selecting \"dataset\" or a more specific sub-type is recommended." } },
+          "ui": { "item": { "marker": "circle", "tags": ["共通|Common", { "id": "リポジトリ|Repository", "info": "機関リポジトリ登録時に必須となる項目です。|An item required when registering with an institutional repository." }], "width": "narrow", "info": "「dataset」またはより具体的な詳細項目の選択を推奨します。|Selecting \"dataset\" or a more specific sub-type is recommended." } },
           "enabled_if": {
             "grdm-file:file-type": "dataset"
           },
@@ -1320,7 +1321,6 @@
           "title": "概略データ量|File size",
           "type": "string",
           "format": "text",
-          "pattern": "^[><]?([0-9]+(\\.[0-9]+)?-)?([0-9]+)(\\.[0-9]+)?([A-Za-z]*B)$",
           "ui": { "item": { "marker": "circle", "placeholder": "例: <1GB, 1-10GB, 10-100GB, >100GB|E.g., <1GB, 1-10GB, 10-100GB, >100GB", "width": "half", "info": "管理対象データの概ねのデータ容量を入力してください。システムからデータ容量の値を出力できる場合は、その値をセットしても構いません。|Enter the approximate data volume of the managed data. If the system can output the exact data volume, you may set the actual value." } },
           "suggestion": [
             {
@@ -1542,7 +1542,6 @@
           "type": "string",
           "format": "date",
           "ui": { "item": { "marker": "circle", "tags": ["共通|Common"], "width": "narrow", "placeholder": "2020-01-01" } },
-          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
           "enabled_if": {
             "grdm-file:file-type": "dataset"
           }
@@ -1603,7 +1602,6 @@
           "title": "発行年月|Date (Published)",
           "type": "string",
           "format": "text",
-          "pattern": "^[0-9]{4}-[0-9]{2}$",
           "ui": { "item": { "marker": "circle", "placeholder": "2020-01", "width": "narrow" } },
           "enabled_if": {
             "grdm-file:file-type": "manuscript"
@@ -1713,7 +1711,6 @@
           "title": "リポジトリURL・DOIリンク|Repository URL/ DOI link",
           "type": "string",
           "format": "text",
-          "pattern": "^(https?://)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)$",
           "ui": { "item": { "marker": "circle", "width": "half", "placeholder": "https://example.com/example", "info": "情報がある場合は必ず入力してください。DOIが付与されている場合はDOIリンク、付与されていない場合は管理対象データのランディングページのURLを記入してください。URLが変更された際はメタデータの更新を行ってください。|Enter the DOI link if assigned; otherwise, enter the URL of the landing page. Please update the metadata if the URL changes." } },
           "suggestion": [
             {
@@ -1756,7 +1753,7 @@
           "title": "データ作成者|Creator Name",
           "type": "array",
           "ui": { "item": { "marker": "circle", "initial_rows": 1, "info": "管理対象データを生み出した研究者の名前を記入してください。|Enter the names of the researchers who produced the data." } },
-          "display_template": "{{number}}|{{name-ja.last}} {{name-ja.middle}} {{name-ja.first}}|{{name-en.last}}, {{name-en.first}} {{name-en.middle}}|{{affiliation-name-ja}}|{{affiliation-name-en}}",
+          "display_template": "{{number}}|{% if name-ja.last || name-ja.first || name-ja.middle %}{% if name-ja.last %}{{name-ja.last}} {% endif %}{{name-ja.middle}} {{name-ja.first}}{% endif %}|{% if name-en.last || name-en.first || name-en.middle %}{% if name-en.last %}{{name-en.last}}, {% endif %}{{name-en.first}} {{name-en.middle}}{% endif %}|{{affiliation-name-ja}}|{{affiliation-name-en}}",
           "enabled_if": {
             "grdm-file:file-type": "dataset"
           },
@@ -1767,7 +1764,6 @@
               "type": "string",
               "format": "text",
               "ui": { "item": { "width": "narrow", "placeholder": "e-Rad 研究者番号(半角数字)|e-Rad Researcher Number" } },
-              "pattern": "^[0-9a-zA-Z]*$",
               "space_normalization": true,
               "suggestion": [
                 {
@@ -2082,6 +2078,10 @@
             {
               "id": "affiliation-name-ja",
               "title": "所属機関名(日本語)|Affiliation (Japanese)",
+              "ui": {
+                "group": { "id": "creator-affiliation", "title": "所属機関名|Affiliation" },
+                "sub_label": "（日本語）|(Japanese)"
+              },
               "type": "string",
               "format": "text",
               "space_normalization": true,
@@ -2102,6 +2102,7 @@
             {
               "id": "affiliation-name-en",
               "title": "所属機関名(英語)|Affiliation (English)",
+              "ui": { "group": "creator-affiliation", "sub_label": "（English）|(English)" },
               "type": "string",
               "format": "text",
               "space_normalization": true,
@@ -2211,7 +2212,6 @@
           "type": "string",
           "format": "text",
           "ui": { "item": { "marker": "circle", "enabled_if": { "disabled": { "grdm-file:file-type": "dataset" } }, "placeholder": "e-Rad 研究者番号(半角数字)|e-Rad Researcher Number", "info": "e-Radの研究者番号を登録している場合、非公開にしたい場合を除き必ず記入してください。研究者番号がない管理者や、管理者が組織の場合は不要です。|Enter the e-Rad researcher number unless you wish to keep it private. Not required for managers without a researcher number or when the manager is an organization." } },
-          "pattern": "^[a-zA-Z0-9]+$",
           "enabled_if": {
             "$and": [
               {
@@ -2263,7 +2263,11 @@
           "nav": "データ管理者 (日本語)",
           "title": "データ管理者 (日本語)|Data manager (Japanese)",
           "type": "object",
-          "ui": { "item": { "marker": "circle", "tags": ["共通|Common"], "enabled_if": { "disabled": { "grdm-file:file-type": "dataset" } }, "info": "管理対象データを管理する担当者の名前を入力してください。データ管理者の異動により変更する場合は、メタデータを更新してください。|Enter the name of the person who manages the data. Update the metadata when the data manager changes." } },
+          "ui": {
+            "group": { "id": "data-man-name", "marker": "circle", "title": "データ管理者|Data manager", "tags": ["共通|Common"], "info": "管理対象データを管理する担当者の名前を入力してください。データ管理者の異動により変更する場合は、メタデータを更新してください。|Enter the name of the person who manages the data. Update the metadata when the data manager changes." },
+            "sub_label": "（日本語）|(Japanese)",
+            "item": { "enabled_if": { "disabled": { "grdm-file:file-type": "dataset" } } }
+          },
           "enabled_if": {
             "$and": [
               {
@@ -2408,7 +2412,11 @@
           "nav": "Data manager (English)",
           "title": "Data manager (English)",
           "type": "object",
-          "ui": { "item": { "marker": "circle", "enabled_if": { "disabled": { "grdm-file:file-type": "dataset" } } } },
+          "ui": {
+            "group": "data-man-name",
+            "sub_label": "（English）|(English)",
+            "item": { "enabled_if": { "disabled": { "grdm-file:file-type": "dataset" } } }
+          },
           "enabled_if": {
             "$and": [
               {
@@ -2757,8 +2765,7 @@
         {
           "qid": "internal:weko-item-id",
           "type": "string",
-          "format": "text",
-          "pattern": "^[0-9]+$"
+          "format": "text"
         },
         {
           "qid": "internal:workflow-run-id",
