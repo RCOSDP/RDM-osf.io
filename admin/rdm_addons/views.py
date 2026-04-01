@@ -98,7 +98,7 @@ class AddonListView(RdmPermissionMixin, UserPassesTestMixin, TemplateView):
             ctx['addon_settings'] = utils.get_addons_by_config_type('accounts', self.request.user)
             ctx['addon_settings'].append(
                 utils.get_addon_template_config(utils.get_addon_config('node', 'groups'), self.request.user))
-
+            ctx['addon_settings'].sort(key=lambda x: x['addon_full_name'].lower())
             accounts_addons = [addon for addon in website_settings.ADDONS_AVAILABLE
                                if 'accounts' in addon.configs and not addon.for_institutions]
             ctx.update({
