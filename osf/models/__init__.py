@@ -72,3 +72,4 @@ from osf.models.project_limit_number_template import ProjectLimitNumberTemplate 
 from osf.models.project_limit_number_template_attribute import ProjectLimitNumberTemplateAttribute  # noqa
 from osf.models.project_limit_number_setting import ProjectLimitNumberSetting  # noqa
 from osf.models.project_limit_number_setting_attribute import ProjectLimitNumberSettingAttribute  # noqa
+from osf.models.loa import LoA  # noqa

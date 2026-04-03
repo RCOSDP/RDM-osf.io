@@ -10,7 +10,7 @@ import osf.models.base
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('osf', '0257_r_2025_23_55789'),
+        ('osf', '0265_r_2025_23_55789'),
     ]
 
     operations = [
