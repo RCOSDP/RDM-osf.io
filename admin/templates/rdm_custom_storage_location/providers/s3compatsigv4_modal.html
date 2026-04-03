@@ -30,6 +30,10 @@
                             <input type="text" class="form-control s3compatsigv4-params" id="s3compatsigv4_bucket" required>
                         </div>
                         <div class="form-group">
+                            <label for="s3compatsigv4_region">{% trans "Region" %}</label>
+                            <input type="text" class="form-control s3compatsigv4-params" id="s3compatsigv4_region" placeholder="{% trans 'e.g. us-east-1 (optional)' %}">
+                        </div>
+                        <div class="form-group">
                             <label data-toggle="tooltip" title="{% trans '*The storage API must support Server Side Encryption' %}" for="s3compatsigv4_server_side_encryption">{% trans "Enable Server Side Encryption" %}</label><br>
                             <label for="s3compatsigv4_server_side_encryption" style="font-size: 15px; font-weight: normal; margin-left: 5px;">
                                 <input type="checkbox" class="s3compatsigv4-params" id="s3compatsigv4_server_side_encryption" style="margin-right: 10px; transform: scale(1.2);" value="false" onchange="setValueS3Compat()">

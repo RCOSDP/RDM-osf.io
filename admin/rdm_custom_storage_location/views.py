@@ -321,6 +321,7 @@ class SaveCredentialsView(InstitutionalStorageBaseView, View):
                 data.get('s3compatsigv4_secret_key'),
                 data.get('s3compatsigv4_bucket'),
                 bool(strtobool(data.get('s3compatsigv4_server_side_encryption'))),
+                region=data.get('s3compatsigv4_region') or None,
             )
         elif provider_short_name == 's3compatb3':
             result = utils.save_s3compatb3_credentials(

@@ -88,6 +88,26 @@ class TestUtils:
         nt.assert_equal(response, {'message': 'Saved credentials successfully!!'})
         nt.assert_equal(status, http_status.HTTP_200_OK)
 
+    @patch('osf.utils.external_util.remove_region_external_account')
+    @patch('admin.rdm_custom_storage_location.utils.update_storage')
+    @patch('admin.rdm_custom_storage_location.utils.test_s3compatsigv4_connection')
+    def test_save_s3compatsigv4_credentials_with_region(self,
+                                         mock_testconnection, mock_update_storage,
+                                         mock_remove_region_external_account):
+        mock_testconnection.return_value = {'message': 'Nice'}, http_status.HTTP_200_OK
+        mock_update_storage.return_value = {}
+        mock_remove_region_external_account.return_value = None
+        response, status = save_s3compatsigv4_credentials('guid_test', 'My storage', 's3.compat.co.jp',
+                                                       'Non-empty-access-key', 'Non-empty-secret-key', 'Cute bucket',
+                                                       region='us-east-1')
+        nt.assert_equal(response, {'message': 'Saved credentials successfully!!'})
+        nt.assert_equal(status, http_status.HTTP_200_OK)
+        # Verify region is included in wb_settings
+        call_args = mock_update_storage.call_args
+        wb_settings = call_args[0][3]  # 4th positional arg
+        nt.assert_in('region', wb_settings['storage'])
+        nt.assert_equal(wb_settings['storage']['region'], 'us-east-1')
+
     def test_wd_info_for_institutions(self):
         for_institution_providers = [
             's3compatinstitutions',

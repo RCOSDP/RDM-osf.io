@@ -178,7 +178,7 @@ def save_s3compat_credentials(institution_guid, storage_name, host_url, access_k
     return {'message': 'Saved credentials successfully!!'}, http_status.HTTP_200_OK
 
 
-def save_s3compatsigv4_credentials(institution_guid, storage_name, host_url, access_key, secret_key, bucket):
+def save_s3compatsigv4_credentials(institution_guid, storage_name, host_url, access_key, secret_key, bucket, region=None):
     test_connection_result = test_s3compatsigv4_connection(host_url, access_key, secret_key, bucket)
     if test_connection_result[1] != http_status.HTTP_200_OK:
         return test_connection_result
@@ -201,6 +201,8 @@ def save_s3compatsigv4_credentials(institution_guid, storage_name, host_url, acc
             'provider': 's3compatsigv4',
         }
     }
+    if region:
+        wb_settings['storage']['region'] = region
 
     update_storage_location(institution_guid, storage_name, wb_credentials, wb_settings)
 

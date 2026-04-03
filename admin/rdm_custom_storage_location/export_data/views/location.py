@@ -287,6 +287,7 @@ class SaveCredentialsView(ExportStorageLocationViewBaseView, View):
                 data.get('s3compatsigv4_access_key'),
                 data.get('s3compatsigv4_secret_key'),
                 data.get('s3compatsigv4_bucket'),
+                region=data.get('s3compatsigv4_region') or None,
             )
         elif provider_short_name == 'nextcloudinstitutions':
             result = export_data_utils.save_nextcloudinstitutions_credentials(
