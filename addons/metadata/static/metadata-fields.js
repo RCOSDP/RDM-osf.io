@@ -1740,6 +1740,8 @@ const ArrayFormField = oop.extend(FormFieldInterface, {
   reset: function() {
     const self = this;
     self.tbody.empty();
+    self.tbody.append(self.emptyLine);
+    self.emptyLine.show();
     self.fields = [];
   },
 

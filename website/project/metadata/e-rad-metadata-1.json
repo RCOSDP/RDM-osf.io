@@ -2253,8 +2253,8 @@
               "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{kenkyukikan_mei}} (KAKEN)</small></span></div>",
               "autofill": {
                 "grdm-file:data-man-number": "erad",
-                "grdm-file:data-man-name-ja": "kenkyusha_shimei_ja",
-                "grdm-file:data-man-name-en": "kenkyusha_shimei_en",
+                "grdm-file:data-man-name-ja": "kenkyusha_shimei_ja_parts",
+                "grdm-file:data-man-name-en": "kenkyusha_shimei_en_parts",
                 "grdm-file:data-man-org-ja": "kenkyukikan_mei_ja",
                 "grdm-file:data-man-org-en": "kenkyukikan_mei_en"
               }
@@ -2606,8 +2606,8 @@
               "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{kenkyukikan_mei}} (KAKEN)</small></span></div>",
               "autofill": {
                 "grdm-file:data-man-number": "erad",
-                "grdm-file:data-man-name-ja": "kenkyusha_shimei_ja",
-                "grdm-file:data-man-name-en": "kenkyusha_shimei_en",
+                "grdm-file:data-man-name-ja": "kenkyusha_shimei_ja_parts",
+                "grdm-file:data-man-name-en": "kenkyusha_shimei_en_parts",
                 "grdm-file:data-man-org-ja": "kenkyukikan_mei_ja",
                 "grdm-file:data-man-org-en": "kenkyukikan_mei_en"
               }
@@ -2653,8 +2653,8 @@
               "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{kenkyukikan_mei}} (KAKEN)</small></span></div>",
               "autofill": {
                 "grdm-file:data-man-number": "erad",
-                "grdm-file:data-man-name-ja": "kenkyusha_shimei_ja",
-                "grdm-file:data-man-name-en": "kenkyusha_shimei_en",
+                "grdm-file:data-man-name-ja": "kenkyusha_shimei_ja_parts",
+                "grdm-file:data-man-name-en": "kenkyusha_shimei_en_parts",
                 "grdm-file:data-man-org-ja": "kenkyukikan_mei_ja",
                 "grdm-file:data-man-org-en": "kenkyukikan_mei_en"
               }
