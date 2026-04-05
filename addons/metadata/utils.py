@@ -284,10 +284,28 @@ def _quote_csv(value):
         w.writerow([value])
     return f.getvalue().rstrip()
 
+def _name_to_str_ja(value):
+    """Convert name dict to Japanese format: 姓ミドルネーム名 (no spaces)."""
+    if isinstance(value, str):
+        logger.warning(f'namestr_ja: expected dict but got str: {value!r}')
+        return value
+    parts = [value['last'], value['middle'], value['first']]
+    return ''.join(p for p in parts if p)
+
+def _name_to_str_en(value):
+    """Convert name dict to English format: First Middle Last (space-separated)."""
+    if isinstance(value, str):
+        logger.warning(f'namestr_en: expected dict but got str: {value!r}')
+        return value
+    parts = [value['first'], value['middle'], value['last']]
+    return ' '.join(p for p in parts if p)
+
 def make_report_as_csv(format, draft_metadata, schema):
     questions = dict([(q['qid'], q) for q in sum([page['questions'] for page in schema['pages']], [])])
     env = Environment(autoescape=False)
     env.filters['quotecsv'] = _quote_csv
+    env.filters['namestr_ja'] = _name_to_str_ja
+    env.filters['namestr_en'] = _name_to_str_en
     template = env.from_string(format.csv_template)
     template_metadata = _convert_metadata(draft_metadata, questions)
     return 'report.csv', template.render(**template_metadata)
