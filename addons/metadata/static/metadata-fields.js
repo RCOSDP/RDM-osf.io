@@ -595,9 +595,6 @@ const QuestionField = oop.extend(Emitter, {
       self.clearField.on('change', function() {
         if (self.clearField.prop('checked')) {
           self.formField.reset();
-          self.formField.disable(true);
-        } else {
-          self.formField.disable(false);
         }
         self.emit('change');
       });
@@ -694,17 +691,22 @@ const QuestionField = oop.extend(Emitter, {
     return value != null && value !== '' && !this.lastError;
   },
 
-  updateEnabled: function(enabled, mode) {
+  _setEnabled: function(enabled) {
     const self = this;
     self.enabled = enabled;
+    var disabled = !self.enabled || self.checkedClear();
+    self.formField.disable(disabled);
+    self.element.css('opacity', disabled ? 0.5 : 1);
+  },
+
+  updateEnabled: function(enabled, mode) {
+    const self = this;
     if (enabled) {
       self.element.show();
-      self.formField.disable(false);
-      self.element.css('opacity', 1);
+      self._setEnabled(true);
     } else if (mode === 'disabled') {
       self.element.show();
-      self.formField.disable(true);
-      self.element.css('opacity', 0.5);
+      self._setEnabled(false);
     } else {
       self.element.hide();
     }
