@@ -575,6 +575,21 @@ li[name="WikiImportOperationPerItem"] {
     opacity: 1 !important;
 }
 
+/* Fix icon and file name alignment in wiki tree */
+#grid .tb-expand-icon-holder,
+#grid .tb-expand-icon-holder > i,
+#grid .tb-expand-icon-holder > span,
+#grid .tb-row .tb-td .fg-file-links {
+    vertical-align: middle !important;
+}
+
+/* Fix icon vertical position (method 3: nudge icon up to align with text) */
+#grid .tb-expand-icon-holder > i,
+#grid .tb-expand-icon-holder > span {
+    position: relative !important;
+    top: -2px !important;
+}
+
 /* Fix long file names in wiki tree - truncate with ellipsis */
 .tb-row .tb-td {
     overflow: visible !important;
