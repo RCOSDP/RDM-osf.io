@@ -242,7 +242,7 @@ class WikiVersion(ObjectIDMixin, BaseModel):
 
 class WikiPageNodeManager(models.Manager):
 
-    def create_for_node(self, node, name, content, auth, parent=None, is_wiki_import=False):
+    def create_for_node(self, node, name, content, auth, parent=None, is_wiki_import=False,  add_activity_log=True):
         existing_wiki_page = WikiPage.objects.get_for_node(node, name)
         if existing_wiki_page:
             raise NodeStateError('Wiki Page already exists.')
@@ -255,7 +255,7 @@ class WikiPageNodeManager(models.Manager):
             is_wiki_import=is_wiki_import
         )
         # Creates a WikiVersion object
-        wiki_page.update(auth.user, content, is_wiki_import=is_wiki_import)
+        wiki_page.update(auth.user, content, is_wiki_import=is_wiki_import, add_log=add_activity_log)
         return wiki_page
 
     def get_for_node(self, node, name=None, id=None):
@@ -312,29 +312,31 @@ class WikiPage(GuidMixin, BaseModel):
                 self.node.update_search(wiki_page=self)
         return rv
 
-    def update(self, user, content, is_wiki_import=False):
+    def update(self, user, content, is_wiki_import=False, add_log=True):
         """
         Updates the wiki with the provided content by creating a new version
 
         :param user: The user that is updating the wiki
         :param content: Latest content for wiki
+        :param add_log: Whether to add WIKI_UPDATED to the activity log (default True)
         """
         version = WikiVersion(user=user, wiki_page=self, content=content, identifier=self.current_version_number + 1)
         version.save(is_wiki_import=is_wiki_import)
 
-        self.node.add_log(
-            action=NodeLog.WIKI_UPDATED,
-            params={
-                'project': self.node.parent_id,
-                'node': self.node._primary_key,
-                'page': self.page_name,
-                'page_id': self._primary_key,
-                'version': version.identifier,
-            },
-            auth=Auth(user),
-            log_date=version.created,
-            save=True
-        )
+        if add_log:
+            self.node.add_log(
+                action=NodeLog.WIKI_UPDATED,
+                params={
+                    'project': self.node.parent_id,
+                    'node': self.node._primary_key,
+                    'page': self.page_name,
+                    'page_id': self._primary_key,
+                    'version': version.identifier,
+                },
+                auth=Auth(user),
+                log_date=version.created,
+                save=True
+            )
         return version
 
     def update_active_sharejs(self, node):

@@ -31,6 +31,7 @@ from django_bulk_update.helper import bulk_update
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 from framework.exceptions import HTTPError
+from framework.auth import Auth
 from framework.auth.utils import privacy_info_handle
 from framework.auth.decorators import must_be_logged_in
 from framework.auth.core import get_current_user_id
@@ -618,6 +619,11 @@ def format_project_wiki_pages(node, auth):
     pages = []
     can_edit = node.has_permission(auth.user, WRITE) and not node.is_registration
     project_wiki_pages = _get_wiki_pages_latest(node)
+    # ホームが存在せず、編集可能な場合は自動作成（Reorder Wiki Tree で表示するため）
+    # add_activity_log=False: Wikiタブを開いただけの自動作成ではアクティビティログに残さない
+    if (can_edit and auth.user and
+            not WikiPage.objects.get_for_node(node, 'home')):
+        WikiPage.objects.create_for_node(node, 'home', '', Auth(auth.user), add_activity_log=False)
     home_wiki_page = format_home_wiki_page(node)
     pages.append(home_wiki_page)
     for wiki_page in project_wiki_pages:
