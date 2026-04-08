@@ -1045,6 +1045,41 @@ class TestUtils(AdminTestCase):
         mock_test_s3compatsigv4_connection_patcher.stop()
         mock_update_storage_location_patcher.stop()
 
+    def test_save_s3compatsigv4_credentials__with_region(self):
+        mock_test_s3compatsigv4_connection_patcher = mock.patch(
+            f'{EXPORT_DATA_UTIL_PATH}.test_s3compatsigv4_connection',
+            return_value=({'message': 'test'}, 200)
+        )
+        mock_update_storage_location_patcher = mock.patch(
+            f'{EXPORT_DATA_UTIL_PATH}.update_storage_location',
+            return_value=None
+        )
+
+        mock_test_s3compatsigv4_connection = mock_test_s3compatsigv4_connection_patcher.start()
+        mock_update_storage_location = mock_update_storage_location_patcher.start()
+
+        data, status_code = utils.save_s3compatsigv4_credentials(
+            institution_guid=self.institution.guid,
+            storage_name='testname',
+            host_url='http://host_url/',
+            access_key=self.access_key,
+            secret_key=self.secret_key,
+            bucket=self.bucket,
+            region='us-east-1'
+        )
+        mock_test_s3compatsigv4_connection.assert_called()
+        mock_update_storage_location.assert_called()
+        nt.assert_equal(data, {'message': 'Saved credentials successfully!!'})
+        nt.assert_equal(status_code, 200)
+        # Verify region is included in wb_settings
+        call_args = mock_update_storage_location.call_args
+        wb_settings = call_args[0][3]  # 4th positional arg
+        nt.assert_in('region', wb_settings['storage'])
+        nt.assert_equal(wb_settings['storage']['region'], 'us-east-1')
+
+        mock_test_s3compatsigv4_connection_patcher.stop()
+        mock_update_storage_location_patcher.stop()
+
     def test_save_dropboxbusiness_credentials__error_connection(self):
         mock_test_dropboxbusiness_connection_patcher = mock.patch(
             f'{EXPORT_DATA_UTIL_PATH}.test_dropboxbusiness_connection',

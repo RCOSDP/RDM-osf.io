@@ -718,7 +718,7 @@ def save_s3compat_credentials(institution_id, storage_name, host_url, access_key
     }, http_status.HTTP_200_OK)
 
 def save_s3compatsigv4_credentials(institution_id, storage_name, host_url, access_key, secret_key,
-                              bucket, server_side_encryption=False):
+                              bucket, server_side_encryption=False, region=None):
 
     test_connection_result = test_s3compatsigv4_connection(host_url, access_key, secret_key, bucket)
     if test_connection_result[1] != http_status.HTTP_200_OK:
@@ -742,6 +742,8 @@ def save_s3compatsigv4_credentials(institution_id, storage_name, host_url, acces
             'type': Region.INSTITUTIONS,
         }
     }
+    if region:
+        wb_settings['storage']['region'] = region
 
     region = update_storage(institution_id, storage_name, wb_credentials, wb_settings)
     external_util.remove_region_external_account(region)
@@ -1283,15 +1285,19 @@ def get_s3compat_info(waterbutler_credentials_storage, waterbutler_settings_stor
 
 def get_s3compatsigv4_info(waterbutler_credentials_storage, waterbutler_settings_storage):
     """Get storage information for S3 Compatible (SigV4) Storage."""
-    return {
+    info = {
         'host': create_storage_info_template('Endpoint URL', waterbutler_credentials_storage.get('host')),
         'access_key': create_storage_info_template('Access Key', waterbutler_credentials_storage.get('access_key')),
         'bucket': create_storage_info_template('Bucket', waterbutler_settings_storage.get('bucket')),
         'encrypt_uploads': create_storage_info_template(
             'Enable Server Side Encryption',
             waterbutler_settings_storage.get('encrypt_uploads', False)
-        )
+        ),
     }
+    region = waterbutler_settings_storage.get('region')
+    if region:
+        info['region'] = create_storage_info_template('Region', region)
+    return info
 
 
 def get_s3compatinstitutions_info(institution, provider_name, region):
