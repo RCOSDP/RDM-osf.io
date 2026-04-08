@@ -255,7 +255,17 @@ class InstitutionAuthentication(BaseAuthentication):
         if loa:
             if loa.aal == 2:
                 if not re.search(OSF_AAL2_STR, str(aal)):
-                    mfa_url = mfa_url_tmp
+                    if mfa_url_tmp:
+                        mfa_url = mfa_url_tmp
+                    else:
+                        # MFA URL cannot be generated (e.g. p_idp is not a string).
+                        # Without MFA redirect, allowing login would silently bypass
+                        # the AAL2 requirement — reject the login instead.
+                        message = (
+                            'Institution login failed: Does not meet the required AAL.'
+                            '<br />MFA redirect is not available for this institution.'
+                        )
+                        loa_flag = False
             elif loa.aal == 1:
                 if not aal:
                     message = (

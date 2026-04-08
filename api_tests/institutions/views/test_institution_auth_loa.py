@@ -141,7 +141,7 @@ class TestInstitutionAuthLoA:
                 edu_person_assurance='https://www.gakunin.jp/profile/AAL2',
             ),
         )
-        assert res.status_code in (200, 204)
+        assert res.status_code == 200
         user = OSFUser.objects.get(username=username)
         assert user.aal == OSF_AAL2_VAR
 
@@ -156,7 +156,7 @@ class TestInstitutionAuthLoA:
                 edu_person_assurance='https://www.gakunin.jp/profile/AAL1',
             ),
         )
-        assert res.status_code in (200, 204)
+        assert res.status_code == 200
         user = OSFUser.objects.get(username=username)
         assert user.aal == OSF_AAL1_VAR
 
@@ -171,7 +171,7 @@ class TestInstitutionAuthLoA:
                 edu_person_assurance='https://www.gakunin.jp/profile/IAL2',
             ),
         )
-        assert res.status_code in (200, 204)
+        assert res.status_code == 200
         user = OSFUser.objects.get(username=username)
         assert user.ial == OSF_IAL2_VAR
 
@@ -189,7 +189,7 @@ class TestInstitutionAuthLoA:
                 shib_authn_context_class=shib_value,
             ),
         )
-        assert res.status_code in (200, 204)
+        assert res.status_code == 200
         user = OSFUser.objects.get(username=username)
         assert user.aal == shib_value
 
@@ -209,7 +209,7 @@ class TestInstitutionAuthLoA:
                 edu_person_assurance=combined,
             ),
         )
-        assert res.status_code in (200, 204)
+        assert res.status_code == 200
         user = OSFUser.objects.get(username=username)
         assert user.aal == OSF_AAL2_VAR
         assert user.ial == OSF_IAL2_VAR
@@ -227,7 +227,7 @@ class TestInstitutionAuthLoA:
             url_auth_institution,
             make_payload(institution, username),
         )
-        assert res.status_code in (200, 204)
+        assert res.status_code == 200
 
     # ---------------------------------------------------------------
     # LoA validation — AAL2 required
@@ -248,10 +248,9 @@ class TestInstitutionAuthLoA:
                 edu_person_assurance='https://www.gakunin.jp/profile/AAL2',
             ),
         )
-        assert res.status_code in (200, 204)
+        assert res.status_code == 200
         # mfa_url should be empty because AAL2 requirement is met
-        if res.status_code == 200:
-            assert res.json.get('mfa_url', '') == ''
+        assert res.json.get('mfa_url', '') == ''
 
     @mock.patch('api.institutions.authentication.OSF_MFA_URL', 'https://mfa.example.com/ds')
     def test_aal2_required_user_has_aal1_returns_mfa_url(
@@ -298,6 +297,68 @@ class TestInstitutionAuthLoA:
         assert mfa_url != ''
 
     # ---------------------------------------------------------------
+    # LoA validation — AAL2 required but MFA URL unavailable
+    # ---------------------------------------------------------------
+
+    def test_aal2_required_no_mfa_url_available_raises_error(
+        self, app, institution, url_auth_institution,
+    ):
+        """AAL2 required, AAL2 not met, and p_idp is a list (not str) so
+        mfa_url_tmp is empty.  Login must be rejected instead of silently
+        bypassing the AAL2 requirement.
+        """
+        modifier = UserFactory()
+        LoA.objects.create(
+            institution=institution, aal=2, ial=0, is_mfa=True, modifier=modifier,
+        )
+        username = 'user_aal2_no_mfa@inst.edu'
+        # idp is NOT passed, so institution.email_domains (a list) is used.
+        # type(p_idp) is str -> False -> mfa_url_tmp remains empty.
+        res = app.post(
+            url_auth_institution,
+            make_payload(
+                institution, username,
+                edu_person_assurance='https://www.gakunin.jp/profile/AAL1',
+            ),
+            expect_errors=True,
+        )
+        assert res.status_code == 400
+
+    def test_aal2_required_no_aal_no_mfa_url_available_raises_error(
+        self, app, institution, url_auth_institution,
+    ):
+        """AAL2 required, no AAL at all, p_idp is a list -> must be rejected."""
+        modifier = UserFactory()
+        LoA.objects.create(
+            institution=institution, aal=2, ial=0, is_mfa=True, modifier=modifier,
+        )
+        username = 'user_aal2_no_mfa_none@inst.edu'
+        res = app.post(
+            url_auth_institution,
+            make_payload(institution, username),
+            expect_errors=True,
+        )
+        assert res.status_code == 400
+
+    def test_aal2_required_user_has_aal2_passes_regardless_of_idp_type(
+        self, app, institution, url_auth_institution,
+    ):
+        """AAL2 required and met - login should pass even if p_idp is a list."""
+        modifier = UserFactory()
+        LoA.objects.create(
+            institution=institution, aal=2, ial=0, is_mfa=True, modifier=modifier,
+        )
+        username = 'user_aal2_ok_list_idp@inst.edu'
+        res = app.post(
+            url_auth_institution,
+            make_payload(
+                institution, username,
+                edu_person_assurance='https://www.gakunin.jp/profile/AAL2',
+            ),
+        )
+        assert res.status_code == 200
+
+    # ---------------------------------------------------------------
     # LoA validation — AAL1 required
     # ---------------------------------------------------------------
 
@@ -316,7 +377,7 @@ class TestInstitutionAuthLoA:
                 edu_person_assurance='https://www.gakunin.jp/profile/AAL1',
             ),
         )
-        assert res.status_code in (200, 204)
+        assert res.status_code == 200
 
     def test_aal1_required_user_has_no_aal_raises_error(
         self, app, institution, url_auth_institution,
@@ -353,7 +414,7 @@ class TestInstitutionAuthLoA:
                 edu_person_assurance='https://www.gakunin.jp/profile/IAL2',
             ),
         )
-        assert res.status_code in (200, 204)
+        assert res.status_code == 200
 
     def test_ial2_required_user_has_no_ial_raises_error(
         self, app, institution, url_auth_institution,
@@ -390,7 +451,7 @@ class TestInstitutionAuthLoA:
                 edu_person_assurance='https://www.gakunin.jp/profile/IAL2',
             ),
         )
-        assert res.status_code in (200, 204)
+        assert res.status_code == 200
 
     def test_ial1_required_user_has_no_ial_raises_error(
         self, app, institution, url_auth_institution,
@@ -430,9 +491,8 @@ class TestInstitutionAuthLoA:
                 edu_person_assurance=combined,
             ),
         )
-        assert res.status_code in (200, 204)
-        if res.status_code == 200:
-            assert res.json.get('mfa_url', '') == ''
+        assert res.status_code == 200
+        assert res.json.get('mfa_url', '') == ''
 
     def test_aal2_met_but_ial2_not_met_raises_error(
         self, app, institution, url_auth_institution,
@@ -515,7 +575,7 @@ class TestInstitutionAuthLoA:
             url_auth_institution,
             make_payload(institution, username),
         )
-        assert res.status_code in (200, 204)
+        assert res.status_code == 200
         user = OSFUser.objects.get(username=username)
         ext = UserExtendedData.objects.get(user=user)
         assert ext.data.get('idp_attr', {}).get('id') == institution.id
