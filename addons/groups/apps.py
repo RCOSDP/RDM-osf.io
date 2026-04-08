@@ -39,6 +39,8 @@ class AddonAppConfig(BaseAddonAppConfig):
 
     node_settings_template = os.path.join(TEMPLATE_PATH, 'groups_node_settings.mako')
 
+    is_allowed_default = False
+
     @property
     def routes(self):
         from . import routes

@@ -5151,11 +5151,14 @@ msgstr "ワークフローテンプレートを更新しました。"
 msgid "Failed to update workflow template."
 msgstr "ワークフローテンプレートの更新に失敗しました。"
 
-msgid "※ Group members can be edited using the GakuNin mAP {baseUrl}."
-msgstr "※グループのメンバー編集は、学認mAP機能 {baseUrl} で実施します。"
+msgid "※ This feature is intended for use in the Moonshot Goal 2 Database (Mebyo DB). Group member editing is performed through {baseUrl}."
+msgstr "※本機能はムーンショット目標2（未病DB）関連プロジェクトでの利用を対象としています。グループのメンバー編集は、{baseUrl} で実施します。"
 
-msgid "If a group member currently logged into GakuNin RDM is deleted on the mAP, they will not be removed from the project until they log out."
-msgstr "GakuNin RDMログイン中のグループメンバーをmAP機能上で削除する場合、当該ユーザがログアウトするまでプロジェクトからは削除されません。"
+msgid "the GakuNin Cloud Gateway Service group function"
+msgstr "学認クラウドゲートウェイサービスグループ機能"
+
+msgid "If you register or remove a group member while they are logged into GakuNin RDM, the changes will not be reflected in the project until the user logs out and logs back in."
+msgstr "GakuNin RDMログイン中のグループメンバーを登録・削除する場合、当該ユーザがログアウト・再ログインするまでプロジェクトからは登録・削除されません。"
 
 msgid "%(groupOthersCount)s more"
 msgstr "あと%(groupOthersCount)sグループ"

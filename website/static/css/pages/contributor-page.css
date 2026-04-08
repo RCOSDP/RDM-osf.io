@@ -166,9 +166,8 @@ th.remove {
     padding-bottom: 20px;
 }
 
-#groupsNotes h3 {
+#groupsNotes h4 {
     color: red;
     padding: 0;
     margin: 0;
-    font-weight: 500;
 }
