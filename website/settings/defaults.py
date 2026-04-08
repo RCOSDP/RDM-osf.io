@@ -2056,6 +2056,7 @@ MAPCORE_CLIENTID = None
 MAPCORE_SECRET = None
 MAPCORE_GROUP_HOSTNAME = 'https://sptest.cg.gakunin.jp'
 MAPCORE_GROUP_API_PATH = '/map/rd/'
+MAPCORE_GROUP_VIEW_PATH = '/map/mygroups/view'
 
 # allow logged-in-user to search private projects
 ENABLE_PRIVATE_SEARCH = False

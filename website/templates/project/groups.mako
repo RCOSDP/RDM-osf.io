@@ -52,8 +52,8 @@
 <div class="col-md-9 col-xs-12">
     <div id="manageGroups" class="scripted">
         <div id= "groupsNotes" class="groupsNotes">
-            <h3>${_("※ Group members can be edited using the GakuNin mAP {baseUrl}.").format(baseUrl="<a data-bind='attr: {href: $root.baseUrl}, text: $root.baseUrl' target='_blank'></a>") | n}</h3>
-            <h3>${_("If a group member currently logged into GakuNin RDM is deleted on the mAP, they will not be removed from the project until they log out.")}</h3>
+            <h4>${_("※ This feature is intended for use in the Moonshot Goal 2 Database (Mebyo DB). Group member editing is performed through {baseUrl}.").format(baseUrl='<a data-bind="attr: {href: $root.baseUrl}" target="_blank">' + _("the GakuNin Cloud Gateway Service group function") + '</a>') | n}</h4>
+            <h4>${_("If you register or remove a group member while they are logged into GakuNin RDM, the changes will not be reflected in the project until the user logs out and logs back in.")}</h4>
         </div>
         <h3> ${_("Groups")}
             <!-- ko if: canEdit -->

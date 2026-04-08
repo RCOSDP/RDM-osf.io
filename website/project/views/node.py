@@ -545,7 +545,7 @@ def node_groups(auth, node, **kwargs):
     ret['groups'] = utils.serialize_mapcore_node_groups(node)
     current_group = [group['mapcore_group']['id'] for group in ret['groups']]
     ret['adminGroups'] = utils.serialize_parent_admin_groups(node, current_group)
-    ret['baseUrl'] = settings.MAPCORE_GROUP_HOSTNAME
+    ret['baseUrl'] = f'{settings.MAPCORE_GROUP_HOSTNAME}{settings.MAPCORE_GROUP_VIEW_PATH}'
     return ret
 
 @must_have_permission(ADMIN)
