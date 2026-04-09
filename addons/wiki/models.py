@@ -242,7 +242,7 @@ class WikiVersion(ObjectIDMixin, BaseModel):
 
 class WikiPageNodeManager(models.Manager):
 
-    def create_for_node(self, node, name, content, auth, parent=None, is_wiki_import=False,  add_activity_log=True):
+    def create_for_node(self, node, name, content, auth, parent=None, is_wiki_import=False, add_activity_log=True):
         existing_wiki_page = WikiPage.objects.get_for_node(node, name)
         if existing_wiki_page:
             raise NodeStateError('Wiki Page already exists.')
