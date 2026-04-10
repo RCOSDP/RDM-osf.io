@@ -11,11 +11,11 @@
     {
       "id": "page1",
       "title": "助成情報登録|Funding Information Registration",
-      "description": "公的資金による研究プロジェクトの成果情報を登録できます。助成情報とファイルメタデータを紐づけ、資金配分機関への専用データ形式や機関リポジトリ登録にご利用できます。「公的資金による研究データの管理・利活用に関するメタデータ説明書」（内閣府）におけるメタデータの共通項目に準拠しています。 https://www8.cao.go.jp/cstp/metadatainstructions.pdf|You can register research output information for publicly funded research projects. Link funding information with file metadata for use in funding agency submission formats and institutional repository registration. Conforms to the common metadata items in the \"Metadata Manual for the Management and Utilization of Publicly Funded Research Data\" (Cabinet Office). https://www8.cao.go.jp/cstp/metadatainstructions_en.pdf",
+      "description": "公的資金による研究プロジェクトの成果情報を登録できます。助成情報とファイルメタデータを紐づけ、資金配分機関への専用データ形式や機関リポジトリ登録にご利用できます。「公的資金による研究データの管理・利活用に関するメタデータ説明書」（内閣府）におけるメタデータの共通項目（以下「共通項目」）に準拠しています。 https://www8.cao.go.jp/cstp/metadatainstructions.pdf|You can register research output information for publicly funded research projects. Link funding information with file metadata for use in funding agency submission formats and institutional repository registration. Conforms to the Common Metadata Elements in the \"Metadata Manual for the Management and Utilization of Publicly Funded Research Data\" (Cabinet Office). https://www8.cao.go.jp/cstp/metadatainstructions_en.pdf",
       "ui": [
         {
           "condition": { "grdm-file:file-type": "dataset" },
-          "header": "ファイル種別「データセット」は、<a href=\"https://www8.cao.go.jp/cstp/metadatainstructions.pdf\" target=\"_blank\" rel=\"noopener noreferrer\">「公的資金による研究データの管理・利活用に関するメタデータ説明書」（内閣府）</a>におけるメタデータの共通項目に準拠しています。|The \"Dataset\" file type conforms to the common metadata items in <a href=\"https://www8.cao.go.jp/cstp/metadatainstructions_en.pdf\" target=\"_blank\" rel=\"noopener noreferrer\">the \"Metadata Manual for the Management and Utilization of Publicly Funded Research Data\" (Cabinet Office)</a>."
+          "header": "ファイル種別「データセット」は、<a href=\"https://www8.cao.go.jp/cstp/metadatainstructions.pdf\" target=\"_blank\" rel=\"noopener noreferrer\">「公的資金による研究データの管理・利活用に関するメタデータ説明書」（内閣府）</a>におけるメタデータの共通項目（以下「共通項目」）に準拠しています。|The \"Dataset\" file type conforms to the Common Metadata Elements in <a href=\"https://www8.cao.go.jp/cstp/metadatainstructions_en.pdf\" target=\"_blank\" rel=\"noopener noreferrer\">the \"Metadata Manual for the Management and Utilization of Publicly Funded Research Data\" (Cabinet Office)</a>."
         },
         {}
       ],
@@ -26,7 +26,7 @@
           "title": "体系的番号|Japan Grant Number",
           "type": "string",
           "format": "text",
-          "ui": { "item": { "marker": "circle", "width": "narrow", "info": "研究費ごとに付与される体系的な番号です。公募型の研究資金以外の場合は記入不要です。|The Japan Grant Number assigned to each research grant. No entry required except for public research funds.", "tags": [{ "id": "共通|Common", "info": "共通項目において必須（リポジトリや助成機関側で補完される場合あり）とされている項目です。|An item required as a common metadata item (may be supplemented by the repository or funding agency)." }] } },
+          "ui": { "item": { "marker": "circle", "width": "narrow", "info": "研究費ごとに付与される体系的な番号です。公募型の研究資金以外の場合は記入不要です。|The Japan Grant Number assigned to each research grant. No entry required except for public research funds.", "tags": [{ "id": "共通|Common", "info": "共通項目において必須（リポジトリや助成機関側で補完される場合あり）とされている項目です。|An item required as a Common Metadata Element (may be supplemented by the repository or funding agency)." }] } },
           "suggestion": [
             {
               "key": "erad:japan_grant_number",
@@ -586,7 +586,7 @@
           "type": "string",
           "format": "text",
           "space_normalization": true,
-          "ui": { "item": { "marker": "circle", "tags": [{ "id": "共通|Common", "info": "共通項目において必須（リポジトリや助成機関側で補完される場合あり）とされている項目です。|An item required as a common metadata item (may be supplemented by the repository or funding agency)." }], "width": "narrow", "info": "管理対象データを特定するために付与する番号です。資金配分機関やデータ管理機関から指定がある場合はそれに従ってください。|The number assigned to identify the managed data. If specified by the funding agency or Hosting Institution, align with their specification." } },
+          "ui": { "item": { "marker": "circle", "tags": [{ "id": "共通|Common", "info": "共通項目において必須（リポジトリや助成機関側で補完される場合あり）とされている項目です。|An item required as a Common Metadata Element (may be supplemented by the repository or funding agency)." }], "width": "narrow", "info": "管理対象データを特定するために付与する番号です。資金配分機関やデータ管理機関から指定がある場合はそれに従ってください。|The number assigned to identify the managed data. If specified by the funding agency or Hosting Institution, align with their specification." } },
           "enabled_if": {
             "grdm-file:file-type": "dataset"
           }
@@ -676,7 +676,7 @@
           "title": "論文の種類|Type of manuscript",
           "type": "choose",
           "format": "singleselect",
-          "ui": { "item": { "marker": "circle", "width": "narrow" } },
+          "ui": { "item": { "marker": "circle", "width": "narrow", "tags": [{ "id": "リポジトリ|Repository", "info": "機関リポジトリ登録時に必須となる項目です。|An item required when registering with an institutional repository." }] } },
           "enabled_if": {
             "grdm-file:file-type": "manuscript"
           },
@@ -727,7 +727,7 @@
               "item": { "placeholder": "研究データ管理に関する意識調査" }
             },
             {
-              "group": { "id": "title", "marker": "circle", "title": "論文表題|Paper Title", "help": "「日本語」か「English」いずれかのフィールドは入力必須|Either the Japanese or English field is required" },
+              "group": { "id": "title", "marker": "circle", "title": "論文表題|Paper Title", "tags": ["リポジトリ|Repository"], "help": "「日本語」か「English」いずれかのフィールドは入力必須|Either the Japanese or English field is required" },
               "sub_label": "（日本語）|(Japanese)",
               "item": { "placeholder": "研究データ管理に関する意識調査" }
             }
@@ -1251,7 +1251,7 @@
           "title": "データ種別|Data type",
           "type": "choose",
           "format": "singleselect",
-          "ui": { "item": { "marker": "circle", "tags": ["共通|Common", { "id": "リポジトリ|Repository", "info": "機関リポジトリ登録時に必須となる項目です。|An item required when registering with an institutional repository." }], "width": "narrow", "info": "「dataset」またはより具体的な詳細項目の選択を推奨します。|Selecting \"dataset\" or one of the following detail elements is recommended." } },
+          "ui": { "item": { "marker": "circle", "tags": ["共通|Common", "リポジトリ|Repository"], "width": "narrow", "info": "「dataset」またはより具体的な詳細項目の選択を推奨します。|Selecting \"dataset\" or one of the following detail elements is recommended." } },
           "enabled_if": {
             "grdm-file:file-type": "dataset"
           },
@@ -1321,7 +1321,7 @@
           "title": "概略データ量|File size",
           "type": "string",
           "format": "text",
-          "ui": { "item": { "marker": "circle", "placeholder": "例: <1GB, 1-10GB, 10-100GB, >100GB|E.g., <1GB, 1-10GB, 10-100GB, >100GB", "width": "half", "info": "管理対象データの概ねのデータ容量を入力してください。システムからデータ容量の値を出力できる場合は、その値をセットしても構いません。|Enter the approximate data volume of the managed data. If the system can output the exact data volume, you may set the actual value." } },
+          "ui": { "item": { "marker": "circle", "placeholder": "例: <1GB, 1-10GB, 10-100GB, >100GB|E.g., <1GB, 1-10GB, 10-100GB, >100GB", "width": "half" } },
           "suggestion": [
             {
               "key": "file-size",
@@ -1486,7 +1486,7 @@
           "nav": "管理対象データの利活用・提供方針 (引用方法等・日本語)",
           "title": "管理対象データの利活用・提供方針 (引用方法等・日本語)|Data utilization and provision policy (citation information, Japanese)",
           "ui": {
-            "group": { "id": "data-policy-cite", "parent": "data-policy", "title": "引用方法等|Citation information", "tags": ["共通|Common"], "help": "「日本語」か「English」いずれかのフィールドは入力必須|Either the Japanese or English field is required" },
+            "group": { "id": "data-policy-cite", "parent": "data-policy", "title": "引用方法等|Citation information" },
             "sub_label": "（日本語）|(Japanese)"
           },
           "type": "string",
@@ -1728,7 +1728,7 @@
           "nav": "学術論文を掲載した「機関リポジトリ等の情報基盤」のDOI",
           "title": "学術論文を掲載した「機関リポジトリ等の情報基盤」のDOI|DOI of the institutional repository or other information infrastructure where the academic paper is published",
           "pattern": "^(https?://doi\\.org/)?10\\.[0-9]{4,}(/[-._;()/:a-zA-Z0-9]+)*$",
-          "ui": { "item": { "marker": "circle", "width": "half", "placeholder": "10.1234/5678" } },
+          "ui": { "item": { "marker": "circle", "width": "half", "placeholder": "10.1234/5678", "info": "このファイルを根拠データとして用いている学術論文のDOIを記載してください。|Enter the DOI of the academic paper that uses this file as supporting data." } },
           "type": "string",
           "format": "text",
           "enabled_if": {
@@ -1740,7 +1740,7 @@
           "nav": "根拠データを掲載した「機関リポジトリ等の情報基盤」のDOI",
           "title": "根拠データを掲載した「機関リポジトリ等の情報基盤」のDOI|DOI of the institutional repository or other information infrastructure where the supplemental data is published",
           "pattern": "^(https?://doi\\.org/)?10\\.[0-9]{4,}(/[-._;()/:a-zA-Z0-9]+)*$",
-          "ui": { "item": { "marker": "circle", "width": "half", "placeholder": "10.1234/5678" } },
+          "ui": { "item": { "marker": "circle", "width": "half", "placeholder": "10.1234/5678", "info": "この論文が根拠データとして用いている研究データのDOIを記載してください。|Enter the DOI of the research data used as supporting data for this paper." } },
           "type": "string",
           "format": "text",
           "enabled_if": {
@@ -2717,7 +2717,7 @@
           "nav": "備考 (日本語)",
           "title": "備考 (日本語)|Remarks (Japanese)",
           "ui": {
-            "group": { "id": "remarks", "marker": "circle", "title": "備考|Remarks", "info": "FAやデータ管理者等のメモとして使用します。CiNii Research上等で公開の対象にはなりません。|Use this as a note for FA, Data Manager, etc. This is not displayed on CiNii Research, etc." },
+            "group": { "id": "remarks", "marker": "circle", "title": "備考|Remarks" },
             "sub_label": "（日本語）|(Japanese)"
           },
           "type": "string",
