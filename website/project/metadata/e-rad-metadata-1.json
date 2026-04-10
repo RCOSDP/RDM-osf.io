@@ -2730,31 +2730,6 @@
           "ui": { "group": "remarks", "sub_label": "（English）|(English)" },
           "type": "string",
           "format": "textarea"
-        },
-        {
-          "qid": "grdm-file:metadata-access-rights",
-          "nav": "メタデータのアクセス権",
-          "title": "メタデータのアクセス権|Access rights of metadata",
-          "type": "choose",
-          "format": "singleselect",
-          "ui": { "item": { "marker": "circle", "tags": ["共通|Common"], "width": "narrow" } },
-          "options": [
-            {
-              "text": "open access",
-              "tooltip": "公開|open access"
-            },
-            {
-              "text": "restricted access",
-              "tooltip": "共有|restricted access"
-            },
-            {
-              "text": "closed access",
-              "tooltip": "非共有・非公開|closed access"
-            }
-          ],
-          "enabled_if": {
-            "grdm-file:file-type": "dataset"
-          }
         }
       ]
     },

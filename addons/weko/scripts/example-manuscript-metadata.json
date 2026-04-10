@@ -210,9 +210,6 @@
             },
             "grdm-file:remarks-en": {
               "value": "Main manuscript"
-            },
-            "grdm-file:metadata-access-rights": {
-              "value": "open"
             }
           }
         }
@@ -338,9 +335,6 @@
             },
             "grdm-file:remarks-en": {
               "value": "Supporting dataset"
-            },
-            "grdm-file:metadata-access-rights": {
-              "value": "open"
             }
           }
         }
@@ -466,9 +460,6 @@
             },
             "grdm-file:remarks-en": {
               "value": "Supporting dataset"
-            },
-            "grdm-file:metadata-access-rights": {
-              "value": "open"
             }
           }
         }

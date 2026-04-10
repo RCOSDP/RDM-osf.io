@@ -752,7 +752,6 @@
     },
     "grdm-file:remarks-ja": null,
     "grdm-file:remarks-en": null,
-    "grdm-file:metadata-access-rights": null,
     "@agent": {
         "@type": "object",
         "root.wk:feedbackMail[]": "{{ object_username }}"
@@ -766,7 +765,7 @@
             "conformsTo": {
                 ".@id": "https://w3id.org/ro/crate/1.1"
             },
-            "wk:publishStatus": "{% if grdm_file_metadata_access_rights_value in ['restricted access', 'closed access'] %}private{% else %}public{% endif %}",
+            "wk:publishStatus": "public",
             "wk:index": "{{ index_id }}",
             "datePublished": "{{ nowdate }}"
         },

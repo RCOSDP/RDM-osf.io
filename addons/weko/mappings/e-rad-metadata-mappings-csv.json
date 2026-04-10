@@ -617,7 +617,6 @@
     },
     "grdm-file:remarks-ja": null,
     "grdm-file:remarks-en": null,
-    "grdm-file:metadata-access-rights": null,
     "@agent": {
         "@type": "object",
         "feedback_mail[]": "{{ object_username }}"

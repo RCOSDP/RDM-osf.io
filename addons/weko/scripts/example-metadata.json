@@ -135,9 +135,6 @@
             },
             "grdm-file:remarks-en": {
               "value": "Test remarks"
-            },
-            "grdm-file:metadata-access-rights": {
-              "value": "open"
             }
           }
         }

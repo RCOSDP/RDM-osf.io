@@ -85,7 +85,7 @@ class TestWEKOSchema(OsfTestCase):
 
         assert_equal(
             props.pop(),
-            ['.publish_status', '.PUBLISH_STATUS', '', 'Required', 'private'],
+            ['.publish_status', '.PUBLISH_STATUS', '', 'Required', 'public'],
         )
         assert_equal(
             props.pop(),
@@ -239,7 +239,6 @@ class TestWEKOSchema(OsfTestCase):
                         'grdm-file:data-man-email': 'dummy@test.rcos.nii.ac.jp',
                         'grdm-file:remarks-ja': 'コメント',
                         'grdm-file:remarks-en': 'Comment',
-                        'grdm-file:metadata-access-rights': 'closed access',
                     }.items()]),
                 },
             ],
@@ -270,7 +269,7 @@ class TestWEKOSchema(OsfTestCase):
 
         assert_equal(
             props.pop(),
-            ['.publish_status', '.PUBLISH_STATUS', '', 'Required', 'private'],
+            ['.publish_status', '.PUBLISH_STATUS', '', 'Required', 'public'],
         )
         assert_equal(
             props.pop(),
@@ -695,7 +694,6 @@ class TestWEKOSchema(OsfTestCase):
                         'grdm-file:data-man-email': 'dummy@test.rcos.nii.ac.jp',
                         'grdm-file:remarks-ja': 'コメント',
                         'grdm-file:remarks-en': 'Comment',
-                        'grdm-file:metadata-access-rights': 'closed access',
                     }.items()]),
                 },
             ],
@@ -827,7 +825,7 @@ class TestWEKOSchema(OsfTestCase):
       "description": "TEST DESCRIPTION",
       "name": "TEST DATA",
       "wk:index": "1000",
-      "wk:publishStatus": "private",
+      "wk:publishStatus": "public",
       "dcterms:accessRights": [
         {
           "@id": "_:PropertyValue8"
