@@ -286,18 +286,22 @@ def _quote_csv(value):
 
 def _name_to_str_ja(value):
     """Convert name dict to Japanese format: 姓ミドルネーム名 (no spaces)."""
+    if value is None:
+        return ''
     if isinstance(value, str):
         logger.warning(f'namestr_ja: expected dict but got str: {value!r}')
         return value
-    parts = [value['last'], value['middle'], value['first']]
+    parts = [value.get('last', ''), value.get('middle', ''), value.get('first', '')]
     return ''.join(p for p in parts if p)
 
 def _name_to_str_en(value):
     """Convert name dict to English format: First Middle Last (space-separated)."""
+    if value is None:
+        return ''
     if isinstance(value, str):
         logger.warning(f'namestr_en: expected dict but got str: {value!r}')
         return value
-    parts = [value['first'], value['middle'], value['last']]
+    parts = [value.get('first', ''), value.get('middle', ''), value.get('last', '')]
     return ' '.join(p for p in parts if p)
 
 def make_report_as_csv(format, draft_metadata, schema):

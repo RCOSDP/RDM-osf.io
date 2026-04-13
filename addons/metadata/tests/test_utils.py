@@ -251,3 +251,27 @@ class TestNameToStr:
     def test_en_legacy_str_warns(self):
         """Pre-migration str data logs warning and passes through."""
         assert _name_to_str_en('Taro Yamada') == 'Taro Yamada'
+
+    def test_ja_none(self):
+        assert _name_to_str_ja(None) == ''
+
+    def test_en_none(self):
+        assert _name_to_str_en(None) == ''
+
+    def test_ja_empty_dict(self):
+        assert _name_to_str_ja({}) == ''
+
+    def test_en_empty_dict(self):
+        assert _name_to_str_en({}) == ''
+
+    def test_ja_all_empty(self):
+        assert _name_to_str_ja({'last': '', 'middle': '', 'first': ''}) == ''
+
+    def test_en_all_empty(self):
+        assert _name_to_str_en({'last': '', 'middle': '', 'first': ''}) == ''
+
+    def test_ja_partial_keys(self):
+        assert _name_to_str_ja({'last': '山田'}) == '山田'
+
+    def test_en_partial_keys(self):
+        assert _name_to_str_en({'last': 'Yamada'}) == 'Yamada'
