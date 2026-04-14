@@ -46,6 +46,7 @@ PROVIDERS = {
     'nextcloudinstitutions': 'Nextcloud for Institutions',
     's3compatinstitutions': 'S3 Compatible Storage for Institutions',
     's3compatb3': 'S3 Compatible Storage',
+    's3compatsigv4': 'S3 Compatible Storage (SigV4)',
     'ociinstitutions': 'Oracle Cloud Infrastructure for Institutions',
     'iqbrims': 'IQB-RIMS',
     'onedrivebusiness': 'OneDrive for Office365',
