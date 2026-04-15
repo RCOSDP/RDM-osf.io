@@ -2,12 +2,16 @@
 
 Usage:
     python -m addons.workflow.scripts.validate_wizard_form FORM.json [FORM2.json ...]
+        [--schema-dir website/project/metadata]
 
 Exit code 0 if all files are valid, 1 if any errors found.
 """
+import argparse
 import json
+import re
 import sys
-from typing import Any, Dict, List, Set, Tuple
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 
 # ---------------------------------------------------------------------------
@@ -170,13 +174,168 @@ def parse_expression(expr: str) -> Tuple[List[str], str]:
 
 
 # ---------------------------------------------------------------------------
+# Metadata placeholder filter parser (_FILE_METADATA / _PROJECT_METADATA)
+# ---------------------------------------------------------------------------
+
+class FilterParseError(Exception):
+    pass
+
+
+_FILTER_CLAUSE_RE = re.compile(r'^([A-Za-z0-9:_\-.]+)\s*(==|!=)\s*"([^"]*)"$')
+_AND_SEP = ' and '
+_FILTER_PREFIX = 'filter='
+
+
+def _split_outside_quotes(raw: str, sep: str) -> List[str]:
+    out: List[str] = []
+    buf = ''
+    in_quotes = False
+    i = 0
+    sep_len = len(sep)
+    while i < len(raw):
+        ch = raw[i]
+        if ch == '"':
+            in_quotes = not in_quotes
+            buf += ch
+            i += 1
+        elif not in_quotes and raw[i:i + sep_len] == sep:
+            out.append(buf)
+            buf = ''
+            i += sep_len
+        else:
+            buf += ch
+            i += 1
+    if in_quotes:
+        raise FilterParseError(f'unterminated quoted string: {raw!r}')
+    out.append(buf)
+    return out
+
+
+def parse_metadata_filter(expr: str) -> List[Tuple[str, str, str]]:
+    """Parse a filter expression into (key, op, value) tuples.
+
+    Raises FilterParseError on any syntax violation.
+    """
+    clauses = _split_outside_quotes(expr, _AND_SEP)
+    result: List[Tuple[str, str, str]] = []
+    for clause in clauses:
+        trimmed = clause.strip()
+        m = _FILTER_CLAUSE_RE.match(trimmed)
+        if not m:
+            raise FilterParseError(f'invalid filter clause: {trimmed!r}')
+        result.append((m.group(1), m.group(2), m.group(3)))
+    return result
+
+
+def parse_metadata_placeholder_args(raw: str) -> Tuple[str, bool, List[Tuple[str, str, str]]]:
+    """Parse the inside of _FILE_METADATA(...) or _PROJECT_METADATA(...).
+
+    Returns (schema_name, multi_select, filters). Raises FilterParseError
+    for any syntax issue (empty schema name, duplicate filter=, bad clause).
+    """
+    segments = [s.strip() for s in _split_outside_quotes(raw, ',')]
+    segments = [s for s in segments if s]
+    if not segments:
+        raise FilterParseError('empty placeholder arguments')
+    schema_name = segments[0]
+    options = segments[1:]
+
+    filter_options = [o for o in options if o.startswith(_FILTER_PREFIX)]
+    if len(filter_options) > 1:
+        raise FilterParseError("duplicate 'filter=' option")
+    filters = (
+        parse_metadata_filter(filter_options[0][len(_FILTER_PREFIX):])
+        if filter_options else []
+    )
+    multi_select = any(o.upper() == 'MULTISELECT' for o in options)
+    return schema_name, multi_select, filters
+
+
+# ---------------------------------------------------------------------------
+# Metadata schema registry (for filter qid / option value checks)
+# ---------------------------------------------------------------------------
+
+class SchemaRegistry:
+    """Index metadata schema JSON files under a directory by their root "name".
+
+    Supports look-ups from placeholder arguments ("schema_name" = root name) to
+    the parsed schema dict, plus a cached qid -> question map restricted to
+    top-level `pages[].questions[].qid` (nested `properties` are intentionally
+    out of scope for filter validation for now).
+    """
+
+    def __init__(self, schema_dir: Path):
+        self.schema_dir = schema_dir
+        self._by_name: Dict[str, List[Path]] = {}
+        self._loaded: Dict[Path, Dict[str, Any]] = {}
+        self._qid_cache: Dict[int, Dict[str, Dict[str, Any]]] = {}
+        self._scan()
+
+    def _scan(self) -> None:
+        if not self.schema_dir.is_dir():
+            raise FileNotFoundError(f'schema directory not found: {self.schema_dir}')
+        for path in sorted(self.schema_dir.glob('*.json')):
+            try:
+                data = json.loads(path.read_text(encoding='utf-8'))
+            except (json.JSONDecodeError, OSError):
+                continue
+            if not isinstance(data, dict):
+                continue
+            name = data.get('name')
+            if not isinstance(name, str) or not name:
+                continue
+            self._by_name.setdefault(name, []).append(path)
+            self._loaded[path] = data
+
+    def resolve(self, name: str) -> Dict[str, Any]:
+        paths = self._by_name.get(name, [])
+        if not paths:
+            raise LookupError(f'schema {name!r} not found under {self.schema_dir}')
+        if len(paths) > 1:
+            raise LookupError(
+                f'schema {name!r} is ambiguous (matches {[str(p) for p in paths]})',
+            )
+        return self._loaded[paths[0]]
+
+    def qid_index(self, schema: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
+        # Identity-keyed cache; schema dict is reused across lookups.
+        key = id(schema)
+        cached = self._qid_cache.get(key)
+        if cached is not None:
+            return cached
+        index: Dict[str, Dict[str, Any]] = {}
+        pages = schema.get('pages', [])
+        if isinstance(pages, list):
+            for page in pages:
+                if not isinstance(page, dict):
+                    continue
+                questions = page.get('questions', [])
+                if not isinstance(questions, list):
+                    continue
+                for q in questions:
+                    if not isinstance(q, dict):
+                        continue
+                    qid = q.get('qid')
+                    if isinstance(qid, str) and qid:
+                        index[qid] = q
+        self._qid_cache[key] = index
+        return index
+
+
+# ---------------------------------------------------------------------------
 # Form validator
 # ---------------------------------------------------------------------------
 
 class _Validator:
-    def __init__(self, form: Dict[str, Any], filename: str):
+    def __init__(
+        self,
+        form: Dict[str, Any],
+        filename: str,
+        schema_registry: Optional[SchemaRegistry] = None,
+    ):
         self.form = form
         self.filename = filename
+        self.schema_registry = schema_registry
         self.errors: List[str] = []
         self.warnings: List[str] = []
         self.field_ids: Set[str] = set()
@@ -210,10 +369,16 @@ class _Validator:
 
     def validate(self) -> bool:
         self._collect_field_ids()
+        # Field-level placeholder checks apply to start, wizard, and result forms.
+        self._validate_metadata_placeholders()
+        self._validate_array_input_fields()
+        self._validate_template_expressions()
+
         wizard = self._extract_wizard()
         if wizard is None:
-            self.error('no _rdmWizard field found (ExpressionFormField with id="_rdmWizard")')
-            return False
+            # Non-wizard forms (start/result) legitimately lack _rdmWizard.
+            # _extract_wizard records an error if the field exists but is malformed.
+            return len(self.errors) == 0
         if not isinstance(wizard, dict):
             self.error('_rdmWizard expression must parse to an object')
             return False
@@ -228,8 +393,6 @@ class _Validator:
         self._validate_navigation(wizard.get('navigation'))
         self._validate_progress(wizard.get('progress'))
         self._validate_field_hints(wizard.get('fieldHints'))
-        self._validate_array_input_fields()
-        self._validate_template_expressions()
         self._check_orphan_fields()
         return len(self.errors) == 0
 
@@ -452,9 +615,72 @@ class _Validator:
                 elif not all(isinstance(v, str) for v in autofill.values()):
                     self.error(f'{sp}.autofill: all values must be strings')
 
+    def _validate_metadata_placeholders(self):
+        """Validate _FILE_METADATA / _PROJECT_METADATA placeholders.
+
+        Checks placeholder syntax, filter expression syntax, and (when a
+        schema registry is provided) that filter qids exist in the target
+        schema and that values for `choose` fields are among declared options.
+        """
+        editor = self.form.get('editorJson', self.form)
+        fields = editor.get('fields', [])
+        if not isinstance(fields, list):
+            return
+        pattern = re.compile(r'^_(FILE|PROJECT)_METADATA\((.+)\)$')
+        for field in fields:
+            if not isinstance(field, dict):
+                continue
+            if field.get('type') != 'multi-line-text':
+                continue
+            placeholder = field.get('placeholder', '')
+            if not isinstance(placeholder, str):
+                continue
+            match = pattern.match(placeholder)
+            if not match:
+                continue
+            fid = field.get('id', '<unknown>')
+            token = f'_{match.group(1)}_METADATA'
+            path = f'field[{fid!r}].{token}'
+            try:
+                schema_name, _multi, filters = parse_metadata_placeholder_args(match.group(2))
+            except FilterParseError as e:
+                self.error(f'{path}: {e}')
+                continue
+            if self.schema_registry is None:
+                continue
+            try:
+                schema = self.schema_registry.resolve(schema_name)
+            except LookupError as e:
+                self.error(f'{path}: {e}')
+                continue
+            if not filters:
+                continue
+            qid_index = self.schema_registry.qid_index(schema)
+            for key, _op, value in filters:
+                question = qid_index.get(key)
+                if question is None:
+                    self.error(f'{path}: filter qid {key!r} not found in schema {schema_name!r}')
+                    continue
+                qtype = question.get('type')
+                if qtype in ('array', 'object', 'file'):
+                    self.error(
+                        f'{path}: filter on qid {key!r} of type {qtype!r} is not supported',
+                    )
+                    continue
+                if qtype == 'choose':
+                    options = question.get('options', [])
+                    if isinstance(options, list):
+                        allowed = {
+                            opt.get('text') for opt in options
+                            if isinstance(opt, dict) and isinstance(opt.get('text'), str)
+                        }
+                        if value not in allowed:
+                            self.error(
+                                f'{path}: filter value {value!r} not in options of qid {key!r}',
+                            )
+
     def _validate_array_input_fields(self):
         """Validate _ARRAY_INPUT placeholder JSON in multi-line-text fields."""
-        import re
         editor = self.form.get('editorJson', self.form)
         for field in editor.get('fields', []):
             if not isinstance(field, dict):
@@ -489,7 +715,6 @@ class _Validator:
 
     def _validate_template_expressions(self):
         """Check {{ }}/{% %} balance in ExpressionFormField expressions."""
-        import re
         editor = self.form.get('editorJson', self.form)
         for field in editor.get('fields', []):
             if not isinstance(field, dict):
@@ -547,8 +772,12 @@ class _Validator:
             self.warn(f'fields not referenced by any page: {sorted(orphans)}')
 
 
-def validate_form(form: Dict[str, Any], filename: str = '<stdin>') -> Tuple[List[str], List[str]]:
-    v = _Validator(form, filename)
+def validate_form(
+    form: Dict[str, Any],
+    filename: str = '<stdin>',
+    schema_registry: Optional[SchemaRegistry] = None,
+) -> Tuple[List[str], List[str]]:
+    v = _Validator(form, filename, schema_registry=schema_registry)
     v.validate()
     return v.errors, v.warnings
 
@@ -557,13 +786,27 @@ def validate_form(form: Dict[str, Any], filename: str = '<stdin>') -> Tuple[List
 # CLI
 # ---------------------------------------------------------------------------
 
+_DEFAULT_SCHEMA_DIR = Path(__file__).resolve().parents[3] / 'website' / 'project' / 'metadata'
+
+
 def main():
-    if len(sys.argv) < 2:
-        print(f'Usage: {sys.argv[0]} FORM.json [FORM2.json ...]', file=sys.stderr)
-        sys.exit(2)
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('forms', nargs='+', help='form JSON files to validate')
+    parser.add_argument(
+        '--schema-dir',
+        type=Path,
+        default=_DEFAULT_SCHEMA_DIR,
+        help=(
+            'directory containing metadata schema JSON files '
+            f'(default: {_DEFAULT_SCHEMA_DIR})'
+        ),
+    )
+    args = parser.parse_args()
+
+    schema_registry = SchemaRegistry(args.schema_dir)
 
     has_errors = False
-    for path in sys.argv[1:]:
+    for path in args.forms:
         try:
             with open(path) as f:
                 form = json.load(f)
@@ -572,7 +815,7 @@ def main():
             has_errors = True
             continue
 
-        errors, warnings = validate_form(form, path)
+        errors, warnings = validate_form(form, path, schema_registry=schema_registry)
         for w in warnings:
             print(f'{path}: WARNING: {w}')
         for e in errors:

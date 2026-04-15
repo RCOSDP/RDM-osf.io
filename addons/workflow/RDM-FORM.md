@@ -8,7 +8,7 @@ These are **RDM-specific** and independent of Flowable Enterprise features.
 `multi-line-text` fields with a placeholder matching `_KEYWORD(...)` are
 rendered as custom UI components instead of a plain textarea.
 
-### `_PROJECT_METADATA(schema_name[, MULTISELECT])`
+### `_PROJECT_METADATA(schema_name[, MULTISELECT][, filter=<expr>])`
 
 Renders a card-based selector for Draft Registrations / Registrations
 created with the specified Registration Schema.
@@ -30,15 +30,65 @@ Add `MULTISELECT` to allow selecting multiple records:
 "placeholder": "_PROJECT_METADATA(公的資金による研究データのメタデータ登録, MULTISELECT)"
 ```
 
+Add `filter=<expr>` to narrow candidates by metadata values. See
+[Filter expression](#filter-expression) below.
+
 **Value**: JSON object (single) or JSON array (multi-select) containing the
 selected record's GUID and metadata payload.
 
-### `_FILE_METADATA(schema_name[, MULTISELECT])`
+### `_FILE_METADATA(schema_name[, MULTISELECT][, filter=<expr>])`
 
 Same as `_PROJECT_METADATA` but for file-level metadata records.
 
 ```json
 "placeholder": "_FILE_METADATA(some-file-metadata-schema)"
+```
+
+### Filter expression
+
+Restricts candidates to records whose metadata values satisfy the expression.
+
+```
+<expr>         = <clause> ( " and " <clause> )*
+<clause>       = <key> <op> <quoted_value>
+<op>           = "==" | "!="
+<quoted_value> = '"' [^"]* '"'
+```
+
+- Comparison operators: `==` and `!=`. Any other token (`=`, `!=` without `=`,
+  `<>`, `||`, `&&`, `or`, `!`) is a syntax error.
+- Clauses are joined by the literal keyword `and` (surrounding spaces).
+  Multiple `filter=` options in the same placeholder are a syntax error —
+  write one `filter=` with `and`.
+- Values **must** be double-quoted. A bare value like `filter=k==dataset`
+  is a syntax error. Quoting forward-compatibly reserves room for future
+  typed values (numbers, booleans) while keeping string boundaries explicit.
+- A single `filter=` is allowed. Inside the placeholder argument list, commas
+  inside quoted values are preserved (not treated as argument separators).
+
+#### Matching semantics
+
+For each clause, the selector reads `data[key].value` from a candidate
+record's metadata and compares against the quoted value:
+
+- `==`: strict equality. Unset/empty values (`undefined`, `null`, `""`) never
+  equal a non-empty value, so they do not match.
+- `!=`: strict inequality. Unset/empty values are treated as "not that value"
+  and therefore match. This is useful when a field has a default value that
+  is not always written back (e.g. `grdm-file:file-type` defaults to
+  `dataset`; `filter=grdm-file:file-type!="manuscript"` covers explicit
+  `dataset` **and** unset rows).
+
+#### Example
+
+```json
+"placeholder": "_FILE_METADATA(公的資金による研究データのメタデータ登録, filter=grdm-file:file-type!=\"manuscript\")"
+```
+
+Combined with `MULTISELECT`:
+
+```json
+"placeholder": "_FILE_METADATA(公的資金による研究データのメタデータ登録, MULTISELECT, filter=grdm-file:file-type==\"dataset\" and status==\"ready\")"
 ```
 
 ### `_FILE_SELECTOR()`

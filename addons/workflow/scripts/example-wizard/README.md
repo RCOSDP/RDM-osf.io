@@ -18,6 +18,7 @@ startEvent           → wizardTask          → buildSummary (script) → resul
 | `_PROJECT_METADATA(schema)` | `project_metadata` |
 | `_PROJECT_METADATA(schema, MULTISELECT)` | `project_metadata_multi` |
 | `_FILE_METADATA(schema)` | `file_metadata` |
+| `_FILE_METADATA(schema, filter=<expr>)` | `file_metadata_non_manuscript` |
 | `_FILE_SELECTOR()` | `selected_files` |
 
 ### Wizard form (`example-wizard-form`)

@@ -96,6 +96,18 @@
       },
       {
         "fieldType": "FormField",
+        "id": "file_metadata_non_manuscript",
+        "name": "File Metadata (not manuscript — includes default dataset)",
+        "type": "multi-line-text",
+        "value": null,
+        "required": false,
+        "readOnly": false,
+        "overrideId": true,
+        "placeholder": "_FILE_METADATA(公的資金による研究データのメタデータ登録, filter=grdm-file:file-type!=\"manuscript\")",
+        "layout": null
+      },
+      {
+        "fieldType": "FormField",
         "id": "fs_heading",
         "name": "_FILE_SELECTOR",
         "type": "headline-with-line",
