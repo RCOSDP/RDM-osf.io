@@ -124,6 +124,11 @@ module.exports = {
             userSettingsError: 'Could not retrieve settings. Please refresh the page or ' +
                 'contact ' + $osf.osfSupportLink() + ' if the problem persists.',
         },
+        s3compatsigv4: {
+            authError: 'Could not connect to S3 Compatible Storage (SigV4) at this time. Please try again later.',
+            userSettingsError: 'Could not retrieve settings. Please refresh the page or ' +
+                'contact ' + $osf.osfSupportLink() + ' if the problem persists.',
+        },
         nextcloud: {
             authError: 'Invalid Nextcloud server',
             authInvalid: 'Invalid credentials. Please enter a valid username and password.',

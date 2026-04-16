@@ -6,12 +6,14 @@ from admin.rdm_custom_storage_location.utils import (
     get_providers,
     add_node_settings_to_projects,
     save_s3compatb3_credentials,
+    save_s3compatsigv4_credentials,
     wd_info_for_institutions,
     create_storage_info_template,
     get_osfstorage_info,
     get_institution_addon_info,
     get_s3_info,
     get_s3compat_info,
+    get_s3compatsigv4_info,
     get_s3compatinstitutions_info,
     get_ociinstitutions_info,
     get_nextcloudinstitutions_info,
@@ -46,12 +48,13 @@ class TestUtils:
         nt.assert_in('swift', provider_list_short_name, 'swift')
         nt.assert_in('ociinstitutions', provider_list_short_name, 'ociinstitutions')
         nt.assert_in('s3compat', provider_list_short_name, 's3compat')
+        nt.assert_in('s3compatsigv4', provider_list_short_name, 's3compatsigv4')
         nt.assert_in('s3compatinstitutions', provider_list_short_name, 's3compatinstitutions')
 
         provider_list = get_providers(available_list=[])
         nt.assert_equal(len(provider_list), 0)
 
-        available_list = ['s3', 's3compat']
+        available_list = ['s3', 's3compat', 's3compatsigv4']
         provider_list = get_providers(available_list=available_list)
         provider_list_short_name = [p.short_name for p in provider_list]
         nt.assert_list_equal(provider_list_short_name, available_list)
@@ -69,6 +72,40 @@ class TestUtils:
                                                        'Non-empty-access-key', 'Non-empty-secret-key', 'Cute bucket')
         nt.assert_equal(response, {'message': 'Saved credentials successfully!!'})
         nt.assert_equal(status, http_status.HTTP_200_OK)
+
+    @patch('osf.utils.external_util.remove_region_external_account')
+    @patch('admin.rdm_custom_storage_location.utils.update_storage')
+    @patch('admin.rdm_custom_storage_location.utils.test_s3compatsigv4_connection')
+    def test_save_s3compatsigv4_credentials(self,
+                                         mock_testconnection, mock_update_storage,
+                                         mock_remove_region_external_account):
+        mock_testconnection.return_value = {'message': 'Nice'}, http_status.HTTP_200_OK
+        mock_update_storage.return_value = {}
+        mock_remove_region_external_account.return_value = None
+        response, status = save_s3compatsigv4_credentials('guid_test', 'My storage', 's3.compat.co.jp',
+                                                       'Non-empty-access-key', 'Non-empty-secret-key', 'Cute bucket')
+        nt.assert_equal(response, {'message': 'Saved credentials successfully!!'})
+        nt.assert_equal(status, http_status.HTTP_200_OK)
+
+    @patch('osf.utils.external_util.remove_region_external_account')
+    @patch('admin.rdm_custom_storage_location.utils.update_storage')
+    @patch('admin.rdm_custom_storage_location.utils.test_s3compatsigv4_connection')
+    def test_save_s3compatsigv4_credentials_with_region(self,
+                                         mock_testconnection, mock_update_storage,
+                                         mock_remove_region_external_account):
+        mock_testconnection.return_value = {'message': 'Nice'}, http_status.HTTP_200_OK
+        mock_update_storage.return_value = {}
+        mock_remove_region_external_account.return_value = None
+        response, status = save_s3compatsigv4_credentials('guid_test', 'My storage', 's3.compat.co.jp',
+                                                       'Non-empty-access-key', 'Non-empty-secret-key', 'Cute bucket',
+                                                       region='us-east-1')
+        nt.assert_equal(response, {'message': 'Saved credentials successfully!!'})
+        nt.assert_equal(status, http_status.HTTP_200_OK)
+        # Verify region is included in wb_settings
+        call_args = mock_update_storage.call_args
+        wb_settings = call_args[0][3]  # 4th positional arg
+        nt.assert_in('region', wb_settings['storage'])
+        nt.assert_equal(wb_settings['storage']['region'], 'us-east-1')
 
     def test_wd_info_for_institutions(self):
         for_institution_providers = [
@@ -258,6 +295,28 @@ class TestStorageInformationUtils(AdminTestCase):
         }
 
         result = get_s3compat_info(wb_credentials, wb_settings)
+
+        expected = {
+            'host': {'field_name': 'Endpoint URL', 'value': 'test_host'},
+            'access_key': {'field_name': 'Access Key', 'value': 'test_key'},
+            'bucket': {'field_name': 'Bucket', 'value': 'test_bucket'},
+            'encrypt_uploads': {'field_name': 'Enable Server Side Encryption', 'value': True}
+        }
+        nt.assert_equal(result, expected)
+
+    def test_get_s3compatsigv4_info(self):
+        """Test get_s3compatsigv4_info function"""
+        wb_credentials = {
+            'host': 'test_host',
+            'access_key': 'test_key',
+            'secret_key': 'test_secret'
+        }
+        wb_settings = {
+            'bucket': 'test_bucket',
+            'encrypt_uploads': True
+        }
+
+        result = get_s3compatsigv4_info(wb_credentials, wb_settings)
 
         expected = {
             'host': {'field_name': 'Endpoint URL', 'value': 'test_host'},

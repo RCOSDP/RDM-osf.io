@@ -8,6 +8,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
+        ('addons_wiki', '0010_migrate_node_wiki_pages'),
         ('osf', '0120_merge_20180716_1457'),
     ]
 
