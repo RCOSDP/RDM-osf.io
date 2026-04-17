@@ -120,7 +120,26 @@ def _get_wiki_versions(node, name, anonymous=False):
         for version in versions
     ]
 
+def _iter_wiki_latest_deduped_by_canonical_name(node, wiki_version_qs):
+    """Yield WikiVersion rows whose wiki_page matches get_for_node for that name.
+
+    Duplicate active WikiPage rows with the same page_name (case-insensitive) are
+    hidden from menus; the canonical row matches WikiPage.objects.get_for_node.
+    """
+    canonical_cache = {}
+    for page in wiki_version_qs:
+        wp = page.wiki_page
+        key = wp.page_name.lower()
+        if key not in canonical_cache:
+            canonical_cache[key] = WikiPage.objects.get_for_node(node, wp.page_name)
+        canonical = canonical_cache[key]
+        if canonical is None or canonical.id != wp.id:
+            continue
+        yield page
+
 def _get_wiki_pages_latest(node):
+    qs = WikiPage.objects.get_wiki_pages_latest(node).order_by(
+        F('wiki_page__sort_order'), F('name'))
     return [
         {
             'name': page.wiki_page.page_name,
@@ -130,10 +149,12 @@ def _get_wiki_pages_latest(node):
             'wiki_content': _wiki_page_content(page.wiki_page.page_name, node=node),
             'sort_order': page.wiki_page.sort_order
         }
-        for page in WikiPage.objects.get_wiki_pages_latest(node).order_by(F('wiki_page__sort_order'), F('name'))
+        for page in _iter_wiki_latest_deduped_by_canonical_name(node, qs)
     ]
 
 def _get_wiki_child_pages_latest(node, parent):
+    qs = WikiPage.objects.get_wiki_child_pages_latest(node, parent).order_by(
+        F('wiki_page__sort_order'), F('name'))
     return [
         {
             'name': page.wiki_page.page_name,
@@ -143,7 +164,7 @@ def _get_wiki_child_pages_latest(node, parent):
             'wiki_content': _wiki_page_content(page.wiki_page.page_name, node=node),
             'sort_order': page.wiki_page.sort_order
         }
-        for page in WikiPage.objects.get_wiki_child_pages_latest(node, parent).order_by(F('wiki_page__sort_order'), F('name'))
+        for page in _iter_wiki_latest_deduped_by_canonical_name(node, qs)
     ]
 
 def _get_wiki_api_urls(node, name, additional_urls=None):
@@ -1357,9 +1378,13 @@ def _get_sorted_list(sorted_data, parent_wiki_id):
     return id_list, sort_list, parent_wiki_id_list
 
 def _bulk_update_wiki_sort(node, sort_id_list, sort_num_list, parent_wiki_id_list):
+    # Tree payload omits duplicate-name rows (see _iter_wiki_latest_deduped_by_canonical_name); skip those.
+    sort_ids = set(sort_id_list)
     wiki_pages = node.wikis.filter(deleted__isnull=True).exclude(page_name='home')
 
     for page in wiki_pages:
+        if page._primary_key not in sort_ids:
+            continue
         idx = sort_id_list.index(page._primary_key)
         sort_order_number = sort_num_list[idx]
         parent_wiki_id = parent_wiki_id_list[idx]
