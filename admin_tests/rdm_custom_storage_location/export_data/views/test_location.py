@@ -257,6 +257,17 @@ class TestTestConnectionView(AdminTestCase):
         request_post_response = self.view_post(params)
         nt.assert_equals(request_post_response.status_code, http_status.HTTP_400_BAD_REQUEST)
 
+    def test_view_post_s3compatsigv4(self):
+        params = {
+            's3compatsigv4_endpoint_url': 's3.compat.co.jp',
+            's3compatsigv4_access_key': 'Non-empty-secret-key',
+            's3compatsigv4_secret_key': 'Non-empty-secret-key',
+            's3compatsigv4_bucket': 'Water bucket',
+            'provider_short_name': 's3compatsigv4',
+        }
+        request_post_response = self.view_post(params)
+        nt.assert_equals(request_post_response.status_code, http_status.HTTP_400_BAD_REQUEST)
+
     def test_view_post_nextcloudinstitutions(self):
         params = {
             'nextcloudinstitutions_host': 's3.compat.co.jp',
@@ -368,6 +379,19 @@ class TestSaveCredentialsView(AdminTestCase):
             's3compat_secret_key': 'Non-empty-secret-key',
             's3compat_bucket': 'Water bucket',
             'provider_short_name': 's3compat',
+            'storage_name': 'test storage_name',
+
+        }
+        request_post_response = self.view_post(params)
+        nt.assert_equals(request_post_response.status_code, http_status.HTTP_400_BAD_REQUEST)
+
+    def test_view_post_s3compatsigv4(self):
+        params = {
+            's3compatsigv4_endpoint_url': 's3.compat.co.jp',
+            's3compatsigv4_access_key': 'Non-empty-secret-key',
+            's3compatsigv4_secret_key': 'Non-empty-secret-key',
+            's3compatsigv4_bucket': 'Water bucket',
+            'provider_short_name': 's3compatsigv4',
             'storage_name': 'test storage_name',
 
         }

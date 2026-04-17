@@ -41,6 +41,7 @@ class TestInstitutionDefaultStorage(AdminTestCase):
             'GoogleDriveAddonConfig',
             'SwiftAddonAppConfig',
             'S3CompatAddonAppConfig',
+            'S3CompatSigV4AddonAppConfig',
             'NextcloudAddonAppConfig',
             'DropboxBusinessAddonAppConfig',
             'NextcloudInstitutionsAddonAppConfig',

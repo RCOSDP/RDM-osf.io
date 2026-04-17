@@ -1986,6 +1986,357 @@ class TestWEKOSchema(OsfTestCase):
             'Dataset file should default to open_no when grdm-file:access-rights is not set'
         )
 
+    def test_write_ro_crate_json_mebyo_full(self):
+        """Full field coverage test for MEBYO schema RO-Crate generation.
+        Equivalent to test_write_ro_crate_json_full for the public funding schema.
+        Based on actual ro-crate-metadata.json output structure.
+        """
+        buf = io.StringIO()
+        index = mock.MagicMock()
+        index.identifier = '2000'
+        index.title = 'MEBYO Test Index'
+        node_id = 'mebyotest'
+
+        target_schema = RegistrationSchema.objects \
+            .filter(name='ムーンショット目標2データベース（未病DB）のメタデータ登録') \
+            .order_by('-schema_version') \
+            .first()
+
+        files = [[('additional_metadata.txt', 'text/plain')]]
+        file_metadatas = []  # allow_empty_files = true
+
+        project_metadata = {
+            # root (_)
+            'title-of-dataset': {'value': 'テストデータセット'},
+            'title-of-dataset-en': {'value': 'Test Dataset EN'},
+            'date-registered-in-metadata': {'value': '2025-01-01'},
+            'date-updated-in-metadata': {'value': '2025-06-01'},
+            'choose-additional-metadata': {
+                'value': '[{"path":"osfstorage/additional_metadata.txt","urlpath":"","metadata":{}}]',
+            },
+            # @projects
+            'project-name': {'value': 'MS2大野PJ|MS2 Ohno PJ'},
+            'data-id': {'value': 'LOCAL-001'},
+            'purpose-of-experiment': {'value': '実験目的（日本語）'},
+            'purpose-of-experiment-en': {'value': 'Experiment purpose (English)'},
+            'description-of-experimental-condition': {'value': '実験条件（日本語）'},
+            'description-of-experimental-condition-en': {'value': 'Experimental condition (English)'},
+            'keywords': {
+                'value': '[{"filename":"キーワード（日本語）","filename-en":"Keywords (English)"}]',
+            },
+            'dataset-research-field': {'value': 'ライフサイエンス|Life Science'},
+            'Analysis-type': {'value': ['イメージデータ|Imaging data', '配列データ|Sequence data']},
+            'Analysis-type-other': {'value': 'その他分析'},
+            'the-presence-of-metadata-files-created-for-a-specific-modality-in-other-databases': {
+                'value': '有|Yes',
+            },
+            'metadata-filename': {
+                'value': '[{"filename":"メタデータファイル名1"},{"filename":"メタデータファイル名2"}]',
+            },
+            'necessity-of-contact-and-permission': {'value': '許諾が必要|Permission required'},
+            'necessity-of-including-in-acknowledgments': {'value': '要|Necessary'},
+            'names-to-be-included-in-the-acknowledgments': {'value': '謝辞名前（日本語）'},
+            'names-to-be-included-in-the-acknowledgments-en': {'value': 'Names in acknowledgments (English)'},
+            'other-conditions-or-special-notes': {'value': 'その他条件（日本語）'},
+            'other-conditions-or-special-notes-en': {'value': 'Other conditions (English)'},
+            'data-policy-license': {'value': 'CC BY 4.0'},
+            'data-policy-free': {'value': '有償|Pay'},
+            'availability-of-commercial-use': {'value': '否|No'},
+            'target-type-of-acquired-data': {'value': 'ゲノムデータ'},
+            'target-type-of-acquired-data-en': {'value': 'Genomic data'},
+            'ethics-review-committee-approval': {'value': '不要'},
+            'ethics-review-committee-approval-en': {'value': 'Unnecessary'},
+            'informed-consent': {'value': '有|Yes'},
+            'consent-for-provision-to-a-third-party': {'value': '有|Yes'},
+            'overseas-offerings': {'value': '有|Yes'},
+            'industrial-use': {'value': '有|Yes'},
+            'ic-is-no': {'value': 'オプトアウト手続き|Opt-out procedure'},
+            'anonymous-processing': {'value': '有|Yes'},
+            'access-rights': {'value': '公開|open access'},
+            'scheduled-release-date': {'value': '2025-12-31'},
+            'repository-information': {'value': 'GakuNin RDM'},
+            'repository-url-doi-link': {'value': 'https://rdm.nii.ac.jp'},
+            'other-supplementary-information': {'value': 'その他補足（日本語）'},
+            'other-supplementary-information-en': {'value': 'Other supplementary (English)'},
+            'data-creator': {
+                'value': '[{"name":"未病太郎","name-en":"Mebyo Taro","contact":"taro@example.com","belonging":"未病大学","belonging-en":"Mebyo University"}]',
+            },
+            'data-manager': {
+                'value': '[{"name":"未病花子","name-en":"Mebyo Hanako","contact":"hanako@example.com","belonging":"未病大学","belonging-en":"Mebyo University"}]',
+            },
+            'remarks-3': {'value': '備考（日本語）'},
+            'remarks-3-en': {'value': 'Remarks (English)'},
+            'conflict-of-interest': {'value': '利益相反名前（日本語）'},
+            'conflict-of-interest-en': {'value': 'Conflict of interest (English)'},
+            'conflict-of-interest-Yes-or-No': {'value': '無|No'},
+            'grdm-files': {'value': ''},
+        }
+
+        schema.write_ro_crate_json(
+            self.user, buf, index, files,
+            target_schema._id, file_metadatas,
+            [project_metadata], node_id
+        )
+
+        logger.info(f'JSON: {buf.getvalue()}')
+        actual_json = json.loads(buf.getvalue())
+        graph = {item['@id']: item for item in actual_json['@graph'] if '@id' in item}
+
+        # ------------------------------------------------------------------ #
+        # helpers — mirrors the pattern used in test_write_ro_crate_json_full
+        # ------------------------------------------------------------------ #
+        def deref(ref):
+            assert_true(isinstance(ref, dict) and '@id' in ref, f'Not a reference: {ref}')
+            assert_in(ref['@id'], graph, f'Entity not found: {ref["@id"]}')
+            return graph[ref['@id']]
+
+        def prop_entities(entity, key):
+            refs = entity.get(key)
+            if refs is None:
+                return []
+            if isinstance(refs, dict):
+                refs = [refs]
+            return [deref(r) for r in refs]
+
+        def scalar_value(entity, key):
+            ents = prop_entities(entity, key)
+            assert_true(ents, f'No entities for key "{key}" in {entity.get("@id")}')
+            return ents[0]['value']
+
+        def lang_map(entity, key):
+            return {e.get('language'): e['value'] for e in prop_entities(entity, key)}
+
+        # ------------------------------------------------------------------ #
+        # root Dataset
+        # ------------------------------------------------------------------ #
+        assert_in('./', graph)
+        root = graph['./']
+        assert_equal(root['@type'], ['Dataset', 'rdm:Dataset'])
+        assert_equal(root['name'], 'Test Dataset EN')
+        assert_equal(root['description'], 'Experiment purpose (English)')
+        assert_equal(root['dateCreated'], '2025-01-01')
+        assert_equal(root['dateModified'], '2025-06-01')
+        assert_equal(root['dc:type'], 'dataset')
+        assert_equal(root['wk:publishStatus'], 'public')
+
+        # rdm:name (ja / en)
+        rdm_names = lang_map(root, 'rdm:name')
+        assert_equal(rdm_names['ja'], 'テストデータセット')
+        assert_equal(rdm_names['en'], 'Test Dataset EN')
+
+        # hasPart → File (wk:extendedMetadata=true)
+        has_part_ids = [p['@id'] for p in root.get('hasPart', [])]
+        assert_in('files/additional_metadata.txt', has_part_ids)
+        file_entity = graph['files/additional_metadata.txt']
+        assert_equal(file_entity['@type'], 'File')
+        assert_equal(file_entity['name'], 'additional_metadata.txt')
+        assert_true(file_entity.get('wk:extendedMetadata'))
+
+        # ro-crate-metadata.json
+        assert_in('ro-crate-metadata.json', graph)
+        assert_equal(graph['ro-crate-metadata.json']['about']['@id'], './')
+
+        # ------------------------------------------------------------------ #
+        # @projects — PropertyValue fields
+        # ------------------------------------------------------------------ #
+
+        # rdm:inproject
+        assert_equal(scalar_value(root, 'rdm:inproject'), 'MS2大野PJ|MS2 Ohno PJ')
+
+        # ams:identifier
+        identifier_ent = prop_entities(root, 'ams:identifier')
+        assert_equal(len(identifier_ent), 1)
+        assert_equal(identifier_ent[0]['value'], 'LOCAL-001')
+        assert_equal(identifier_ent[0]['type'], 'Local')
+
+        # ams:purposeOfExperiment (ja / en)
+        purpose = lang_map(root, 'ams:purposeOfExperiment')
+        assert_equal(purpose['ja'], '実験目的（日本語）')
+        assert_equal(purpose['en'], 'Experiment purpose (English)')
+
+        # ams:descriptionOfExperimentalCondition (ja / en)
+        desc_cond = lang_map(root, 'ams:descriptionOfExperimentalCondition')
+        assert_equal(desc_cond['ja'], '実験条件（日本語）')
+        assert_equal(desc_cond['en'], 'Experimental condition (English)')
+
+        # rdm:keywords → each entry has 'keywords' list with ja/en subitem refs  ← regression target
+        kw_entities = prop_entities(root, 'rdm:keywords')
+        assert_true(len(kw_entities) >= 1, 'rdm:keywords not found')
+        # keywords entry contains 'keywords' key (not 'value') with Resource refs
+        kw0_value_refs = kw_entities[0].get('value', [])
+        assert_true(len(kw0_value_refs) >= 2, f'keyword value refs: {kw0_value_refs}')
+        # Each Resource should have 'value' expanded from subitem_filename  ← regression target
+        kw0_resources = {deref(r)['language']: deref(r) for r in kw0_value_refs}
+        assert_false('subitem_filename' in kw0_resources.get('ja', {}), 'subitem_filename not expanded to value (ja)')
+        assert_false('subitem_filename_en' in kw0_resources.get('en', {}), 'subitem_filename_en not expanded to value (en)')
+        assert_equal(kw0_resources['ja']['value'], 'キーワード（日本語）')
+        assert_equal(kw0_resources['en']['value'], 'Keywords (English)')
+
+        # rdm:field
+        assert_equal(scalar_value(root, 'rdm:field'), 'ライフサイエンス|Life Science')
+
+        # ams:analysisType — expanded from JSON array, multiple entries
+        analysis_types = prop_entities(root, 'ams:analysisType')
+        assert_true(len(analysis_types) >= 2)
+        analysis_values = [e['value'] for e in analysis_types]
+        assert_in('イメージデータ|Imaging data', analysis_values)
+        assert_in('配列データ|Sequence data', analysis_values)
+
+        # ams:analysisOtherType
+        assert_equal(scalar_value(root, 'ams:analysisOtherType'), 'その他分析')
+
+        # ams:existExternalMetadata
+        assert_equal(scalar_value(root, 'ams:existExternalMetadata'), '有|Yes')
+
+        # ams:externalMetadataFiles — multiple entries, value expanded  ← regression target
+        ext_meta = prop_entities(root, 'ams:externalMetadataFiles')
+        assert_true(len(ext_meta) >= 2, f'ams:externalMetadataFiles count: {len(ext_meta)}')
+        ext_meta_values = [e['value'] for e in ext_meta]
+        assert_in('メタデータファイル名1', ext_meta_values)
+        assert_in('メタデータファイル名2', ext_meta_values)
+
+        # ams:necessityOfContactAndPermission
+        assert_equal(scalar_value(root, 'ams:necessityOfContactAndPermission'), '許諾が必要|Permission required')
+
+        # ams:necessityOfIncludingInAcknowledgments
+        assert_equal(scalar_value(root, 'ams:necessityOfIncludingInAcknowledgments'), '要|Necessary')
+
+        # ams:namesToBeIncludedInTheAcknowledgments (ja / en)
+        ack = lang_map(root, 'ams:namesToBeIncludedInTheAcknowledgments')
+        assert_equal(ack['ja'], '謝辞名前（日本語）')
+        assert_equal(ack['en'], 'Names in acknowledgments (English)')
+
+        # ams:otherConditionsOrSpecialNotes (ja / en)
+        other = lang_map(root, 'ams:otherConditionsOrSpecialNotes')
+        assert_equal(other['ja'], 'その他条件（日本語）')
+        assert_equal(other['en'], 'Other conditions (English)')
+
+        # ams:license
+        assert_equal(scalar_value(root, 'ams:license'), 'CC BY 4.0')
+
+        # ams:dataPolicyFree
+        assert_equal(scalar_value(root, 'ams:dataPolicyFree'), '有償|Pay')
+
+        # ams:availabilityOfCommercialUse
+        assert_equal(scalar_value(root, 'ams:availabilityOfCommercialUse'), '否|No')
+
+        # ams:targetTypeOfAcquiredData (ja / en)
+        target_type = lang_map(root, 'ams:targetTypeOfAcquiredData')
+        assert_equal(target_type['ja'], 'ゲノムデータ')
+        assert_equal(target_type['en'], 'Genomic data')
+
+        # ams:ethicsReviewCommitteeApproval (2 entries, no language tag in real output)
+        ethics = prop_entities(root, 'ams:ethicsReviewCommitteeApproval')
+        assert_equal(len(ethics), 2)
+        ethics_values = [e['value'] for e in ethics]
+        assert_in('不要', ethics_values)
+        assert_in('Unnecessary', ethics_values)
+
+        # ams:informedConsent
+        assert_equal(scalar_value(root, 'ams:informedConsent'), '有|Yes')
+
+        # ams:consentForProvisionToAThirdParty
+        assert_equal(scalar_value(root, 'ams:consentForProvisionToAThirdParty'), '有|Yes')
+
+        # ams:overseasOfferings
+        assert_equal(scalar_value(root, 'ams:overseasOfferings'), '有|Yes')
+
+        # ams:industrialUse
+        assert_equal(scalar_value(root, 'ams:industrialUse'), '有|Yes')
+
+        # ams:icIsNo
+        assert_equal(scalar_value(root, 'ams:icIsNo'), 'オプトアウト手続き|Opt-out procedure')
+
+        # ams:anonymousProcessing
+        assert_equal(scalar_value(root, 'ams:anonymousProcessing'), '有|Yes')
+
+        # rdm:accessRightsInformation
+        access = prop_entities(root, 'rdm:accessRightsInformation')
+        assert_equal(len(access), 1)
+        assert_equal(access[0].get('rdm:dateAvailable'), '2025-12-31')
+
+        # ams:repository
+        assert_equal(scalar_value(root, 'ams:repository'), 'GakuNin RDM')
+
+        # ams:repositoryId
+        assert_equal(scalar_value(root, 'ams:repositoryId'), 'https://rdm.nii.ac.jp')
+
+        # ams:repositoryInfo (ja / en)
+        repo_info = lang_map(root, 'ams:repositoryInfo')
+        assert_equal(repo_info['ja'], 'その他補足（日本語）')
+        assert_equal(repo_info['en'], 'Other supplementary (English)')
+
+        # ams:remark (ja / en)
+        remarks = lang_map(root, 'ams:remark')
+        assert_equal(remarks['ja'], '備考（日本語）')
+        assert_equal(remarks['en'], 'Remarks (English)')
+
+        # ams:conflictOfInterestName (ja / en)
+        coi_names = lang_map(root, 'ams:conflictOfInterestName')
+        assert_equal(coi_names['ja'], '利益相反名前（日本語）')
+        assert_equal(coi_names['en'], 'Conflict of interest (English)')
+
+        # ams:conflictOfInterest
+        assert_equal(scalar_value(root, 'ams:conflictOfInterest'), '無|No')
+
+        # ------------------------------------------------------------------ #
+        # creator (Person) — affiliation is Organization with name list
+        # ------------------------------------------------------------------ #
+        creator_entities = prop_entities(root, 'creator')
+        assert_true(len(creator_entities) >= 1, 'creator not found')
+        creator = creator_entities[0]
+        assert_equal(creator['@type'], 'Person')
+
+        # name: list of PropertyValue refs (ja / en)
+        creator_name_map = lang_map(creator, 'name')
+        assert_equal(creator_name_map['ja'], '未病太郎')
+        assert_equal(creator_name_map['en'], 'Mebyo Taro')
+
+        # affiliation: Organization whose 'name' contains ja/en PropertyValue refs
+        creator_affiliations = prop_entities(creator, 'affiliation')
+        assert_true(len(creator_affiliations) >= 1)
+        creator_aff_org = creator_affiliations[0]
+        assert_equal(creator_aff_org['@type'], 'Organization')
+        creator_aff_names = lang_map(creator_aff_org, 'name')
+        assert_equal(creator_aff_names['ja'], '未病大学')
+        assert_equal(creator_aff_names['en'], 'Mebyo University')
+
+        # email: PropertyValue with 'value' (no language)
+        creator_emails = prop_entities(creator, 'email')
+        assert_true(len(creator_emails) >= 1)
+        assert_equal(creator_emails[0]['value'], 'taro@example.com')
+
+        # ------------------------------------------------------------------ #
+        # contributor (Person / DataManager)
+        # ------------------------------------------------------------------ #
+        contributor_entities = prop_entities(root, 'contributor')
+        assert_true(len(contributor_entities) >= 1, 'contributor not found')
+        contributor = contributor_entities[0]
+        assert_equal(contributor['@type'], 'Person')
+
+        # jpcoar:addtionalType → DataManager
+        add_type = contributor.get('jpcoar:addtionalType', {})
+        assert_equal(
+            add_type.get('@id'),
+            'https://github.com/JPCOAR/schema/blob/master/2.0/#DataManager',
+        )
+
+        contributor_name_map = lang_map(contributor, 'name')
+        assert_equal(contributor_name_map['ja'], '未病花子')
+        assert_equal(contributor_name_map['en'], 'Mebyo Hanako')
+
+        contributor_affiliations = prop_entities(contributor, 'affiliation')
+        assert_true(len(contributor_affiliations) >= 1)
+        contributor_aff_org = contributor_affiliations[0]
+        assert_equal(contributor_aff_org['@type'], 'Organization')
+        contributor_aff_names = lang_map(contributor_aff_org, 'name')
+        assert_equal(contributor_aff_names['ja'], '未病大学')
+        assert_equal(contributor_aff_names['en'], 'Mebyo University')
+
+        contributor_emails = prop_entities(contributor, 'email')
+        assert_true(len(contributor_emails) >= 1)
+        assert_equal(contributor_emails[0]['value'], 'hanako@example.com')
+
     def test_write_ro_crate_json_mebyo_empty_files(self):
         """Test that MEBYO schema can generate RO-Crate without files (metadata only).
 

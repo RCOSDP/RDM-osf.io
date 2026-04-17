@@ -280,7 +280,7 @@ var FileViewPage = {
                         return;
                     }
                     var url = window.contextVars.apiV2Prefix + 'files' + self.file.path + '/';
-                    $.ajaxJSON('PUT', url, {
+                    $osf.ajaxJSON('PUT', url, {
                         data: {
                             data: {
                                 id: self.file.path.replace('/', ''),
