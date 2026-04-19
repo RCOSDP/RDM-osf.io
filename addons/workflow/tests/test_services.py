@@ -397,17 +397,24 @@ class WorkflowTaskServiceTests(OsfTestCase):
             template=self.template,
             activated_by=self.owner,
         )
+        self.shared_node = ProjectFactory()
+        self.shared_activation = WorkflowActivation.objects.create(
+            node=self.shared_node,
+            template=self.template,
+            activated_by=self.owner,
+        )
 
-    def _metadata(self, *, started_by=None):
+    def _metadata(self, *, started_by=None, activation=None):
+        activation = activation or self.activation
         return {
-            'node_id': self.node._id,
-            'node_title': self.node.title,
+            'node_id': activation.node._id,
+            'node_title': activation.node.title,
             'template_id': str(self.template.id),
-            'activation_id': str(self.activation.id),
+            'activation_id': str(activation.id),
             'started_by': started_by or self.owner._id,
             'engine_id': self.engine.engine_id,
             'label': 'Workflow Run',
-            'business_key': f'rdm:node:{self.node._id}:activation:{self.activation.id}',
+            'business_key': f'rdm:node:{activation.node._id}:activation:{activation.id}',
             'started_at': '2024-01-01T00:00:00Z',
         }
 
@@ -449,7 +456,50 @@ class WorkflowTaskServiceTests(OsfTestCase):
         }
 
     @mock.patch('addons.workflow.services.get_gateway_client')
+    def test_fetch_task_from_engines_allows_visible_shared_activation(self, mock_get_client):
+        metadata = self._metadata(activation=self.shared_activation)
+        mock_client = mock.Mock()
+        mock_client.get_task.return_value = self._task_entry('task-shared')
+        mock_client.list_process_instances.return_value = {'data': [self._instance(metadata)]}
+        mock_get_client.return_value = mock_client
+
+        payload, returned_engine_id, instance, activation = services._fetch_task_from_engines(
+            self.node,
+            self.owner,
+            'task-shared',
+            engine_id=self.engine.engine_id,
+        )
+
+        assert payload['id'] == 'task-shared'
+        assert returned_engine_id == self.engine.engine_id
+        assert instance['id'] == 'instance-1'
+        assert activation.id == self.shared_activation.id
+
+    @mock.patch('addons.workflow.services.get_gateway_client')
+    def test_fetch_task_from_engines_rejects_invisible_shared_activation(self, mock_get_client):
+        read_user = AuthUserFactory()
+        self.node.add_contributor(read_user, permissions='read', auth=Auth(self.owner), save=True)
+        metadata = self._metadata(activation=self.shared_activation)
+
+        mock_client = mock.Mock()
+        mock_client.get_task.return_value = self._task_entry('task-hidden')
+        mock_client.list_process_instances.return_value = {'data': [self._instance(metadata)]}
+        mock_get_client.return_value = mock_client
+
+        with pytest.raises(HTTPError) as context:
+            services._fetch_task_from_engines(
+                self.node,
+                read_user,
+                'task-hidden',
+                engine_id=self.engine.engine_id,
+            )
+
+        assert context.value.code == http_status.HTTP_404_NOT_FOUND
+
+    @mock.patch('addons.workflow.services.get_gateway_client')
     def test_list_workflow_tasks_merges_runtime_and_historic_results(self, mock_get_client):
+        read_user = AuthUserFactory()
+        self.node.add_contributor(read_user, permissions='read', auth=Auth(self.owner), save=True)
         mock_client = mock.Mock()
         mock_get_client.return_value = mock_client
         runtime_entry = self._task_entry('task-runtime')
@@ -458,22 +508,24 @@ class WorkflowTaskServiceTests(OsfTestCase):
         mock_client.list_tasks.return_value = {'data': [runtime_entry]}
         mock_client.list_historic_tasks.return_value = {'data': [historic_entry]}
 
-        results = services.list_workflow_tasks(self.node, self.owner, limit=5)
+        results = services.list_workflow_tasks(self.node, read_user, limit=5)
 
         assert len(results) == 1
         assert results[0]['id'] == 'task-runtime'
         assert results[0]['task_status'] == 'running'
-        assert results[0]['can_complete'] is True
+        assert results[0]['can_complete'] is False
         mock_client.list_historic_tasks.assert_called_once()
 
     @mock.patch('addons.workflow.services.get_gateway_client')
     def test_list_workflow_tasks_active_filter_uses_runtime_only(self, mock_get_client):
+        read_user = AuthUserFactory()
+        self.node.add_contributor(read_user, permissions='read', auth=Auth(self.owner), save=True)
         mock_client = mock.Mock()
         mock_get_client.return_value = mock_client
         runtime_entry = self._task_entry('task-active')
         mock_client.list_tasks.return_value = {'data': [runtime_entry]}
 
-        results = services.list_workflow_tasks(self.node, self.owner, status_filter='active')
+        results = services.list_workflow_tasks(self.node, read_user, status_filter='active')
 
         assert len(results) == 1
         assert results[0]['task_status'] == 'running'
@@ -484,7 +536,7 @@ class WorkflowTaskServiceTests(OsfTestCase):
     def test_get_workflow_task_includes_form_payload(self, mock_fetch, mock_get_client):
         task_payload = self._task_entry('task-form')
         instance = self._instance()
-        mock_fetch.return_value = (task_payload, self.engine.engine_id, instance)
+        mock_fetch.return_value = (task_payload, self.engine.engine_id, instance, self.activation)
         mock_client = mock.Mock()
         mock_client.get_task_form.return_value = {
             'formProperties': [
@@ -518,7 +570,7 @@ class WorkflowTaskServiceTests(OsfTestCase):
     def test_get_workflow_task_ignores_missing_form(self, mock_fetch, mock_get_client):
         task_payload = self._task_entry('task-form-missing')
         instance = self._instance()
-        mock_fetch.return_value = (task_payload, self.engine.engine_id, instance)
+        mock_fetch.return_value = (task_payload, self.engine.engine_id, instance, self.activation)
         mock_client = mock.Mock()
         mock_client.get_task_form.side_effect = WorkflowGatewayClientError(http_status.HTTP_404_NOT_FOUND, 'missing')
         mock_get_client.return_value = mock_client
@@ -540,7 +592,7 @@ class WorkflowTaskServiceTests(OsfTestCase):
     def test_submit_workflow_task_action_updates_task(self, mock_fetch, mock_get_client, mock_get_task):
         task_payload = self._task_entry('task-complete')
         instance = self._instance()
-        mock_fetch.return_value = (task_payload, self.engine.engine_id, instance)
+        mock_fetch.return_value = (task_payload, self.engine.engine_id, instance, self.activation)
         mock_client = mock.Mock()
         mock_get_client.return_value = mock_client
         mock_get_task.return_value = {'id': 'task-complete', 'task_status': 'completed'}
@@ -571,7 +623,7 @@ class WorkflowTaskServiceTests(OsfTestCase):
     def test_submit_workflow_task_action_returns_none_when_task_missing(self, mock_fetch, mock_get_client, mock_get_task):
         task_payload = self._task_entry('task-vanished')
         instance = self._instance()
-        mock_fetch.return_value = (task_payload, self.engine.engine_id, instance)
+        mock_fetch.return_value = (task_payload, self.engine.engine_id, instance, self.activation)
         mock_get_client.return_value = mock.Mock()
         mock_get_task.side_effect = HTTPError(http_status.HTTP_404_NOT_FOUND)
 
@@ -592,7 +644,7 @@ class WorkflowTaskServiceTests(OsfTestCase):
         metadata = self._metadata(started_by=self.owner._id)
         instance = self._instance(metadata)
         payload = self._task_entry('task-forbidden', assignee='executor', variables=self._variables(metadata))
-        mock_fetch.return_value = (payload, self.engine.engine_id, instance)
+        mock_fetch.return_value = (payload, self.engine.engine_id, instance, self.activation)
 
         with pytest.raises(HTTPError) as context:
             services.submit_workflow_task_action(
@@ -605,6 +657,59 @@ class WorkflowTaskServiceTests(OsfTestCase):
 
         assert context.value.code == http_status.HTTP_403_FORBIDDEN
         mock_get_client.assert_not_called()
+
+    @mock.patch('addons.workflow.services.get_gateway_client')
+    def test_submit_workflow_task_action_allows_creator_task_for_visible_shared_activation(self, mock_get_client):
+        metadata = self._metadata(activation=self.shared_activation)
+        mock_client = mock.Mock()
+        mock_client.get_task.return_value = self._task_entry(
+            'task-shared-creator',
+            assignee='creator',
+            variables=self._variables(metadata),
+        )
+        mock_client.list_process_instances.return_value = {'data': [self._instance(metadata)]}
+        mock_get_client.return_value = mock_client
+
+        result = services.submit_workflow_task_action(
+            self.node,
+            'task-shared-creator',
+            self.owner,
+            engine_id=self.engine.engine_id,
+            action='complete',
+        )
+
+        mock_client.update_task.assert_called_once_with(
+            'task-shared-creator',
+            {'action': 'complete'},
+        )
+        assert result['id'] == 'task-shared-creator'
+
+    @mock.patch('addons.workflow.services.get_gateway_client')
+    def test_submit_workflow_task_action_rejects_invisible_shared_activation(self, mock_get_client):
+        read_user = AuthUserFactory()
+        self.node.add_contributor(read_user, permissions='read', auth=Auth(self.owner), save=True)
+        metadata = self._metadata(activation=self.shared_activation)
+
+        mock_client = mock.Mock()
+        mock_client.get_task.return_value = self._task_entry(
+            'task-hidden',
+            assignee='creator',
+            variables=self._variables(metadata),
+        )
+        mock_client.list_process_instances.return_value = {'data': [self._instance(metadata)]}
+        mock_get_client.return_value = mock_client
+
+        with pytest.raises(HTTPError) as context:
+            services.submit_workflow_task_action(
+                self.node,
+                'task-hidden',
+                read_user,
+                engine_id=self.engine.engine_id,
+                action='complete',
+            )
+
+        assert context.value.code == http_status.HTTP_404_NOT_FOUND
+        mock_client.update_task.assert_not_called()
 
 
 class DismissWorkflowActivationTests(OsfTestCase):

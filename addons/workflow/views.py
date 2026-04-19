@@ -1598,6 +1598,17 @@ def workflow_notification(auth, engine_id: str, process_instance_id: str, **kwar
         )
     response = instance_response['data'][0]
     metadata = _extract_metadata(response)
+    activation_id = str(metadata['activation_id'])
+    visible_activations = _get_visible_activations(node, auth.user)
+    activation = next(
+        (entry for entry in visible_activations if str(entry.id) == activation_id),
+        None,
+    )
+    if activation is None:
+        raise HTTPError(
+            http_status.HTTP_404_NOT_FOUND,
+            data={'message': 'Process instance not found.'},
+        )
 
     send_workflow_notification(
         node,

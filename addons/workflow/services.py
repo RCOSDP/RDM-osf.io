@@ -866,10 +866,11 @@ def list_workflow_tasks(
 
 def _fetch_task_from_engines(
     node: 'AbstractNode',
+    user: 'OSFUser',
     task_id: str,
     *,
     engine_id: str,
-) -> Tuple[Dict[str, Any], str, Dict[str, Any]]:
+) -> Tuple[Dict[str, Any], str, Dict[str, Any], WorkflowActivation]:
     client = get_gateway_client(engine_id)
     task_payload = client.get_task(task_id)
     if not isinstance(task_payload, dict):
@@ -900,7 +901,19 @@ def _fetch_task_from_engines(
         )
 
     instance = instances[0]
-    return task_payload, engine_id, instance
+    metadata = _extract_metadata(instance)
+    activation_id = str(metadata['activation_id'])
+    visible_activations = _get_visible_activations(node, user)
+    activation = next(
+        (entry for entry in visible_activations if str(entry.id) == activation_id),
+        None,
+    )
+    if activation is None:
+        raise HTTPError(
+            http_status.HTTP_404_NOT_FOUND,
+            data={'message': 'Workflow task not found.'},
+        )
+    return task_payload, engine_id, instance, activation
 
 
 def _can_complete_task(
@@ -955,7 +968,7 @@ def get_workflow_task(
     engine_id: str,
     include_form: bool = False,
 ) -> Dict[str, Any]:
-    task_payload, engine_id, instance = _fetch_task_from_engines(node, task_id, engine_id=engine_id)
+    task_payload, engine_id, instance, activation = _fetch_task_from_engines(node, user, task_id, engine_id=engine_id)
     client = get_gateway_client(engine_id)
 
     form_payload: Optional[Dict[str, Any]] = None
@@ -976,7 +989,7 @@ def get_workflow_task(
 
     metadata = _extract_metadata(instance)
     assignee = task_payload.get('assignee')
-    serialized['can_complete'] = _can_complete_task(node, user, assignee, metadata)
+    serialized['can_complete'] = _can_complete_task(activation.node, user, assignee, metadata)
 
     return serialized
 
@@ -1007,11 +1020,11 @@ def submit_workflow_task_action(
     variables: Any = None,
     assignee: Optional[str] = None,
 ) -> Optional[Dict[str, Any]]:
-    task_payload, engine_id, instance = _fetch_task_from_engines(node, task_id, engine_id=engine_id)
+    task_payload, engine_id, instance, activation = _fetch_task_from_engines(node, user, task_id, engine_id=engine_id)
 
     metadata = _extract_metadata(instance)
     task_assignee = task_payload.get('assignee')
-    if not _can_complete_task(node, user, task_assignee, metadata):
+    if not _can_complete_task(activation.node, user, task_assignee, metadata):
         raise HTTPError(
             http_status.HTTP_403_FORBIDDEN,
             data={'message': 'You are not assigned to this task.'},
@@ -1351,7 +1364,6 @@ def resolve_workflow_notification_recipients(
             if not user:
                 raise ValueError(f'User not found: {user_id}')
             recipients.add(user)
-
     return recipients
 
 
