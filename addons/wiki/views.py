@@ -26,6 +26,7 @@ from celery.result import AsyncResult
 from celery.contrib.abortable import AbortableAsyncResult
 from flask import request
 from flask_babel import lazy_gettext as _
+from django.db.models import Func
 from django.db.models.expressions import F
 from django_bulk_update.helper import bulk_update
 from django.core.exceptions import ObjectDoesNotExist
@@ -120,26 +121,29 @@ def _get_wiki_versions(node, name, anonymous=False):
         for version in versions
     ]
 
-def _iter_wiki_latest_deduped_by_canonical_name(node, wiki_version_qs):
-    """Yield WikiVersion rows whose wiki_page matches get_for_node for that name.
+def _sort_wiki_versions_for_menu(wiki_versions):
+    """sort_order, then page name (null sort_order last). After DISTINCT ON dedupe."""
+    wiki_versions.sort(
+        key=lambda wv: (wv.wiki_page.sort_order is None, wv.wiki_page.sort_order, wv.wiki_page.page_name or ''))
 
-    Duplicate active WikiPage rows with the same page_name (case-insensitive) are
-    hidden from menus; the canonical row matches WikiPage.objects.get_for_node.
+
+def _wiki_versions_latest_deduped_by_canonical_name(wiki_version_qs):
+    """One WikiVersion per LOWER(name), same as get_for_node (min wiki_page__created, then id).
+
+    get_wiki_pages_latest annotates `name=F('wiki_page__page_name')`. PostgreSQL DISTINCT ON.
     """
-    canonical_cache = {}
-    for page in wiki_version_qs:
-        wp = page.wiki_page
-        key = wp.page_name.lower()
-        if key not in canonical_cache:
-            canonical_cache[key] = WikiPage.objects.get_for_node(node, wp.page_name)
-        canonical = canonical_cache[key]
-        if canonical is None or canonical.id != wp.id:
-            continue
-        yield page
+    q = (
+        wiki_version_qs
+        .annotate(name_lower=Func(F('name'), function='LOWER'))
+        .order_by('name_lower', 'wiki_page__created', 'wiki_page__id')
+        .distinct('name_lower')
+    )
+    return list(q)
 
 def _get_wiki_pages_latest(node):
-    qs = WikiPage.objects.get_wiki_pages_latest(node).order_by(
-        F('wiki_page__sort_order'), F('name'))
+    base = WikiPage.objects.get_wiki_pages_latest(node)
+    pages = _wiki_versions_latest_deduped_by_canonical_name(base)
+    _sort_wiki_versions_for_menu(pages)
     return [
         {
             'name': page.wiki_page.page_name,
@@ -149,12 +153,13 @@ def _get_wiki_pages_latest(node):
             'wiki_content': _wiki_page_content(page.wiki_page.page_name, node=node),
             'sort_order': page.wiki_page.sort_order
         }
-        for page in _iter_wiki_latest_deduped_by_canonical_name(node, qs)
+        for page in pages
     ]
 
 def _get_wiki_child_pages_latest(node, parent):
-    qs = WikiPage.objects.get_wiki_child_pages_latest(node, parent).order_by(
-        F('wiki_page__sort_order'), F('name'))
+    base = WikiPage.objects.get_wiki_child_pages_latest(node, parent)
+    pages = _wiki_versions_latest_deduped_by_canonical_name(base)
+    _sort_wiki_versions_for_menu(pages)
     return [
         {
             'name': page.wiki_page.page_name,
@@ -164,7 +169,7 @@ def _get_wiki_child_pages_latest(node, parent):
             'wiki_content': _wiki_page_content(page.wiki_page.page_name, node=node),
             'sort_order': page.wiki_page.sort_order
         }
-        for page in _iter_wiki_latest_deduped_by_canonical_name(node, qs)
+        for page in pages
     ]
 
 def _get_wiki_api_urls(node, name, additional_urls=None):
@@ -1378,7 +1383,7 @@ def _get_sorted_list(sorted_data, parent_wiki_id):
     return id_list, sort_list, parent_wiki_id_list
 
 def _bulk_update_wiki_sort(node, sort_id_list, sort_num_list, parent_wiki_id_list):
-    # Tree payload omits duplicate-name rows (see _iter_wiki_latest_deduped_by_canonical_name); skip those.
+    # Tree payload omits duplicate-name rows (see _wiki_versions_latest_deduped_by_canonical_name); skip those.
     sort_ids = set(sort_id_list)
     wiki_pages = node.wikis.filter(deleted__isnull=True).exclude(page_name='home')
 
