@@ -26,7 +26,7 @@
             <td>{{ current_alert.start }} - {{ current_alert.end }} UTC</td>
             <td>
                 {% if current_alert.message %}
-                    {{ current_alert.message }}
+                    {{ current_alert.message|urlize|linebreaksbr }}
                 {% else %}
                     {% trans "The site will undergo maintenance between &lt;localized start time&gt;-&lt;localized end time&gt;. Thank you for your patience." %}
                 {% endif %}
