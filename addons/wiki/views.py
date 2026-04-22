@@ -26,7 +26,6 @@ from celery.result import AsyncResult
 from celery.contrib.abortable import AbortableAsyncResult
 from flask import request
 from flask_babel import lazy_gettext as _
-from django.db.models.expressions import F
 from django_bulk_update.helper import bulk_update
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
