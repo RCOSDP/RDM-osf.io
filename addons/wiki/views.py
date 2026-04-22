@@ -26,7 +26,6 @@ from celery.result import AsyncResult
 from celery.contrib.abortable import AbortableAsyncResult
 from flask import request
 from flask_babel import lazy_gettext as _
-from django.db.models import Func
 from django.db.models.expressions import F
 from django_bulk_update.helper import bulk_update
 from django.core.exceptions import ObjectDoesNotExist
@@ -130,15 +129,22 @@ def _sort_wiki_versions_for_menu(wiki_versions):
 def _wiki_versions_latest_deduped_by_canonical_name(wiki_version_qs):
     """One WikiVersion per LOWER(name), same as get_for_node (min wiki_page__created, then id).
 
-    get_wiki_pages_latest annotates `name=F('wiki_page__page_name')`. PostgreSQL DISTINCT ON.
+    get_wiki_pages_latest annotates `name=F('wiki_page__page_name')`.
+    Keep DB access to a single query and dedupe in Python for older Django versions
+    where annotate() + distinct(fields) is not supported.
     """
-    q = (
-        wiki_version_qs
-        .annotate(name_lower=Func(F('name'), function='LOWER'))
-        .order_by('name_lower', 'wiki_page__created', 'wiki_page__id')
-        .distinct('name_lower')
-    )
-    return list(q)
+    q = wiki_version_qs.order_by('wiki_page__created', 'wiki_page__id')
+
+    seen_names = set()
+    deduped = []
+    for wiki_version in q:
+        canonical_name = (wiki_version.name or '').lower()
+        if canonical_name in seen_names:
+            continue
+        seen_names.add(canonical_name)
+        deduped.append(wiki_version)
+
+    return deduped
 
 def _get_wiki_pages_latest(node):
     base = WikiPage.objects.get_wiki_pages_latest(node)
