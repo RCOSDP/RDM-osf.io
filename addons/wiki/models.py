@@ -260,11 +260,12 @@ class WikiPageNodeManager(models.Manager):
 
     def get_for_node(self, node, name=None, id=None):
         if name:
-            try:
-                name = (name or '').strip()
-                return WikiPage.objects.get(page_name__iexact=name, deleted__isnull=True, node=node)
-            except WikiPage.DoesNotExist:
-                return None
+            name = (name or '').strip()
+            return WikiPage.objects.filter(
+                page_name__iexact=name,
+                deleted__isnull=True,
+                node=node,
+            ).order_by('created', 'id').first()
         return WikiPage.load(id)
 
     def get_for_child_nodes(self, node, parent=None):
