@@ -12,3 +12,9 @@
 .metadata-group-disabled {
     opacity: 0.6;
 }
+
+.metadata-info-mark {
+    cursor: pointer;
+    margin-left: 6px;
+    color: #3779b3;
+}

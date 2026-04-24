@@ -142,8 +142,7 @@ GroupContainer.prototype._renderHeading = function(def) {
   }
   if (def.info) {
     var infoMark = $('<span></span>')
-      .text('\u24D8')
-      .css({ cursor: 'pointer', 'margin-left': '6px', color: '#5bc0de' });
+      .addClass('fa fa-info-circle metadata-info-mark');
     infoMark.popover({
       content: getLocalizedText(def.info),
       html: true,
@@ -543,8 +542,7 @@ const QuestionField = oop.extend(Emitter, {
     var infoText = uiItem && uiItem.info;
     if (infoText) {
       var infoMark = $('<span></span>')
-        .text('\u24D8')
-        .css({ cursor: 'pointer', 'margin-left': '6px', color: '#5bc0de' });
+        .addClass('fa fa-info-circle metadata-info-mark');
       infoMark.popover({
         content: getLocalizedText(infoText),
         html: true,
