@@ -410,7 +410,15 @@
                                                     <strong data-bind="text: name || id"></strong>
                                                     <div class="text-muted" data-bind="text: business_key, visible: business_key"></div>
                                                 </td>
-                                                <td data-bind="text: $parent.taskAssignee($data)"></td>
+                                                <td>
+                                                    <!-- ko if: $parent.taskAssigneeUrl($data) -->
+                                                        <a target="_blank" rel="noopener noreferrer"
+                                                           data-bind="attr: { href: $parent.taskAssigneeUrl($data) }, text: $parent.taskAssigneeLabel($data)"></a>
+                                                    <!-- /ko -->
+                                                    <!-- ko ifnot: $parent.taskAssigneeUrl($data) -->
+                                                        <span data-bind="text: $parent.taskAssigneeLabel($data)"></span>
+                                                    <!-- /ko -->
+                                                </td>
                                                 <td data-bind="text: $parent.formatDate(created)"></td>
                                                 <td data-bind="text: $parent.formatDate(due)"></td>
                                                 <td>

@@ -196,7 +196,10 @@ function WorkflowWidgetViewModel() {
         return self.runStatusClasses[run.status] || 'label-default';
     };
 
-    self.taskAssignee = function(task) {
+    self.taskAssigneeLabel = function(task) {
+        if (task && task.assignee_user && task.assignee_user.fullname) {
+            return task.assignee_user.fullname;
+        }
         if (!task || !task.assignee) {
             return self.unassignedLabel;
         }
@@ -215,6 +218,13 @@ function WorkflowWidgetViewModel() {
             return _('Project contributor');
         }
         return assignee;
+    };
+
+    self.taskAssigneeUrl = function(task) {
+        if (!task || !task.assignee_user || !task.assignee_user.id) {
+            return null;
+        }
+        return '/' + task.assignee_user.id;
     };
 
     self.canEditTask = function(task) {

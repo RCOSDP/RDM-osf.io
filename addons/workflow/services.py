@@ -28,6 +28,7 @@ from addons.workflow.models import (
     WorkflowEngine,
     WorkflowEngineKey,
     WorkflowExecutorToken,
+    WorkflowTaskCompletion,
     WorkflowTemplate,
 )
 from addons.workflow.token import create_delegation_token, revoke_delegation_token
@@ -812,10 +813,21 @@ def list_workflow_tasks(
         return []
 
     def _serialize_entry(entry, activation, engine_id):
+        from addons.workflow.views import STATUS_COMPLETED
         serialized = _serialize_task_payload(entry, engine_id=engine_id, instance=entry)
+        metadata = _extract_metadata(entry)
+        eligibility = _eligible_users_for_assignee(activation.node, entry.get('assignee'), metadata)
+        operator = None
+        if serialized['task_status'] == STATUS_COMPLETED:
+            operator_user = _resolve_completed_operator(activation.node, entry['id'])
+            if operator_user:
+                operator = (operator_user, activation.node)
+        serialized['assignee_user'] = _resolve_assignee_user_field(
+            eligibility, caller=user, operator=operator,
+        )
         serialized['can_complete'] = (
-            serialized['task_status'] == STATUS_RUNNING and
-            _can_complete_task(activation.node, user, entry['assignee'], _extract_metadata(entry))
+            serialized['task_status'] == STATUS_RUNNING
+            and any(user == eligible for eligible, _ in eligibility)
         )
         return serialized
 
@@ -916,48 +928,107 @@ def _fetch_task_from_engines(
     return task_payload, engine_id, instance, activation
 
 
+ASSIGNEE_ROLES = frozenset({'executor', 'creator', 'manager', 'contributor'})
+
+
+def _eligible_users_for_assignee(
+    node: 'AbstractNode',
+    assignee: Optional[str],
+    metadata: Dict[str, Any],
+) -> List[Tuple['OSFUser', 'AbstractNode']]:
+    """Resolve a flowable:assignee attribute to (eligible OSFUser, visibility node) pairs.
+
+    The visibility node is the project whose READ membership gates revealing the
+    user's identity to a caller. It matches the project the user is sourced from,
+    so callers without permission on that project see only the role label.
+
+    Supports:
+    - empty assignee: anyone with read permission on the activation node
+    - 'executor': user who started the workflow run
+    - 'creator': contributors with write permission on the WorkflowTemplate's project
+    - 'manager': admin contributors of the activation node
+    - 'contributor': read contributors of the activation node
+    - any other string: users with matching username (visibility gated on activation node)
+    """
+    if not assignee:
+        return [(u, node) for u in node.get_users_with_perm(READ)]
+
+    assignee_lower = assignee.lower()
+
+    if assignee_lower == 'executor':
+        started_by_id = metadata.get('started_by')
+        if not started_by_id:
+            return []
+        user = OSFUser.load(started_by_id)
+        return [(user, node)] if user else []
+
+    if assignee_lower == 'creator':
+        template_id = metadata.get('template_id')
+        if not template_id:
+            return []
+        try:
+            template = WorkflowTemplate.objects.select_related('node').get(id=int(template_id))
+        except (WorkflowTemplate.DoesNotExist, ValueError):
+            return []
+        return [(u, template.node) for u in template.node.get_users_with_perm(WRITE)]
+
+    if assignee_lower == 'manager':
+        return [(u, node) for u in node.get_users_with_perm(ADMIN)]
+
+    if assignee_lower == 'contributor':
+        return [(u, node) for u in node.get_users_with_perm(READ)]
+
+    return [(u, node) for u in OSFUser.objects.filter(username=assignee)]
+
+
 def _can_complete_task(
     node: 'AbstractNode',
     user: 'OSFUser',
     assignee: Optional[str],
     metadata: Dict[str, Any],
 ) -> bool:
-    """Check if user can complete a task based on flowable:assignee attribute.
+    return any(user == eligible for eligible, _ in _eligible_users_for_assignee(node, assignee, metadata))
 
-    Supports:
-    - empty assignee: anyone with read permission can complete
-    - 'executor': user who started the workflow run
-    - 'creator': WorkflowTemplate project's contributors with write permission
-    - 'manager': project admin
-    - 'contributor': project contributor (read permission)
-    - email address: users with matching username
+
+def _resolve_completed_operator(
+    node: 'AbstractNode',
+    task_id: str,
+) -> Optional['OSFUser']:
+    """Return the OSFUser who actually submitted the given task, or None if unknown."""
+    completion = WorkflowTaskCompletion.objects.filter(
+        node=node,
+        task_id=task_id,
+    ).select_related('completed_by').first()
+    return completion.completed_by if completion else None
+
+
+def _resolve_assignee_user_field(
+    eligibility: List[Tuple['OSFUser', 'AbstractNode']],
+    *,
+    caller: 'OSFUser',
+    operator: Optional[Tuple['OSFUser', 'AbstractNode']] = None,
+) -> Optional[Dict[str, str]]:
+    """Return {id, fullname} for display in the assignee column.
+
+    Each (user, visibility_node) pair gates revealing that user's identity on
+    the caller's READ permission for visibility_node. The eligible-single-user
+    fallback is suppressed when the caller cannot see the source project.
+
+    Resolution order:
+    - operator (the OSFUser who actually submitted the task) takes precedence
+    - else, eligibility when it resolves to a single user
+    - None when caller lacks READ on the relevant visibility node, or no
+      single user can be resolved
     """
-    if not assignee:
-        return node.has_permission(user, READ)
-
-    assignee_lower = assignee.lower()
-
-    if assignee_lower == 'executor':
-        started_by_id = metadata.get('started_by')
-        return user._id == started_by_id
-
-    if assignee_lower == 'creator':
-        template_id = metadata.get('template_id')
-        if not template_id:
-            return False
-        try:
-            template = WorkflowTemplate.objects.select_related('node').get(id=int(template_id))
-            return template.node.has_permission(user, WRITE)
-        except (WorkflowTemplate.DoesNotExist, ValueError):
-            return False
-
-    if assignee_lower == 'manager':
-        return node.has_permission(user, ADMIN)
-
-    if assignee_lower == 'contributor':
-        return node.has_permission(user, READ)
-
-    return user.username == assignee
+    if operator is not None:
+        target, visibility_node = operator
+    elif len(eligibility) == 1:
+        target, visibility_node = eligibility[0]
+    else:
+        return None
+    if not visibility_node.has_permission(caller, READ):
+        return None
+    return {'id': target._id, 'fullname': target.fullname}
 
 
 def get_workflow_task(
@@ -983,13 +1054,22 @@ def get_workflow_task(
             if status_code not in {http_status.HTTP_404_NOT_FOUND, http_status.HTTP_400_BAD_REQUEST}:
                 raise
 
+    from addons.workflow.views import STATUS_COMPLETED
     serialized = _serialize_task_payload(task_payload, engine_id=engine_id, instance=instance)
     if form_payload is not None:
         serialized['form'] = form_payload
 
     metadata = _extract_metadata(instance)
-    assignee = task_payload.get('assignee')
-    serialized['can_complete'] = _can_complete_task(activation.node, user, assignee, metadata)
+    eligibility = _eligible_users_for_assignee(activation.node, task_payload.get('assignee'), metadata)
+    operator = None
+    if serialized['task_status'] == STATUS_COMPLETED:
+        operator_user = _resolve_completed_operator(activation.node, task_id)
+        if operator_user:
+            operator = (operator_user, activation.node)
+    serialized['assignee_user'] = _resolve_assignee_user_field(
+        eligibility, caller=user, operator=operator,
+    )
+    serialized['can_complete'] = any(user == eligible for eligible, _ in eligibility)
 
     return serialized
 
@@ -1041,6 +1121,16 @@ def submit_workflow_task_action(
         request_payload['assignee'] = assignee
 
     client.update_task(task_id, request_payload)
+
+    if action == 'complete':
+        WorkflowTaskCompletion.objects.update_or_create(
+            node=activation.node,
+            task_id=task_id,
+            defaults={
+                'process_instance_id': task_payload['processInstanceId'],
+                'completed_by': user,
+            },
+        )
 
     try:
         return get_workflow_task(node, task_id, user, engine_id=engine_id, include_form=False)
@@ -1334,29 +1424,10 @@ def resolve_workflow_notification_recipients(
 
     if assignees:
         for role in assignees:
-            if role == 'executor':
-                started_by = metadata['started_by']
-                user = OSFUser.load(started_by)
-                if not user:
-                    raise ValueError(f'Executor user not found: {started_by}')
-                recipients.add(user)
-            elif role == 'manager':
-                activation_id = metadata['activation_id']
-                activation = WorkflowActivation.objects.filter(
-                    id=activation_id
-                ).select_related('activated_by').first()
-                recipients.add(activation.activated_by)
-            elif role == 'creator':
-                template_id = metadata['template_id']
-                template = WorkflowTemplate.objects.filter(
-                    id=template_id
-                ).select_related('registered_by').first()
-                recipients.add(template.registered_by)
-            elif role == 'contributor':
-                for contributor in node.contributors.all():
-                    recipients.add(contributor)
-            else:
+            role_lower = role.lower() if role else ''
+            if role_lower not in ASSIGNEE_ROLES:
                 raise ValueError(f'Invalid assignee role: {role}')
+            recipients.update(u for u, _ in _eligible_users_for_assignee(node, role_lower, metadata))
 
     if user_ids:
         for user_id in user_ids:

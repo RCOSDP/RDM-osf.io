@@ -17,6 +17,7 @@ from addons.workflow.models import (
     WorkflowDefinitionSnapshot,
     WorkflowEngine,
     WorkflowEngineKey,
+    WorkflowTaskCompletion,
     WorkflowTemplate,
 )
 from osf.models.comment import Comment
@@ -328,6 +329,34 @@ class WorkflowNotificationTests(OsfTestCase):
     def test_resolve_requires_targets(self):
         with pytest.raises(ValueError):
             services.resolve_workflow_notification_recipients(self.node, metadata=self.metadata)
+
+    def test_resolve_notification_manager_includes_all_admins(self):
+        # Activation was created by self.owner, but a separate admin should still receive
+        # the notification because the manager role resolves to all admins of the activation node.
+        extra_admin = AuthUserFactory()
+        self.node.add_contributor(extra_admin, permissions='admin', auth=Auth(self.owner), save=True)
+
+        recipients = services.resolve_workflow_notification_recipients(
+            self.node,
+            metadata=self.metadata,
+            assignees=['manager'],
+        )
+
+        assert {self.owner, extra_admin}.issubset(recipients)
+
+    def test_resolve_notification_creator_includes_all_template_node_writers(self):
+        # template.registered_by alone is not the truth; every write contributor of the
+        # template's project must be notified for creator-targeted notifications.
+        extra_writer = AuthUserFactory()
+        self.template.node.add_contributor(extra_writer, permissions='write', auth=Auth(self.owner), save=True)
+
+        recipients = services.resolve_workflow_notification_recipients(
+            self.node,
+            metadata=self.metadata,
+            assignees=['creator'],
+        )
+
+        assert {self.owner, extra_writer}.issubset(recipients)
 
     @mock.patch('addons.workflow.services.send_mail')
     def test_send_workflow_notification_logs_comment_and_email(self, mock_send_mail):
@@ -710,6 +739,293 @@ class WorkflowTaskServiceTests(OsfTestCase):
 
         assert context.value.code == http_status.HTTP_404_NOT_FOUND
         mock_client.update_task.assert_not_called()
+
+    def test_eligible_users_for_assignee_executor_returns_started_by(self):
+        executor = AuthUserFactory()
+        metadata = self._metadata(started_by=executor._id)
+
+        eligibility = services._eligible_users_for_assignee(self.node, 'executor', metadata)
+
+        assert eligibility == [(executor, self.node)]
+
+    def test_eligible_users_for_assignee_username_match(self):
+        target = AuthUserFactory()
+        metadata = self._metadata()
+
+        eligibility = services._eligible_users_for_assignee(self.node, target.username, metadata)
+
+        assert eligibility == [(target, self.node)]
+
+    def test_eligible_users_for_assignee_creator_returns_template_node_writers(self):
+        # Creator role users come from the template's node, not the activation node.
+        # Visibility must therefore gate on the template's node.
+        eligibility = services._eligible_users_for_assignee(
+            self.node, 'creator', self._metadata(),
+        )
+
+        assert all(visibility_node == self.template.node for _, visibility_node in eligibility)
+        assert {u for u, _ in eligibility} == set(self.template.node.get_users_with_perm('write'))
+
+    @mock.patch('addons.workflow.services.get_gateway_client')
+    def test_list_workflow_tasks_includes_assignee_user_when_single_eligible(self, mock_get_client):
+        read_user = AuthUserFactory()
+        self.node.add_contributor(read_user, permissions='read', auth=Auth(self.owner), save=True)
+        mock_client = mock.Mock()
+        mock_get_client.return_value = mock_client
+        runtime_entry = self._task_entry('task-executor', assignee='executor')
+        mock_client.list_tasks.return_value = {'data': [runtime_entry]}
+        mock_client.list_historic_tasks.return_value = {'data': []}
+
+        results = services.list_workflow_tasks(self.node, read_user, limit=5)
+
+        assert len(results) == 1
+        assert results[0]['assignee_user'] == {'id': self.owner._id, 'fullname': self.owner.fullname}
+
+    @mock.patch('addons.workflow.services.get_gateway_client')
+    def test_list_workflow_tasks_omits_assignee_user_when_multiple_eligible(self, mock_get_client):
+        read_user = AuthUserFactory()
+        self.node.add_contributor(read_user, permissions='read', auth=Auth(self.owner), save=True)
+        extra_admin = AuthUserFactory()
+        self.node.add_contributor(extra_admin, permissions='admin', auth=Auth(self.owner), save=True)
+        mock_client = mock.Mock()
+        mock_get_client.return_value = mock_client
+        runtime_entry = self._task_entry('task-manager', assignee='manager')
+        mock_client.list_tasks.return_value = {'data': [runtime_entry]}
+        mock_client.list_historic_tasks.return_value = {'data': []}
+
+        results = services.list_workflow_tasks(self.node, read_user, limit=5)
+
+        assert len(results) == 1
+        assert results[0]['assignee_user'] is None
+
+    @mock.patch('addons.workflow.services.get_gateway_client')
+    def test_list_workflow_tasks_omits_assignee_user_when_caller_lacks_node_access(self, mock_get_client):
+        # self.owner is a template owner viewing the shared activation on shared_node where
+        # they are not a contributor. assignee=executor resolves to a single user (self.owner),
+        # but the caller's lack of READ on shared_node must hide the user identity.
+        shared_business_key = f'rdm:node:{self.shared_node._id}:activation:{self.shared_activation.id}'
+        metadata = self._metadata(activation=self.shared_activation, started_by=self.owner._id)
+        runtime_entry = self._task_entry(
+            'task-shared-executor',
+            assignee='executor',
+            business_key=shared_business_key,
+            variables=self._variables(metadata),
+        )
+
+        def list_tasks_for_business_key(params):
+            if params.get('processInstanceBusinessKey') == shared_business_key:
+                return {'data': [runtime_entry]}
+            return {'data': []}
+
+        mock_client = mock.Mock()
+        mock_client.list_tasks.side_effect = list_tasks_for_business_key
+        mock_client.list_historic_tasks.return_value = {'data': []}
+        mock_get_client.return_value = mock_client
+
+        results = services.list_workflow_tasks(self.node, self.owner, limit=5)
+
+        assert len(results) == 1
+        assert results[0]['id'] == 'task-shared-executor'
+        assert results[0]['assignee_user'] is None
+
+    @mock.patch('addons.workflow.services.get_gateway_client')
+    @mock.patch('addons.workflow.services._fetch_task_from_engines')
+    def test_get_workflow_task_includes_assignee_user(self, mock_fetch, mock_get_client):
+        task_payload = self._task_entry('task-detail', assignee='executor')
+        instance = self._instance()
+        mock_fetch.return_value = (task_payload, self.engine.engine_id, instance, self.activation)
+        mock_get_client.return_value = mock.Mock()
+
+        task = services.get_workflow_task(
+            self.node,
+            'task-detail',
+            self.owner,
+            engine_id=self.engine.engine_id,
+        )
+
+        assert task['assignee_user'] == {'id': self.owner._id, 'fullname': self.owner.fullname}
+
+    @mock.patch('addons.workflow.services.get_workflow_task')
+    @mock.patch('addons.workflow.services.get_gateway_client')
+    @mock.patch('addons.workflow.services._fetch_task_from_engines')
+    def test_submit_workflow_task_action_records_completion(self, mock_fetch, mock_get_client, mock_get_task):
+        task_payload = self._task_entry('task-record-completion')
+        instance = self._instance()
+        mock_fetch.return_value = (task_payload, self.engine.engine_id, instance, self.activation)
+        mock_get_client.return_value = mock.Mock()
+        mock_get_task.return_value = {'id': 'task-record-completion'}
+
+        services.submit_workflow_task_action(
+            self.node,
+            'task-record-completion',
+            self.owner,
+            engine_id=self.engine.engine_id,
+            action='complete',
+        )
+
+        completion = WorkflowTaskCompletion.objects.get(task_id='task-record-completion')
+        assert completion.node_id == self.node.id
+        assert completion.completed_by_id == self.owner.id
+        assert completion.process_instance_id == task_payload['processInstanceId']
+
+    @mock.patch('addons.workflow.services.get_workflow_task')
+    @mock.patch('addons.workflow.services.get_gateway_client')
+    @mock.patch('addons.workflow.services._fetch_task_from_engines')
+    def test_submit_workflow_task_action_idempotent_completion_record(self, mock_fetch, mock_get_client, mock_get_task):
+        task_payload = self._task_entry('task-idempotent')
+        instance = self._instance()
+        mock_fetch.return_value = (task_payload, self.engine.engine_id, instance, self.activation)
+        mock_get_client.return_value = mock.Mock()
+        mock_get_task.return_value = {'id': 'task-idempotent'}
+
+        for _ in range(2):
+            services.submit_workflow_task_action(
+                self.node,
+                'task-idempotent',
+                self.owner,
+                engine_id=self.engine.engine_id,
+                action='complete',
+            )
+
+        assert WorkflowTaskCompletion.objects.filter(task_id='task-idempotent').count() == 1
+
+    @mock.patch('addons.workflow.services.get_gateway_client')
+    def test_list_workflow_tasks_completed_assignee_user_shows_operator(self, mock_get_client):
+        # An operator (different from the eligible single user) submitted the completed task.
+        # The recorded operator must take precedence over the eligible-user fallback.
+        read_user = AuthUserFactory()
+        self.node.add_contributor(read_user, permissions='read', auth=Auth(self.owner), save=True)
+        operator = AuthUserFactory()
+        self.node.add_contributor(operator, permissions='admin', auth=Auth(self.owner), save=True)
+        WorkflowTaskCompletion.objects.create(
+            node=self.node,
+            task_id='task-historic',
+            process_instance_id='instance-1',
+            completed_by=operator,
+        )
+        mock_client = mock.Mock()
+        mock_get_client.return_value = mock_client
+        historic_entry = self._task_entry(
+            'task-historic',
+            assignee='manager',
+            endTime='2024-01-02T00:00:00Z',
+        )
+        mock_client.list_tasks.return_value = {'data': []}
+        mock_client.list_historic_tasks.return_value = {'data': [historic_entry]}
+
+        results = services.list_workflow_tasks(self.node, read_user, limit=5)
+
+        assert len(results) == 1
+        assert results[0]['task_status'] == 'completed'
+        assert results[0]['assignee_user'] == {'id': operator._id, 'fullname': operator.fullname}
+
+    @mock.patch('addons.workflow.services.get_gateway_client')
+    def test_list_workflow_tasks_completed_no_completion_record_falls_back_to_eligible(self, mock_get_client):
+        # Legacy completed task without a completion record: fall back to the existing
+        # eligible-single-user resolution so display stays the same as before.
+        read_user = AuthUserFactory()
+        self.node.add_contributor(read_user, permissions='read', auth=Auth(self.owner), save=True)
+        mock_client = mock.Mock()
+        mock_get_client.return_value = mock_client
+        historic_entry = self._task_entry(
+            'task-legacy',
+            assignee='executor',
+            endTime='2024-01-02T00:00:00Z',
+        )
+        mock_client.list_tasks.return_value = {'data': []}
+        mock_client.list_historic_tasks.return_value = {'data': [historic_entry]}
+
+        results = services.list_workflow_tasks(self.node, read_user, limit=5)
+
+        assert len(results) == 1
+        assert results[0]['task_status'] == 'completed'
+        assert results[0]['assignee_user'] == {'id': self.owner._id, 'fullname': self.owner.fullname}
+
+    @mock.patch('addons.workflow.services.get_gateway_client')
+    def test_list_workflow_tasks_running_task_unaffected_by_completion_record(self, mock_get_client):
+        # Even if a (stale) completion record exists for a still-running task id,
+        # the running task should resolve assignee via eligible users only.
+        read_user = AuthUserFactory()
+        self.node.add_contributor(read_user, permissions='read', auth=Auth(self.owner), save=True)
+        operator = AuthUserFactory()
+        self.node.add_contributor(operator, permissions='admin', auth=Auth(self.owner), save=True)
+        WorkflowTaskCompletion.objects.create(
+            node=self.node,
+            task_id='task-running',
+            process_instance_id='instance-1',
+            completed_by=operator,
+        )
+        mock_client = mock.Mock()
+        mock_get_client.return_value = mock_client
+        runtime_entry = self._task_entry('task-running', assignee='executor')
+        mock_client.list_tasks.return_value = {'data': [runtime_entry]}
+        mock_client.list_historic_tasks.return_value = {'data': []}
+
+        results = services.list_workflow_tasks(self.node, read_user, limit=5)
+
+        assert len(results) == 1
+        assert results[0]['task_status'] == 'running'
+        assert results[0]['assignee_user'] == {'id': self.owner._id, 'fullname': self.owner.fullname}
+
+    @mock.patch('addons.workflow.services.get_gateway_client')
+    def test_list_workflow_tasks_creator_assignee_user_visible_to_template_node_member(self, mock_get_client):
+        # Creator-role tasks resolve eligible users from the template's node.
+        # A caller who is on the template node (self.owner is creator of self.node, the
+        # template host) but NOT on the activation node (self.shared_node) must still
+        # see the user identity, because the visibility gate is the template node.
+        metadata = self._metadata(activation=self.shared_activation)
+        shared_business_key = f'rdm:node:{self.shared_node._id}:activation:{self.shared_activation.id}'
+        runtime_entry = self._task_entry(
+            'task-creator-shared',
+            assignee='creator',
+            business_key=shared_business_key,
+            variables=self._variables(metadata),
+        )
+
+        def list_tasks_for_business_key(params):
+            if params.get('processInstanceBusinessKey') == shared_business_key:
+                return {'data': [runtime_entry]}
+            return {'data': []}
+
+        mock_client = mock.Mock()
+        mock_client.list_tasks.side_effect = list_tasks_for_business_key
+        mock_client.list_historic_tasks.return_value = {'data': []}
+        mock_get_client.return_value = mock_client
+
+        # self.owner has admin on self.node (= template.node) and is NOT contributor of shared_node
+        results = services.list_workflow_tasks(self.node, self.owner, limit=5)
+
+        assert len(results) == 1
+        assert results[0]['id'] == 'task-creator-shared'
+        assert results[0]['assignee_user'] == {'id': self.owner._id, 'fullname': self.owner.fullname}
+
+    @mock.patch('addons.workflow.services.get_gateway_client')
+    def test_list_workflow_tasks_creator_assignee_user_hidden_from_non_template_node_caller(self, mock_get_client):
+        # A caller who is on the activation node but NOT on the template node must
+        # NOT see the creator user identity (they would otherwise leak template node
+        # member identity to a non-template-node viewer).
+        outsider = AuthUserFactory()
+        self.shared_node.add_contributor(outsider, permissions='admin', auth=Auth(self.shared_node.creator), save=True)
+
+        metadata = self._metadata(activation=self.shared_activation)
+        shared_business_key = f'rdm:node:{self.shared_node._id}:activation:{self.shared_activation.id}'
+        runtime_entry = self._task_entry(
+            'task-creator-leak',
+            assignee='creator',
+            business_key=shared_business_key,
+            variables=self._variables(metadata),
+        )
+        mock_client = mock.Mock()
+        mock_client.list_tasks.return_value = {'data': [runtime_entry]}
+        mock_client.list_historic_tasks.return_value = {'data': []}
+        mock_get_client.return_value = mock_client
+
+        # outsider has admin on shared_node but is NOT contributor of self.node (template node)
+        results = services.list_workflow_tasks(self.shared_node, outsider, limit=5)
+
+        assert len(results) == 1
+        assert results[0]['id'] == 'task-creator-leak'
+        assert results[0]['assignee_user'] is None
 
 
 class DismissWorkflowActivationTests(OsfTestCase):
