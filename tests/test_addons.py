@@ -113,7 +113,9 @@ class TestAddonAuth(OsfTestCase):
         data = jwt.decode(jwe.decrypt(res.json['payload'].encode('utf-8'), self.JWE_KEY), settings.WATERBUTLER_JWT_SECRET, algorithm=settings.WATERBUTLER_JWT_ALGORITHM)['data']
         assert_equal(data['auth'], views.make_auth(self.user))
         assert_equal(data['credentials'], self.node_addon.serialize_waterbutler_credentials())
-        assert_equal(data['settings'], self.node_addon.serialize_waterbutler_settings())
+        expected_settings = self.node_addon.serialize_waterbutler_settings().copy()
+        expected_settings['max_file_size'] = 100
+        assert_equal(data['settings'], expected_settings)
         expected_url = furl.furl(self.node.api_url_for('create_waterbutler_log', _absolute=True, _internal=True))
         observed_url = furl.furl(data['callback_url'])
         observed_url.port = expected_url.port
@@ -153,7 +155,9 @@ class TestAddonAuth(OsfTestCase):
         data = jwt.decode(jwe.decrypt(res.json['payload'].encode('utf-8'), self.JWE_KEY), settings.WATERBUTLER_JWT_SECRET, algorithm=settings.WATERBUTLER_JWT_ALGORITHM)['data']
         assert_equal(data['auth'], views.make_auth(self.user))
         assert_equal(data['credentials'], self.node_addon.serialize_waterbutler_credentials())
-        assert_equal(data['settings'], self.node_addon.serialize_waterbutler_settings())
+        expected_settings = self.node_addon.serialize_waterbutler_settings().copy()
+        expected_settings['max_file_size'] = 100
+        assert_equal(data['settings'], expected_settings)
         expected_url = furl.furl(self.node.api_url_for('create_waterbutler_log', _absolute=True, _internal=True))
         observed_url = furl.furl(data['callback_url'])
         observed_url.port = expected_url.port

@@ -433,6 +433,9 @@ def get_auth(auth, **kwargs):
         credentials = node.serialize_waterbutler_credentials(provider_name)
         waterbutler_settings = node.serialize_waterbutler_settings(provider_name)
 
+    if is_node_process and provider_settings:
+        waterbutler_settings['max_file_size'] = getattr(provider_settings.config, 'max_file_size', None)
+
     if not is_node_process:
         # for only location_id value
         storage = ExportDataLocation.objects.get(pk=location_id)
