@@ -211,9 +211,9 @@ def test_update_quota_integrityerror_select_for_update_subtract(
         uq
     ]
     quota.update_quota(mock_node, 3, 1, add=False)
-    assert mock_filter.return_value.select_for_update.return_value.get.call_count == 2
-    assert uq.used == 7
-    uq.save.assert_called_once()
+    assert mock_filter.return_value.select_for_update.return_value.get.call_count == 1
+    assert uq.used == 10
+    uq.save.assert_not_called()
 
 @mock.patch('website.util.quota.check_select_for_update', return_value=False)
 @mock.patch('website.util.quota.transaction.atomic')
@@ -244,5 +244,5 @@ def test_update_quota_integrityerror_get_subtract(
     uq.used = 30
     mock_get.side_effect = [quota.UserQuota.DoesNotExist, uq]
     quota.update_quota(mock_node, 12, 1, add=False)
-    assert uq.used == 18
-    uq.save.assert_called_once()
+    assert uq.used == 30
+    uq.save.assert_not_called()

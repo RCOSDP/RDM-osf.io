@@ -8,9 +8,11 @@ Covers:
   - osfstorage_move_hook  (file + folder, intra-target replaced_size, inter-target quota)
   - osfstorage_create_child (FileInfo UPSERT + quota delta on upload)
   - osfstorage_delete (folder quota subtraction before deletion)
+  - TestUploadIntegration (full upload flow: create_child -> create_waterbutler_log)
 """
 from __future__ import unicode_literals
 
+import time as time_module
 import mock
 import pytest
 from nose.tools import assert_equal, assert_true, assert_false
@@ -863,3 +865,218 @@ class TestDeleteHookFolderQuota(StorageTestCase):
         # (The existing file-quota path in views.py does NOT call update_quota
         # on delete; that is handled by the WaterButler hook elsewhere.)
         assert not mock_uq.called
+
+
+# ---------------------------------------------------------------------------
+# Integration: full upload flow – osfstorage_create_child + create_waterbutler_log
+# ---------------------------------------------------------------------------
+
+@pytest.mark.django_db
+class TestUploadIntegration(StorageTestCase):
+    """
+    Integration tests simulating the complete OSF upload flow.
+
+    Step 1 – osfstorage_create_child:
+        WaterButler calls this endpoint after writing the file to storage.
+        Creates a FileInfo record and calls update_quota ONCE.
+
+    Step 2 – create_waterbutler_log:
+        WaterButler calls this endpoint to record the log.
+        Fires file_signals.file_updated → update_used_quota.
+        The skip logic (provider == 'osfstorage') prevents update_quota
+        from being called a SECOND time (Critical 1 fix).
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.root_node = self.node_settings.get_root()
+
+    # ------------------------------------------------------------------
+    # Helpers
+    # ------------------------------------------------------------------
+
+    def _upload(self, parent, name, size=123, unique_hash=None):
+        """POST to osfstorage_create_child (WaterButler upload callback)."""
+        payload = make_payload(user=self.user, name=name)
+        payload['metadata']['size'] = size
+        if unique_hash is not None:
+            # Different hash → genuinely new FileVersion (not treated as duplicate)
+            payload['metadata']['name'] = unique_hash
+        return self.app.post_json(
+            api_url_for(
+                'osfstorage_create_child',
+                fid=parent._id,
+                guid=self.project._id,
+            ),
+            signing.sign_data(signing.default_signer, payload),
+            expect_errors=True,
+        )
+
+    def _wb_log(self, file_id, name, size, action='create'):
+        """PUT to create_waterbutler_log (WaterButler log callback)."""
+        options = {
+            'auth': {'id': self.user._id},
+            'action': action,
+            'provider': 'osfstorage',
+            'metadata': {
+                'provider': 'osfstorage',
+                'name': name,
+                'materialized': '/' + file_id,
+                'path': '/' + file_id,
+                'kind': 'file',
+                'size': size,
+                'created_utc': '',
+                'modified_utc': '',
+                'extra': {'version': '1'},
+            },
+            'time': time_module.time() + 1000,
+        }
+        message, signature = signing.default_signer.sign_payload(options)
+        return self.app.put_json(
+            self.project.api_url_for('create_waterbutler_log'),
+            {'payload': message, 'signature': signature},
+            headers={'Content-Type': 'application/json'},
+            expect_errors=True,
+        )
+
+    # ------------------------------------------------------------------
+    # Upload new file
+    # ------------------------------------------------------------------
+
+    @mock.patch('addons.osfstorage.views.update_quota')
+    @mock.patch('addons.osfstorage.views.get_project_storage_type', return_value=1)
+    @mock.patch('addons.base.views.BaseFileNode')
+    @mock.patch('addons.base.views.timestamp')
+    def test_new_upload_wb_log_returns_200_and_no_duplicate(
+            self, mock_ts, mock_bfn, mock_st, mock_uq):
+        """
+        Scenario #1: Upload a brand-new file.
+
+        Expected:
+          - osfstorage_create_child: returns 200/201, creates FileInfo, calls update_quota once.
+          - create_waterbutler_log: returns 200 (not 500), creates a NodeLog entry.
+          - After both steps: still exactly 1 FileInfo record; update_quota NOT called again via signal.
+        """
+        name = 'new_upload.txt'
+        size = 1024
+
+        # Step 1: WaterButler upload callback -> osfstorage_create_child
+        upload_resp = self._upload(self.root_node, name, size=size)
+        assert upload_resp.status_code in (200, 201), (
+            f'osfstorage_create_child returned {upload_resp.status_code}'
+        )
+
+        # Scenario #4: exactly 1 FileInfo record created
+        record = self.root_node.find_child_by_name(name)
+        assert record is not None
+        assert FileInfo.objects.filter(file=record).count() == 1, (
+            'FileInfo must have exactly 1 record after upload.'
+        )
+
+        # Scenario #3: update_quota called exactly once from create_child
+        assert mock_uq.call_count == 1, (
+            f'update_quota should be called once from osfstorage_create_child, '
+            f'but was called {mock_uq.call_count} time(s).'
+        )
+        mock_uq.reset_mock()
+
+        # Step 2: WaterButler log callback -> create_waterbutler_log
+        nlogs = self.project.logs.count()
+        log_resp = self._wb_log(record._id, name, size)
+
+        # Scenario #1: /create_waterbutler_log must return 200
+        assert log_resp.status_code == 200, (
+            f'create_waterbutler_log returned {log_resp.status_code} '
+            '(expected 200). This was Critical 1: FILE_ADDED signal caused '
+            'duplicate FileInfo creation -> IntegrityError -> 500.'
+        )
+
+        # NodeLog must be created
+        self.project.reload()
+        assert self.project.logs.count() == nlogs + 1, (
+            'A NodeLog entry must be created by create_waterbutler_log.'
+        )
+
+        # Scenario #4: FileInfo still exactly 1 record (signal was skipped)
+        assert FileInfo.objects.filter(file=record).count() == 1, (
+            'FileInfo must remain exactly 1 record after create_waterbutler_log. '
+            'The skip logic in update_used_quota must prevent duplication.'
+        )
+
+        # Scenario #3: update_quota must NOT be called again via signal
+        assert mock_uq.call_count == 0, (
+            f'update_quota was called {mock_uq.call_count} extra time(s) via '
+            'the FILE_ADDED signal. The skip logic should have prevented this.'
+        )
+
+    # ------------------------------------------------------------------
+    # Overwrite: upload a new version of an existing file
+    # ------------------------------------------------------------------
+
+    @mock.patch('addons.osfstorage.views.update_quota')
+    @mock.patch('addons.osfstorage.views.get_project_storage_type', return_value=1)
+    @mock.patch('addons.base.views.BaseFileNode')
+    @mock.patch('addons.base.views.timestamp')
+    def test_overwrite_upload_wb_log_returns_200_and_no_duplicate(
+            self, mock_ts, mock_bfn, mock_st, mock_uq):
+        """
+        Scenario #2: Upload a new version of an existing file (same filename).
+
+        Expected:
+          - create_waterbutler_log returns 200.
+          - A NodeLog entry is created.
+          - FileInfo is UPDATED (UPSERT), not duplicated -> still exactly 1 record.
+          - update_quota called once from create_child for the size delta.
+        """
+        name = 'overwrite.txt'
+        size_v1, size_v2 = 500, 800
+
+        # First upload
+        self._upload(self.root_node, name, size=size_v1, unique_hash='hash_v1')
+        record = self.root_node.find_child_by_name(name)
+        assert FileInfo.objects.filter(file=record).count() == 1
+        mock_uq.reset_mock()
+
+        # Second upload (same filename, different hash -> genuinely new FileVersion)
+        upload_resp = self._upload(
+            self.root_node, name, size=size_v2, unique_hash='hash_v2'
+        )
+        assert upload_resp.status_code in (200, 201)
+        record.reload()
+
+        # FileInfo must be UPDATED, not duplicated
+        fi = FileInfo.objects.filter(file=record).first()
+        assert fi is not None
+        assert fi.file_size == size_v2, (
+            f'FileInfo.file_size should be {size_v2} after overwrite, got {fi.file_size}.'
+        )
+        assert FileInfo.objects.filter(file=record).count() == 1
+
+        # update_quota called once for the new version (delta = size_v2 - size_v1)
+        assert mock_uq.call_count == 1
+        mock_uq.reset_mock()
+
+        # WaterButler log callback (action='update' for an overwrite)
+        nlogs = self.project.logs.count()
+        log_resp = self._wb_log(record._id, name, size_v2, action='update')
+
+        # Scenario #2: /create_waterbutler_log must return 200
+        assert log_resp.status_code == 200, (
+            f'create_waterbutler_log returned {log_resp.status_code} '
+            'for overwrite (expected 200).'
+        )
+
+        self.project.reload()
+        assert self.project.logs.count() == nlogs + 1
+
+        # Still exactly 1 FileInfo record
+        assert FileInfo.objects.filter(file=record).count() == 1, (
+            'FileInfo must remain exactly 1 record after overwrite + '
+            'create_waterbutler_log.'
+        )
+
+        # update_quota must NOT be called again via signal (osfstorage skip)
+        assert mock_uq.call_count == 0, (
+            f'update_quota was called {mock_uq.call_count} extra time(s) via '
+            'signal after overwrite. Skip logic should prevent this.'
+        )

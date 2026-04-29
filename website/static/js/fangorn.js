@@ -89,6 +89,10 @@ var OPERATIONS = {
     }
 };
 
+var MESSAGE_MAP = {
+    'quota_exceeded': gettext('You do not have enough available quota.'),
+};
+
 var isInUploadFolderProcess = false;
 var isOngoingUploadFolder = false;
 
@@ -820,15 +824,17 @@ function doItemOp(operation, to, from, rename, conflict) {
         }
 
         if (xhr.status === 413 && xhr.responseJSON && xhr.responseJSON.oversized_files) {
+            var serverMaxSize = xhr.responseJSON.max_size;
             var destMaxSize = to.data && to.data.accept && to.data.accept.maxSize;
-            var maxSizeDisplay = destMaxSize ? $osf.humanFileSize(destMaxSize * 1000000, true) : '5 GB';
-
+            var maxSizeDisplay = serverMaxSize ?
+                $osf.humanFileSize(serverMaxSize, true) :
+                (destMaxSize ? $osf.humanFileSize(destMaxSize * 1000000, true) : null);
             xhr.responseJSON.oversized_files.forEach(function(fileObj) {
                 var displaySize = $osf.humanFileSize(fileObj.size, true);
-                $osf.growl(sprintf(
-                    gettext('File「%1$s」is too large (%2$s). Max file size is %3$s.'),
-                    fileObj.name, displaySize, maxSizeDisplay
-                ));
+                var msg = maxSizeDisplay ?
+                    sprintf(gettext('File「%1$s」is too large (%2$s). Max file size is %3$s.'), fileObj.name, displaySize, maxSizeDisplay) :
+                    sprintf(gettext('File「%1$s」is too large (%2$s).'), fileObj.name, displaySize);
+                $osf.growl(msg);
             });
 
             if (notRenameOp) {
@@ -840,9 +846,9 @@ function doItemOp(operation, to, from, rename, conflict) {
             return;
         }
         if (xhr.status === 406 && xhr.responseJSON && xhr.responseJSON.message) {
-            $osf.growl(sprintf(
-                    gettext(xhr.responseJSON.message)
-                ));
+            var key = xhr.responseJSON.message_key;
+            var msg = (key && MESSAGE_MAP[key]) ? MESSAGE_MAP[key] : xhr.responseJSON.message;
+            $osf.growl(msg);
             if (notRenameOp) {
                 addFileStatus(tb, from, false, '', '', conflict);
             }

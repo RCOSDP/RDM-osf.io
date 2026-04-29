@@ -191,6 +191,9 @@ def update_used_quota(self, target, user, event_type, payload):
 
         storage_type = get_project_storage_type(target)
         if event_type == FileLog.FILE_ADDED:
+            metadata_provider = (payload.get('metadata') or {}).get('provider')
+            if metadata_provider == 'osfstorage':
+                return
             file_added(target, payload, file_node, storage_type)
         elif event_type == FileLog.FILE_REMOVED:
             if metadata_provider in PROVIDERS:
@@ -234,76 +237,31 @@ def file_added(target, payload, file_node, storage_type):
     file_size = int(payload['metadata']['size'])
     if file_size < 0:
         return
-    try:
-        if check_select_for_update():
-            user_quota = UserQuota.objects.filter(
-                user=target.creator,
-                storage_type=storage_type
-            ).select_for_update().get()
-        else:
-            user_quota = UserQuota.objects.get(
-                user=target.creator,
-                storage_type=storage_type
-            )
-        user_quota.used += file_size
-        user_quota.save()
-    except UserQuota.DoesNotExist:
-        try:
-            with transaction.atomic():
-                UserQuota.objects.create(
-                    user=target.creator,
-                    storage_type=storage_type,
-                    max_quota=api_settings.DEFAULT_MAX_QUOTA,
-                    used=file_size
-                )
-        except IntegrityError:
-            if check_select_for_update():
-                user_quota = UserQuota.objects.filter(
-                    user=target.creator,
-                    storage_type=storage_type
-                ).select_for_update().get()
-            else:
-                user_quota = UserQuota.objects.get(
-                    user=target.creator,
-                    storage_type=storage_type
-                )
-            user_quota.used += file_size
-            user_quota.save()
-
+    update_quota(target, file_size, storage_type, add=True)
     FileInfo.objects.create(file=file_node, file_size=file_size)
 
 def node_removed(target, user, payload, file_node, storage_type):
-    if check_select_for_update():
-        user_quota = UserQuota.objects.filter(
-            user=target.creator,
-            storage_type=storage_type
-        ).select_for_update().first()
-    else:
-        user_quota = UserQuota.objects.filter(
-            user=target.creator,
-            storage_type=storage_type
-        ).first()
-    if user_quota is not None:
-        if 'osf.trashed' not in file_node.type:
-            logging.error('FileNode is not trashed, cannot update used quota!')
-            return
+    if 'osf.trashed' not in file_node.type:
+        logging.error('FileNode is not trashed, cannot update used quota!')
+        return
 
-        for removed_file in get_node_file_list(file_node):
-            try:
-                if check_select_for_update():
-                    file_info = FileInfo.objects.filter(file=removed_file).select_for_update().get()
-                else:
-                    file_info = FileInfo.objects.get(file=removed_file)
-            except FileInfo.DoesNotExist:
-                logging.error('FileInfo not found, cannot update used quota!')
-                continue
+    total_removed = 0
+    for removed_file in get_node_file_list(file_node):
+        try:
+            if check_select_for_update():
+                file_info = FileInfo.objects.filter(file=removed_file).select_for_update().get()
+            else:
+                file_info = FileInfo.objects.get(file=removed_file)
+        except FileInfo.DoesNotExist:
+            logging.error('FileInfo not found, cannot update used quota!')
+            continue
 
-            user_quota.used -= file_info.file_size
-            if user_quota.used < 0:
-                user_quota.used = 0
-            file_info.file_size = 0
-            file_info.save()
-        user_quota.save()
+        total_removed += file_info.file_size
+        file_info.file_size = 0
+        file_info.save()
+
+    if total_removed > 0:
+        update_quota(target, total_removed, storage_type, add=False)
 
 def file_modified(target, user, payload, file_node, storage_type):
     file_size = int(payload['metadata']['size'])
@@ -452,6 +410,16 @@ def file_moved(target, payload):
             update_quota(source_node, file_size, source_storage_type, add=False)
 
 def update_quota(target, file_size, storage_type, add=True):
+    """Add or subtract file_size from UserQuota.used for target.creator.
+
+    This is the single source of truth for UserQuota updates.
+    Both ``file_added`` and ``node_removed`` delegate to this function.
+
+    :param target: AbstractNode whose creator's quota is updated
+    :param int file_size: size in bytes to add or subtract
+    :param int storage_type: UserQuota.NII_STORAGE or CUSTOM_STORAGE
+    :param bool add: True to add (upload), False to subtract (delete)
+    """
     try:
         if check_select_for_update():
             user_quota = UserQuota.objects.filter(
@@ -467,8 +435,12 @@ def update_quota(target, file_size, storage_type, add=True):
             user_quota.used += file_size
         else:
             user_quota.used -= file_size
+        if user_quota.used < 0:
+            user_quota.used = 0
         user_quota.save()
     except UserQuota.DoesNotExist:
+        if not add:
+            return
         try:
             with transaction.atomic():
                 UserQuota.objects.create(
@@ -488,10 +460,7 @@ def update_quota(target, file_size, storage_type, add=True):
                     user=target.creator,
                     storage_type=storage_type
                 )
-            if add:
-                user_quota.used += file_size
-            else:
-                user_quota.used -= file_size
+            user_quota.used += file_size
             user_quota.save()
 
 def get_file_size(children):

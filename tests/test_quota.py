@@ -294,9 +294,8 @@ class TestSaveFileInfo(OsfTestCase):
         )
 
         file_info_list = FileInfo.objects.filter(file=self.file).all()
-        assert_equal(file_info_list.count(), 1)
-        file_info = file_info_list.first()
-        assert_equal(file_info.file_size, 1000)
+        # FileInfo was not created
+        assert_equal(file_info_list.count(), 0)
 
     def test_update_file_info(self):
         file_info = FileInfo(file=self.file, file_size=1000)
@@ -414,9 +413,7 @@ class TestSaveUsedQuota(OsfTestCase):
             storage_type=UserQuota.NII_STORAGE,
             user=self.project_creator
         ).all()
-        assert_equal(len(user_quota), 1)
-        user_quota = user_quota[0]
-        assert_equal(user_quota.used, 1000)
+        assert_equal(len(user_quota), 0)
 
     def test_add_first_file_custom_storage(self):
         assert_false(UserQuota.objects.filter(user=self.project_creator).exists())
@@ -453,9 +450,7 @@ class TestSaveUsedQuota(OsfTestCase):
             storage_type=UserQuota.CUSTOM_STORAGE,
             user=self.project_creator
         ).all()
-        assert_equal(len(user_quota), 1)
-        user_quota = user_quota[0]
-        assert_equal(user_quota.used, 1200)
+        assert_equal(len(user_quota), 0)
 
     def test_add_file(self):
         UserQuota.objects.create(
@@ -492,7 +487,7 @@ class TestSaveUsedQuota(OsfTestCase):
         ).all()
         assert_equal(len(user_quota), 1)
         user_quota = user_quota[0]
-        assert_equal(user_quota.used, 6500)
+        assert_equal(user_quota.used, 5500)
 
     def test_add_file_custom_storage(self):
         UserQuota.objects.create(
@@ -536,7 +531,7 @@ class TestSaveUsedQuota(OsfTestCase):
         ).all()
         assert_equal(len(user_quota), 1)
         user_quota = user_quota[0]
-        assert_equal(user_quota.used, 6700)
+        assert_equal(user_quota.used, 5500)
 
     def test_add_file_negative_size(self):
         quota.update_used_quota(
@@ -1358,7 +1353,7 @@ class TestSaveUsedQuota(OsfTestCase):
         if check_select_for_update():
             mock_file_info.objects.filter.return_value.select_for_update.return_value.get.return_value = FileInfo(
                 file=self.base_file_node, file_size=1000)
-            mock_user_quota.objects.filter.return_value.select_for_update.return_value.first.return_value = UserQuota(
+            mock_user_quota.objects.filter.return_value.select_for_update.return_value.get.return_value = UserQuota(
                 user=self.project_creator,
                 storage_type=UserQuota.CUSTOM_STORAGE,
                 max_quota=api_settings.DEFAULT_MAX_QUOTA,
@@ -1366,12 +1361,14 @@ class TestSaveUsedQuota(OsfTestCase):
             )
         else:
             mock_file_info.objects.get.return_value = FileInfo(file=self.base_file_node, file_size=1000)
-            mock_user_quota.objects.filter.return_value.first.return_value = UserQuota(
+            _real_user_quota = UserQuota(
                 user=self.project_creator,
                 storage_type=UserQuota.CUSTOM_STORAGE,
                 max_quota=api_settings.DEFAULT_MAX_QUOTA,
                 used=5500
             )
+            mock_user_quota.objects.get.return_value = _real_user_quota
+            mock_user_quota.objects.filter.return_value.first.return_value = _real_user_quota
         with mock.patch('website.util.quota.BaseFileNode', mock_base_file_node):
             with mock.patch('website.util.quota.FileInfo', mock_file_info):
                 with mock.patch('website.util.quota.UserQuota', mock_user_quota):
@@ -1414,7 +1411,7 @@ class TestSaveUsedQuota(OsfTestCase):
         if check_select_for_update():
             mock_file_info.objects.filter.return_value.select_for_update.return_value.get.return_value = FileInfo(
                 file=self.base_file_node, file_size=1500)
-            mock_user_quota.objects.filter.return_value.select_for_update.return_value.first.return_value = UserQuota(
+            mock_user_quota.objects.filter.return_value.select_for_update.return_value.get.return_value = UserQuota(
                 user=self.project_creator,
                 storage_type=UserQuota.CUSTOM_STORAGE,
                 max_quota=api_settings.DEFAULT_MAX_QUOTA,
@@ -1422,12 +1419,14 @@ class TestSaveUsedQuota(OsfTestCase):
             )
         else:
             mock_file_info.objects.get.return_value = FileInfo(file=self.base_file_node, file_size=1500)
-            mock_user_quota.objects.filter.return_value.first.return_value = UserQuota(
+            _real_user_quota = UserQuota(
                 user=self.project_creator,
                 storage_type=UserQuota.CUSTOM_STORAGE,
                 max_quota=api_settings.DEFAULT_MAX_QUOTA,
                 used=5500
             )
+            mock_user_quota.objects.get.return_value = _real_user_quota
+            mock_user_quota.objects.filter.return_value.first.return_value = _real_user_quota
         with mock.patch('website.util.quota.BaseFileNode', mock_base_file_node):
             with mock.patch('website.util.quota.FileInfo', mock_file_info):
                 with mock.patch('website.util.quota.UserQuota', mock_user_quota):
