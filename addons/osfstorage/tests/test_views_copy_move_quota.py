@@ -1080,3 +1080,44 @@ class TestUploadIntegration(StorageTestCase):
             f'update_quota was called {mock_uq.call_count} extra time(s) via '
             'signal after overwrite. Skip logic should prevent this.'
         )
+
+    @mock.patch('addons.base.views.BaseFileNode')
+    @mock.patch('addons.base.views.timestamp')
+    def test_upload_actual_quota_increment_no_double_count(self, mock_ts, mock_bfn):
+        """
+        Do not mock update_quota — verify UserQuota.used in the database:
+        - After osfstorage_create_child: used increases exactly by file_size.
+        - After create_waterbutler_log: used does not increase further (no double-count).
+        """
+        from osf.models import UserQuota
+
+        # Ensure UserQuota initially exists with used=0
+        uq, _ = UserQuota.objects.get_or_create(
+            user=self.user,
+            storage_type=UserQuota.NII_STORAGE,
+            defaults={'max_quota': 200, 'used': 0},
+        )
+        initial_used = UserQuota.objects.get(
+            user=self.user, storage_type=UserQuota.NII_STORAGE
+        ).used
+
+        # Step 1: osfstorage_create_child
+        self._upload(self.root_node, 'real.txt', size=500)
+        record = self.root_node.find_child_by_name('real.txt')
+        assert record is not None
+
+        after_create_child = UserQuota.objects.get(
+            user=self.user, storage_type=UserQuota.NII_STORAGE
+        ).used
+        assert after_create_child - initial_used == 500, \
+            f'Initial increment incorrect: expected +500, got +{after_create_child - initial_used}'
+
+        # Step 2: create_waterbutler_log
+        log_resp = self._wb_log(record._id, 'real.txt', 500)
+        assert log_resp.status_code == 200
+
+        final = UserQuota.objects.get(
+            user=self.user, storage_type=UserQuota.NII_STORAGE
+        ).used
+        assert final == after_create_child, \
+            f'No double-counting after create_waterbutler_log: expected {after_create_child}, got {final}'

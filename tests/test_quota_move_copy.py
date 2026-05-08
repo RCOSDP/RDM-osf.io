@@ -35,18 +35,18 @@ def test_get_file_size_nested():
 @mock.patch('website.util.quota.ProjectStorageType.objects.get')
 @mock.patch('website.util.quota.AbstractNode.objects.get')
 @mock.patch('website.util.quota.update_quota')
-def test_handle_move_copy_dest_osfstorage(mock_update_quota, mock_node_get, mock_pst_get, mock_node):
-    # Mock ProjectStorageType.objects.get to return a mock with storage_type
+@pytest.mark.django_db
+def test_handle_move_copy_source_extend_dest_osfstorage(mock_update_quota, mock_node_get, mock_pst_get, mock_node):
+    """source=s3compatinstitutions, dest=osfstorage → update_quota không được gọi vì source không phải osfstorage"""
     mock_pst_get.return_value = mock.Mock(storage_type=1)
-    # Mock AbstractNode.objects.get to return a mock node
     mock_node_get.return_value = mock_node
 
     payload = {
-        'destination': {'provider': 's3compatinstitutions', 'size': 123, 'children': None},
-        'source': {'nid': 'nid1', 'provider': 'osfstorage'}
+        'destination': {'provider': 'osfstorage', 'size': 123, 'children': None},
+        'source': {'nid': 'nid1', 'provider': 's3compatinstitutions'}
     }
     quota._handle_move_copy(quota.FileLog.FILE_MOVED, mock_node, mock.Mock(), payload)
-    mock_update_quota.assert_called_once()
+    mock_update_quota.assert_not_called()
 
 @mock.patch('website.util.quota.ProjectStorageType.objects.get')
 @mock.patch('website.util.quota.AbstractNode.objects.get')

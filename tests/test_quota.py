@@ -268,7 +268,7 @@ class TestSaveFileInfo(OsfTestCase):
         )
         self.file.save()
 
-    def test_add_file_info(self):
+    def test_file_info_skipped_for_osfstorage_signal(self):
         file_info_query = FileInfo.objects.filter(file=self.file)
         assert_false(file_info_query.exists())
 
@@ -385,7 +385,7 @@ class TestSaveUsedQuota(OsfTestCase):
             target_content_type_id=2
         )
 
-    def test_add_first_file(self):
+    def test_first_file_userquota_not_created_for_osfstorage_signal(self):
         assert_false(UserQuota.objects.filter(user=self.project_creator).exists())
 
         quota.update_used_quota(
@@ -452,7 +452,7 @@ class TestSaveUsedQuota(OsfTestCase):
         ).all()
         assert_equal(len(user_quota), 0)
 
-    def test_add_file(self):
+    def test_userquota_unchanged_for_osfstorage_signal(self):
         UserQuota.objects.create(
             user=self.project_creator,
             storage_type=UserQuota.NII_STORAGE,
