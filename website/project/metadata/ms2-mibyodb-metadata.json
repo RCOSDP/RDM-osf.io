@@ -1911,7 +1911,7 @@
           "required": true,
           "options": [
             {
-              "text": "共有する実データに対して、倫理審査時に記載した指針に従った適切な処理を行いましたか？|Have you properly processed the actual research data to be shared in accordance with the guidelines described in the ethics review?"
+              "text": "共有する研究データに対して、倫理審査時に記載した指針に従った適切な処理を行いましたか？|Have you properly processed the research data to be shared in accordance with the guidelines described in the ethics review?"
             }
           ],
           "required_all_check": "disclaimer-check-date"
@@ -1923,11 +1923,11 @@
           "type": "choose",
           "format": "multiselect",
           "required": true,
-          "help": "ムーンショット目標2データベース（以降未病DB）では、様々なメタデータを記録いただけるよう各種インターフェイスなどを提供していく予定です。また、記録されたメタデータは広くメンバー間で共有できるようカタログに登録され、MS2の全メンバーが閲覧可能となります。個人の特定が可能となる可能性があるメタデータが含まれる場合は、予めカタログ登録する内容から除外していただく必要があります。|Mebyo DB plans to provide various interfaces to record different metadata.The recorded metadata will be registered in the Mebyo DB catalog and made available to all MS2 members. If metadata includes information that could potentially identify individuals, please exclude it before catalog registration.",
+          "help": "ムーンショット目標2データベース（以降未病DB）では、様々なメタデータを記録いただけるよう各種インターフェイスなどを提供していく予定です。また、記録されたメタデータは広くメンバー間で共有できるようカタログに登録され、MS2の全メンバーが閲覧可能となります。個⼈特定の可能性があるメタデータなど取扱いに注意すべき情報が含まれる場合は、予めカタログ登録する内容から除外していただく必要があります。|Mebyo DB plans to provide various interfaces to record different metadata.The recorded metadata will be registered in the Mebyo DB catalog and made available to all MS2 members. If metadata includes sensitive information such as data that could potentially identify individuals, please exclude it before catalog registration.",
           "multilanguage": true,
           "options": [
             {
-              "text": "メタデータには個人情報など個人が特定できる情報が含まれていませんか？|Does the metadata contain personal or identifiable information?"
+              "text": "メタデータには個人情報など取扱いに注意すべき情報が含まれていませんか？|Does the metadata contain sensitive information?"
             }
           ],
           "required_all_check": "disclaimer-check-date"
