@@ -28,7 +28,7 @@ msgid "Launch"
 msgstr ""
 
 #: addons/metadata/static/files.js:338
-msgid "Metadata Schema:"
+msgid "Schema:"
 msgstr ""
 
 #: addons/metadata/static/files.js:535

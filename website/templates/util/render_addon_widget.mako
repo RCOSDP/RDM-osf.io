@@ -252,6 +252,22 @@
                         <!-- /ko -->
 
                         <!-- ko if: !loadingTemplates() && !templateError() -->
+                            <!-- ko if: pendingTemplates().length -->
+                                <div class="alert alert-info">
+                                    <strong>${_("Available workflows")}</strong>
+                                    <!-- ko foreach: pendingTemplates -->
+                                        <div style="margin-top: 6px;">
+                                            <span data-bind="text: displayLabel"></span>
+                                            <button class="btn btn-xs btn-primary" data-bind="click: $parent.acceptPending">
+                                                ${_("Activate")}
+                                            </button>
+                                            <button class="btn btn-xs btn-default" data-bind="click: $parent.dismissPending">
+                                                ${_("Dismiss")}
+                                            </button>
+                                        </div>
+                                    <!-- /ko -->
+                                </div>
+                            <!-- /ko -->
                             <div data-bind="if: activeTemplates().length">
                                 <!-- ko if: canStartWorkflow -->
                                     <div class="form-inline m-b-sm">
@@ -308,7 +324,7 @@
                             <div data-bind="visible: activeTab() === 'runs'">
                                 <div class="clearfix m-b-sm">
                                     <button type="button" class="btn btn-default btn-xs pull-right"
-                                            data-bind="click: fetchRuns, disable: isRefreshingRuns">
+                                            data-bind="click: fetchAll, disable: isRefreshingRuns">
                                         <i class="fa fa-refresh" data-bind="css: { 'fa-spin': isRefreshingRuns }"></i>
                                         ${_("Refresh")}
                                     </button>
@@ -360,7 +376,7 @@
                             <div data-bind="visible: activeTab() === 'tasks'">
                                 <div class="clearfix m-b-sm">
                                     <button type="button" class="btn btn-default btn-xs pull-right"
-                                            data-bind="click: fetchTasks, disable: isRefreshingTasks">
+                                            data-bind="click: fetchAll, disable: isRefreshingTasks">
                                         <i class="fa fa-refresh" data-bind="css: { 'fa-spin': isRefreshingTasks }"></i>
                                         ${_("Refresh")}
                                     </button>
@@ -394,7 +410,15 @@
                                                     <strong data-bind="text: name || id"></strong>
                                                     <div class="text-muted" data-bind="text: business_key, visible: business_key"></div>
                                                 </td>
-                                                <td data-bind="text: $parent.taskAssignee($data)"></td>
+                                                <td>
+                                                    <!-- ko if: $parent.taskAssigneeUrl($data) -->
+                                                        <a target="_blank" rel="noopener noreferrer"
+                                                           data-bind="attr: { href: $parent.taskAssigneeUrl($data) }, text: $parent.taskAssigneeLabel($data)"></a>
+                                                    <!-- /ko -->
+                                                    <!-- ko ifnot: $parent.taskAssigneeUrl($data) -->
+                                                        <span data-bind="text: $parent.taskAssigneeLabel($data)"></span>
+                                                    <!-- /ko -->
+                                                </td>
                                                 <td data-bind="text: $parent.formatDate(created)"></td>
                                                 <td data-bind="text: $parent.formatDate(due)"></td>
                                                 <td>
