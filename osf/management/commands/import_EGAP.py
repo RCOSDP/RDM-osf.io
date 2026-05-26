@@ -119,7 +119,7 @@ def recursive_upload(auth, node, dir_path, parent='', metadata=None):
             else:
                 url = base_url + '?name={}&kind=folder'.format(item)
                 resp = requests.put(url, headers=auth)
-                metadata = recursive_upload(auth, node, item_path, parent=resp.json()['data']['attributes']['path'], metadata=metadata)
+                metadata = recursive_upload(auth, node, item_path, parent='parent', metadata=metadata)
 
             if resp.status_code == 409:  # if we retry something already uploaded just skip.
                 continue
