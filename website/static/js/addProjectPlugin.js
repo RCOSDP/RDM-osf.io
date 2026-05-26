@@ -204,7 +204,7 @@ var AddProject = {
                                     ctrl.newProjectName(val);
                                 },
                                 onkeydown: function(ev){
-                                    const isComposing = ev.isComposing || ctrl.isComposing || ev.keyCode === 229;
+                                    var isComposing = ev.isComposing || ctrl.isComposing || ev.keyCode === 229;
                                     if (ev.key === 'Enter' && !isComposing) {
                                         ev.preventDefault();
                                         ev.stopPropagation();

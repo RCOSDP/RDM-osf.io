@@ -2374,7 +2374,6 @@ var FGInput = {
         var id = args.id || '';
         var helpTextId = args.helpTextId || '';
         var oninput = args.oninput || noop;
-        var onkeypress = args.onkeypress || noop;
         var onkeydown = args.onkeydown || noop;
         var oncompositionstart = args.oncompositionstart || noop;
         var oncompositionend = args.oncompositionend || noop;
@@ -2383,7 +2382,6 @@ var FGInput = {
                 'id' : id,
                 className: 'pull-right form-control' + extraCSS,
                 oninput: oninput,
-                onkeypress: onkeypress,
                 onkeydown: onkeydown,
                 oncompositionstart: oncompositionstart,
                 oncompositionend: oncompositionend,
@@ -2689,7 +2687,7 @@ var FGToolbar = {
                         },
                         oninput: m.withAttr('value', ctrl.renameData),
                         onkeydown: function (event) {
-                            const isComposing = event.isComposing || ctrl.isComposing || event.keyCode === 229;
+                            var isComposing = event.isComposing || ctrl.isComposing || event.keyCode === 229;
                             if (event.key === 'Enter' && !isComposing) {
                                 event.preventDefault();
                                 event.stopPropagation();

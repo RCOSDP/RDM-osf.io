@@ -1546,12 +1546,12 @@ var Collections = {
                                     ctrl.isComposing = false;
                                 },
                                 oninput: function(ev) {
-                                    const val = ev.target.value;
+                                    var val = ev.target.value;
                                     ctrl.validateName(val);
                                     ctrl.newCollectionName(val);
                                 },
                                 onkeydown: function (ev){
-                                    const isComposing = ev.isComposing || ctrl.isComposing || ev.keyCode === 229;
+                                    var isComposing = ev.isComposing || ctrl.isComposing || ev.keyCode === 229;
                                     if(ctrl.isValid()){
                                         if(ev.key === 'Enter' && !isComposing){
                                             ev.preventDefault();
@@ -1605,12 +1605,12 @@ var Collections = {
                                         ctrl.isComposing = false;
                                     },
                                     oninput: function(ev) {
-                                        const val = ev.target.value;
+                                        var val = ev.target.value;
                                         ctrl.validateName(val);
                                         ctrl.collectionMenuObject().item.renamedLabel = val;
                                     },
                                     onkeydown: function(ev){
-                                        const isComposing = ev.isComposing || ctrl.isComposing || ev.keyCode === 229;
+                                        var isComposing = ev.isComposing || ctrl.isComposing || ev.keyCode === 229;
                                         if(ctrl.isValid()) {
                                             if (ev.key === 'Enter' && !isComposing) { // if enter is pressed
                                                 ev.preventDefault();
