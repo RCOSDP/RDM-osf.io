@@ -86,22 +86,22 @@ class TestEGAPImport:
         responses.add(
             responses.Response(
                 responses.PUT,
-                '{}/v1/resources/{}/providers/osfstorage/?name=test_folder&kind=folder'.format(
+                '{}/v1/resources/{}/providers/osfstorage/parent?name=test-2.txt&kind=file'.format(
                     WATERBUTLER_INTERNAL_URL,
                     node._id,
                 ),
-                json={'data': {'attributes': {'path': 'parent'}}},
+                json={'metadata': 'for test-2!'},
                 status=201,
             )
         )
         responses.add(
             responses.Response(
                 responses.PUT,
-                '{}/v1/resources/{}/providers/osfstorage/parent?name=test-2.txt&kind=file'.format(
+                '{}/v1/resources/{}/providers/osfstorage/?name=test_folder&kind=folder'.format(
                     WATERBUTLER_INTERNAL_URL,
                     node._id,
                 ),
-                json={'metadata': 'for test-2!'},
+                json={'data': {'attributes': {'path': 'parent'}}},
                 status=201,
             )
         )
@@ -181,9 +181,9 @@ class TestEGAPImport:
 
         metadata = recursive_upload(auth, node, egap_project_path)
 
-        assert metadata[0] == {'metadata': 'for test-2!'}
-        assert metadata[1] == {'data': {'attributes': {'path': 'parent'}}}
         assert metadata[2] == {'metadata': 'for test-1!'}
+        assert metadata[1] == {'data': {'attributes': {'path': 'parent'}}}
+        assert metadata[0] == {'metadata': 'for test-2!'}
 
     @responses.activate
     def test_get_egap_assets(self, node_with_file, zip_data):
