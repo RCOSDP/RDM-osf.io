@@ -344,3 +344,15 @@ class TestShibLoginView(AdminTestCase):
 
         new_user = OSFUser.objects.get(eppn=new_eppn)
         nt.assert_equal(new_user.fullname, 'John Smith')
+
+    # ------------------------------------------------------------------
+    # Missing HTTP_AUTH_DISPLAYNAME header → KeyError
+    # ------------------------------------------------------------------
+    @mock.patch('admin.common_auth.views.login_by_eppn', return_value=True)
+    def test_new_user_missing_displayname_header_raises_key_error(self, mock_use_eppn):
+        new_eppn = 'missing@' + self.EPPN_DOMAIN
+        request = self._make_request(eppn=new_eppn, entitlement=self.ENTITLEMENT_ADMIN)
+        del request.environ['HTTP_AUTH_DISPLAYNAME']
+        view = setup_view(ShibLoginView(), request)
+        with nt.assert_raises(KeyError):
+            view.dispatch(request)
