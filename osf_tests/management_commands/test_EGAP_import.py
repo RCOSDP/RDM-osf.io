@@ -90,6 +90,7 @@ class TestEGAPImport:
                     WATERBUTLER_INTERNAL_URL,
                     node._id,
                 ),
+                match_querystring=True,
                 json={'data': {'attributes': {'path': 'parent'}}},
                 status=201,
             )
@@ -101,6 +102,7 @@ class TestEGAPImport:
                     WATERBUTLER_INTERNAL_URL,
                     node._id,
                 ),
+                match_querystring=True,
                 json={'metadata': 'for test-2!'},
                 status=201,
             )
@@ -112,6 +114,7 @@ class TestEGAPImport:
                     WATERBUTLER_INTERNAL_URL,
                     node._id,
                 ),
+                match_querystring=True,
                 json={'metadata': 'for test-1!'},
                 status=201,
             )
@@ -137,6 +140,7 @@ class TestEGAPImport:
                     WATERBUTLER_INTERNAL_URL,
                     node._id,
                 ),
+                match_querystring=True,
                 json={'data': {'attributes': {'path': 'parent'}}},
                 status=201,
             )
@@ -148,6 +152,7 @@ class TestEGAPImport:
                     WATERBUTLER_INTERNAL_URL,
                     node._id,
                 ),
+                match_querystring=True,
                 status=500,
             )
         )
@@ -158,6 +163,7 @@ class TestEGAPImport:
                     WATERBUTLER_INTERNAL_URL,
                     node._id,
                 ),
+                match_querystring=True,
                 json={'metadata': 'for test-2!'},
                 status=201,
             )
@@ -169,6 +175,7 @@ class TestEGAPImport:
                     WATERBUTLER_INTERNAL_URL,
                     node._id,
                 ),
+                match_querystring=True,
                 json={'metadata': 'for test-1!'},
                 status=201,
             )
