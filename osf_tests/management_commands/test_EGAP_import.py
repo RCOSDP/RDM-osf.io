@@ -127,8 +127,8 @@ class TestEGAPImport:
 
         metadata = recursive_upload(auth, node, egap_project_path)
 
-        assert metadata[2] == {'metadata': 'for test-2!'}
-        assert metadata[1] == {'data': {'attributes': {'path': 'parent'}}}
+        assert metadata[1] == {'metadata': 'for test-2!'}
+        assert metadata[2] == {'data': {'attributes': {'path': 'parent'}}}
         assert metadata[0] == {'metadata': 'for test-1!'}
 
     @responses.activate
@@ -188,8 +188,8 @@ class TestEGAPImport:
 
         metadata = recursive_upload(auth, node, egap_project_path)
 
-        assert metadata[2] == {'metadata': 'for test-2!'}
-        assert metadata[1] == {'data': {'attributes': {'path': 'parent'}}}
+        assert metadata[1] == {'metadata': 'for test-2!'}
+        assert metadata[2] == {'data': {'attributes': {'path': 'parent'}}}
         assert metadata[0] == {'metadata': 'for test-1!'}
 
     @responses.activate
