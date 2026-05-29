@@ -431,7 +431,8 @@ describe('fangorn', () => {
                 pressedKey: null,
             };
             return Object.assign({
-                isComposing: false,
+                isComposingAddFolder: false,
+                isComposingRenameFolder: false,
                 tb: tb,
                 nameData: sinon.stub(),
                 renameData: sinon.stub(),
@@ -443,7 +444,7 @@ describe('fangorn', () => {
 
         function makeAddFolderKeydownHandler(ctrl) {
             return function(event) {
-                var isComposing = event.isComposing || ctrl.isComposing || event.keyCode === 229;
+                var isComposing = event.isComposing || ctrl.isComposingAddFolder || event.keyCode === 229;
                 if (event.key === 'Enter' && !isComposing) {
                     event.preventDefault();
                     event.stopPropagation();
@@ -454,7 +455,7 @@ describe('fangorn', () => {
 
         function makeRenameKeydownHandler(ctrl, renameEvent) {
             return function(event) {
-                var isComposing = event.isComposing || ctrl.isComposing || event.keyCode === 229;
+                var isComposing = event.isComposing || ctrl.isComposingRenameFolder || event.keyCode === 229;
                 if (event.key === 'Enter' && !isComposing) {
                     event.preventDefault();
                     event.stopPropagation();
@@ -496,7 +497,7 @@ describe('fangorn', () => {
             });
 
             it('should NOT call createFolder when ctrl.isComposing=true (Chrome race condition)', function() {
-                ctrl.isComposing = true;
+                ctrl.isComposingAddFolder = true;
                 var handler = makeAddFolderKeydownHandler(ctrl);
                 handler(makeEvent({ isComposing: false })); // Chrome: event.isComposing = false
                 assert.ok(ctrl.createFolder.notCalled,
@@ -546,7 +547,7 @@ describe('fangorn', () => {
             });
 
             it('should NOT call _renameEvent when ctrl.isComposing=true (Chrome race)', function() {
-                ctrl.isComposing = true;
+                ctrl.isComposingRenameFolder = true;
                 var handler = makeRenameKeydownHandler(ctrl, renameEventStub);
                 handler(makeEvent({ isComposing: false }));
                 assert.ok(renameEventStub.notCalled);
@@ -561,8 +562,11 @@ describe('fangorn', () => {
 
         describe('FGToolbar isComposing flag', function() {
             it('should start false (initialized)', function() {
-                assert.strictEqual(ctrl.isComposing, false,
-                    'isComposing should be initialized to false');
+                assert.strictEqual(ctrl.isComposingAddFolder, false,
+                    'isComposingAddFolder should be initialized to false');
+
+                assert.strictEqual(ctrl.isComposingRenameFolder, false,
+                    'isComposingRenameFolder should be initialized to false');
             });
 
             it('[RECOMMENDED] compositionend with setTimeout defer keeps flag true during keydown', function(done) {

@@ -40,7 +40,8 @@ describe('fileBrowser', function() {
     describe('Collections IME Keydown Handling', function() {
         function makeMockCtrl(overrides) {
             return Object.assign({
-                isComposing: false,
+                isComposingAdd: false,
+                isComposingRename: false,
                 isValid: sinon.stub().returns(true),
                 validateName: sinon.stub(),
                 newCollectionName: sinon.stub(),
@@ -52,7 +53,7 @@ describe('fileBrowser', function() {
 
         function makeAddCollKeydownHandler(ctrl) {
             return function(ev) {
-                var isComposing = ev.isComposing || ctrl.isComposing || ev.keyCode === 229;
+                var isComposing = ev.isComposing || ctrl.isComposingAdd || ev.keyCode === 229;
                 if (ev.key === 'Enter' && !isComposing) {
                     ev.preventDefault();
                     ev.stopPropagation();
@@ -65,7 +66,7 @@ describe('fileBrowser', function() {
 
         function makeRenameCollKeydownHandler(ctrl) {
             return function(ev) {
-                var isComposing = ev.isComposing || ctrl.isComposing || ev.keyCode === 229;
+                var isComposing = ev.isComposing || ctrl.isComposingRename || ev.keyCode === 229;
                 if (ev.key === 'Enter' && !isComposing) {
                     ev.preventDefault();
                     ev.stopPropagation();
@@ -105,7 +106,7 @@ describe('fileBrowser', function() {
             });
 
             it('should NOT call addCollection() during Chrome IME race (ctrl.isComposing=true)', function() {
-                ctrl.isComposing = true;
+                ctrl.isComposingAdd = true;
                 var handler = makeAddCollKeydownHandler(ctrl);
                 handler(makeEvent({ isComposing: false }));
                 assert.ok(ctrl.addCollection.notCalled,
@@ -149,7 +150,7 @@ describe('fileBrowser', function() {
             });
 
             it('should NOT call renameCollection() when ctrl.isComposing=true (Chrome race)', function() {
-                ctrl.isComposing = true;
+                ctrl.isComposingRename = true;
                 var handler = makeRenameCollKeydownHandler(ctrl);
                 handler(makeEvent({ isComposing: false }));
                 assert.ok(ctrl.renameCollection.notCalled);
@@ -175,19 +176,6 @@ describe('fileBrowser', function() {
                 var onCompositionEnd = function() { ctrl.isComposing = false; };
                 onCompositionEnd();
                 assert.strictEqual(ctrl.isComposing, false);
-            });
-
-            it('[IMPORTANT] two inputs in same ctrl share isComposing — flag pollution risk', function() {
-                var addHandler = makeAddCollKeydownHandler(ctrl);
-                var renameHandler = makeRenameCollKeydownHandler(ctrl);
-
-                ctrl.isComposing = true;
-
-                var ev = makeEvent({ isComposing: false });
-                addHandler(ev);
-
-                assert.ok(ctrl.addCollection.notCalled,
-                    'Demonstrates shared isComposing bug: addCollection blocked by rename\'s IME state');
             });
         });
 

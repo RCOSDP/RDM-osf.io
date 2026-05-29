@@ -1205,6 +1205,8 @@ var MyProjects = {
 var Collections = {
     controller : function(args){
         var self = this;
+        self.isComposingAdd = false;
+        self.isComposingRename = false;
         self.collections = args.collections;
         self.pageSize = args.collectionsPageSize;
         self.newCollectionName = m.prop('');
@@ -1540,10 +1542,10 @@ var Collections = {
                             m('label[for="addCollInput].f-w-lg.text-bigger', _('Collection name')),
                             m('input[type="text"].form-control#addCollInput', {
                                 oncompositionstart: function () {
-                                    ctrl.isComposing = true;
+                                    ctrl.isComposingAdd = true;
                                 },
                                 oncompositionend: function () {
-                                    ctrl.isComposing = false;
+                                    ctrl.isComposingAdd = false;
                                 },
                                 oninput: function(ev) {
                                     var val = ev.target.value;
@@ -1551,11 +1553,11 @@ var Collections = {
                                     ctrl.newCollectionName(val);
                                 },
                                 onkeydown: function (ev){
-                                    var isComposing = ev.isComposing || ctrl.isComposing || ev.keyCode === 229;
-                                    if(ctrl.isValid()){
-                                        if(ev.key === 'Enter' && !isComposing){
-                                            ev.preventDefault();
-                                            ev.stopPropagation();
+                                    var isComposing = ev.isComposing || ctrl.isComposingAdd || ev.keyCode === 229;
+                                    if (ev.key === 'Enter' && !isComposing) {
+                                        ev.preventDefault();
+                                        ev.stopPropagation();
+                                        if (ctrl.isValid()) {
                                             ctrl.addCollection();
                                         }
                                     }
@@ -1599,10 +1601,10 @@ var Collections = {
                                 m('label[for="addCollInput]', _('Rename to: ')),
                                 m('input[type="text"].form-control.m-l-sm',{
                                     oncompositionstart: function () {
-                                        ctrl.isComposing = true;
+                                        ctrl.isComposingRename = true;
                                     },
                                     oncompositionend: function () {
-                                        ctrl.isComposing = false;
+                                        ctrl.isComposingRename = false;
                                     },
                                     oninput: function(ev) {
                                         var val = ev.target.value;
@@ -1610,11 +1612,11 @@ var Collections = {
                                         ctrl.collectionMenuObject().item.renamedLabel = val;
                                     },
                                     onkeydown: function(ev){
-                                        var isComposing = ev.isComposing || ctrl.isComposing || ev.keyCode === 229;
-                                        if(ctrl.isValid()) {
-                                            if (ev.key === 'Enter' && !isComposing) { // if enter is pressed
-                                                ev.preventDefault();
-                                                ev.stopPropagation();
+                                        var isComposing = ev.isComposing || ctrl.isComposingRename || ev.keyCode === 229;
+                                        if (ev.key === 'Enter' && !isComposing) {
+                                            ev.preventDefault();
+                                            ev.stopPropagation();
+                                            if (ctrl.isValid()) {
                                                 ctrl.renameCollection();
                                             }
                                         }

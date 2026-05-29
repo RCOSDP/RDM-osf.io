@@ -2590,6 +2590,8 @@ var dismissToolbar = function(helpText){
 var FGToolbar = {
     controller : function(args) {
         var self = this;
+        self.isComposingAddFolder = false;
+        self.isComposingRenameFolder = false;
         self.tb = args.treebeard;
         self.tb.toolbarMode = m.prop(toolbarModes.DEFAULT);
         self.items = args.treebeard.multiselected;
@@ -2643,14 +2645,14 @@ var FGToolbar = {
                 m('.col-xs-9', [
                     m.component(FGInput, {
                         oncompositionstart: function () {
-                            ctrl.isComposing = true;
+                            ctrl.isComposingAddFolder = true;
                         },
                         oncompositionend: function () {
-                            ctrl.isComposing = false;
+                            ctrl.isComposingAddFolder = false;
                         },
                         oninput: m.withAttr('value', ctrl.nameData),
                         onkeydown: function (event) {
-                            const isComposing = event.isComposing || ctrl.isComposing || event.keyCode === 229;
+                            const isComposing = event.isComposing || ctrl.isComposingAddFolder || event.keyCode === 229;
                             if (event.key === 'Enter' && !isComposing) {
                                 event.preventDefault();
                                 event.stopPropagation();
@@ -2680,14 +2682,14 @@ var FGToolbar = {
                 m('.col-xs-9',
                     m.component(FGInput, {
                         oncompositionstart: function () {
-                           ctrl.isComposing = true;
+                           ctrl.isComposingRenameFolder = true;
                         },
                         oncompositionend: function () {
-                            ctrl.isComposing = false;
+                            ctrl.isComposingRenameFolder = false;
                         },
                         oninput: m.withAttr('value', ctrl.renameData),
                         onkeydown: function (event) {
-                            var isComposing = event.isComposing || ctrl.isComposing || event.keyCode === 229;
+                            var isComposing = event.isComposing || ctrl.isComposingRenameFolder || event.keyCode === 229;
                             if (event.key === 'Enter' && !isComposing) {
                                 event.preventDefault();
                                 event.stopPropagation();

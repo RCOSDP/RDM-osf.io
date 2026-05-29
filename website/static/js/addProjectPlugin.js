@@ -17,6 +17,7 @@ var sprintf = require('agh.sprintf').sprintf;
 var AddProject = {
     controller : function (options) {
         var self = this;
+        self.isComposing = false;
         self.defaults = {
             buttonTemplate : m('.btn.btn-primary[data-toggle="modal"][data-target="#addProjectModal"]', _('Create new project')),
             parentID : null,
