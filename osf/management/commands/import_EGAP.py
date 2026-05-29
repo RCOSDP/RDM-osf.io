@@ -109,7 +109,7 @@ def recursive_upload(auth, node, dir_path, parent='', metadata=None):
         metadata = []
 
     try:
-        for item in os.listdir(dir_path):
+        for item in sorted(os.listdir(dir_path)):
             item_path = os.path.join(dir_path, item)
             base_url = '{}/v1/resources/{}/providers/osfstorage/{}'.format(WATERBUTLER_INTERNAL_URL, node._id, parent)
             if os.path.isfile(item_path):
