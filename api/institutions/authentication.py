@@ -529,6 +529,7 @@ def init_cloud_gateway_groups(user, provider):
     user.save()
 
 def update_mapcore_groups(user, provider):
+    logger.info('---update_mapcore_groups.provider:{}'.format(provider))
     prefix = settings.MAP_GATEWAY_ISMEMBEROF_PREFIX
     if not prefix:
         return
