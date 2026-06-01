@@ -44,8 +44,8 @@ from scripts import utils as script_utils
 logger = logging.getLogger(__name__)
 
 # --- Patterns ---
-HTML_ENTITY_RE = re.compile(r'&(#\d+|#x[0-9a-fA-F]+|[a-zA-Z]+);')
-JAPANESE_ERROR_ENCODING_HINT_RE = re.compile(r'[ÃÂâãåÄäªº\u00c3\u00c2\u00e3\u00e2]')
+HTML_ENTITY_RE = re.compile(r'&#\d+;|&#x[0-9a-fA-F]+;')
+JAPANESE_ERROR_ENCODING_HINT_RE = re.compile(r'[\u00c0-\u00cf\u00e0-\u00ef\u00aa\u00ba]')
 _NUM_ENT_RE = re.compile(r'&#(\d+);|&#x([0-9a-fA-F]+);')
 
 UNRECOVERABLE_NOTICE = '[UNRECOVERABLE: missing bytes - partial result] '
