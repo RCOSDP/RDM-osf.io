@@ -66,6 +66,8 @@ from website.project.decorators import must_be_contributor_or_public, must_be_va
 from website.ember_osf_web.decorators import ember_flag_is_active
 from website.project.utils import serialize_node
 from website.util import rubeus, timestamp, inspect_info  # noqa
+import re
+import json as _json
 
 from osf.features import (
     SLOAN_COI_DISPLAY,
@@ -585,6 +587,33 @@ def create_waterbutler_log(payload, **kwargs):
                     params=payload
                 )
             if payload.get('email') is True or payload.get('errors'):
+                # Parse structured error info from WaterButler exception repr strings
+                # e.g. "<InvalidParameters(413, {"message_key": "quota_exceeded", ...})>"
+                error_info = None
+                if payload.get('errors'):
+                    for err_str in payload['errors']:
+                        # Try to extract JSON payload embedded in the repr string
+                        json_match = re.search(r'\((?:\d+),\s*(\{.*\})\)', err_str, re.DOTALL)
+                        if json_match:
+                            try:
+                                err_data = _json.loads(json_match.group(1))
+                                message_key = err_data.get('message_key', '')
+                                if message_key == 'quota_exceeded' or 'quota_exceeded' in err_str:
+                                    error_info = {'type': 'quota_exceeded'}
+                                    break
+                                elif err_data.get('oversized_files'):
+                                    error_info = {
+                                        'type': 'oversized',
+                                        'oversized_files': err_data['oversized_files'],
+                                        'max_size': err_data.get('max_size'),
+                                    }
+                                    break
+                            except Exception as e:
+                                logger.warning(
+                                    f'Failed to parse WaterButler error representation string: {err_str}. '
+                                    f'Error: {e}'
+                                )
+
                 mails.send_mail(
                     user.username,
                     mails.FILE_OPERATION_FAILED if payload.get('errors')
@@ -595,7 +624,8 @@ def create_waterbutler_log(payload, **kwargs):
                     source_path=payload['source']['materialized'],
                     source_addon=payload['source']['addon'],
                     destination_addon=payload['destination']['addon'],
-                    osf_support_email=settings.OSF_SUPPORT_EMAIL
+                    osf_support_email=settings.OSF_SUPPORT_EMAIL,
+                    error_info=error_info,
                 )
             if payload.get('errors'):
                 # Action failed but our function succeeded
