@@ -53,71 +53,49 @@ class TestUserDetail:
 
         #   test_gets_200
         url = '/{}users/{}/'.format(API_BASE, user_one._id)
-        res = app.get(url, auth=user_one.auth)
+        res = app.get(url)
         assert res.status_code == 200
-        assert res.content_type == 'application/vnd.api+json'
-
-        #   test_gets_401
-        url = '/{}users/{}/'.format(API_BASE, user_one._id)
-        res = app.get(url, expect_errors=True)
-        assert res.status_code == 401
         assert res.content_type == 'application/vnd.api+json'
 
     #   test_get_correct_pk_user
         url = '/{}users/{}/?version=latest'.format(API_BASE, user_one._id)
-        res = app.get(url, auth=user_one.auth)
+        res = app.get(url)
         user_json = res.json['data']
         assert user_json['attributes']['full_name'] == user_one.fullname
         assert user_one.social['twitter'] == user_json['attributes']['social']['twitter']
 
-    #   test_get_correct_pk_user_not_logged_in
-        url = '/{}users/{}/?version=latest'.format(API_BASE, user_one._id)
-        res = app.get(url, expect_errors=True)
-        assert res.status_code == 401
-
     #   test_get_incorrect_pk_user_logged_in
-        url = '/{}users/{}/'.format(API_BASE, user_one._id)
-        res = app.get(url, auth=user_one.auth)
+        url = '/{}users/{}/'.format(API_BASE, user_two._id)
+        res = app.get(url)
         user_json = res.json['data']
-        assert user_json['attributes']['full_name'] == user_one.fullname
-
-    #   test_get_incorrect_pk_user_not_logged_in
-        url = '/{}users/{}/'.format(API_BASE, user_one._id)
-        res = app.get(url, expect_errors=True)
-        assert res.status_code == 401
+        assert user_json['attributes']['full_name'] != user_one.fullname
 
     #   test_returns_timezone_and_locale
         url = '/{}users/{}/'.format(API_BASE, user_one._id)
-        res = app.get(url, auth=user_one.auth)
+        res = app.get(url)
         attributes = res.json['data']['attributes']
         assert attributes['timezone'] == user_one.timezone
         assert attributes['locale'] == user_one.locale
 
-    #   test_returns_timezone_and_locale_not_logged_in
-        url = '/{}users/{}/'.format(API_BASE, user_one._id)
-        res = app.get(url, expect_errors=True)
-        assert res.status_code == 401
-
     #   test_get_new_users
         url = '/{}users/{}/'.format(API_BASE, user_two._id)
-        res = app.get(url, auth=user_one.auth, expect_errors=True)
-        assert res.status_code == 403
-
-    #   test_get_new_users_not_logged_in
-        url = '/{}users/{}/'.format(API_BASE, user_two._id)
-        res = app.get(url, expect_errors=True)
-        assert res.status_code == 401
+        res = app.get(url)
+        assert res.status_code == 200
+        assert res.json['data']['attributes']['full_name'] == user_two.fullname
+        assert res.json['data']['attributes']['social'] == {}
 
     #   test_get_incorrect_pk_user_not_logged_in
         url = '/{}users/{}/'.format(API_BASE, user_two._id)
-        res = app.get(url, auth=user_one.auth, expect_errors=True)
-        assert res.status_code == 403
+        res = app.get(url, auth=user_one.auth)
+        user_json = res.json['data']
+        assert user_json['attributes']['full_name'] != user_one.fullname
+        assert user_json['attributes']['full_name'] == user_two.fullname
 
     #   test_user_detail_takes_profile_image_size_param
         size = 42
         url = '/{}users/{}/?profile_image_size={}'.format(
             API_BASE, user_one._id, size)
-        res = app.get(url, auth=user_one.auth)
+        res = app.get(url)
         user_json = res.json['data']
         profile_image_url = user_json['links']['profile_image']
         query_dict = parse_qs(
@@ -126,13 +104,13 @@ class TestUserDetail:
 
     #   test_profile_image_in_links
         url = '/{}users/{}/'.format(API_BASE, user_one._id)
-        res = app.get(url, auth=user_one.auth)
+        res = app.get(url)
         user_json = res.json['data']
         assert 'profile_image' in user_json['links']
 
     #   user_viewed_through_anonymous_link
         url = '/{}users/{}/?view_only={}'.format(API_BASE, user_one._id, view_only_link.key)
-        res = app.get(url, auth=user_one.auth)
+        res = app.get(url)
         user_json = res.json['data']
         assert user_json['id'] == ''
         assert user_json['type'] == 'users'
@@ -142,7 +120,7 @@ class TestUserDetail:
 
     def test_files_relationship_upload(self, app, user_one):
         url = '/{}users/{}/'.format(API_BASE, user_one._id)
-        res = app.get(url, auth=user_one.auth)
+        res = app.get(url, auth=user_one)
         quickfiles = QuickFilesNode.objects.get(creator=user_one)
         user_json = res.json['data']
         upload_url = user_json['relationships']['quickfiles']['links']['upload']['href']
@@ -151,69 +129,43 @@ class TestUserDetail:
 
         assert upload_url == waterbutler_upload
 
-    def test_files_relationship_upload_not_logged_in(self, app, user_one):
-        url = '/{}users/{}/'.format(API_BASE, user_one._id)
-        res = app.get(url, expect_errors=True)
-        assert res.status_code == 401
-
     def test_preprint_relationship(self, app, user_one):
         url = '/{}users/{}/'.format(API_BASE, user_one._id)
         preprint_url = '/{}users/{}/preprints/'.format(API_BASE, user_one._id)
-        res = app.get(url, auth=user_one.auth)
+        res = app.get(url, auth=user_one)
         user_json = res.json['data']
         href_url = user_json['relationships']['preprints']['links']['related']['href']
         assert preprint_url in href_url
-
-    def test_preprint_relationship_not_logged_in(self, app, user_one):
-        url = '/{}users/{}/'.format(API_BASE, user_one._id)
-        res = app.get(url, expect_errors=True)
-        assert res.status_code == 401
 
     def test_registrations_relationship(self, app, user_one):
         url = '/{}users/{}/'.format(API_BASE, user_one._id)
         registration_url = '/{}users/{}/registrations/'.format(
             API_BASE, user_one._id)
-        res = app.get(url, auth=user_one.auth)
+        res = app.get(url, auth=user_one)
         user_json = res.json['data']
         href_url = user_json['relationships']['registrations']['links']['related']['href']
         assert registration_url in href_url
 
-    def test_registrations_relationship_not_logged_in(self, app, user_one):
-        url = '/{}users/{}/'.format(API_BASE, user_one._id)
-        res = app.get(url, expect_errors=True)
-        assert res.status_code == 401
-
     def test_nodes_relationship_is_absent(self, app, user_one):
         url = '/{}users/{}/'.format(API_BASE, user_one._id)
-        res = app.get(url, auth=user_one.auth)
+        res = app.get(url, auth=user_one)
         assert 'node' not in res.json['data']['relationships'].keys()
-
-    def test_nodes_relationship_is_absent_not_logged_in(self, app, user_one):
-        url = '/{}users/{}/'.format(API_BASE, user_one._id)
-        res = app.get(url, expect_errors=True)
-        assert res.status_code == 401
 
     def test_emails_relationship(self, app, user_one):
         # test relationship does not show for anonymous request
         url = '/{}users/{}/'.format(API_BASE, user_one._id)
-        res = app.get(url, auth=user_one.auth)
-        assert 'emails' in res.json['data']['relationships'].keys()
-
-    def test_emails_relationship_not_logged_in(self, app, user_one):
-        # test relationship does not show for anonymous request
-        url = '/{}users/{}/'.format(API_BASE, user_one._id)
-        res = app.get(url, expect_errors=True)
-        assert res.status_code == 401
+        res = app.get(url)
+        assert 'emails' not in res.json['data']['relationships'].keys()
 
     def test_user_settings_relationship(self, app, user_one, user_two):
         # settings relationship does not show for anonymous request
         url = '/{}users/{}/'.format(API_BASE, user_one._id)
-        res = app.get(url, expect_errors=True)
-        assert res.status_code == 401
+        res = app.get(url)
+        assert 'settings' not in res.json['data']['relationships'].keys()
 
         # settings does not appear for a different user
-        res = app.get(url, auth=user_two.auth, expect_errors=True)
-        assert res.status_code == 403
+        res = app.get(url, auth=user_two.auth)
+        assert 'settings' not in res.json['data']['relationships'].keys()
 
         # settings is present for the current user
         res = app.get(url, auth=user_one.auth)
@@ -230,7 +182,7 @@ class TestUserDetail:
         user_one.social = {'twitter': [socialname], 'github': []}
         user_one.save()
         url = '/{}users/{}/?version=2.9'.format(API_BASE, user_one._id)
-        res = app.get(url, auth=user_one.auth)
+        res = app.get(url, auth=user_one)
         user_social_json = res.json['data']['attributes']['social']
 
         assert user_social_json['twitter'] == socialname
@@ -238,24 +190,12 @@ class TestUserDetail:
         assert 'linkedIn' not in user_social_json.keys()
 
         url = '/{}users/{}/?version=2.10'.format(API_BASE, user_one._id)
-        res = app.get(url, auth=user_one.auth)
+        res = app.get(url, auth=user_one)
         user_social_json = res.json['data']['attributes']['social']
 
         assert user_social_json['twitter'] == [socialname]
         assert user_social_json['github'] == []
         assert 'linkedIn' not in user_social_json.keys()
-
-    def test_social_values_old_version_not_logged_in(self, app, user_one):
-        socialname = 'ohhey'
-        user_one.social = {'twitter': [socialname], 'github': []}
-        user_one.save()
-        url = '/{}users/{}/?version=2.9'.format(API_BASE, user_one._id)
-        res = app.get(url, expect_errors=True)
-        assert res.status_code == 401
-
-        url = '/{}users/{}/?version=2.10'.format(API_BASE, user_one._id)
-        res = app.get(url, auth=user_one, expect_errors=True)
-        assert res.status_code == 401
 
 @pytest.mark.django_db
 @pytest.mark.enable_quickfiles_creation
@@ -352,13 +292,14 @@ class TestUserRoutesNodeRoutes:
 
     #   test_get_200_path_users_user_id_no_user
         url = '/{}users/{}/'.format(API_BASE, user_two._id)
-        res = app.get(url, expect_errors=True)
-        assert res.status_code == 401
+        res = app.get(url)
+        assert res.status_code == 200
 
     #   test_get_200_path_users_user_id_unauthorized_user
         url = '/{}users/{}/'.format(API_BASE, user_two._id)
-        res = app.get(url, auth=user_one.auth, expect_errors=True)
-        assert res.status_code == 403
+        res = app.get(url, auth=user_one.auth)
+        assert res.status_code == 200
+        assert res.json['data']['id'] == user_two._id
 
     #   test_get_200_path_users_me_nodes_user_logged_in
         url = '/{}users/me/nodes/'.format(API_BASE, user_one._id)
@@ -390,8 +331,19 @@ class TestUserRoutesNodeRoutes:
 
     #   test_get_200_path_users_user_id_nodes_no_user
         url = '/{}users/{}/nodes/'.format(API_BASE, user_one._id)
-        res = app.get(url, expect_errors=True)
-        assert res.status_code == 401
+        res = app.get(url)
+        assert res.status_code == 200
+
+        # an anonymous/unauthorized user can only see the public projects
+        # user_one contributes to.
+        ids = {each['id'] for each in res.json['data']}
+        assert project_public_user_one._id in ids
+        assert project_private_user_one._id not in ids
+        assert project_public_user_two._id not in ids
+        assert project_private_user_two._id not in ids
+        assert folder._id not in ids
+        assert folder_deleted._id not in ids
+        assert project_deleted_user_one._id not in ids
 
     #   test_get_200_path_users_user_id_nodes_unauthorized_user
         url = '/{}users/{}/nodes/'.format(API_BASE, user_one._id)
@@ -1213,42 +1165,32 @@ class TestDeactivatedUser:
     def test_unconfirmed_users_return_entire_user_object(
             self, app, user_one, user_two):
         url = '/{}users/{}/'.format(API_BASE, user_one._id)
-        res = app.get(url, auth=user_one.auth)
+        res = app.get(url, auth=user_two.auth, expect_errors=True)
         assert res.status_code == 200
         user_one.is_registered = False
         user_one.save()
-        res = app.get(url, auth=user_one.auth, expect_errors=True)
-        assert res.status_code == 400
-
-    def test_unconfirmed_users_return_entire_user_object_not_logged_in(
-            self, app, user_one, user_two):
-        url = '/{}users/{}/'.format(API_BASE, user_one._id)
-        res = app.get(url, auth=user_two.auth, expect_errors=True)
-        assert res.status_code == 403
-        user_one.is_registered = False
-        user_one.save()
         res = app.get(url, expect_errors=True)
-        assert res.status_code == 401
+        assert res.status_code == 200
+        attr = res.json['data']['attributes']
+        assert attr['active'] is False
+        assert res.json['data']['id'] == user_one._id
 
     def test_requesting_deactivated_user_returns_410_response_and_meta_info(
             self, app, user_one, user_two):
         url = '/{}users/{}/'.format(API_BASE, user_one._id)
-        res = app.get(url, auth=user_one.auth)
+        res = app.get(url, auth=user_two.auth, expect_errors=True)
         assert res.status_code == 200
         user_one.is_disabled = True
         user_one.save()
-        res = app.get(url, auth=user_one.auth, expect_errors=True)
-        assert res.status_code == 400
-
-    def test_requesting_deactivated_user_returns_410_response_and_meta_info_not_logged_in(
-            self, app, user_one, user_two):
-        url = '/{}users/{}/'.format(API_BASE, user_one._id)
-        res = app.get(url, auth=user_two.auth, expect_errors=True)
-        assert res.status_code == 403
-        user_one.is_disabled = True
-        user_one.save()
         res = app.get(url, expect_errors=True)
-        assert res.status_code == 401
+        assert res.status_code == 410
+        assert res.json['errors'][0]['meta']['family_name'] == user_one.family_name
+        assert res.json['errors'][0]['meta']['given_name'] == user_one.given_name
+        assert res.json['errors'][0]['meta']['middle_names'] == user_one.middle_names
+        assert res.json['errors'][0]['meta']['full_name'] == user_one.fullname
+        assert urlparse(
+            res.json['errors'][0]['meta']['profile_image']).netloc == 'secure.gravatar.com'
+        assert res.json['errors'][0]['detail'] == 'The requested user is no longer available.'
 
 
 @pytest.mark.django_db
