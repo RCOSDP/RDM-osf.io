@@ -30,7 +30,7 @@ INSTITUTION_NOT_FOUND_MESSAGE = 'Institution does not exist'
 
 class ExportStorageLocationViewBaseView(RdmPermissionMixin, UserPassesTestMixin):
     """ Base class for all the Institutional Storage Views """
-    PROVIDERS_AVAILABLE = ['s3', 's3compat', 'nextcloudinstitutions']
+    PROVIDERS_AVAILABLE = ['s3', 's3compat', 's3compatsigv4', 'nextcloudinstitutions']
     INSTITUTION_DEFAULT = Institution.INSTITUTION_DEFAULT
     institution_guid = INSTITUTION_DEFAULT
     institution = None
@@ -51,7 +51,7 @@ class ExportStorageLocationViewBaseView(RdmPermissionMixin, UserPassesTestMixin)
         user = self.request.user
         institution_id = self.kwargs.get('institution_id', None)
         if user.is_institutional_admin or (institution_id and user.is_super_admin):
-            self.PROVIDERS_AVAILABLE = ['s3', 's3compat',
+            self.PROVIDERS_AVAILABLE = ['s3', 's3compat', 's3compatsigv4',
                                         'dropboxbusiness', 'nextcloudinstitutions']
 
         return user.is_super_admin or user.is_institutional_admin
@@ -191,6 +191,13 @@ class TestConnectionView(ExportStorageLocationViewBaseView, View):
                 data.get('s3compat_secret_key'),
                 data.get('s3compat_bucket'),
             )
+        elif provider_short_name == 's3compatsigv4':
+            result = utils.test_s3compatsigv4_connection(
+                data.get('s3compatsigv4_endpoint_url'),
+                data.get('s3compatsigv4_access_key'),
+                data.get('s3compatsigv4_secret_key'),
+                data.get('s3compatsigv4_bucket'),
+            )
         elif provider_short_name == 'nextcloudinstitutions':
             result = utils.test_owncloud_connection(
                 data.get('nextcloudinstitutions_host'),
@@ -272,6 +279,16 @@ class SaveCredentialsView(ExportStorageLocationViewBaseView, View):
                 data.get('s3compat_secret_key'),
                 data.get('s3compat_bucket'),
             )
+        elif provider_short_name == 's3compatsigv4':
+            result = export_data_utils.save_s3compatsigv4_credentials(
+                institution_guid,
+                storage_name,
+                data.get('s3compatsigv4_endpoint_url'),
+                data.get('s3compatsigv4_access_key'),
+                data.get('s3compatsigv4_secret_key'),
+                data.get('s3compatsigv4_bucket'),
+                region=data.get('s3compatsigv4_region') or None,
+            )
         elif provider_short_name == 'nextcloudinstitutions':
             result = export_data_utils.save_nextcloudinstitutions_credentials(
                 institution,
@@ -313,7 +330,7 @@ class DeleteCredentialsView(ExportStorageLocationViewBaseView, View):
             return False
 
         if user.is_institutional_admin:
-            self.PROVIDERS_AVAILABLE = ['s3', 's3compat',
+            self.PROVIDERS_AVAILABLE = ['s3', 's3compat', 's3compatsigv4',
                                         'dropboxbusiness', 'nextcloudinstitutions']
         location_id = self.kwargs.get('location_id')
         institution_id = self.kwargs.get('institution_id')

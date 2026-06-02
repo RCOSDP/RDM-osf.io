@@ -2285,7 +2285,7 @@ function _lazyLoadPreprocess(obj) {
             var path = attributes.kind === 'folder' ? id.slice(0, -1).replace(attributes.name, '') : id.replace(attributes.name, '');
             var parent = this.flatData.filter(function (item) {
                 return item.row.kind === 'folder' &&
-                    (item.row.provider === 's3' || item.row.provider === 's3compat' || item.row.provider === 's3compatinstitutions') &&
+                    (item.row.provider === 's3' || item.row.provider === 's3compat' || item.row.provider === 's3compatinstitutions' || item.row.provider === 's3compatsigv4') &&
                     item.row.id === path;
             });
             if (parent[0]) {
@@ -2332,6 +2332,10 @@ function expandStateLoad(item) {
                 // add id attribute for top-level folder of s3compat provider
                 if (item.children[i].data.provider === 's3compat') {
                     item.children[i].data.id = 's3compat/';
+                }
+                // add id attribute for top-level folder of s3compatsigv4 provider
+                if (item.children[i].data.provider === 's3compatsigv4') {
+                    item.children[i].data.id = 's3compatsigv4/';
                 }
                 tb.updateFolder(null, item.children[i]);
             }
