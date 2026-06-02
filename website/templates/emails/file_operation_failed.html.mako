@@ -59,8 +59,30 @@
                 <tbody>
                     <tr>
                         <td style="border-collapse: collapse;">
-                          An error has occurred, and the ${'folder' if source_path.endswith('/') else 'file'} from ${source_node.title} on the GakuNin RDM was not successfully ${'moved' if action == 'move' else 'copied'}.
-                          Please log in and try this action again. If the problem persists, please email ${osf_support_email}.
+                          <%
+                            ei = context.get('error_info') or {}
+                            err_type = ei.get('type', '')
+                          %>
+                          % if err_type == 'quota_exceeded':
+                            An error has occurred, and the ${'folder' if source_path.endswith('/') else 'file'} from ${source_node.title} on the GakuNin RDM was not successfully ${'moved' if action == 'move' else 'copied'} because you do not have enough available storage quota.
+                            Please free up storage space or contact your administrator to increase your quota, then try again. If the problem persists, please email ${osf_support_email}.
+                          % elif err_type == 'oversized':
+                            <%
+                              oversized_files = ei.get('oversized_files', [])
+                              max_size_bytes = ei.get('max_size') or 0
+                              max_size_mb = max_size_bytes // (1024 * 1024) if max_size_bytes else 0
+                            %>
+                            An error has occurred, and the ${'folder' if source_path.endswith('/') else 'file'} from ${source_node.title} on the GakuNin RDM was not successfully ${'moved' if action == 'move' else 'copied'} because the following file(s) exceed the maximum allowed file size% if max_size_mb: of ${max_size_mb} MB% endif:
+                            <ul>
+                            % for f in oversized_files:
+                              <li>${f.get('name', 'Unknown file')} (${'{:.1f}'.format(f.get('size', 0) / (1024 * 1024))} MB)</li>
+                            % endfor
+                            </ul>
+                            Please reduce the file size and try again. If the problem persists, please email ${osf_support_email}.
+                          % else:
+                            An error has occurred, and the ${'folder' if source_path.endswith('/') else 'file'} from ${source_node.title} on the GakuNin RDM was not successfully ${'moved' if action == 'move' else 'copied'}.
+                            Please log in and try this action again. If the problem persists, please email ${osf_support_email}.
+                          % endif
                         </td>
                     </tr>
                 </tbody>
