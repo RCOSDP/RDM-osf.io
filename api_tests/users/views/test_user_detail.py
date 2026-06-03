@@ -331,19 +331,8 @@ class TestUserRoutesNodeRoutes:
 
     #   test_get_200_path_users_user_id_nodes_no_user
         url = '/{}users/{}/nodes/'.format(API_BASE, user_one._id)
-        res = app.get(url)
-        assert res.status_code == 200
-
-        # an anonymous/unauthorized user can only see the public projects
-        # user_one contributes to.
-        ids = {each['id'] for each in res.json['data']}
-        assert project_public_user_one._id in ids
-        assert project_private_user_one._id not in ids
-        assert project_public_user_two._id not in ids
-        assert project_private_user_two._id not in ids
-        assert folder._id not in ids
-        assert folder_deleted._id not in ids
-        assert project_deleted_user_one._id not in ids
+        res = app.get(url, expect_errors=True)
+        assert res.status_code == 401
 
     #   test_get_200_path_users_user_id_nodes_unauthorized_user
         url = '/{}users/{}/nodes/'.format(API_BASE, user_one._id)
