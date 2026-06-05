@@ -72,7 +72,7 @@
                               max_size_bytes = ei.get('max_size') or 0
                               max_size_mb = max_size_bytes // (1024 * 1024) if max_size_bytes else 0
                             %>
-                            An error has occurred, and the ${'folder' if source_path.endswith('/') else 'file'} from ${source_node.title} on the GakuNin RDM was not successfully ${'moved' if action == 'move' else 'copied'} because the following file(s) exceed the maximum allowed file size% if max_size_mb: of ${max_size_mb} MB% endif:
+                            An error has occurred, and the ${'folder' if source_path.endswith('/') else 'file'} from ${source_node.title} on the GakuNin RDM was not successfully ${'moved' if action == 'move' else 'copied'} because the following file(s) exceed the maximum allowed file size${' of {} MB'.format(max_size_mb) if max_size_mb else ''}:
                             <ul>
                             % for f in oversized_files:
                               <li>${f.get('name', 'Unknown file')} (${'{:.1f}'.format(f.get('size', 0) / (1024 * 1024))} MB)</li>
