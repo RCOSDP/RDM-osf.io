@@ -673,11 +673,11 @@ function doItemOp(operation, to, from, rename, conflict) {
             // Sum size of all files in the item being moved/copied
             var totalMoveSize = 0;
             if (from.kind === 'file') {
-                totalMoveSize = from.data.size || 0;
+                totalMoveSize = parseInt(from.data.size, 10) || 0;
             } else {
                 getAllChildren(from).forEach(function(child) {
                     if (child.kind === 'file') {
-                        totalMoveSize += child.data.size || 0;
+                        totalMoveSize += parseInt(child.data.size, 10) || 0;
                     }
                 });
             }
