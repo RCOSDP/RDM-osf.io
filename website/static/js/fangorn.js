@@ -606,6 +606,25 @@ function _findOversizedFiles(item, maxSizeBytes) {
     return oversized;
 }
 
+/**
+ * Helper function to reject a conflict item (e.g. if file size or quota check fails)
+ * and advance the sync move/copy queue.
+ */
+function _rejectConflictItem(tb, from, to, notRenameOp, conflict) {
+    from.inProgress = false;
+    if (notRenameOp) {
+        addFileStatus(tb, from, false, '', '', conflict);
+        // Use object identity (not data.id): for MOVE, .done() replaces from.data
+        // in-place so from.data.id changes before .always() runs.
+        tb.pendingReadyFiles = (tb.pendingReadyFiles || []).filter(function(file) {
+            return file !== from;
+        });
+        if (!tb.pendingReadyFiles.length) {
+            doSyncMove(tb, to.data.provider);
+        }
+    }
+}
+
 function doItemOp(operation, to, from, rename, conflict) {
     var tb = this;
     // dismiss old modal immediately to prevent button mashing
@@ -663,7 +682,7 @@ function doItemOp(operation, to, from, rename, conflict) {
                         oversized.data.name, displaySize, maxSizeDisplay
                     ));
                 });
-                from.inProgress = false;
+                _rejectConflictItem(tb, from, to, notRenameOp, conflict);
                 return;
             }
         }
@@ -700,7 +719,7 @@ function doItemOp(operation, to, from, rename, conflict) {
                             quotaMsgText = sprintf(gettext('Not enough quota to move/copy. The total size of the folder %1$s.'), folderSize);
                         }
                         from.notify.update(quotaMsgText, 'warning', undefined, 3000);
-                        from.inProgress = false;
+                        _rejectConflictItem(tb, from, to, notRenameOp, conflict);
                         return;
                     }
                     if (quotaData.used + totalMoveSize > quotaData.max * window.contextVars.threshold) {
@@ -719,6 +738,9 @@ function doItemOp(operation, to, from, rename, conflict) {
     }
 
     var origFrom = Object.assign({}, from);
+    // Must capture before COPY rebinds `from` to a new clone.
+    // .done() replaces from.data in-place, so ID-based filtering breaks for MOVE ops.
+    var originalFrom = from;
     if (operation === OPERATIONS.COPY) {
         from = tb.createItem($.extend(true, {status: operation.status}, from.data), to.id);
     } else {
@@ -841,8 +863,8 @@ function doItemOp(operation, to, from, rename, conflict) {
                 addFileStatus(tb, from, false, '', '', conflict);
             }
             orderFolder.call(tb, from.parent());
-            tb.pendingReadyFiles = (tb.pendingReadyFiles || []).filter(function (file) { return file.data.id !== from.data.id; });
-            from.inProgress = false;
+            // NOTE: pendingReadyFiles filter, from.inProgress reset, and doSyncMove
+            // are all handled by .always() below. Do NOT duplicate them here.
             return;
         }
         if (xhr.status === 406 && xhr.responseJSON && xhr.responseJSON.message) {
@@ -853,8 +875,8 @@ function doItemOp(operation, to, from, rename, conflict) {
                 addFileStatus(tb, from, false, '', '', conflict);
             }
             orderFolder.call(tb, from.parent());
-            tb.pendingReadyFiles = (tb.pendingReadyFiles || []).filter(function (file) { return file.data.id !== from.data.id; });
-            from.inProgress = false;
+            // NOTE: pendingReadyFiles filter, from.inProgress reset, and doSyncMove
+            // are all handled by .always() below. Do NOT duplicate them here.
             return;
         }
 
@@ -882,7 +904,9 @@ function doItemOp(operation, to, from, rename, conflict) {
         orderFolder.call(tb, from.parent());
     }).always(function(){
 
-        tb.pendingReadyFiles = (tb.pendingReadyFiles || []).filter(function (file) { return file.data.id !== from.data.id; });
+        // Use object identity: .done() replaces from.data in-place (MOVE op),
+        // making ID-based comparison unreliable by the time .always() runs.
+        tb.pendingReadyFiles = (tb.pendingReadyFiles || []).filter(function (file) { return file !== originalFrom; });
         from.inProgress = false;
         if (notRenameOp && !tb.pendingReadyFiles.length){
             doSyncMove(tb, to.data.provider);
