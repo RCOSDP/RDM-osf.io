@@ -4,13 +4,14 @@ from django.db.models import Subquery, OuterRef
 from django.http import Http404
 
 from admin.institutions.views import QuotaUserList
-from osf.models import Institution, OSFUser, UserQuota
+from osf.models import Institution, OSFUser, UserQuota, InstitutionDefaultMaxQuota
 from admin.base import settings
 from addons.osfstorage.models import Region
 from django.views.generic import ListView, View
 from django.shortcuts import redirect
 from admin.rdm.utils import RdmPermissionMixin
 from django.core.urlresolvers import reverse
+from api.base import settings as api_settings
 
 
 class InstitutionStorageList(RdmPermissionMixin, UserPassesTestMixin, ListView):
@@ -122,6 +123,17 @@ class UserListByInstitutionStorageID(RdmPermissionMixin, UserPassesTestMixin, Qu
             raise Http404
         return institution
 
+    def get_default_max_quota(self):
+        """ Get default max quota for the institution """
+        default_max_quota = InstitutionDefaultMaxQuota.get_quota_by_institution(self.institution_id)
+        return default_max_quota if default_max_quota is not None else api_settings.DEFAULT_MAX_QUOTA
+
+    def get_context_data(self, **kwargs):
+        """ Add default_max_quota to template context """
+        context = super().get_context_data(**kwargs)
+        context['default_max_quota'] = self.get_default_max_quota()
+        return context
+
 
 class UpdateQuotaUserListByInstitutionStorageID(RdmPermissionMixin, UserPassesTestMixin, View):
     """ Change max quota for an institution's users if that institution is not using NII Storage. """
@@ -163,6 +175,10 @@ class UpdateQuotaUserListByInstitutionStorageID(RdmPermissionMixin, UserPassesTe
         min_value, max_value = connection.ops.integer_field_range('PositiveIntegerField')
         if min_value <= max_quota <= max_value:
             # If max quota value is between 0 and 2147483647, update or create used quota for each user in the institution
+            InstitutionDefaultMaxQuota.objects.update_or_create(
+                institution_id=self.institution_id,
+                defaults={'default_max_quota': max_quota}
+            )
             for user in OSFUser.objects.filter(
                     affiliated_institutions=self.institution_id):
                 try:

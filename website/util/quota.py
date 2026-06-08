@@ -13,6 +13,7 @@ from osf.models import (
     ProjectStorageType
 )
 from django.utils import timezone
+from osf.models.institution_default_max_quota import InstitutionDefaultMaxQuota
 from osf.utils.requests import check_select_for_update
 
 
@@ -87,11 +88,16 @@ def update_user_used_quota(user, storage_type=UserQuota.NII_STORAGE, is_recalcul
         user_quota.save()
     except UserQuota.DoesNotExist:
         try:
+            max_quota = api_settings.DEFAULT_MAX_QUOTA
+            if storage_type == UserQuota.CUSTOM_STORAGE:
+                max_default_quota = InstitutionDefaultMaxQuota.get_quota_by_user(user.id)
+                if max_default_quota:
+                    max_quota = max_default_quota
             with transaction.atomic():
                 UserQuota.objects.create(
                     user=user,
                     storage_type=storage_type,
-                    max_quota=api_settings.DEFAULT_MAX_QUOTA,
+                    max_quota=max_quota,
                     used=used,
                 )
         except IntegrityError:
@@ -132,7 +138,12 @@ def get_quota_info(user, storage_type=UserQuota.NII_STORAGE):
         user_quota = user.userquota_set.get(storage_type=storage_type)
         return (user_quota.max_quota, user_quota.used)
     except UserQuota.DoesNotExist:
-        return (api_settings.DEFAULT_MAX_QUOTA, used_quota(user._id, storage_type))
+        max_quota = api_settings.DEFAULT_MAX_QUOTA
+        if storage_type == UserQuota.CUSTOM_STORAGE:
+            max_default_quota = InstitutionDefaultMaxQuota.get_quota_by_user(user.id)
+            if max_default_quota:
+                max_quota = max_default_quota
+        return (max_quota, used_quota(user._id, storage_type))
 
 def get_project_storage_type(node):
     try:
@@ -180,7 +191,7 @@ def update_used_quota(self, target, user, event_type, payload):
 
         storage_type = get_project_storage_type(target)
         if event_type == FileLog.FILE_ADDED:
-            file_added(target, payload, file_node, storage_type)
+            file_added(target, user, payload, file_node, storage_type)
         elif event_type == FileLog.FILE_REMOVED:
             if metadata_provider in PROVIDERS:
                 if data.get('kind') == 'file':
@@ -219,7 +230,7 @@ def update_used_quota(self, target, user, event_type, payload):
         return
 
 
-def file_added(target, payload, file_node, storage_type):
+def file_added(target, user, payload, file_node, storage_type):
     file_size = int(payload['metadata']['size'])
     if file_size < 0:
         return
@@ -238,11 +249,16 @@ def file_added(target, payload, file_node, storage_type):
         user_quota.save()
     except UserQuota.DoesNotExist:
         try:
+            max_quota = api_settings.DEFAULT_MAX_QUOTA
+            if storage_type == UserQuota.CUSTOM_STORAGE:
+                max_default_quota = InstitutionDefaultMaxQuota.get_quota_by_user(user.id)
+                if max_default_quota:
+                    max_quota = max_default_quota
             with transaction.atomic():
                 UserQuota.objects.create(
                     user=target.creator,
                     storage_type=storage_type,
-                    max_quota=api_settings.DEFAULT_MAX_QUOTA,
+                    max_quota=max_quota,
                     used=file_size
                 )
         except IntegrityError:
@@ -300,18 +316,23 @@ def file_modified(target, user, payload, file_node, storage_type):
         return
 
     try:
+        max_quota = api_settings.DEFAULT_MAX_QUOTA
+        if storage_type == UserQuota.CUSTOM_STORAGE:
+            max_default_quota = InstitutionDefaultMaxQuota.get_quota_by_user(user.id)
+            if max_default_quota:
+                max_quota = max_default_quota
         with transaction.atomic():
             if check_select_for_update():
                 user_quota, _ = UserQuota.objects.select_for_update().get_or_create(
                     user=target.creator,
                     storage_type=storage_type,
-                    defaults={'max_quota': api_settings.DEFAULT_MAX_QUOTA}
+                    defaults={'max_quota': max_quota}
                 )
             else:
                 user_quota, _ = UserQuota.objects.get_or_create(
                     user=target.creator,
                     storage_type=storage_type,
-                    defaults={'max_quota': api_settings.DEFAULT_MAX_QUOTA}
+                    defaults={'max_quota': max_quota}
                 )
     except IntegrityError:
         if check_select_for_update():
