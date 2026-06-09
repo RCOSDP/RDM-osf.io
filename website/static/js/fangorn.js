@@ -110,12 +110,20 @@ var PROVIDER_SETTINGS = {
     'onedrive': { parallelNum: 4, fileSizeThreshold: 128000000 },
     'dropbox': { parallelNum: 1, fileSizeThreshold: null },
     's3compatb3': { parallelNum: 4, fileSizeThreshold: 128000000 },
+    's3compatsigv4': { parallelNum: 4, fileSizeThreshold: 128000000 },
     'azureblobstorage': { parallelNum: 1, fileSizeThreshold: null },
     'dataverse': { parallelNum: 1, fileSizeThreshold: null },
     'figshare': { parallelNum: 1, fileSizeThreshold: null },
     'github': { parallelNum: 1, fileSizeThreshold: null },
     'swift': { parallelNum: 1, fileSizeThreshold: null },
-    'owncloud': { parallelNum: 1, fileSizeThreshold: null }
+    'owncloud': { parallelNum: 1, fileSizeThreshold: null },
+
+    // Institution storage settings
+    'dropboxbusiness': { parallelNum: 1, fileSizeThreshold: null },
+    'nextcloudinstitutions': { parallelNum: 1, fileSizeThreshold: null },
+    's3compatinstitutions': { parallelNum: 1, fileSizeThreshold: null },
+    'onedrivebusiness': { parallelNum: 1, fileSizeThreshold: null },
+    'ociinstitutions': { parallelNum: 1, fileSizeThreshold: null }
 };
 
 // Monkey-patch Dropzone.processQueue here (must run before any Dropzone instances are created)
@@ -1092,6 +1100,9 @@ function _fangornDropzoneDrop(treebeard, event) {
     if (providerSettings && providerSettings.parallelNum && providerSettings.fileSizeThreshold) {
         treebeard.dropzone.options.parallelUploads = providerSettings.parallelNum;
         treebeard.dropzone.options.fileSizeThreshold = providerSettings.fileSizeThreshold;
+    } else {
+        treebeard.dropzone.options.parallelUploads = 1;
+        treebeard.dropzone.options.fileSizeThreshold = null;
     }
 }
 /**
@@ -1347,6 +1358,7 @@ function _uploadEvent(event, item, col) {
         }else{
             // Default settings
             self.dropzone.options.parallelUploads = 1;
+            self.dropzone.options.fileSizeThreshold = null;
         }
 
         // Add files to Treebeard
@@ -1461,6 +1473,7 @@ function _uploadFolderEvent(event, item, mode, col) {
             tb.dropzone.options.fileSizeThreshold = providerSettings.fileSizeThreshold;
         }else{
             tb.dropzone.options.parallelUploads = 1;
+            tb.dropzone.options.fileSizeThreshold = null;
         }
 
         var createdFolders = [];
