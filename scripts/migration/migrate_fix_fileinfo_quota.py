@@ -434,7 +434,7 @@ def _apply_fixes_internal(rows, dry_run=False):
 
             if not dry_run:
                 # Update quota for the actual storage_type of the project
-                update_user_used_quota(user, storage_type=storage_type)
+                update_user_used_quota(user, storage_type=storage_type, is_recalculating_quota=True)
 
             logger.info('{} Recalculated quota for user {} (storage_type={})'.format(
                 '[DRY RUN]' if dry_run else '', user_id, storage_type
