@@ -1283,11 +1283,26 @@ def to_creators_metadata(users):
     ]
 
 def _to_user_metadata(user):
-    middle_names_en = '' if not user.middle_names else f'{user.middle_names} '
+    affiliation_ja = ''
+    affiliation_en = ''
+    current_jobs = [job for job in user.jobs if job.get('ongoing')]
+    if current_jobs:
+        affiliation_ja = current_jobs[0].get('institution_ja') or ''
+        affiliation_en = current_jobs[0].get('institution') or ''
     return {
         'number': user.erad,
-        'name_ja': f'{user.family_name_ja}{user.middle_names_ja}{user.given_name_ja}',
-        'name_en': f'{user.given_name} {middle_names_en}{user.family_name}',
+        'name-ja': {
+            'last': user.family_name_ja,
+            'middle': user.middle_names_ja,
+            'first': user.given_name_ja,
+        },
+        'name-en': {
+            'last': user.family_name,
+            'middle': user.middle_names,
+            'first': user.given_name,
+        },
+        'affiliation-name-ja': affiliation_ja,
+        'affiliation-name-en': affiliation_en,
     }
 
 def _snake_to_camel(name):

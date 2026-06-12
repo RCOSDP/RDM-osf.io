@@ -532,6 +532,9 @@ def _build_hierarchical_object(user, target_index, file_metadata, download_file_
                 continue
             if weko_mapping['@type'] in ['object', 'jsonobject']:
                 value = source_data.get('value', '')
+                if value is None:
+                    logger.warn(f'Unexpected value: {value}, {key}')
+                    continue
                 if 'choose-additional-metadata' in value:
                     url = value['choose-additional-metadata']
                     value_data = json.loads(url.get('value') or '[]')
@@ -851,16 +854,17 @@ def write_ro_crate_json(user, f, target_index, download_file_names, schema_id, f
         match = next((d for d in json_ld['@graph'] if d.get('@id') == './'), None)
         match.update(properties)
 
-        # 未病スキーマ アイテムの更新用プロパティ追加
-        weko_item_id = get_weko_item_id(project_metadatas)
-        if weko_item_id and base_host:
-            match.update(
-                {
-                    'wk:editMode': 'Upgrade',
-                    'uri': f'{base_host}records/{weko_item_id}',
-                    'identifier': f'{weko_item_id}'
-                }
-            )
+    # アイテムの更新用プロパティ追加
+    weko_item_id = get_weko_item_id(project_metadatas) if len(project_metadatas) == 1 else None
+    if weko_item_id and base_host:
+        match = next((d for d in json_ld['@graph'] if d.get('@id') == './'), None)
+        match.update(
+            {
+                'wk:editMode': 'Upgrade',
+                'uri': f'{base_host}records/{weko_item_id}',
+                'identifier': f'{weko_item_id}'
+            }
+        )
 
     logger.debug(f'Generated RO-Crate: {json.dumps(json_ld, ensure_ascii=False)}')
     json.dump(json_ld, f, indent=2, ensure_ascii=False)

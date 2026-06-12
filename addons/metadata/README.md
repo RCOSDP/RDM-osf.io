@@ -34,6 +34,88 @@ USE_DATASET_IMPORTING = True
 
 The "Import Dataset" button is displayed in a toolbar of a file browser if `USE_DATASET_IMPORTING` is true and users can import datasets from external sources.
 
+## Schema UI Hints (`ui` property)
+
+Metadata schemas (e.g. `e-rad-metadata-1.json`) define both data structure and form rendering. To keep rendering concerns separate from data structure, each question may carry an optional `ui` property — a single JSON object that holds all UI-specific hints.
+
+### Design rationale
+
+Schema properties flow through two distinct paths:
+
+1. **File metadata path** — The schema JSON is stored in `RegistrationSchema.schema` (a JSONField) and served as-is to the browser. The frontend JS (`metadata-fields.js`) reads `question.ui.*` directly. Any new key added to `ui` is automatically available without backend changes.
+
+2. **Project metadata path** — The migration `map_schemas_to_schemablocks` decomposes each question into `RegistrationSchemaBlock` rows. Each column on that model requires a DB migration, a serializer update, and a corresponding Ember model attribute. Adding a single column touches Python models, migrations, API serializers, and Ember types.
+
+By consolidating all UI hints into a single `ui` JSONField column on `RegistrationSchemaBlock`, the project metadata path gains the same extensibility as the file metadata path: new hints can be added to the `ui` object without further migrations or model changes.
+
+### Structure
+
+Simple ja/en pair:
+
+```json
+{ "qid": "grdm-file:title-ja",
+  "ui": {
+    "group": { "id": "title", "title": "データの名称|Title", "tags": ["共通|Common", "リポジトリ|Repository"],
+               "help": "...", "info": "管理対象データの特徴を示す名称を入力。|..." },
+    "sub_label": "（日本語）|(Japanese)",
+    "item": { "placeholder": "研究データ管理に関する意識調査" }
+  } }
+
+{ "qid": "grdm-file:title-en",
+  "ui": { "group": "title", "sub_label": "（English）|(English)" } }
+```
+
+Nested group (ja/en pair inside a category):
+
+```json
+{ "qid": "grdm-file:data-policy-free",
+  "ui": { "group": { "id": "data-policy", "title": "管理対象データの利活用・提供方針|...", "bar": true,
+                      "tags": ["共通|Common"], "info": "ライセンス情報を記載。|..." } } }
+
+{ "qid": "grdm-file:data-policy-license",
+  "ui": { "group": "data-policy" } }
+
+{ "qid": "grdm-file:data-policy-cite-ja",
+  "ui": {
+    "group": { "id": "data-policy-cite", "parent": "data-policy", "title": "引用方法等|..." },
+    "sub_label": "（日本語）|(Japanese)"
+  } }
+
+{ "qid": "grdm-file:data-policy-cite-en",
+  "ui": { "group": "data-policy-cite", "sub_label": "（English）|(English)" } }
+```
+
+The `ui` object has three scopes:
+
+**Page scope** (`page.ui`) — page-level decoration:
+
+- **`header`** — Introductory HTML text displayed above all questions on the page (e.g. format notes, tag legend).
+
+**Group scope** (`ui.group`) — section heading and grouping:
+
+- **`id`** — Group identifier. The first question in a group carries the full definition (object); subsequent questions reference the group by `id` string only (e.g. `"group": "title"`).
+- **`parent`** — Parent group reference. A string ID when the parent is already defined by an earlier question. An object (`{ "id": "...", "title": "...", ... }`) to simultaneously define the parent group — useful when no earlier question belongs directly to the parent.
+- **`title`** — Section heading text.
+- **`help`** — Help text (supports HTML) displayed under the section heading.
+- **`bar`** — If `true`, draw a continuous vertical bar on the left side of group members (for semantic category groups).
+- **`tags`** — Badge labels for the section (e.g. `["共通|Common"]`, `["共通|Common", "リポジトリ|Repository"]`). Pipe-delimited for localization.
+- **`info`** — Detailed explanation shown in a popover when the ⓘ mark next to the group heading is clicked.
+
+**Item scope** (`ui.item`) — individual input field:
+
+- **`placeholder`** — Placeholder text for the input field.
+- **`width`** — Abstract width category (e.g. `"narrow"`, `"half"`).
+- **`widget`** — Override the default widget (e.g. `"radio"` instead of pulldown for `singleselect`).
+- **`enabled_if`** — Conditional disabled display. An object with a `disabled` key whose value is either `true` (unconditionally disabled) or a condition object (e.g. `{ "disabled": { "grdm-file:file-type": "dataset" } }`). When the question's `enabled_if` is false and the `disabled` condition is met, the field is shown greyed out instead of hidden.
+- **`info`** — Detailed explanation shown in a popover when the ⓘ mark next to the field label is clicked. For grouped fields, prefer `ui.group.info` over `ui.item.info`.
+- **`tags`** — Badge labels for standalone fields (fields not belonging to a group). Pipe-delimited for localization.
+
+**Top-level** (`ui.*`):
+
+- **`sub_label`** — Label within a group (e.g. "（日本語）|(Japanese)" / "（English）|(English)" for ja/en pairs).
+
+This list is not exhaustive; new keys can be added as needed without schema migration.
+
 ## Suggestion Policies (ERAD/KAKEN)
 
 This addon provides researcher/project suggestions sourced from ERAD and KAKEN. Ordering and deduplication follow simple, explicit policies so results are predictable and easy to reason about.
