@@ -73,6 +73,7 @@ def update_user_used_quota(user, storage_type=UserQuota.NII_STORAGE, is_recalcul
         # Get total file size of projects with specified storage_type
         used = used_quota(user._id, storage_type)
 
+    max_quota = get_default_max_quota(user, storage_type)
     try:
         if check_select_for_update():
             user_quota = UserQuota.objects.filter(
@@ -88,11 +89,6 @@ def update_user_used_quota(user, storage_type=UserQuota.NII_STORAGE, is_recalcul
         user_quota.save()
     except UserQuota.DoesNotExist:
         try:
-            max_quota = api_settings.DEFAULT_MAX_QUOTA
-            if storage_type == UserQuota.CUSTOM_STORAGE:
-                max_default_quota = InstitutionDefaultMaxQuota.get_quota_by_user(user.id)
-                if max_default_quota:
-                    max_quota = max_default_quota
             with transaction.atomic():
                 UserQuota.objects.create(
                     user=user,
@@ -134,15 +130,11 @@ def abbreviate_size(size):
     return (size, abbr_dict[power])
 
 def get_quota_info(user, storage_type=UserQuota.NII_STORAGE):
+    max_quota = get_default_max_quota(user, storage_type)
     try:
         user_quota = user.userquota_set.get(storage_type=storage_type)
         return (user_quota.max_quota, user_quota.used)
     except UserQuota.DoesNotExist:
-        max_quota = api_settings.DEFAULT_MAX_QUOTA
-        if storage_type == UserQuota.CUSTOM_STORAGE:
-            max_default_quota = InstitutionDefaultMaxQuota.get_quota_by_user(user.id)
-            if max_default_quota:
-                max_quota = max_default_quota
         return (max_quota, used_quota(user._id, storage_type))
 
 def get_project_storage_type(node):
@@ -191,7 +183,7 @@ def update_used_quota(self, target, user, event_type, payload):
 
         storage_type = get_project_storage_type(target)
         if event_type == FileLog.FILE_ADDED:
-            file_added(target, user, payload, file_node, storage_type)
+            file_added(target, payload, file_node, storage_type)
         elif event_type == FileLog.FILE_REMOVED:
             if metadata_provider in PROVIDERS:
                 if data.get('kind') == 'file':
@@ -230,10 +222,11 @@ def update_used_quota(self, target, user, event_type, payload):
         return
 
 
-def file_added(target, user, payload, file_node, storage_type):
+def file_added(target, payload, file_node, storage_type):
     file_size = int(payload['metadata']['size'])
     if file_size < 0:
         return
+    max_quota = get_default_max_quota(target.creator, storage_type)
     try:
         if check_select_for_update():
             user_quota = UserQuota.objects.filter(
@@ -249,11 +242,6 @@ def file_added(target, user, payload, file_node, storage_type):
         user_quota.save()
     except UserQuota.DoesNotExist:
         try:
-            max_quota = api_settings.DEFAULT_MAX_QUOTA
-            if storage_type == UserQuota.CUSTOM_STORAGE:
-                max_default_quota = InstitutionDefaultMaxQuota.get_quota_by_user(user.id)
-                if max_default_quota:
-                    max_quota = max_default_quota
             with transaction.atomic():
                 UserQuota.objects.create(
                     user=target.creator,
@@ -314,13 +302,8 @@ def file_modified(target, user, payload, file_node, storage_type):
     file_size = int(payload['metadata']['size'])
     if file_size < 0:
         return
-
+    max_quota = get_default_max_quota(target.creator, storage_type)
     try:
-        max_quota = api_settings.DEFAULT_MAX_QUOTA
-        if storage_type == UserQuota.CUSTOM_STORAGE:
-            max_default_quota = InstitutionDefaultMaxQuota.get_quota_by_user(user.id)
-            if max_default_quota:
-                max_quota = max_default_quota
         with transaction.atomic():
             if check_select_for_update():
                 user_quota, _ = UserQuota.objects.select_for_update().get_or_create(
@@ -411,3 +394,25 @@ def get_node_file_list(file_node):
                 file_list.append(child_file_node)
 
     return file_list
+
+def get_default_max_quota(user, storage_type):
+    """
+    Get default max quota for a user based on their affiliated institution.
+
+    If the storage type is CUSTOM_STORAGE, retrieve the default quota
+    configured for the user's affiliated institution. Otherwise, or if no
+    institution-specific quota is configured, return the system default quota.
+
+    Args:
+        user (OSFUser): The user whose default quota is to be retrieved.
+        storage_type (str): The storage type associated with the user's quota.
+
+    Returns:
+        int: The default maximum quota (in GB) applicable to the user.
+    """
+    if storage_type == UserQuota.CUSTOM_STORAGE:
+        default_max_quota = InstitutionDefaultMaxQuota.get_quota_by_user(user.id)
+        if default_max_quota is not None:
+            return default_max_quota
+
+    return api_settings.DEFAULT_MAX_QUOTA

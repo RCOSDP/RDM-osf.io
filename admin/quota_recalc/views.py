@@ -2,12 +2,10 @@ from django.http import JsonResponse
 from django.db import transaction, IntegrityError
 
 from addons.osfstorage.models import Region
-from api.base import settings as api_settings
 from osf.models import OSFUser, UserQuota, Node
-from osf.models.institution_default_max_quota import InstitutionDefaultMaxQuota
 from osf.models.node import set_project_storage_type
 from osf.utils.requests import check_select_for_update
-from website.util.quota import used_quota
+from website.util.quota import get_default_max_quota, used_quota
 
 
 def calculate_quota(user):
@@ -24,6 +22,7 @@ def calculate_quota(user):
     with transaction.atomic():
         for storage_type in storage_type_list:
             used = used_quota(user._id, storage_type)
+            max_quota = get_default_max_quota(user, storage_type)
             try:
                 if check_select_for_update():
                     user_quota = UserQuota.objects.filter(
@@ -38,11 +37,6 @@ def calculate_quota(user):
                 user_quota.used = used
                 user_quota.save()
             except UserQuota.DoesNotExist:
-                max_quota = api_settings.DEFAULT_MAX_QUOTA
-                if storage_type == UserQuota.CUSTOM_STORAGE:
-                    max_default_quota = InstitutionDefaultMaxQuota.get_quota_by_user(user.id)
-                    if max_default_quota:
-                        max_quota = max_default_quota
                 try:
                     with transaction.atomic():
                         UserQuota.objects.create(

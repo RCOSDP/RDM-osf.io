@@ -21,16 +21,12 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('created', django_extensions.db.fields.CreationDateTimeField(auto_now_add=True, verbose_name='created')),
                 ('modified', django_extensions.db.fields.ModificationDateTimeField(auto_now=True, verbose_name='modified')),
-                ('default_max_quota', models.IntegerField(db_index=True, default=100)),
-                ('institution', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='institution_default_max_quota', to='osf.Institution')),
+                ('default_max_quota', models.IntegerField(default=100)),
+                ('institution', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='institution_default_max_quota', to='osf.Institution')),
             ],
             options={
                 'db_table': 'osf_institution_default_max_quota',
             },
             bases=(models.Model, osf.models.base.QuerySetExplainMixin),
-        ),
-        migrations.AlterUniqueTogether(
-            name='institutiondefaultmaxquota',
-            unique_together=set([('institution',)]),
         ),
     ]
