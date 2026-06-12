@@ -1,0 +1,52 @@
+{
+  "id": "example-result-form-001",
+  "name": "Submitted Data",
+  "key": "example-result-form",
+  "description": "Displays all submitted data as formatted JSON.",
+  "editorJson": {
+    "name": "Submitted Data",
+    "key": "example-result-form",
+    "version": 0,
+    "fields": [
+      {
+        "fieldType": "FormField",
+        "id": "result_heading",
+        "name": "Submitted Data",
+        "type": "headline-with-line",
+        "value": null,
+        "required": false,
+        "readOnly": false,
+        "overrideId": false,
+        "placeholder": null,
+        "layout": null
+      },
+      {
+        "fieldType": "ExpressionFormField",
+        "id": "result_description",
+        "name": "result_description",
+        "type": "expression",
+        "value": null,
+        "required": false,
+        "readOnly": false,
+        "overrideId": false,
+        "placeholder": null,
+        "layout": null,
+        "expression": "The following data was submitted by the start form and wizard form. Click Complete to finish the process."
+      },
+      {
+        "fieldType": "ExpressionFormField",
+        "id": "result_json",
+        "name": "result_json",
+        "type": "expression",
+        "value": null,
+        "required": false,
+        "readOnly": false,
+        "overrideId": false,
+        "placeholder": null,
+        "layout": null,
+        "expression": "${_submittedDataSummary}"
+      }
+    ],
+    "outcomes": []
+  }
+}

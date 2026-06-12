@@ -85,7 +85,7 @@ class TestWEKOSchema(OsfTestCase):
 
         assert_equal(
             props.pop(),
-            ['.publish_status', '.PUBLISH_STATUS', '', 'Required', 'private'],
+            ['.publish_status', '.PUBLISH_STATUS', '', 'Required', 'public'],
         )
         assert_equal(
             props.pop(),
@@ -220,8 +220,8 @@ class TestWEKOSchema(OsfTestCase):
                         'grdm-file:creators': [
                             {
                                 'number': '22222',
-                                'name-ja': '情報太郎',
-                                'name-en': 'Taro Joho',
+                                'name-ja': {'last': '情報', 'middle': '', 'first': '太郎'},
+                                'name-en': {'last': 'Joho', 'middle': '', 'first': 'Taro'},
                             }
                         ],
                         'grdm-file:hosting-inst-ja': '国立情報学研究所',
@@ -229,8 +229,8 @@ class TestWEKOSchema(OsfTestCase):
                         'grdm-file:hosting-inst-id': 'https://ror.org/04ksd4g47',
                         'grdm-file:data-man-type': 'individual',
                         'grdm-file:data-man-number': '11111',
-                        'grdm-file:data-man-name-ja': '情報花子',
-                        'grdm-file:data-man-name-en': 'Hanako Joho',
+                        'grdm-file:data-man-name-ja': {'last': '情報', 'middle': '', 'first': '花子'},
+                        'grdm-file:data-man-name-en': {'last': 'Joho', 'middle': '', 'first': 'Hanako'},
                         'grdm-file:data-man-org-ja': '国立情報学研究所',
                         'grdm-file:data-man-org-en': 'National Institute of Informatics',
                         'grdm-file:data-man-address-ja': '一ツ橋',
@@ -239,7 +239,6 @@ class TestWEKOSchema(OsfTestCase):
                         'grdm-file:data-man-email': 'dummy@test.rcos.nii.ac.jp',
                         'grdm-file:remarks-ja': 'コメント',
                         'grdm-file:remarks-en': 'Comment',
-                        'grdm-file:metadata-access-rights': 'closed access',
                     }.items()]),
                 },
             ],
@@ -270,7 +269,7 @@ class TestWEKOSchema(OsfTestCase):
 
         assert_equal(
             props.pop(),
-            ['.publish_status', '.PUBLISH_STATUS', '', 'Required', 'private'],
+            ['.publish_status', '.PUBLISH_STATUS', '', 'Required', 'public'],
         )
         assert_equal(
             props.pop(),
@@ -322,7 +321,7 @@ class TestWEKOSchema(OsfTestCase):
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_30002_creator2[0].creatorNames[0].creatorName', '', '', '', '情報太郎'],
+            ['.metadata.item_30002_creator2[0].creatorNames[0].creatorName', '', '', '', '情報, 太郎'],
         )
         assert_equal(
             props.pop(),
@@ -330,11 +329,43 @@ class TestWEKOSchema(OsfTestCase):
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_30002_creator2[0].creatorNames[1].creatorName', '', '', '', 'Taro Joho'],
+            ['.metadata.item_30002_creator2[0].creatorNames[1].creatorName', '', '', '', 'Joho, Taro'],
         )
         assert_equal(
             props.pop(),
             ['.metadata.item_30002_creator2[0].creatorNames[1].creatorNameLang', '', '', '', 'en'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_30002_creator2[0].familyNames[0].familyName', '', '', '', '情報'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_30002_creator2[0].familyNames[0].familyNameLang', '', '', '', 'ja'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_30002_creator2[0].familyNames[1].familyName', '', '', '', 'Joho'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_30002_creator2[0].familyNames[1].familyNameLang', '', '', '', 'en'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_30002_creator2[0].givenNames[0].givenName', '', '', '', '太郎'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_30002_creator2[0].givenNames[0].givenNameLang', '', '', '', 'ja'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_30002_creator2[0].givenNames[1].givenName', '', '', '', 'Taro'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_30002_creator2[0].givenNames[1].givenNameLang', '', '', '', 'en'],
         )
         assert_equal(
             props.pop(),
@@ -398,7 +429,7 @@ class TestWEKOSchema(OsfTestCase):
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_30002_contributor3[1].contributorNames[0].contributorName', '', '', '', 'Hanako Joho'],
+            ['.metadata.item_30002_contributor3[1].contributorNames[0].contributorName', '', '', '', 'Joho, Hanako'],
         )
         assert_equal(
             props.pop(),
@@ -410,11 +441,43 @@ class TestWEKOSchema(OsfTestCase):
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_30002_contributor3[1].contributorNames[1].contributorName', '', '', '', '情報花子'],
+            ['.metadata.item_30002_contributor3[1].familyNames[0].familyName', '', '', '', 'Joho'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_30002_contributor3[1].familyNames[0].familyNameLang', '', '', '', 'en'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_30002_contributor3[1].givenNames[0].givenName', '', '', '', 'Hanako'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_30002_contributor3[1].givenNames[0].givenNameLang', '', '', '', 'en'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_30002_contributor3[1].contributorNames[1].contributorName', '', '', '', '情報, 花子'],
         )
         assert_equal(
             props.pop(),
             ['.metadata.item_30002_contributor3[1].contributorNames[1].lang', '', '', '', 'ja'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_30002_contributor3[1].familyNames[1].familyName', '', '', '', '情報'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_30002_contributor3[1].familyNames[1].familyNameLang', '', '', '', 'ja'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_30002_contributor3[1].givenNames[1].givenName', '', '', '', '花子'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_30002_contributor3[1].givenNames[1].givenNameLang', '', '', '', 'ja'],
         )
         assert_equal(
             props.pop(),
@@ -612,8 +675,8 @@ class TestWEKOSchema(OsfTestCase):
                         'grdm-file:creators': [
                             {
                                 'number': '22222',
-                                'name-ja': '情報太郎',
-                                'name-en': 'Taro Joho',
+                                'name-ja': {'last': '情報', 'middle': '', 'first': '太郎'},
+                                'name-en': {'last': 'Joho', 'middle': '', 'first': 'Taro'},
                             }
                         ],
                         'grdm-file:hosting-inst-ja': '国立情報学研究所',
@@ -621,8 +684,8 @@ class TestWEKOSchema(OsfTestCase):
                         'grdm-file:hosting-inst-id': 'https://ror.org/04ksd4g47',
                         'grdm-file:data-man-type': 'individual',
                         'grdm-file:data-man-number': '11111',
-                        'grdm-file:data-man-name-ja': '情報花子',
-                        'grdm-file:data-man-name-en': 'Hanako Joho',
+                        'grdm-file:data-man-name-ja': {'last': '情報', 'middle': '', 'first': '花子'},
+                        'grdm-file:data-man-name-en': {'last': 'Joho', 'middle': '', 'first': 'Hanako'},
                         'grdm-file:data-man-org-ja': '国立情報学研究所',
                         'grdm-file:data-man-org-en': 'National Institute of Informatics',
                         'grdm-file:data-man-address-ja': '一ツ橋',
@@ -631,7 +694,6 @@ class TestWEKOSchema(OsfTestCase):
                         'grdm-file:data-man-email': 'dummy@test.rcos.nii.ac.jp',
                         'grdm-file:remarks-ja': 'コメント',
                         'grdm-file:remarks-en': 'Comment',
-                        'grdm-file:metadata-access-rights': 'closed access',
                     }.items()]),
                 },
             ],
@@ -740,6 +802,16 @@ class TestWEKOSchema(OsfTestCase):
   ],
   "@graph": [
     {
+      "@id": "ro-crate-metadata.json",
+      "@type": "CreativeWork",
+      "about": {
+        "@id": "./"
+      },
+      "conformsTo": {
+        "@id": "https://w3id.org/ro/crate/1.1"
+      }
+    },
+    {
       "jpcoar:fundingReference": [
         {
           "@id": "_:PropertyValue1"
@@ -753,7 +825,7 @@ class TestWEKOSchema(OsfTestCase):
       "description": "TEST DESCRIPTION",
       "name": "TEST DATA",
       "wk:index": "1000",
-      "wk:publishStatus": "private",
+      "wk:publishStatus": "public",
       "dcterms:accessRights": [
         {
           "@id": "_:PropertyValue8"
@@ -777,7 +849,7 @@ class TestWEKOSchema(OsfTestCase):
           "@id": "_:Organization1"
         },
         {
-          "@id": "_:Person5"
+          "@id": "_:Person9"
         },
         {
           "@id": "_:Organization5"
@@ -922,37 +994,15 @@ class TestWEKOSchema(OsfTestCase):
           "@id": "_:Person3"
         }
       ],
-      "jpcoar:nameIdentifier": [
+      "jpcoar:familyName": [
         {
           "@id": "_:Person4"
+        },
+        {
+          "@id": "_:Person5"
         }
       ],
-      "@id": "_:Person1"
-    },
-    {
-      "@type": "Person",
-      "language": "en",
-      "value": "Taro Joho",
-      "@id": "_:Person2"
-    },
-    {
-      "@type": "Person",
-      "language": "ja",
-      "value": "情報太郎",
-      "@id": "_:Person3"
-    },
-    {
-      "@type": "Person",
-      "nameIdentifierScheme": "e-Rad_Researcher",
-      "value": "22222",
-      "@id": "_:Person4"
-    },
-    {
-      "@type": "Person",
-      "additionalType": {
-        "@id": "https://github.com/JPCOAR/schema/blob/master/2.0/#DataManager"
-      },
-      "jpcoar:contributorName": [
+      "jpcoar:givenName": [
         {
           "@id": "_:Person6"
         },
@@ -960,36 +1010,138 @@ class TestWEKOSchema(OsfTestCase):
           "@id": "_:Person7"
         }
       ],
-      "jpcoar:contributorType": "DataManager",
       "jpcoar:nameIdentifier": [
         {
           "@id": "_:Person8"
         }
       ],
-      "jpcoar:affiliation": [
-        {
-          "@id": "_:Organization4"
-        }
-      ],
-      "@id": "_:Person5"
+      "@id": "_:Person1"
     },
     {
       "@type": "Person",
       "language": "en",
-      "value": "Hanako Joho",
-      "@id": "_:Person6"
+      "value": "Joho, Hanako",
+      "@id": "_:Person10"
     },
     {
       "@type": "Person",
       "language": "ja",
-      "value": "情報花子",
-      "@id": "_:Person7"
+      "value": "情報, 花子",
+      "@id": "_:Person11"
+    },
+    {
+      "@type": "Person",
+      "language": "en",
+      "value": "Joho",
+      "@id": "_:Person12"
+    },
+    {
+      "@type": "Person",
+      "language": "ja",
+      "value": "情報",
+      "@id": "_:Person13"
+    },
+    {
+      "@type": "Person",
+      "language": "en",
+      "value": "Hanako",
+      "@id": "_:Person14"
+    },
+    {
+      "@type": "Person",
+      "language": "ja",
+      "value": "花子",
+      "@id": "_:Person15"
     },
     {
       "@type": "Person",
       "nameIdentifierScheme": "e-Rad_Researcher",
       "value": "11111",
+      "@id": "_:Person16"
+    },
+    {
+      "@type": "Person",
+      "language": "en",
+      "value": "Joho, Taro",
+      "@id": "_:Person2"
+    },
+    {
+      "@type": "Person",
+      "language": "ja",
+      "value": "情報, 太郎",
+      "@id": "_:Person3"
+    },
+    {
+      "@type": "Person",
+      "language": "en",
+      "value": "Joho",
+      "@id": "_:Person4"
+    },
+    {
+      "@type": "Person",
+      "language": "ja",
+      "value": "情報",
+      "@id": "_:Person5"
+    },
+    {
+      "@type": "Person",
+      "language": "en",
+      "value": "Taro",
+      "@id": "_:Person6"
+    },
+    {
+      "@type": "Person",
+      "language": "ja",
+      "value": "太郎",
+      "@id": "_:Person7"
+    },
+    {
+      "@type": "Person",
+      "nameIdentifierScheme": "e-Rad_Researcher",
+      "value": "22222",
       "@id": "_:Person8"
+    },
+    {
+      "@type": "Person",
+      "additionalType": {
+        "@id": "https://github.com/JPCOAR/schema/blob/master/2.0/#DataManager"
+      },
+      "jpcoar:affiliation": [
+        {
+          "@id": "_:Organization4"
+        }
+      ],
+      "jpcoar:contributorName": [
+        {
+          "@id": "_:Person10"
+        },
+        {
+          "@id": "_:Person11"
+        }
+      ],
+      "jpcoar:contributorType": "DataManager",
+      "jpcoar:familyName": [
+        {
+          "@id": "_:Person12"
+        },
+        {
+          "@id": "_:Person13"
+        }
+      ],
+      "jpcoar:givenName": [
+        {
+          "@id": "_:Person14"
+        },
+        {
+          "@id": "_:Person15"
+        }
+      ],
+      "jpcoar:nameIdentifier": [
+        {
+          "@id": "_:Person16"
+        }
+      ],
+      "@id": "_:Person9"
     },
     {
       "@type": "PropertyValue",
@@ -1094,6 +1246,12 @@ class TestWEKOSchema(OsfTestCase):
     },
     {
       "@type": "PropertyValue",
+      "language": "en",
+      "value": "Test Project",
+      "@id": "_:PropertyValue2"
+    },
+    {
+      "@type": "PropertyValue",
       "language": "ja",
       "subjectScheme": "e-Rad_field",
       "value": "ライフサイエンス",
@@ -1104,12 +1262,6 @@ class TestWEKOSchema(OsfTestCase):
       "rdf:resource": "http://purl.org/coar/resource_type/63NG-B465/",
       "value": "experimental data",
       "@id": "_:PropertyValue21"
-    },
-    {
-      "@type": "PropertyValue",
-      "language": "en",
-      "value": "Test Project",
-      "@id": "_:PropertyValue2"
     },
     {
       "@type": "PropertyValue",
@@ -1187,20 +1339,10 @@ class TestWEKOSchema(OsfTestCase):
     {
       "@type": "File",
       "dcterms:accessRights": "open_login",
-      "jpcoar:mimeType": "image/jpeg",
       "jpcoar:format": "preview",
+      "jpcoar:mimeType": "image/jpeg",
       "name": "test.jpg",
       "@id": "files/test.jpg"
-    },
-    {
-      "@id": "ro-crate-metadata.json",
-      "@type": "CreativeWork",
-      "about": {
-        "@id": "./"
-      },
-      "conformsTo": {
-        "@id": "https://w3id.org/ro/crate/1.1"
-      }
     }
   ]
 }
@@ -1239,8 +1381,8 @@ class TestWEKOSchema(OsfTestCase):
                         'grdm-file:creators': [
                             {
                                 'number': '22222',
-                                'name-ja': '情報太郎',
-                                'name-en': 'Taro Joho',
+                                'name-ja': {'last': '情報', 'middle': '', 'first': '太郎'},
+                                'name-en': {'last': 'Joho', 'middle': '', 'first': 'Taro'},
                             }
                         ],
                     }.items()]),
@@ -1805,8 +1947,8 @@ class TestWEKOSchema(OsfTestCase):
                             'value': [
                                 {
                                     'number': 'D001',
-                                    'name-ja': 'テスト太郎',
-                                    'name-en': 'Taro Test',
+                                    'name-ja': {'last': 'テスト', 'middle': '', 'first': '太郎'},
+                                    'name-en': {'last': 'Test', 'middle': '', 'first': 'Taro'},
                                 }
                             ]
                         },
@@ -2432,3 +2574,310 @@ class TestWEKOSchema(OsfTestCase):
             str(context.exception),
             'Error message should indicate missing file metadata'
         )
+
+    def test_write_ro_crate_json_additional_funding(self):
+        buf = io.StringIO()
+        index = mock.MagicMock()
+        index.identifier = '1000'
+        index.title = 'TITLE'
+        node_id = 'rvm3q'
+        files = [
+            [('test.jpg', 'image/jpeg')],
+        ]
+        target_schema = RegistrationSchema.objects \
+            .filter(name='公的資金による研究データのメタデータ登録') \
+            .order_by('-schema_version') \
+            .first()
+        file_metadata = {
+            'items': [
+                {
+                    'schema': target_schema._id,
+                    'data': dict([(k, {
+                        'value': v,
+                    })for k, v in {
+                        'grdm-file:title-en': 'TEST DATA',
+                        'grdm-file:data-description-ja': 'テスト説明',
+                    }.items()]),
+                },
+            ],
+        }
+        project_metadata = {
+            'funder': {
+                'value': 'JST',
+            },
+            'japan-grant-number': {
+                'value': 'JP100001',
+            },
+            'project-name-ja': {
+                'value': 'メインプロジェクト',
+            },
+            'project-name-en': {
+                'value': 'Main Project',
+            },
+            'additional-funding': {
+                'value': json.dumps([
+                    {
+                        'funder': 'JSPS',
+                        'japan-grant-number': 'JP200002',
+                        'project-name-ja': '追加プロジェクト1',
+                        'project-name-en': 'Additional Project 1',
+                    },
+                    {
+                        'funder': 'AMED',
+                        'japan-grant-number': 'JP300003',
+                        'project-name-ja': '追加プロジェクト2',
+                        'project-name-en': 'Additional Project 2',
+                    },
+                ]),
+            },
+        }
+
+        schema.write_ro_crate_json(
+            self.user,
+            buf,
+            index,
+            files,
+            target_schema._id,
+            [file_metadata],
+            [project_metadata],
+            node_id
+        )
+
+        actual_json = json.loads(buf.getvalue())
+        graph = actual_json['@graph']
+        entities = {e['@id']: e for e in graph if '@id' in e}
+
+        def resolve_ref(ref):
+            return entities[ref['@id']]
+
+        dataset = entities['./']
+        funding_refs = dataset['jpcoar:fundingReference']
+        assert_equal(len(funding_refs), 3)
+
+        resolved_fundings = []
+        for ref in funding_refs:
+            fr = resolve_ref(ref)
+            assert_equal(fr['@type'], 'PropertyValue')
+
+            award_number = resolve_ref(fr['jpcoar:awardNumber'])
+            assert_equal(award_number['@type'], 'jpcoar:awardNumber')
+            assert_equal(award_number['jpcoar:awardNumberType'], 'JGN')
+
+            funder_names = [resolve_ref(r) for r in fr['jpcoar:funderName']]
+            assert_equal(len(funder_names), 2)
+            funder_ja = next(n for n in funder_names if n['language'] == 'ja')
+            funder_en = next(n for n in funder_names if n['language'] == 'en')
+
+            award_titles = [resolve_ref(r) for r in fr['jpcoar:awardTitle']]
+            assert_equal(len(award_titles), 2)
+            title_ja = next(t for t in award_titles if t['language'] == 'ja')
+            title_en = next(t for t in award_titles if t['language'] == 'en')
+
+            resolved_fundings.append({
+                'grant_number': award_number['value'],
+                'funder_ja': funder_ja['value'],
+                'funder_en': funder_en['value'],
+                'title_ja': title_ja['value'],
+                'title_en': title_en['value'],
+            })
+
+        resolved_fundings.sort(key=lambda f: f['grant_number'])
+
+        assert_equal(resolved_fundings[0], {
+            'grant_number': 'JP100001',
+            'funder_ja': '国立研究開発法人科学技術振興機構(JST)',
+            'funder_en': 'Japan Science and Technology Agency(JST)',
+            'title_ja': 'メインプロジェクト',
+            'title_en': 'Main Project',
+        })
+        assert_equal(resolved_fundings[1], {
+            'grant_number': 'JP200002',
+            'funder_ja': '独立行政法人日本学術振興会(JSPS)',
+            'funder_en': 'Japan Society for the Promotion of Science(JSPS)',
+            'title_ja': '追加プロジェクト1',
+            'title_en': 'Additional Project 1',
+        })
+        assert_equal(resolved_fundings[2], {
+            'grant_number': 'JP300003',
+            'funder_ja': '国立研究開発法人日本医療研究開発機構(AMED)',
+            'funder_en': 'Japan Agency for Medical Research and Development(AMED)',
+            'title_ja': '追加プロジェクト2',
+            'title_en': 'Additional Project 2',
+        })
+
+    def test_write_csv_unsplit_creator_name(self):
+        """Migrated data: last = full name, first/middle empty.
+        familyName/givenName should NOT be output."""
+        buf = io.StringIO()
+        index = mock.MagicMock()
+        index.identifier = '1000'
+        index.title = 'TITLE'
+        files = [
+            [('test.jpg', 'image/jpeg')],
+        ]
+        target_schema = RegistrationSchema.objects \
+            .filter(name='公的資金による研究データのメタデータ登録') \
+            .order_by('-schema_version') \
+            .first()
+        file_metadata = {
+            'items': [
+                {
+                    'schema': target_schema._id,
+                    'data': dict([(k, {
+                        'value': v,
+                    }) for k, v in {
+                        'grdm-file:title-en': 'TEST DATA',
+                        'grdm-file:title-ja': 'テストデータ',
+                        'grdm-file:data-description-ja': 'テスト説明',
+                        'grdm-file:data-description-en': 'TEST DESCRIPTION',
+                        'grdm-file:data-type': 'dataset',
+                        'grdm-file:access-rights': 'open access',
+                    }.items()] + [
+                        ('grdm-file:creators', {
+                            'value': [
+                                {
+                                    'number': '99999',
+                                    'name-ja': {'last': '情報太郎', 'middle': '', 'first': ''},
+                                    'name-en': {'last': 'Taro Joho', 'middle': '', 'first': ''},
+                                }
+                            ],
+                        }),
+                    ]),
+                },
+            ],
+        }
+
+        schema.write_csv(
+            self.user,
+            buf,
+            index,
+            files,
+            target_schema._id,
+            [file_metadata],
+            [],
+        )
+
+        buf.seek(0)
+        reader = csv.reader(buf)
+        lines = list(reader)
+        data_row = lines[5]
+        header_row = lines[1]
+
+        # Build column map
+        col = dict(zip(header_row, data_row))
+
+        # creatorName should be the full name (no comma since first is empty)
+        assert_equal(
+            col['.metadata.item_30002_creator2[0].creatorNames[0].creatorName'],
+            '情報太郎',
+        )
+        assert_equal(
+            col['.metadata.item_30002_creator2[0].creatorNames[1].creatorName'],
+            'Taro Joho',
+        )
+
+        # familyName/givenName should NOT exist in headers (not output)
+        assert '.metadata.item_30002_creator2[0].familyNames[0].familyName' not in col
+        assert '.metadata.item_30002_creator2[0].givenNames[0].givenName' not in col
+
+    def test_write_ro_crate_json_unsplit_creator_name(self):
+        """Migrated data: last = full name, first/middle empty.
+        familyName/givenName should NOT be output in RO-Crate."""
+        buf = io.StringIO()
+        index = mock.MagicMock()
+        index.identifier = '1000'
+        index.title = 'TITLE'
+        node_id = 'rvm3q'
+        files = [
+            [('test.jpg', 'image/jpeg')],
+        ]
+        target_schema = RegistrationSchema.objects \
+            .filter(name='公的資金による研究データのメタデータ登録') \
+            .order_by('-schema_version') \
+            .first()
+        file_metadata = {
+            'items': [
+                {
+                    'schema': target_schema._id,
+                    'data': dict([(k, {
+                        'value': v,
+                    }) for k, v in {
+                        'grdm-file:title-en': 'TEST DATA',
+                        'grdm-file:title-ja': 'テストデータ',
+                        'grdm-file:data-description-ja': 'テスト説明',
+                        'grdm-file:data-description-en': 'TEST DESCRIPTION',
+                        'grdm-file:data-type': 'dataset',
+                        'grdm-file:access-rights': 'open access',
+                        'grdm-file:data-man-type': 'individual',
+                    }.items()] + [
+                        ('grdm-file:creators', {
+                            'value': [
+                                {
+                                    'number': '99999',
+                                    'name-ja': {'last': '情報太郎', 'middle': '', 'first': ''},
+                                    'name-en': {'last': 'Taro Joho', 'middle': '', 'first': ''},
+                                }
+                            ],
+                        }),
+                        ('grdm-file:data-man-name-ja', {
+                            'value': {'last': '管理花子', 'middle': '', 'first': ''},
+                        }),
+                        ('grdm-file:data-man-name-en', {
+                            'value': {'last': 'Hanako Manager', 'middle': '', 'first': ''},
+                        }),
+                    ]),
+                },
+            ],
+        }
+
+        schema.write_ro_crate_json(
+            self.user,
+            buf,
+            index,
+            files,
+            target_schema._id,
+            [file_metadata],
+            [],
+            node_id,
+        )
+
+        data = json.loads(buf.getvalue())
+        entities = {e['@id']: e for e in data['@graph']}
+
+        # Find creator entity
+        dataset = entities['./']
+        creator_refs = dataset.get('jpcoar:creator', [])
+        assert_equal(len(creator_refs), 1)
+        creator = entities[creator_refs[0]['@id']]
+
+        # creatorName should exist
+        assert 'jpcoar:creatorName' in creator
+
+        # familyName/givenName should NOT exist (unsplit)
+        assert 'jpcoar:familyName' not in creator
+        assert 'jpcoar:givenName' not in creator
+
+        # Verify creatorName values
+        name_refs = creator['jpcoar:creatorName']
+        names = [entities[r['@id']] for r in name_refs]
+        ja_name = next(n for n in names if n.get('language') == 'ja')
+        en_name = next(n for n in names if n.get('language') == 'en')
+        assert_equal(ja_name['value'], '情報太郎')
+        assert_equal(en_name['value'], 'Taro Joho')
+
+        # Find data manager contributor
+        contributor_refs = dataset.get('jpcoar:contributor', [])
+        dm = None
+        for ref in contributor_refs:
+            entity = entities[ref['@id']]
+            if entity.get('jpcoar:contributorType') == 'DataManager':
+                dm = entity
+                break
+        assert dm is not None
+
+        # contributorName should exist
+        assert 'jpcoar:contributorName' in dm
+
+        # familyName/givenName should NOT exist (unsplit)
+        assert 'jpcoar:familyName' not in dm
+        assert 'jpcoar:givenName' not in dm

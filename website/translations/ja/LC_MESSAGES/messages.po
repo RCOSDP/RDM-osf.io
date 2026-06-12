@@ -4569,8 +4569,8 @@ msgstr "メンバー管理"
 #: addons/workflow/templates/workflow_node_settings.mako:415
 #: addons/workflow/templates/workflow_node_settings.mako:450
 #: addons/workflow/templates/workflow_node_settings.mako:485
-msgid "Access connected services (e.g., WEKO)"
-msgstr "接続済みサービス(例: WEKO)へアクセス"
+msgid "Access connected services (add-ons, etc.)"
+msgstr "接続済みサービス(各種アドオン等)へアクセス"
 
 
 #: addons/workflow/templates/workflow_node_settings.mako:45
@@ -5071,3 +5071,11 @@ msgstr "ワークフローテンプレートを更新しました。"
 #: addons/workflow/static/workflowNodeConfig.js:876
 msgid "Failed to update workflow template."
 msgstr "ワークフローテンプレートの更新に失敗しました。"
+
+#: website/templates/util/render_addon_widget.mako
+msgid "Available workflows"
+msgstr "利用可能なワークフロー"
+
+#: website/templates/util/render_addon_widget.mako
+msgid "Dismiss"
+msgstr "非表示にする"

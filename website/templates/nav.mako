@@ -1,4 +1,5 @@
 <%def name="nav(service_name, service_url, service_support_url, service_support_target='_self')">
+<% from osf.utils.text_rendering import render_text %>
 <link rel="stylesheet" href='/static/css/nav.css'>
 <div class="osf-nav-wrapper">
 
@@ -139,7 +140,7 @@
                         <span aria-hidden="true">&times;</span></button>
                     <strong>${_('Notice:')}</strong>
                     % if maintenance['message']:
-                        ${maintenance['message']}
+                        ${render_text(maintenance['message']) | n}
                     % else:
                         ${_('The site will undergo maintenance between <span id="maintenanceTime"></span>.') | n}
                         ${_("Thank you for your patience.")}

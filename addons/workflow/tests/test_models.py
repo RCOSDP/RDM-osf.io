@@ -126,3 +126,39 @@ class WorkflowNodeSettingsTests(OsfTestCase):
         activation = WorkflowActivation.objects.get(node=self.node, template=template)
         assert activation.is_enabled is True
         mock_activate.assert_called_once_with(activation, self.user)
+
+    def test_on_add_reactivates_dismissed_template(self):
+        institution = InstitutionFactory()
+        engine = WorkflowEngine.objects.create(
+            engine_id=str(uuid.uuid4()),
+            gateway_base_url='https://workflow.example/api/',
+            signing_kid='kid-test',
+            institution=institution,
+        )
+        snapshot = WorkflowDefinitionSnapshot.objects.create(
+            engine=engine,
+            definition_id='definition-dismissed',
+            definition_key='definition-dismissed',
+            name='Dismissed Process',
+            version=1,
+        )
+        template = WorkflowTemplate.objects.create(
+            node=self.node,
+            definition=snapshot,
+            registered_by=self.user,
+            auto_activate=True,
+        )
+        WorkflowActivation.objects.create(
+            node=self.node,
+            template=template,
+            activated_by=self.user,
+            is_enabled=False,
+            is_dismissed=True,
+        )
+
+        with mock.patch('addons.workflow.services.get_user_accessible_templates', return_value=[template]):
+            with mock.patch('addons.workflow.services.activate_workflow_activation') as mock_activate:
+                self.node_settings.on_add()
+
+        activation = WorkflowActivation.objects.get(node=self.node, template=template)
+        mock_activate.assert_called_once_with(activation, self.user)

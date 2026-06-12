@@ -223,7 +223,7 @@ def remove_schemas(*args):
 def create_schema_block(state, schema_id, block_type, display_text='', required=False, help_text='',
         registration_response_key=None, schema_block_group_key='', example_text='',
         default=False, pattern=None, space_normalization=False, required_if=None,
-        message_required_if=None, enabled_if=None, suggestion=None, display_template=None, auto_value=False, auto_date=False, auto_title=False, hide_projectmetadata=False, retrieval_title='', retrieval_date='', concealment_page_navigator=False, multi_language=False, retrieval_version='', readonly=False, sentence=False, required_all_check=None, row_addition_caption=''):
+        message_required_if=None, enabled_if=None, suggestion=None, display_template=None, auto_value=False, auto_date=False, auto_title=False, hide_projectmetadata=False, retrieval_title='', retrieval_date='', concealment_page_navigator=False, multi_language=False, retrieval_version='', readonly=False, sentence=False, required_all_check=None, row_addition_caption='', ui=None):
     """
     For mapping schemas to schema blocks: creates a given block from the specified parameters
     """
@@ -264,7 +264,7 @@ def create_schema_block(state, schema_id, block_type, display_text='', required=
         'required_if': required_if,
         'message_required_if': message_required_if,
         'enabled_if': enabled_if,
-        'suggestion': suggestion,
+        'suggestion': json.dumps(suggestion) if suggestion is not None else None,
         'display_template': display_template,
         'auto_value': auto_value,
         'auto_date': auto_date,
@@ -279,6 +279,7 @@ def create_schema_block(state, schema_id, block_type, display_text='', required=
         'readonly': readonly,
         'sentence': sentence,
         'row_addition_caption': row_addition_caption,
+        'ui': ui,
     }
 
     try:
@@ -508,6 +509,7 @@ def create_schema_blocks_for_question(state, rs, question, sub=False):
             sentence=question.get('sentence', False),
             row_addition_caption=question.get('row_addition_caption', ''),
             hide_projectmetadata=question.get('hide_projectmetadata', False),
+            ui=question.get('ui', None),
         )
 
         # If there are multiple choice answers, create blocks for these as well.
