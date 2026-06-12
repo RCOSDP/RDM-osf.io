@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import copy
 import csv
 import io
 import json
@@ -38,7 +39,7 @@ class TestWEKOSchema(OsfTestCase):
         index.identifier = '1000'
         index.title = 'TITLE'
         files = [
-            ('test.jpg', 'image/jpeg'),
+            [('test.jpg', 'image/jpeg')],
         ]
         target_schema = RegistrationSchema.objects \
             .filter(name='公的資金による研究データのメタデータ登録') \
@@ -84,7 +85,7 @@ class TestWEKOSchema(OsfTestCase):
 
         assert_equal(
             props.pop(),
-            ['.publish_status', '.PUBLISH_STATUS', '', 'Required', 'private'],
+            ['.publish_status', '.PUBLISH_STATUS', '', 'Required', 'public'],
         )
         assert_equal(
             props.pop(),
@@ -185,7 +186,7 @@ class TestWEKOSchema(OsfTestCase):
         index.identifier = '1000'
         index.title = 'TITLE'
         files = [
-            ('test.jpg', 'image/jpeg'),
+            [('test.jpg', 'image/jpeg')],
         ]
         target_schema = RegistrationSchema.objects \
             .filter(name='公的資金による研究データのメタデータ登録') \
@@ -219,8 +220,8 @@ class TestWEKOSchema(OsfTestCase):
                         'grdm-file:creators': [
                             {
                                 'number': '22222',
-                                'name-ja': '情報太郎',
-                                'name-en': 'Taro Joho',
+                                'name-ja': {'last': '情報', 'middle': '', 'first': '太郎'},
+                                'name-en': {'last': 'Joho', 'middle': '', 'first': 'Taro'},
                             }
                         ],
                         'grdm-file:hosting-inst-ja': '国立情報学研究所',
@@ -228,8 +229,8 @@ class TestWEKOSchema(OsfTestCase):
                         'grdm-file:hosting-inst-id': 'https://ror.org/04ksd4g47',
                         'grdm-file:data-man-type': 'individual',
                         'grdm-file:data-man-number': '11111',
-                        'grdm-file:data-man-name-ja': '情報花子',
-                        'grdm-file:data-man-name-en': 'Hanako Joho',
+                        'grdm-file:data-man-name-ja': {'last': '情報', 'middle': '', 'first': '花子'},
+                        'grdm-file:data-man-name-en': {'last': 'Joho', 'middle': '', 'first': 'Hanako'},
                         'grdm-file:data-man-org-ja': '国立情報学研究所',
                         'grdm-file:data-man-org-en': 'National Institute of Informatics',
                         'grdm-file:data-man-address-ja': '一ツ橋',
@@ -238,7 +239,6 @@ class TestWEKOSchema(OsfTestCase):
                         'grdm-file:data-man-email': 'dummy@test.rcos.nii.ac.jp',
                         'grdm-file:remarks-ja': 'コメント',
                         'grdm-file:remarks-en': 'Comment',
-                        'grdm-file:metadata-access-rights': 'closed access',
                     }.items()]),
                 },
             ],
@@ -269,7 +269,7 @@ class TestWEKOSchema(OsfTestCase):
 
         assert_equal(
             props.pop(),
-            ['.publish_status', '.PUBLISH_STATUS', '', 'Required', 'private'],
+            ['.publish_status', '.PUBLISH_STATUS', '', 'Required', 'public'],
         )
         assert_equal(
             props.pop(),
@@ -321,7 +321,7 @@ class TestWEKOSchema(OsfTestCase):
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_30002_creator2[0].creatorNames[0].creatorName', '', '', '', '情報太郎'],
+            ['.metadata.item_30002_creator2[0].creatorNames[0].creatorName', '', '', '', '情報, 太郎'],
         )
         assert_equal(
             props.pop(),
@@ -329,11 +329,43 @@ class TestWEKOSchema(OsfTestCase):
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_30002_creator2[0].creatorNames[1].creatorName', '', '', '', 'Taro Joho'],
+            ['.metadata.item_30002_creator2[0].creatorNames[1].creatorName', '', '', '', 'Joho, Taro'],
         )
         assert_equal(
             props.pop(),
             ['.metadata.item_30002_creator2[0].creatorNames[1].creatorNameLang', '', '', '', 'en'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_30002_creator2[0].familyNames[0].familyName', '', '', '', '情報'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_30002_creator2[0].familyNames[0].familyNameLang', '', '', '', 'ja'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_30002_creator2[0].familyNames[1].familyName', '', '', '', 'Joho'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_30002_creator2[0].familyNames[1].familyNameLang', '', '', '', 'en'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_30002_creator2[0].givenNames[0].givenName', '', '', '', '太郎'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_30002_creator2[0].givenNames[0].givenNameLang', '', '', '', 'ja'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_30002_creator2[0].givenNames[1].givenName', '', '', '', 'Taro'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_30002_creator2[0].givenNames[1].givenNameLang', '', '', '', 'en'],
         )
         assert_equal(
             props.pop(),
@@ -397,7 +429,7 @@ class TestWEKOSchema(OsfTestCase):
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_30002_contributor3[1].contributorNames[0].contributorName', '', '', '', 'Hanako Joho'],
+            ['.metadata.item_30002_contributor3[1].contributorNames[0].contributorName', '', '', '', 'Joho, Hanako'],
         )
         assert_equal(
             props.pop(),
@@ -409,11 +441,43 @@ class TestWEKOSchema(OsfTestCase):
         )
         assert_equal(
             props.pop(),
-            ['.metadata.item_30002_contributor3[1].contributorNames[1].contributorName', '', '', '', '情報花子'],
+            ['.metadata.item_30002_contributor3[1].familyNames[0].familyName', '', '', '', 'Joho'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_30002_contributor3[1].familyNames[0].familyNameLang', '', '', '', 'en'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_30002_contributor3[1].givenNames[0].givenName', '', '', '', 'Hanako'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_30002_contributor3[1].givenNames[0].givenNameLang', '', '', '', 'en'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_30002_contributor3[1].contributorNames[1].contributorName', '', '', '', '情報, 花子'],
         )
         assert_equal(
             props.pop(),
             ['.metadata.item_30002_contributor3[1].contributorNames[1].lang', '', '', '', 'ja'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_30002_contributor3[1].familyNames[1].familyName', '', '', '', '情報'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_30002_contributor3[1].familyNames[1].familyNameLang', '', '', '', 'ja'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_30002_contributor3[1].givenNames[1].givenName', '', '', '', '花子'],
+        )
+        assert_equal(
+            props.pop(),
+            ['.metadata.item_30002_contributor3[1].givenNames[1].givenNameLang', '', '', '', 'ja'],
         )
         assert_equal(
             props.pop(),
@@ -577,7 +641,7 @@ class TestWEKOSchema(OsfTestCase):
         index.title = 'TITLE'
         node_id = 'rvm3q'
         files = [
-            ('test.jpg', 'image/jpeg'),
+            [('test.jpg', 'image/jpeg')],
         ]
         target_schema = RegistrationSchema.objects \
             .filter(name='公的資金による研究データのメタデータ登録') \
@@ -611,8 +675,8 @@ class TestWEKOSchema(OsfTestCase):
                         'grdm-file:creators': [
                             {
                                 'number': '22222',
-                                'name-ja': '情報太郎',
-                                'name-en': 'Taro Joho',
+                                'name-ja': {'last': '情報', 'middle': '', 'first': '太郎'},
+                                'name-en': {'last': 'Joho', 'middle': '', 'first': 'Taro'},
                             }
                         ],
                         'grdm-file:hosting-inst-ja': '国立情報学研究所',
@@ -620,8 +684,8 @@ class TestWEKOSchema(OsfTestCase):
                         'grdm-file:hosting-inst-id': 'https://ror.org/04ksd4g47',
                         'grdm-file:data-man-type': 'individual',
                         'grdm-file:data-man-number': '11111',
-                        'grdm-file:data-man-name-ja': '情報花子',
-                        'grdm-file:data-man-name-en': 'Hanako Joho',
+                        'grdm-file:data-man-name-ja': {'last': '情報', 'middle': '', 'first': '花子'},
+                        'grdm-file:data-man-name-en': {'last': 'Joho', 'middle': '', 'first': 'Hanako'},
                         'grdm-file:data-man-org-ja': '国立情報学研究所',
                         'grdm-file:data-man-org-en': 'National Institute of Informatics',
                         'grdm-file:data-man-address-ja': '一ツ橋',
@@ -630,7 +694,6 @@ class TestWEKOSchema(OsfTestCase):
                         'grdm-file:data-man-email': 'dummy@test.rcos.nii.ac.jp',
                         'grdm-file:remarks-ja': 'コメント',
                         'grdm-file:remarks-en': 'Comment',
-                        'grdm-file:metadata-access-rights': 'closed access',
                     }.items()]),
                 },
             ],
@@ -739,277 +802,41 @@ class TestWEKOSchema(OsfTestCase):
   ],
   "@graph": [
     {
-      "fundingReference": [
+      "@id": "ro-crate-metadata.json",
+      "@type": "CreativeWork",
+      "about": {
+        "@id": "./"
+      },
+      "conformsTo": {
+        "@id": "https://w3id.org/ro/crate/1.1"
+      }
+    },
+    {
+      "jpcoar:fundingReference": [
         {
-          "@id": "_:jpcoar_fundingReference1"
+          "@id": "_:PropertyValue1"
         }
       ],
       "@id": "./",
-      "@type": [
-        "Dataset",
-        "rdm:Dataset"
-      ],
+      "@type": "Dataset",
       "conformsTo": {
         "@id": "https://w3id.org/ro/crate/1.1"
       },
       "description": "TEST DESCRIPTION",
       "name": "TEST DATA",
       "wk:index": "1000",
-      "wk:publishStatus": "private",
-      "rdm:accessRightsInformation": [
-        {
-          "@id": "_:rdm_AccessRights1"
-        }
-      ],
-      "creator": [
-        {
-          "@id": "_:Person1"
-        }
-      ],
-      "rdm:description": {
-        "@id": "_:Thing1"
-      },
-      "contributor": [
-        {
-          "@id": "_:Organization1"
-        },
-        {
-          "@id": "_:Person2"
-        },
-        {
-          "@id": "_:Organization2"
-        }
-      ],
-      "rdm:licenseInformation": [
-        {
-          "@id": "_:rdm_License1"
-        },
-        {
-          "@id": "_:rdm_License2"
-        },
-        {
-          "@id": "_:rdm_License3"
-        }
-      ],
-      "license": {
-        "@id": "_:rdm_License4"
-      },
-      "rdm:field": [
-        {
-          "@id": "_:Thing2"
-        }
-      ],
-      "dc:type": "experimental data",
-      "rdm:name": {
-        "@id": "_:Thing3"
-      }
-    },
-    {
-      "@type": "File",
-      "encodingFormat": "image/jpeg",
-      "name": "test.jpg",
-      "@id": "_:File1"
-    },
-    {
-      "@type": "Organization",
-      "additionalType": {
-        "@id": "https://github.com/JPCOAR/schema/blob/master/2.0/#ContactPerson"
-      },
-      "name": "National Institute of Informatics TEL: XX-XXXX-XXXX E-Mail: dummy@test.rcos.nii.ac.jp",
-      "rdm:name": [
-        {
-          "@id": "_:PropertyValue11"
-        },
-        {
-          "@id": "_:PropertyValue12"
-        }
-      ],
-      "@id": "_:Organization1"
-    },
-    {
-      "@type": "Organization",
-      "additionalType": {
-        "@id": "https://github.com/JPCOAR/schema/blob/master/2.0/#HostingInstitution"
-      },
-      "name": "National Institute of Informatics",
-      "rdm:name": [
-        {
-          "@id": "_:PropertyValue15"
-        },
-        {
-          "@id": "_:PropertyValue16"
-        }
-      ],
-      "identifier": {
-        "@id": "_:jpcoar_nameIdentifierType2"
-      },
-      "@id": "_:Organization2"
-    },
-    {
-      "@type": "Person",
-      "identifier": [
-        {
-          "@id": "_:jpcoar_nameIdentifierType1"
-        }
-      ],
-      "name": "Taro Joho",
-      "rdm:name": [
-        {
-          "@id": "_:PropertyValue7"
-        },
+      "wk:publishStatus": "public",
+      "dcterms:accessRights": [
         {
           "@id": "_:PropertyValue8"
         }
       ],
-      "@id": "_:Person1"
-    },
-    {
-      "@type": "Person",
-      "additionalType": {
-        "@id": "https://github.com/JPCOAR/schema/blob/master/2.0/#DataManager"
-      },
-      "name": "Hanako Joho",
-      "rdm:name": [
+      "jpcoar:creator": [
         {
-          "@id": "_:PropertyValue13"
-        },
-        {
-          "@id": "_:PropertyValue14"
+          "@id": "_:Person1"
         }
       ],
-      "@id": "_:Person2"
-    },
-    {
-      "@type": "PropertyValue",
-      "language": "en",
-      "value": "Test Project",
-      "@id": "_:PropertyValue1"
-    },
-    {
-      "@type": "PropertyValue",
-      "language": "ja",
-      "value": "テスト説明",
-      "@id": "_:PropertyValue10"
-    },
-    {
-      "@type": "PropertyValue",
-      "language": "en",
-      "value": "National Institute of Informatics Hitotsubashi TEL: XX-XXXX-XXXX E-Mail: dummy@test.rcos.nii.ac.jp",
-      "@id": "_:PropertyValue11"
-    },
-    {
-      "@type": "PropertyValue",
-      "language": "ja",
-      "value": "国立情報学研究所 一ツ橋 TEL: XX-XXXX-XXXX E-Mail: dummy@test.rcos.nii.ac.jp",
-      "@id": "_:PropertyValue12"
-    },
-    {
-      "@type": "PropertyValue",
-      "language": "en",
-      "value": "Hanako Joho",
-      "@id": "_:PropertyValue13"
-    },
-    {
-      "@type": "PropertyValue",
-      "language": "ja",
-      "value": "情報花子",
-      "@id": "_:PropertyValue14"
-    },
-    {
-      "@type": "PropertyValue",
-      "language": "en",
-      "value": "National Institute of Informatics",
-      "@id": "_:PropertyValue15"
-    },
-    {
-      "@type": "PropertyValue",
-      "language": "ja",
-      "value": "国立情報学研究所",
-      "@id": "_:PropertyValue16"
-    },
-    {
-      "@type": "PropertyValue",
-      "language": "en",
-      "value": "CC0 1.0 Universal",
-      "@id": "_:PropertyValue17"
-    },
-    {
-      "@type": "PropertyValue",
-      "language": "en",
-      "name": "e-Rad_field",
-      "value": "Life Science",
-      "@id": "_:PropertyValue18"
-    },
-    {
-      "@type": "PropertyValue",
-      "language": "ja",
-      "name": "e-Rad_field",
-      "value": "ライフサイエンス",
-      "@id": "_:PropertyValue19"
-    },
-    {
-      "@type": "PropertyValue",
-      "language": "ja",
-      "value": "テストプロジェクト",
-      "@id": "_:PropertyValue2"
-    },
-    {
-      "@type": "PropertyValue",
-      "language": "en",
-      "value": "TEST DATA",
-      "@id": "_:PropertyValue20"
-    },
-    {
-      "@type": "PropertyValue",
-      "language": "ja",
-      "value": "テストデータ",
-      "@id": "_:PropertyValue21"
-    },
-    {
-      "@type": "PropertyValue",
-      "language": "en",
-      "value": "Japan Science and Technology Agency(JST)",
-      "@id": "_:PropertyValue3"
-    },
-    {
-      "@type": "PropertyValue",
-      "language": "ja",
-      "value": "国立研究開発法人科学技術振興機構(JST)",
-      "@id": "_:PropertyValue4"
-    },
-    {
-      "@type": "PropertyValue",
-      "language": "en",
-      "value": "Test Program",
-      "@id": "_:PropertyValue5"
-    },
-    {
-      "@type": "PropertyValue",
-      "language": "ja",
-      "value": "テストプログラム",
-      "@id": "_:PropertyValue6"
-    },
-    {
-      "@type": "PropertyValue",
-      "language": "ja",
-      "value": "情報太郎",
-      "@id": "_:PropertyValue7"
-    },
-    {
-      "@type": "PropertyValue",
-      "language": "en",
-      "value": "Taro Joho",
-      "@id": "_:PropertyValue8"
-    },
-    {
-      "@type": "PropertyValue",
-      "language": "en",
-      "value": "TEST DESCRIPTION",
-      "@id": "_:PropertyValue9"
-    },
-    {
-      "@type": "Thing",
-      "value": [
+      "datacite:description": [
         {
           "@id": "_:PropertyValue9"
         },
@@ -1017,31 +844,479 @@ class TestWEKOSchema(OsfTestCase):
           "@id": "_:PropertyValue10"
         }
       ],
-      "@id": "_:Thing1"
-    },
-    {
-      "@type": "Thing",
-      "value": [
+      "jpcoar:contributor": [
+        {
+          "@id": "_:Organization1"
+        },
+        {
+          "@id": "_:Person9"
+        },
+        {
+          "@id": "_:Organization5"
+        }
+      ],
+      "dc:rights": [
+        {
+          "@id": "_:PropertyValue13"
+        },
+        {
+          "@id": "_:PropertyValue14"
+        },
+        {
+          "@id": "_:PropertyValue15"
+        },
+        {
+          "@id": "_:PropertyValue16"
+        },
+        {
+          "@id": "_:PropertyValue17"
+        },
         {
           "@id": "_:PropertyValue18"
-        },
+        }
+      ],
+      "jpcoar:subject": [
         {
           "@id": "_:PropertyValue19"
-        }
-      ],
-      "@id": "_:Thing2"
-    },
-    {
-      "@type": "Thing",
-      "value": [
-        {
-          "@id": "_:PropertyValue20"
         },
         {
-          "@id": "_:PropertyValue21"
+          "@id": "_:PropertyValue20"
         }
       ],
-      "@id": "_:Thing3"
+      "dc:type": {
+        "@id": "_:PropertyValue21"
+      },
+      "dc:title": [
+        {
+          "@id": "_:PropertyValue22"
+        },
+        {
+          "@id": "_:PropertyValue23"
+        }
+      ],
+      "wk:isSplited": false,
+      "hasPart": [
+        {
+          "@id": "files/test.jpg"
+        }
+      ]
+    },
+    {
+      "@type": "Organization",
+      "additionalType": {
+        "@id": "https://github.com/JPCOAR/schema/blob/master/2.0/#ContactPerson"
+      },
+      "jpcoar:contributorName": [
+        {
+          "@id": "_:Organization2"
+        },
+        {
+          "@id": "_:Organization3"
+        }
+      ],
+      "jpcoar:contributorType": "ContactPerson",
+      "@id": "_:Organization1"
+    },
+    {
+      "@type": "Organization",
+      "language": "en",
+      "nameType": "Organizational",
+      "value": "National Institute of Informatics Hitotsubashi TEL: XX-XXXX-XXXX E-Mail: dummy@test.rcos.nii.ac.jp",
+      "@id": "_:Organization2"
+    },
+    {
+      "@type": "Organization",
+      "language": "ja",
+      "nameType": "Organizational",
+      "value": "国立情報学研究所 一ツ橋 TEL: XX-XXXX-XXXX E-Mail: dummy@test.rcos.nii.ac.jp",
+      "@id": "_:Organization3"
+    },
+    {
+      "@type": "Organization",
+      "jpcoar:affiliationName": [
+        {
+          "@id": "_:PropertyValue11"
+        },
+        {
+          "@id": "_:PropertyValue12"
+        }
+      ],
+      "@id": "_:Organization4"
+    },
+    {
+      "@type": "Organization",
+      "additionalType": {
+        "@id": "https://github.com/JPCOAR/schema/blob/master/2.0/#HostingInstitution"
+      },
+      "jpcoar:contributorName": [
+        {
+          "@id": "_:Organization6"
+        },
+        {
+          "@id": "_:Organization7"
+        }
+      ],
+      "jpcoar:contributorType": "HostingInstitution",
+      "jpcoar:nameIdentifier": [
+        {
+          "@id": "_:Organization8"
+        }
+      ],
+      "@id": "_:Organization5"
+    },
+    {
+      "@type": "Organization",
+      "language": "en",
+      "nameType": "Organizational",
+      "value": "National Institute of Informatics",
+      "@id": "_:Organization6"
+    },
+    {
+      "@type": "Organization",
+      "language": "ja",
+      "nameType": "Organizational",
+      "value": "国立情報学研究所",
+      "@id": "_:Organization7"
+    },
+    {
+      "@type": "Organization",
+      "nameIdentifierScheme": "ROR",
+      "value": "https://ror.org/04ksd4g47",
+      "@id": "_:Organization8"
+    },
+    {
+      "@type": "Person",
+      "jpcoar:creatorName": [
+        {
+          "@id": "_:Person2"
+        },
+        {
+          "@id": "_:Person3"
+        }
+      ],
+      "jpcoar:familyName": [
+        {
+          "@id": "_:Person4"
+        },
+        {
+          "@id": "_:Person5"
+        }
+      ],
+      "jpcoar:givenName": [
+        {
+          "@id": "_:Person6"
+        },
+        {
+          "@id": "_:Person7"
+        }
+      ],
+      "jpcoar:nameIdentifier": [
+        {
+          "@id": "_:Person8"
+        }
+      ],
+      "@id": "_:Person1"
+    },
+    {
+      "@type": "Person",
+      "language": "en",
+      "value": "Joho, Hanako",
+      "@id": "_:Person10"
+    },
+    {
+      "@type": "Person",
+      "language": "ja",
+      "value": "情報, 花子",
+      "@id": "_:Person11"
+    },
+    {
+      "@type": "Person",
+      "language": "en",
+      "value": "Joho",
+      "@id": "_:Person12"
+    },
+    {
+      "@type": "Person",
+      "language": "ja",
+      "value": "情報",
+      "@id": "_:Person13"
+    },
+    {
+      "@type": "Person",
+      "language": "en",
+      "value": "Hanako",
+      "@id": "_:Person14"
+    },
+    {
+      "@type": "Person",
+      "language": "ja",
+      "value": "花子",
+      "@id": "_:Person15"
+    },
+    {
+      "@type": "Person",
+      "nameIdentifierScheme": "e-Rad_Researcher",
+      "value": "11111",
+      "@id": "_:Person16"
+    },
+    {
+      "@type": "Person",
+      "language": "en",
+      "value": "Joho, Taro",
+      "@id": "_:Person2"
+    },
+    {
+      "@type": "Person",
+      "language": "ja",
+      "value": "情報, 太郎",
+      "@id": "_:Person3"
+    },
+    {
+      "@type": "Person",
+      "language": "en",
+      "value": "Joho",
+      "@id": "_:Person4"
+    },
+    {
+      "@type": "Person",
+      "language": "ja",
+      "value": "情報",
+      "@id": "_:Person5"
+    },
+    {
+      "@type": "Person",
+      "language": "en",
+      "value": "Taro",
+      "@id": "_:Person6"
+    },
+    {
+      "@type": "Person",
+      "language": "ja",
+      "value": "太郎",
+      "@id": "_:Person7"
+    },
+    {
+      "@type": "Person",
+      "nameIdentifierScheme": "e-Rad_Researcher",
+      "value": "22222",
+      "@id": "_:Person8"
+    },
+    {
+      "@type": "Person",
+      "additionalType": {
+        "@id": "https://github.com/JPCOAR/schema/blob/master/2.0/#DataManager"
+      },
+      "jpcoar:affiliation": [
+        {
+          "@id": "_:Organization4"
+        }
+      ],
+      "jpcoar:contributorName": [
+        {
+          "@id": "_:Person10"
+        },
+        {
+          "@id": "_:Person11"
+        }
+      ],
+      "jpcoar:contributorType": "DataManager",
+      "jpcoar:familyName": [
+        {
+          "@id": "_:Person12"
+        },
+        {
+          "@id": "_:Person13"
+        }
+      ],
+      "jpcoar:givenName": [
+        {
+          "@id": "_:Person14"
+        },
+        {
+          "@id": "_:Person15"
+        }
+      ],
+      "jpcoar:nameIdentifier": [
+        {
+          "@id": "_:Person16"
+        }
+      ],
+      "@id": "_:Person9"
+    },
+    {
+      "@type": "PropertyValue",
+      "jpcoar:awardNumber": {
+        "@id": "_:jpcoar_awardNumber1"
+      },
+      "jpcoar:awardTitle": [
+        {
+          "@id": "_:PropertyValue2"
+        },
+        {
+          "@id": "_:PropertyValue3"
+        }
+      ],
+      "jpcoar:funderIdentifier": {
+        "@id": "_:jpcoar_funderIdentifier1"
+      },
+      "jpcoar:funderName": [
+        {
+          "@id": "_:PropertyValue4"
+        },
+        {
+          "@id": "_:PropertyValue5"
+        }
+      ],
+      "jpcoar:fundingStreamIdentifier": {
+        "@id": "_:jpcoar_fundingStreamIdentifier1"
+      },
+      "jpcoar:fundingStream": [
+        {
+          "@id": "_:PropertyValue6"
+        },
+        {
+          "@id": "_:PropertyValue7"
+        }
+      ],
+      "@id": "_:PropertyValue1"
+    },
+    {
+      "@type": "PropertyValue",
+      "descriptionType": "Abstract",
+      "language": "ja",
+      "value": "テスト説明",
+      "@id": "_:PropertyValue10"
+    },
+    {
+      "@type": "PropertyValue",
+      "language": "en",
+      "value": "National Institute of Informatics",
+      "@id": "_:PropertyValue11"
+    },
+    {
+      "@type": "PropertyValue",
+      "language": "ja",
+      "value": "国立情報学研究所",
+      "@id": "_:PropertyValue12"
+    },
+    {
+      "@type": "PropertyValue",
+      "language": "en",
+      "value": "Test for license",
+      "@id": "_:PropertyValue13"
+    },
+    {
+      "@type": "PropertyValue",
+      "language": "ja",
+      "value": "ライセンスのテスト",
+      "@id": "_:PropertyValue14"
+    },
+    {
+      "@type": "PropertyValue",
+      "language": "en",
+      "value": "free",
+      "@id": "_:PropertyValue15"
+    },
+    {
+      "@type": "PropertyValue",
+      "language": "ja",
+      "value": "無償",
+      "@id": "_:PropertyValue16"
+    },
+    {
+      "@type": "PropertyValue",
+      "language": "en",
+      "rdf:resource": "https://creativecommons.org/publicdomain/zero/1.0/deed.en",
+      "value": "CC0 1.0 Universal",
+      "@id": "_:PropertyValue17"
+    },
+    {
+      "@type": "PropertyValue",
+      "language": "ja",
+      "rdf:resource": "https://creativecommons.org/publicdomain/zero/1.0/deed.en",
+      "value": "CC0 1.0 Universal",
+      "@id": "_:PropertyValue18"
+    },
+    {
+      "@type": "PropertyValue",
+      "language": "en",
+      "subjectScheme": "e-Rad_field",
+      "value": "Life Science",
+      "@id": "_:PropertyValue19"
+    },
+    {
+      "@type": "PropertyValue",
+      "language": "en",
+      "value": "Test Project",
+      "@id": "_:PropertyValue2"
+    },
+    {
+      "@type": "PropertyValue",
+      "language": "ja",
+      "subjectScheme": "e-Rad_field",
+      "value": "ライフサイエンス",
+      "@id": "_:PropertyValue20"
+    },
+    {
+      "@type": "PropertyValue",
+      "rdf:resource": "http://purl.org/coar/resource_type/63NG-B465/",
+      "value": "experimental data",
+      "@id": "_:PropertyValue21"
+    },
+    {
+      "@type": "PropertyValue",
+      "language": "en",
+      "value": "TEST DATA",
+      "@id": "_:PropertyValue22"
+    },
+    {
+      "@type": "PropertyValue",
+      "language": "ja",
+      "value": "テストデータ",
+      "@id": "_:PropertyValue23"
+    },
+    {
+      "@type": "PropertyValue",
+      "language": "ja",
+      "value": "テストプロジェクト",
+      "@id": "_:PropertyValue3"
+    },
+    {
+      "@type": "PropertyValue",
+      "language": "en",
+      "value": "Japan Science and Technology Agency(JST)",
+      "@id": "_:PropertyValue4"
+    },
+    {
+      "@type": "PropertyValue",
+      "language": "ja",
+      "value": "国立研究開発法人科学技術振興機構(JST)",
+      "@id": "_:PropertyValue5"
+    },
+    {
+      "@type": "PropertyValue",
+      "language": "en",
+      "value": "Test Program",
+      "@id": "_:PropertyValue6"
+    },
+    {
+      "@type": "PropertyValue",
+      "language": "ja",
+      "value": "テストプログラム",
+      "@id": "_:PropertyValue7"
+    },
+    {
+      "@type": "PropertyValue",
+      "rdf:resource": "http://purl.org/coar/access_right/c_16ec",
+      "value": "restricted access",
+      "@id": "_:PropertyValue8"
+    },
+    {
+      "@type": "PropertyValue",
+      "descriptionType": "Abstract",
+      "language": "en",
+      "value": "TEST DESCRIPTION",
+      "@id": "_:PropertyValue9"
     },
     {
       "@type": "jpcoar:awardNumber",
@@ -1051,46 +1326,9 @@ class TestWEKOSchema(OsfTestCase):
     },
     {
       "@type": "jpcoar:funderIdentifier",
-      "jpcoar:funderIdentifierType": "e-Rad_funder",
-      "value": "JST",
+      "jpcoar:funderIdentifierType": "ROR",
+      "value": "https://ror.org/00097mb19",
       "@id": "_:jpcoar_funderIdentifier1"
-    },
-    {
-      "@type": "jpcoar:fundingReference",
-      "jpcoar:awardNumber": {
-        "@id": "_:jpcoar_awardNumber1"
-      },
-      "jpcoar:awardTitle": [
-        {
-          "@id": "_:PropertyValue1"
-        },
-        {
-          "@id": "_:PropertyValue2"
-        }
-      ],
-      "jpcoar:funderIdentifier": {
-        "@id": "_:jpcoar_funderIdentifier1"
-      },
-      "jpcoar:funderName": [
-        {
-          "@id": "_:PropertyValue3"
-        },
-        {
-          "@id": "_:PropertyValue4"
-        }
-      ],
-      "jpcoar:fundingStreamIdentifier": {
-        "@id": "_:jpcoar_fundingStreamIdentifier1"
-      },
-      "jpcoar:fundingStream": [
-        {
-          "@id": "_:PropertyValue5"
-        },
-        {
-          "@id": "_:PropertyValue6"
-        }
-      ],
-      "@id": "_:jpcoar_fundingReference1"
     },
     {
       "@type": "jpcoar:fundingStreamIdentifier",
@@ -1099,66 +1337,12 @@ class TestWEKOSchema(OsfTestCase):
       "@id": "_:jpcoar_fundingStreamIdentifier1"
     },
     {
-      "@type": "jpcoar:nameIdentifierType",
-      "jpcoar:nameIdentifierScheme": "e-Rad_Researcher",
-      "value": "22222",
-      "@id": "_:jpcoar_nameIdentifierType1"
-    },
-    {
-      "@type": "jpcoar:nameIdentifierType",
-      "jpcoar:nameIdentifierScheme": "ROR",
-      "value": "https://ror.org/04ksd4g47",
-      "@id": "_:jpcoar_nameIdentifierType2"
-    },
-    {
-      "@type": "rdm:AccessRights",
-      "rdm:conditionOfAccess": {
-        "@id": "TODO"
-      },
-      "@id": "_:rdm_AccessRights1"
-    },
-    {
-      "@type": "rdm:License",
-      "memo": "TODO",
-      "subitem_rights": "Test for license",
-      "subitem_rights_language": "en",
-      "@id": "_:rdm_License1"
-    },
-    {
-      "@type": "rdm:License",
-      "memo": "TODO",
-      "subitem_rights": "ライセンスのテスト",
-      "subitem_rights_language": "ja",
-      "@id": "_:rdm_License2"
-    },
-    {
-      "@type": "rdm:License",
-      "ams:dataPolicyFree": "free",
-      "@id": "_:rdm_License3"
-    },
-    {
-      "@type": [
-        "rdm:License",
-        "CreativeWork"
-      ],
-      "name": "CC0 1.0 Universal",
-      "rdm:name": [
-        {
-          "@id": "_:PropertyValue17"
-        }
-      ],
-      "rdm:url": "https://creativecommons.org/publicdomain/zero/1.0/deed.en",
-      "@id": "_:rdm_License4"
-    },
-    {
-      "@id": "ro-crate-metadata.json",
-      "@type": "CreativeWork",
-      "about": {
-        "@id": "./"
-      },
-      "conformsTo": {
-        "@id": "https://w3id.org/ro/crate/1.1"
-      }
+      "@type": "File",
+      "dcterms:accessRights": "open_login",
+      "jpcoar:format": "preview",
+      "jpcoar:mimeType": "image/jpeg",
+      "name": "test.jpg",
+      "@id": "files/test.jpg"
     }
   ]
 }
@@ -1167,4 +1351,1533 @@ class TestWEKOSchema(OsfTestCase):
         for item in actual_json['@graph']:
             item.pop('wk:feedbackMail', None)
             item.pop('datePublished', None)
-        assert_equal(actual_json, json.loads(expected))
+        expected_json = json.loads(expected)
+        actual_json['@graph'] = sorted(actual_json['@graph'], key=lambda entry: entry['@id'])
+        expected_json['@graph'] = sorted(expected_json['@graph'], key=lambda entry: entry['@id'])
+        assert_equal(actual_json, expected_json)
+
+    def test_write_ro_crate_json_without_funder_ror(self):
+        buf = io.StringIO()
+        index = mock.MagicMock()
+        index.identifier = '1000'
+        index.title = 'TITLE'
+        node_id = 'rvm3q'
+        files = [
+            [('test.jpg', 'image/jpeg')],
+        ]
+        target_schema = RegistrationSchema.objects \
+            .filter(name='公的資金による研究データのメタデータ登録') \
+            .order_by('-schema_version') \
+            .first()
+        file_metadata = {
+            'items': [
+                {
+                    'schema': target_schema._id,
+                    'data': dict([(k, {
+                        'value': v,
+                    })for k, v in {
+                        'grdm-file:data-number': '00001',
+                        'grdm-file:title-en': 'TEST DATA',
+                        'grdm-file:creators': [
+                            {
+                                'number': '22222',
+                                'name-ja': {'last': '情報', 'middle': '', 'first': '太郎'},
+                                'name-en': {'last': 'Joho', 'middle': '', 'first': 'Taro'},
+                            }
+                        ],
+                    }.items()]),
+                },
+            ],
+        }
+        project_metadata = {
+            'funder': {
+                'value': 'FDMA',  # FDMA has no ROR ID
+            },
+            'japan-grant-number': {
+                'value': 'JP123456',
+            },
+            'project-name-ja': {
+                'value': 'テストプロジェクト',
+            },
+        }
+
+        schema.write_ro_crate_json(
+            self.user,
+            buf,
+            index,
+            files,
+            target_schema._id,
+            [file_metadata],
+            [project_metadata],
+            node_id
+        )
+        actual_json = json.loads(buf.getvalue())
+        # funderIdentifier should not be present
+        graph_items = actual_json.get('@graph', [])
+        funder_identifiers = [item for item in graph_items if item.get('@type') == 'jpcoar:funderIdentifier']
+        logger.info(f'DEBUG: funder_identifiers={funder_identifiers}')
+        assert_equal(len(funder_identifiers), 0, 'funderIdentifier should not be created for FDMA (no ROR ID)')
+        # But fundingReference should still exist with funderName
+        funding_refs = [item for item in graph_items if item.get('@type') == 'PropertyValue' and 'jpcoar:funderName' in str(item)]
+        assert_true(len(funding_refs) > 0, 'fundingReference with funderName should still be created')
+
+    def test_write_ro_crate_json_grouped_supporting_files(self):
+        buf = io.StringIO()
+        index = mock.MagicMock()
+        index.identifier = '1000'
+        index.title = 'Demo Index'
+        node_id = 'sp3av'
+
+        target_schema = RegistrationSchema.objects \
+            .filter(name='公的資金による研究データのメタデータ登録') \
+            .order_by('-schema_version') \
+            .first()
+
+        with open('addons/weko/scripts/example-manuscript-metadata.json') as sample_file:
+            sample_payload = json.load(sample_file)
+
+        files = [[(entry['name'], entry['type']) for entry in group] for group in sample_payload['files']]
+
+        file_metadatas = copy.deepcopy(sample_payload['file_metadatas'])
+        for metadata in file_metadatas:
+            metadata['items'][0]['schema'] = target_schema._id
+
+        project_metadatas = copy.deepcopy(sample_payload['project_metadatas'])
+
+        schema.write_ro_crate_json(
+            self.user,
+            buf,
+            index,
+            files,
+            target_schema._id,
+            file_metadatas,
+            project_metadatas,
+            node_id
+        )
+
+        actual_json = json.loads(buf.getvalue())
+        graph = {item['@id']: item for item in actual_json['@graph'] if '@id' in item}
+
+        # Debug: print manuscript entity keys
+        for part_ref in graph['./']['hasPart']:
+            part_id = part_ref['@id']
+            if part_id.startswith('#dataset-'):
+                logger.info(f'Dataset {part_id} keys: {list(graph[part_id].keys())}')
+
+        dataset_root = graph['./']
+        assert_true(dataset_root.get('wk:isSplited'))
+        assert_equal(dataset_root['@type'], 'Dataset')
+        assert_not_in('name', dataset_root)
+        assert_not_in('dc:type', dataset_root)
+
+        part_ids = [part['@id'] for part in dataset_root['hasPart']]
+        assert_equal(len(part_ids), 3)
+        assert_equal(sorted(part_ids), ['#dataset-1', '#dataset-2', '#dataset-3'])
+
+        datasets = [graph[part_id] for part_id in part_ids]
+        for dataset in datasets:
+            assert_true('@type' not in dataset)
+
+        def dereference(reference):
+            assert_true(isinstance(reference, dict) and '@id' in reference)
+            assert_in(reference['@id'], graph)
+            return graph[reference['@id']]
+
+        def property_entities(entity, key):
+            references = entity.get(key)
+            if references is None:
+                return []
+            if isinstance(references, dict):
+                references = [references]
+            return [dereference(ref) for ref in references]
+
+        def scalar_property_value(entity, key):
+            values = property_entities(entity, key)
+            assert_true(values)
+            return values[0]['value']
+
+        def collect_lang_map(entity, key):
+            values = {}
+            for value_entity in property_entities(entity, key):
+                values[value_entity.get('language')] = value_entity['value']
+            return values
+
+        dataset_primary = next(
+            dataset for dataset in datasets
+            if scalar_property_value(dataset, 'dc:type') == 'journal article'
+        )
+        datasets_supporting = [
+            dataset for dataset in datasets
+            if scalar_property_value(dataset, 'dc:type') == 'experimental data'
+        ]
+
+        assert_equal(scalar_property_value(dataset_primary, 'dc:type'), 'journal article')
+        assert_equal(len(datasets_supporting), 2)
+        for dataset_supporting in datasets_supporting:
+            assert_equal(scalar_property_value(dataset_supporting, 'dc:type'), 'experimental data')
+
+        assert_equal(
+            [part['@id'] for part in dataset_primary['hasPart']],
+            ['files/sample-manuscript.pdf']
+        )
+        # Each supporting dataset now has only one file
+        supporting_files = sorted([
+            part['@id']
+            for dataset_supporting in datasets_supporting
+            for part in dataset_supporting['hasPart']
+        ])
+        assert_equal(supporting_files, ['files/supporting-data-1.csv', 'files/supporting-data-2.csv'])
+
+        assert_equal(dataset_primary['name'], 'MAIN ARTICLE')
+        assert_equal(dataset_primary['description'], 'Primary manuscript')
+
+        # Both supporting datasets have the same metadata
+        for dataset_supporting in datasets_supporting:
+            assert_equal(dataset_supporting['name'], 'SUPPORTING DATA')
+            assert_equal(dataset_supporting['description'], 'Supporting dataset')
+
+        name_langs_primary = collect_lang_map(dataset_primary, 'dc:title')
+        assert_equal(name_langs_primary['en'], 'MAIN ARTICLE')
+        assert_equal(name_langs_primary['ja'], '主論文')
+
+        # Check first supporting dataset (they have identical metadata)
+        name_langs_support = collect_lang_map(datasets_supporting[0], 'dc:title')
+        assert_equal(name_langs_support['en'], 'SUPPORTING DATA')
+        assert_equal(name_langs_support['ja'], '根拠データ')
+
+        desc_langs_support = collect_lang_map(datasets_supporting[0], 'datacite:description')
+        assert_equal(desc_langs_support['en'], 'Supporting dataset')
+        assert_equal(desc_langs_support['ja'], '論文に関連する根拠データ')
+
+        def assert_references(dataset, key):
+            values = property_entities(dataset, key)
+            assert_true(values, f'Key \'{key}\' not found or empty in dataset {dataset.get("@id", "unknown")}')
+
+        # Common fields for both manuscript and dataset
+        common_reference_keys = [
+            'jpcoar:fundingReference',
+            'jpcoar:creator',
+            'dc:type',
+            'dc:title',
+            'datacite:date',
+        ]
+
+        for key in common_reference_keys:
+            assert_references(dataset_primary, key)
+            for dataset_supporting in datasets_supporting:
+                assert_references(dataset_supporting, key)
+
+        # Manuscript-specific fields
+        assert_references(dataset_primary, 'oaire:version')
+        assert_references(dataset_primary, 'jpcoar:relation')
+
+        # Dataset-specific fields (check all supporting datasets)
+        for dataset_supporting in datasets_supporting:
+            assert_references(dataset_supporting, 'datacite:description')
+            assert_references(dataset_supporting, 'jpcoar:contributor')
+            assert_references(dataset_supporting, 'dc:rights')
+            assert_references(dataset_supporting, 'jpcoar:subject')
+            assert_references(dataset_supporting, 'dcterms:accessRights')
+            assert_references(dataset_supporting, 'jpcoar:relation')
+
+        ro_crate_metadata = graph['ro-crate-metadata.json']
+        assert_equal(ro_crate_metadata['about']['@id'], './')
+
+        file_entities = {
+            entity['@id']: entity
+            for entity in actual_json['@graph']
+            if entity.get('@type') == 'File'
+        }
+
+        assert_equal(
+            set(file_entities.keys()),
+            {
+                'files/sample-manuscript.pdf',
+                'files/supporting-data-1.csv',
+                'files/supporting-data-2.csv',
+            }
+        )
+        assert_equal(file_entities['files/sample-manuscript.pdf']['jpcoar:mimeType'], 'application/pdf')
+        assert_equal(file_entities['files/sample-manuscript.pdf']['jpcoar:format'], 'preview')
+        assert_equal(file_entities['files/supporting-data-1.csv']['jpcoar:mimeType'], 'text/csv')
+        assert_equal(file_entities['files/supporting-data-1.csv']['jpcoar:format'], 'preview')
+        assert_equal(file_entities['files/supporting-data-2.csv']['jpcoar:mimeType'], 'text/csv')
+        assert_equal(file_entities['files/supporting-data-2.csv']['jpcoar:format'], 'preview')
+
+        # Manuscript has links to both supporting datasets
+        itemlinks_primary = property_entities(dataset_primary, 'wk:itemLinks')
+        assert_equal(len(itemlinks_primary), 2)
+        for link in itemlinks_primary:
+            assert_equal(link['@type'], 'PropertyValue')
+            assert_equal(link['value'], 'isSupplementedBy')
+            assert_in(link['identifier'], [ds['@id'] for ds in datasets_supporting])
+
+        # Each supporting dataset has a link back to the manuscript
+        for dataset_supporting in datasets_supporting:
+            itemlinks_supporting = property_entities(dataset_supporting, 'wk:itemLinks')
+            assert_equal(len(itemlinks_supporting), 1)
+            assert_equal(itemlinks_supporting[0]['@type'], 'PropertyValue')
+            assert_equal(itemlinks_supporting[0]['value'], 'isSupplementTo')
+            assert_equal(itemlinks_supporting[0]['identifier'], dataset_primary['@id'])
+
+        version_entities = property_entities(dataset_primary, 'oaire:version')
+        assert_equal(len(version_entities), 1)
+        version = version_entities[0]
+        assert_equal(version['@type'], 'PropertyValue')
+        assert_equal(version['value'], 'AM')
+        assert_equal(version['rdf:resource'], 'http://purl.org/coar/version/c_ab4af688f83e57aa')
+        assert_equal(version['itemReviewed'], 'Peer reviewed')
+
+        # Test jpcoar:relation relationType for AM version (should be isVersionOf)
+        relation_entities = property_entities(dataset_primary, 'jpcoar:relation')
+        # Find the relation with published article DOI (grdm-file:doi)
+        doi_relation = next(
+            (rel for rel in relation_entities
+             if rel.get('jpcoar:relationType') in ['isVersionOf', 'isIdenticalTo']),
+            None
+        )
+        assert_true(doi_relation is not None, 'DOI relation not found in jpcoar:relation')
+        assert_equal(doi_relation['jpcoar:relationType'], 'isVersionOf')  # AM version should use isVersionOf
+
+        # Verify the related identifier contains the DOI
+        related_id_entities = property_entities(doi_relation, 'jpcoar:relatedIdentifier')
+        assert_equal(len(related_id_entities), 1)
+        related_id = related_id_entities[0]
+        assert_equal(related_id['identifierType'], 'DOI')
+        assert_true('10.1234/example.manuscript.2025' in related_id['value'])
+
+    def test_manuscript_relation_type_vor(self):
+        """Test jpcoar:relation relationType for VoR version manuscripts (should be isIdenticalTo)"""
+        buf = io.StringIO()
+        index = mock.MagicMock()
+        index.identifier = '1000'
+        index.title = 'Test Index'
+        node_id = 'testnode'
+        files = [[('manuscript.pdf', 'application/pdf')]]
+
+        target_schema = RegistrationSchema.objects \
+            .filter(name='公的資金による研究データのメタデータ登録') \
+            .order_by('-schema_version') \
+            .first()
+
+        file_metadata = {
+            'items': [
+                {
+                    'schema': target_schema._id,
+                    'data': {
+                        'grdm-file:title-en': {'value': 'VoR Manuscript'},
+                        'grdm-file:file-type': {'value': 'manuscript'},
+                        'grdm-file:version': {'value': 'VoR'},
+                        'grdm-file:reviewed': {'value': 'yes'},
+                        'grdm-file:doi': {'value': '10.1234/example.vor.2025'},
+                        'grdm-file:manuscript-type': {'value': 'journal article'},
+                        'grdm-file:date-published': {'value': '2025-01-01'},
+                        'grdm-file:authors': {
+                            'value': [
+                                {
+                                    'number': 'A001',
+                                    'name-ja-last': 'テスト',
+                                    'name-ja-middle': '',
+                                    'name-ja-first': '太郎',
+                                    'name-en-last': 'Test',
+                                    'name-en-middle': '',
+                                    'name-en-first': 'Taro',
+                                    'affiliation-name-ja': 'テスト大学',
+                                    'affiliation-name-en': 'Test University',
+                                }
+                            ]
+                        },
+                    },
+                },
+            ],
+        }
+
+        schema.write_ro_crate_json(
+            self.user,
+            buf,
+            index,
+            files,
+            target_schema._id,
+            [file_metadata],
+            [],
+            node_id
+        )
+
+        actual_json = json.loads(buf.getvalue())
+        graph = {item['@id']: item for item in actual_json['@graph'] if '@id' in item}
+
+        def dereference(reference):
+            return graph[reference['@id']]
+
+        def property_entities(entity, key):
+            references = entity.get(key)
+            if references is None:
+                return []
+            if isinstance(references, dict):
+                references = [references]
+            return [dereference(ref) for ref in references]
+
+        dataset_root = graph['./']
+
+        # Get jpcoar:relation entities
+        relation_entities = property_entities(dataset_root, 'jpcoar:relation')
+        assert_true(len(relation_entities) > 0, 'No jpcoar:relation found')
+
+        # Find the DOI relation
+        doi_relation = next(
+            (rel for rel in relation_entities
+             if rel.get('jpcoar:relationType') in ['isVersionOf', 'isIdenticalTo']),
+            None
+        )
+        assert_true(doi_relation is not None, 'DOI relation not found')
+        assert_equal(doi_relation['jpcoar:relationType'], 'isIdenticalTo')  # VoR version should use isIdenticalTo
+
+        # Verify the related identifier contains the VoR DOI
+        related_id_entities = property_entities(doi_relation, 'jpcoar:relatedIdentifier')
+        assert_equal(len(related_id_entities), 1)
+        related_id = related_id_entities[0]
+        assert_equal(related_id['identifierType'], 'DOI')
+        assert_true('10.1234/example.vor.2025' in related_id['value'])
+
+        # Verify author affiliation (jpcoar:affiliation)
+        creator_entities = property_entities(dataset_root, 'jpcoar:creator')
+        assert_true(len(creator_entities) > 0, 'No jpcoar:creator found')
+        creator = creator_entities[0]
+        affiliation_entities = property_entities(creator, 'jpcoar:affiliation')
+        assert_equal(len(affiliation_entities), 1, 'Expected 1 affiliation entity')
+        aff = affiliation_entities[0]
+        assert_equal(aff['@type'], 'Organization')
+        aff_name_entities = property_entities(aff, 'jpcoar:affiliationName')
+        assert_equal(len(aff_name_entities), 2, 'Expected 2 affiliationName entries (ja and en)')
+        affiliation_names = [(n['value'], n['language']) for n in aff_name_entities]
+        assert_true(('テスト大学', 'ja') in affiliation_names, 'Japanese affiliation name not found')
+        assert_true(('Test University', 'en') in affiliation_names, 'English affiliation name not found')
+
+    def test_write_csv_manuscript_version_am(self):
+        """Test CSV output for manuscript with version type AM and peer reviewed status"""
+        buf = io.StringIO()
+        index = mock.MagicMock()
+        index.identifier = '1000'
+        index.title = 'TITLE'
+        files = [
+            [('manuscript.pdf', 'application/pdf')],
+        ]
+        target_schema = RegistrationSchema.objects \
+            .filter(name='公的資金による研究データのメタデータ登録') \
+            .order_by('-schema_version') \
+            .first()
+        file_metadata = {
+            'items': [
+                {
+                    'schema': target_schema._id,
+                    'data': {
+                        'grdm-file:title-en': {
+                            'value': 'Test Manuscript',
+                        },
+                        'grdm-file:file-type': {
+                            'value': 'manuscript',
+                        },
+                        'grdm-file:manuscript-type': {
+                            'value': 'journal article',
+                        },
+                        'grdm-file:version': {
+                            'value': 'AM',
+                        },
+                        'grdm-file:reviewed': {
+                            'value': 'yes',
+                        },
+                        'grdm-file:date-published': {
+                            'value': '2025-01-01',
+                        },
+                        'grdm-file:authors': {
+                            'value': [
+                                {
+                                    'number': 'A001',
+                                    'name-ja-last': 'テスト',
+                                    'name-ja-middle': '',
+                                    'name-ja-first': '太郎',
+                                    'name-en-last': 'Test',
+                                    'name-en-middle': '',
+                                    'name-en-first': 'Taro',
+                                }
+                            ]
+                        },
+                    },
+                },
+            ],
+        }
+
+        schema.write_csv(
+            self.user,
+            buf,
+            index,
+            files,
+            target_schema._id,
+            [file_metadata],
+            [],
+        )
+
+        logger.info(f'CSV: {buf.getvalue()}')
+        buf.seek(0)
+        reader = csv.reader(buf)
+        lines = list(reader)
+
+        # Find version_type15 related fields in the CSV
+        props = _transpose(lines[1::])[::-1]
+        props_list = list(props)
+
+        # Search for subitem_version_type
+        version_type_found = False
+        version_resource_found = False
+        peer_reviewed_found = False
+
+        for prop in props_list:
+            if '.metadata.item_30002_version_type15.subitem_version_type' in prop[0]:
+                assert_equal(prop[-1], 'AM')
+                version_type_found = True
+            elif '.metadata.item_30002_version_type15.subitem_version_resource' in prop[0]:
+                assert_equal(prop[-1], 'http://purl.org/coar/version/c_ab4af688f83e57aa')
+                version_resource_found = True
+            elif '.metadata.item_30002_version_type15.subitem_peer_reviewed' in prop[0]:
+                assert_equal(prop[-1], 'Peer reviewed')
+                peer_reviewed_found = True
+
+        assert_true(version_type_found, 'subitem_version_type not found in CSV')
+        assert_true(version_resource_found, 'subitem_version_resource not found in CSV')
+        assert_true(peer_reviewed_found, 'subitem_peer_reviewed not found in CSV')
+
+    def test_manuscript_file_access_rights_defaults_to_open_access(self):
+        """Test that manuscript files default to open_access when grdm-file:access-rights is not set"""
+        buf = io.StringIO()
+        index = mock.MagicMock()
+        index.identifier = '1000'
+        index.title = 'Test Index'
+        node_id = 'testnode'
+        files = [[('manuscript.pdf', 'application/pdf')]]
+
+        target_schema = RegistrationSchema.objects \
+            .filter(name='公的資金による研究データのメタデータ登録') \
+            .order_by('-schema_version') \
+            .first()
+
+        # Manuscript metadata WITHOUT grdm-file:access-rights
+        file_metadata = {
+            'items': [
+                {
+                    'schema': target_schema._id,
+                    'data': {
+                        'grdm-file:title-en': {'value': 'Test Manuscript'},
+                        'grdm-file:file-type': {'value': 'manuscript'},
+                        'grdm-file:version': {'value': 'VoR'},
+                        'grdm-file:reviewed': {'value': 'yes'},
+                        'grdm-file:doi': {'value': '10.1234/example.2025'},
+                        'grdm-file:manuscript-type': {'value': 'journal article'},
+                        'grdm-file:date-published': {'value': '2025-01-01'},
+                        'grdm-file:authors': {
+                            'value': [
+                                {
+                                    'number': 'A001',
+                                    'name-ja-last': 'テスト',
+                                    'name-ja-middle': '',
+                                    'name-ja-first': '太郎',
+                                    'name-en-last': 'Test',
+                                    'name-en-middle': '',
+                                    'name-en-first': 'Taro',
+                                }
+                            ]
+                        },
+                        # Note: grdm-file:access-rights is NOT set
+                    },
+                },
+            ],
+        }
+
+        schema.write_ro_crate_json(
+            self.user,
+            buf,
+            index,
+            files,
+            target_schema._id,
+            [file_metadata],
+            [],
+            node_id
+        )
+
+        actual_json = json.loads(buf.getvalue())
+
+        # Find the File entity
+        file_entities = [
+            entity for entity in actual_json['@graph']
+            if entity.get('@type') == 'File'
+        ]
+        assert_equal(len(file_entities), 1)
+        file_entity = file_entities[0]
+
+        # Manuscript should default to open_access when access-rights is not set
+        assert_equal(
+            file_entity.get('dcterms:accessRights'),
+            'open_access',
+            'Manuscript file should default to open_access when grdm-file:access-rights is not set'
+        )
+
+    def test_dataset_file_access_rights_defaults_to_open_no(self):
+        """Test that dataset files default to open_no when grdm-file:access-rights is not set"""
+        buf = io.StringIO()
+        index = mock.MagicMock()
+        index.identifier = '1000'
+        index.title = 'Test Index'
+        node_id = 'testnode'
+        files = [[('data.csv', 'text/csv')]]
+
+        target_schema = RegistrationSchema.objects \
+            .filter(name='公的資金による研究データのメタデータ登録') \
+            .order_by('-schema_version') \
+            .first()
+
+        # Dataset metadata WITHOUT grdm-file:access-rights
+        file_metadata = {
+            'items': [
+                {
+                    'schema': target_schema._id,
+                    'data': {
+                        'grdm-file:title-en': {'value': 'Test Dataset'},
+                        'grdm-file:file-type': {'value': 'dataset'},
+                        'grdm-file:data-type': {'value': 'experimental data'},
+                        'grdm-file:creators': {
+                            'value': [
+                                {
+                                    'number': 'D001',
+                                    'name-ja': {'last': 'テスト', 'middle': '', 'first': '太郎'},
+                                    'name-en': {'last': 'Test', 'middle': '', 'first': 'Taro'},
+                                }
+                            ]
+                        },
+                        # Note: grdm-file:access-rights is NOT set
+                    },
+                },
+            ],
+        }
+
+        schema.write_ro_crate_json(
+            self.user,
+            buf,
+            index,
+            files,
+            target_schema._id,
+            [file_metadata],
+            [],
+            node_id
+        )
+
+        actual_json = json.loads(buf.getvalue())
+
+        # Find the File entity
+        file_entities = [
+            entity for entity in actual_json['@graph']
+            if entity.get('@type') == 'File'
+        ]
+        assert_equal(len(file_entities), 1)
+        file_entity = file_entities[0]
+
+        # Dataset should default to open_no when access-rights is not set
+        assert_equal(
+            file_entity.get('dcterms:accessRights'),
+            'open_no',
+            'Dataset file should default to open_no when grdm-file:access-rights is not set'
+        )
+
+    def test_write_ro_crate_json_mebyo_full(self):
+        """Full field coverage test for MEBYO schema RO-Crate generation.
+        Equivalent to test_write_ro_crate_json_full for the public funding schema.
+        Based on actual ro-crate-metadata.json output structure.
+        """
+        buf = io.StringIO()
+        index = mock.MagicMock()
+        index.identifier = '2000'
+        index.title = 'MEBYO Test Index'
+        node_id = 'mebyotest'
+
+        target_schema = RegistrationSchema.objects \
+            .filter(name='ムーンショット目標2データベース（未病DB）のメタデータ登録') \
+            .order_by('-schema_version') \
+            .first()
+
+        files = [[('additional_metadata.txt', 'text/plain')]]
+        file_metadatas = []  # allow_empty_files = true
+
+        project_metadata = {
+            # root (_)
+            'title-of-dataset': {'value': 'テストデータセット'},
+            'title-of-dataset-en': {'value': 'Test Dataset EN'},
+            'date-registered-in-metadata': {'value': '2025-01-01'},
+            'date-updated-in-metadata': {'value': '2025-06-01'},
+            'choose-additional-metadata': {
+                'value': '[{"path":"osfstorage/additional_metadata.txt","urlpath":"","metadata":{}}]',
+            },
+            # @projects
+            'project-name': {'value': 'MS2大野PJ|MS2 Ohno PJ'},
+            'data-id': {'value': 'LOCAL-001'},
+            'purpose-of-experiment': {'value': '実験目的（日本語）'},
+            'purpose-of-experiment-en': {'value': 'Experiment purpose (English)'},
+            'description-of-experimental-condition': {'value': '実験条件（日本語）'},
+            'description-of-experimental-condition-en': {'value': 'Experimental condition (English)'},
+            'keywords': {
+                'value': '[{"filename":"キーワード（日本語）","filename-en":"Keywords (English)"}]',
+            },
+            'dataset-research-field': {'value': 'ライフサイエンス|Life Science'},
+            'Analysis-type': {'value': ['イメージデータ|Imaging data', '配列データ|Sequence data']},
+            'Analysis-type-other': {'value': 'その他分析'},
+            'the-presence-of-metadata-files-created-for-a-specific-modality-in-other-databases': {
+                'value': '有|Yes',
+            },
+            'metadata-filename': {
+                'value': '[{"filename":"メタデータファイル名1"},{"filename":"メタデータファイル名2"}]',
+            },
+            'necessity-of-contact-and-permission': {'value': '許諾が必要|Permission required'},
+            'necessity-of-including-in-acknowledgments': {'value': '要|Necessary'},
+            'names-to-be-included-in-the-acknowledgments': {'value': '謝辞名前（日本語）'},
+            'names-to-be-included-in-the-acknowledgments-en': {'value': 'Names in acknowledgments (English)'},
+            'other-conditions-or-special-notes': {'value': 'その他条件（日本語）'},
+            'other-conditions-or-special-notes-en': {'value': 'Other conditions (English)'},
+            'data-policy-license': {'value': 'CC BY 4.0'},
+            'data-policy-free': {'value': '有償|Pay'},
+            'availability-of-commercial-use': {'value': '否|No'},
+            'target-type-of-acquired-data': {'value': 'ゲノムデータ'},
+            'target-type-of-acquired-data-en': {'value': 'Genomic data'},
+            'ethics-review-committee-approval': {'value': '不要'},
+            'ethics-review-committee-approval-en': {'value': 'Unnecessary'},
+            'informed-consent': {'value': '有|Yes'},
+            'consent-for-provision-to-a-third-party': {'value': '有|Yes'},
+            'overseas-offerings': {'value': '有|Yes'},
+            'industrial-use': {'value': '有|Yes'},
+            'ic-is-no': {'value': 'オプトアウト手続き|Opt-out procedure'},
+            'anonymous-processing': {'value': '有|Yes'},
+            'access-rights': {'value': '公開|open access'},
+            'scheduled-release-date': {'value': '2025-12-31'},
+            'repository-information': {'value': 'GakuNin RDM'},
+            'repository-url-doi-link': {'value': 'https://rdm.nii.ac.jp'},
+            'other-supplementary-information': {'value': 'その他補足（日本語）'},
+            'other-supplementary-information-en': {'value': 'Other supplementary (English)'},
+            'data-creator': {
+                'value': '[{"name":"未病太郎","name-en":"Mebyo Taro","contact":"taro@example.com","belonging":"未病大学","belonging-en":"Mebyo University"}]',
+            },
+            'data-manager': {
+                'value': '[{"name":"未病花子","name-en":"Mebyo Hanako","contact":"hanako@example.com","belonging":"未病大学","belonging-en":"Mebyo University"}]',
+            },
+            'remarks-3': {'value': '備考（日本語）'},
+            'remarks-3-en': {'value': 'Remarks (English)'},
+            'conflict-of-interest': {'value': '利益相反名前（日本語）'},
+            'conflict-of-interest-en': {'value': 'Conflict of interest (English)'},
+            'conflict-of-interest-Yes-or-No': {'value': '無|No'},
+            'grdm-files': {'value': ''},
+        }
+
+        schema.write_ro_crate_json(
+            self.user, buf, index, files,
+            target_schema._id, file_metadatas,
+            [project_metadata], node_id
+        )
+
+        logger.info(f'JSON: {buf.getvalue()}')
+        actual_json = json.loads(buf.getvalue())
+        graph = {item['@id']: item for item in actual_json['@graph'] if '@id' in item}
+
+        # ------------------------------------------------------------------ #
+        # helpers — mirrors the pattern used in test_write_ro_crate_json_full
+        # ------------------------------------------------------------------ #
+        def deref(ref):
+            assert_true(isinstance(ref, dict) and '@id' in ref, f'Not a reference: {ref}')
+            assert_in(ref['@id'], graph, f'Entity not found: {ref["@id"]}')
+            return graph[ref['@id']]
+
+        def prop_entities(entity, key):
+            refs = entity.get(key)
+            if refs is None:
+                return []
+            if isinstance(refs, dict):
+                refs = [refs]
+            return [deref(r) for r in refs]
+
+        def scalar_value(entity, key):
+            ents = prop_entities(entity, key)
+            assert_true(ents, f'No entities for key "{key}" in {entity.get("@id")}')
+            return ents[0]['value']
+
+        def lang_map(entity, key):
+            return {e.get('language'): e['value'] for e in prop_entities(entity, key)}
+
+        # ------------------------------------------------------------------ #
+        # root Dataset
+        # ------------------------------------------------------------------ #
+        assert_in('./', graph)
+        root = graph['./']
+        assert_equal(root['@type'], ['Dataset', 'rdm:Dataset'])
+        assert_equal(root['name'], 'Test Dataset EN')
+        assert_equal(root['description'], 'Experiment purpose (English)')
+        assert_equal(root['dateCreated'], '2025-01-01')
+        assert_equal(root['dateModified'], '2025-06-01')
+        assert_equal(root['dc:type'], 'dataset')
+        assert_equal(root['wk:publishStatus'], 'public')
+
+        # rdm:name (ja / en)
+        rdm_names = lang_map(root, 'rdm:name')
+        assert_equal(rdm_names['ja'], 'テストデータセット')
+        assert_equal(rdm_names['en'], 'Test Dataset EN')
+
+        # hasPart → File (wk:extendedMetadata=true)
+        has_part_ids = [p['@id'] for p in root.get('hasPart', [])]
+        assert_in('files/additional_metadata.txt', has_part_ids)
+        file_entity = graph['files/additional_metadata.txt']
+        assert_equal(file_entity['@type'], 'File')
+        assert_equal(file_entity['name'], 'additional_metadata.txt')
+        assert_true(file_entity.get('wk:extendedMetadata'))
+
+        # ro-crate-metadata.json
+        assert_in('ro-crate-metadata.json', graph)
+        assert_equal(graph['ro-crate-metadata.json']['about']['@id'], './')
+
+        # ------------------------------------------------------------------ #
+        # @projects — PropertyValue fields
+        # ------------------------------------------------------------------ #
+
+        # rdm:inproject
+        assert_equal(scalar_value(root, 'rdm:inproject'), 'MS2大野PJ|MS2 Ohno PJ')
+
+        # ams:identifier
+        identifier_ent = prop_entities(root, 'ams:identifier')
+        assert_equal(len(identifier_ent), 1)
+        assert_equal(identifier_ent[0]['value'], 'LOCAL-001')
+        assert_equal(identifier_ent[0]['type'], 'Local')
+
+        # ams:purposeOfExperiment (ja / en)
+        purpose = lang_map(root, 'ams:purposeOfExperiment')
+        assert_equal(purpose['ja'], '実験目的（日本語）')
+        assert_equal(purpose['en'], 'Experiment purpose (English)')
+
+        # ams:descriptionOfExperimentalCondition (ja / en)
+        desc_cond = lang_map(root, 'ams:descriptionOfExperimentalCondition')
+        assert_equal(desc_cond['ja'], '実験条件（日本語）')
+        assert_equal(desc_cond['en'], 'Experimental condition (English)')
+
+        # rdm:keywords → each entry has 'keywords' list with ja/en subitem refs  ← regression target
+        kw_entities = prop_entities(root, 'rdm:keywords')
+        assert_true(len(kw_entities) >= 1, 'rdm:keywords not found')
+        # keywords entry contains 'keywords' key (not 'value') with Resource refs
+        kw0_value_refs = kw_entities[0].get('value', [])
+        assert_true(len(kw0_value_refs) >= 2, f'keyword value refs: {kw0_value_refs}')
+        # Each Resource should have 'value' expanded from subitem_filename  ← regression target
+        kw0_resources = {deref(r)['language']: deref(r) for r in kw0_value_refs}
+        assert_false('subitem_filename' in kw0_resources.get('ja', {}), 'subitem_filename not expanded to value (ja)')
+        assert_false('subitem_filename_en' in kw0_resources.get('en', {}), 'subitem_filename_en not expanded to value (en)')
+        assert_equal(kw0_resources['ja']['value'], 'キーワード（日本語）')
+        assert_equal(kw0_resources['en']['value'], 'Keywords (English)')
+
+        # rdm:field
+        assert_equal(scalar_value(root, 'rdm:field'), 'ライフサイエンス|Life Science')
+
+        # ams:analysisType — expanded from JSON array, multiple entries
+        analysis_types = prop_entities(root, 'ams:analysisType')
+        assert_true(len(analysis_types) >= 2)
+        analysis_values = [e['value'] for e in analysis_types]
+        assert_in('イメージデータ|Imaging data', analysis_values)
+        assert_in('配列データ|Sequence data', analysis_values)
+
+        # ams:analysisOtherType
+        assert_equal(scalar_value(root, 'ams:analysisOtherType'), 'その他分析')
+
+        # ams:existExternalMetadata
+        assert_equal(scalar_value(root, 'ams:existExternalMetadata'), '有|Yes')
+
+        # ams:externalMetadataFiles — multiple entries, value expanded  ← regression target
+        ext_meta = prop_entities(root, 'ams:externalMetadataFiles')
+        assert_true(len(ext_meta) >= 2, f'ams:externalMetadataFiles count: {len(ext_meta)}')
+        ext_meta_values = [e['value'] for e in ext_meta]
+        assert_in('メタデータファイル名1', ext_meta_values)
+        assert_in('メタデータファイル名2', ext_meta_values)
+
+        # ams:necessityOfContactAndPermission
+        assert_equal(scalar_value(root, 'ams:necessityOfContactAndPermission'), '許諾が必要|Permission required')
+
+        # ams:necessityOfIncludingInAcknowledgments
+        assert_equal(scalar_value(root, 'ams:necessityOfIncludingInAcknowledgments'), '要|Necessary')
+
+        # ams:namesToBeIncludedInTheAcknowledgments (ja / en)
+        ack = lang_map(root, 'ams:namesToBeIncludedInTheAcknowledgments')
+        assert_equal(ack['ja'], '謝辞名前（日本語）')
+        assert_equal(ack['en'], 'Names in acknowledgments (English)')
+
+        # ams:otherConditionsOrSpecialNotes (ja / en)
+        other = lang_map(root, 'ams:otherConditionsOrSpecialNotes')
+        assert_equal(other['ja'], 'その他条件（日本語）')
+        assert_equal(other['en'], 'Other conditions (English)')
+
+        # ams:license
+        assert_equal(scalar_value(root, 'ams:license'), 'CC BY 4.0')
+
+        # ams:dataPolicyFree
+        assert_equal(scalar_value(root, 'ams:dataPolicyFree'), '有償|Pay')
+
+        # ams:availabilityOfCommercialUse
+        assert_equal(scalar_value(root, 'ams:availabilityOfCommercialUse'), '否|No')
+
+        # ams:targetTypeOfAcquiredData (ja / en)
+        target_type = lang_map(root, 'ams:targetTypeOfAcquiredData')
+        assert_equal(target_type['ja'], 'ゲノムデータ')
+        assert_equal(target_type['en'], 'Genomic data')
+
+        # ams:ethicsReviewCommitteeApproval (2 entries, no language tag in real output)
+        ethics = prop_entities(root, 'ams:ethicsReviewCommitteeApproval')
+        assert_equal(len(ethics), 2)
+        ethics_values = [e['value'] for e in ethics]
+        assert_in('不要', ethics_values)
+        assert_in('Unnecessary', ethics_values)
+
+        # ams:informedConsent
+        assert_equal(scalar_value(root, 'ams:informedConsent'), '有|Yes')
+
+        # ams:consentForProvisionToAThirdParty
+        assert_equal(scalar_value(root, 'ams:consentForProvisionToAThirdParty'), '有|Yes')
+
+        # ams:overseasOfferings
+        assert_equal(scalar_value(root, 'ams:overseasOfferings'), '有|Yes')
+
+        # ams:industrialUse
+        assert_equal(scalar_value(root, 'ams:industrialUse'), '有|Yes')
+
+        # ams:icIsNo
+        assert_equal(scalar_value(root, 'ams:icIsNo'), 'オプトアウト手続き|Opt-out procedure')
+
+        # ams:anonymousProcessing
+        assert_equal(scalar_value(root, 'ams:anonymousProcessing'), '有|Yes')
+
+        # rdm:accessRightsInformation
+        access = prop_entities(root, 'rdm:accessRightsInformation')
+        assert_equal(len(access), 1)
+        assert_equal(access[0].get('rdm:dateAvailable'), '2025-12-31')
+
+        # ams:repository
+        assert_equal(scalar_value(root, 'ams:repository'), 'GakuNin RDM')
+
+        # ams:repositoryId
+        assert_equal(scalar_value(root, 'ams:repositoryId'), 'https://rdm.nii.ac.jp')
+
+        # ams:repositoryInfo (ja / en)
+        repo_info = lang_map(root, 'ams:repositoryInfo')
+        assert_equal(repo_info['ja'], 'その他補足（日本語）')
+        assert_equal(repo_info['en'], 'Other supplementary (English)')
+
+        # ams:remark (ja / en)
+        remarks = lang_map(root, 'ams:remark')
+        assert_equal(remarks['ja'], '備考（日本語）')
+        assert_equal(remarks['en'], 'Remarks (English)')
+
+        # ams:conflictOfInterestName (ja / en)
+        coi_names = lang_map(root, 'ams:conflictOfInterestName')
+        assert_equal(coi_names['ja'], '利益相反名前（日本語）')
+        assert_equal(coi_names['en'], 'Conflict of interest (English)')
+
+        # ams:conflictOfInterest
+        assert_equal(scalar_value(root, 'ams:conflictOfInterest'), '無|No')
+
+        # ------------------------------------------------------------------ #
+        # creator (Person) — affiliation is Organization with name list
+        # ------------------------------------------------------------------ #
+        creator_entities = prop_entities(root, 'creator')
+        assert_true(len(creator_entities) >= 1, 'creator not found')
+        creator = creator_entities[0]
+        assert_equal(creator['@type'], 'Person')
+
+        # name: list of PropertyValue refs (ja / en)
+        creator_name_map = lang_map(creator, 'name')
+        assert_equal(creator_name_map['ja'], '未病太郎')
+        assert_equal(creator_name_map['en'], 'Mebyo Taro')
+
+        # affiliation: Organization whose 'name' contains ja/en PropertyValue refs
+        creator_affiliations = prop_entities(creator, 'affiliation')
+        assert_true(len(creator_affiliations) >= 1)
+        creator_aff_org = creator_affiliations[0]
+        assert_equal(creator_aff_org['@type'], 'Organization')
+        creator_aff_names = lang_map(creator_aff_org, 'name')
+        assert_equal(creator_aff_names['ja'], '未病大学')
+        assert_equal(creator_aff_names['en'], 'Mebyo University')
+
+        # email: PropertyValue with 'value' (no language)
+        creator_emails = prop_entities(creator, 'email')
+        assert_true(len(creator_emails) >= 1)
+        assert_equal(creator_emails[0]['value'], 'taro@example.com')
+
+        # ------------------------------------------------------------------ #
+        # contributor (Person / DataManager)
+        # ------------------------------------------------------------------ #
+        contributor_entities = prop_entities(root, 'contributor')
+        assert_true(len(contributor_entities) >= 1, 'contributor not found')
+        contributor = contributor_entities[0]
+        assert_equal(contributor['@type'], 'Person')
+
+        # jpcoar:addtionalType → DataManager
+        add_type = contributor.get('jpcoar:addtionalType', {})
+        assert_equal(
+            add_type.get('@id'),
+            'https://github.com/JPCOAR/schema/blob/master/2.0/#DataManager',
+        )
+
+        contributor_name_map = lang_map(contributor, 'name')
+        assert_equal(contributor_name_map['ja'], '未病花子')
+        assert_equal(contributor_name_map['en'], 'Mebyo Hanako')
+
+        contributor_affiliations = prop_entities(contributor, 'affiliation')
+        assert_true(len(contributor_affiliations) >= 1)
+        contributor_aff_org = contributor_affiliations[0]
+        assert_equal(contributor_aff_org['@type'], 'Organization')
+        contributor_aff_names = lang_map(contributor_aff_org, 'name')
+        assert_equal(contributor_aff_names['ja'], '未病大学')
+        assert_equal(contributor_aff_names['en'], 'Mebyo University')
+
+        contributor_emails = prop_entities(contributor, 'email')
+        assert_true(len(contributor_emails) >= 1)
+        assert_equal(contributor_emails[0]['value'], 'hanako@example.com')
+
+    def test_write_ro_crate_json_mebyo_empty_files(self):
+        """Test that MEBYO schema can generate RO-Crate without files (metadata only).
+
+        When allow_empty_files is enabled in the mapping, the RO-Crate should be
+        generated with project metadata only, without requiring file metadata.
+        """
+        buf = io.StringIO()
+        index = mock.MagicMock()
+        index.identifier = '2000'
+        index.title = 'MEBYO Test Index'
+        node_id = 'mebyotest'
+
+        target_schema = RegistrationSchema.objects \
+            .filter(name='ムーンショット目標2データベース（未病DB）のメタデータ登録') \
+            .order_by('-schema_version') \
+            .first()
+
+        # No files - empty lists
+        files = []
+        file_metadatas = []
+
+        # Project metadata with minimal required fields for MEBYO schema
+        project_metadata = {
+            'title-of-dataset': {
+                'value': 'テストデータセット',
+            },
+            'title-of-dataset-en': {
+                'value': 'Test Dataset',
+            },
+            'purpose-of-experiment': {
+                'value': '実験目的の説明',
+            },
+            'purpose-of-experiment-en': {
+                'value': 'Description of experiment purpose',
+            },
+            'data-creator': {
+                'value': '国立情報学研究所',
+            },
+            'data-manager': {
+                'value': 'テスト管理者',
+            },
+            'grdm-files': {
+                'value': [],  # No files
+            },
+        }
+
+        schema.write_ro_crate_json(
+            self.user,
+            buf,
+            index,
+            files,
+            target_schema._id,
+            file_metadatas,
+            [project_metadata],
+            node_id
+        )
+
+        actual_json = json.loads(buf.getvalue())
+        graph = {item['@id']: item for item in actual_json['@graph'] if '@id' in item}
+
+        # Root dataset entity should exist
+        assert_in('./', graph, 'Root dataset entity should exist')
+        root = graph['./']
+        assert_equal(root['@type'], ['Dataset', 'rdm:Dataset'])
+
+        # ro-crate-metadata.json entity should exist
+        assert_in('ro-crate-metadata.json', graph, 'RO-Crate metadata entity should exist')
+        ro_crate_meta = graph['ro-crate-metadata.json']
+        assert_equal(ro_crate_meta['about']['@id'], './')
+
+        # Project metadata should be reflected
+        assert_equal(root['name'], 'Test Dataset')
+        assert_equal(root['description'], 'Description of experiment purpose')
+
+    def test_write_ro_crate_json_mebyo_with_additional_metadata_files(self):
+        """Test MEBYO schema with choose-additional-metadata containing files.
+
+        Regression test for TypeError in _flatten_json_ld_root when hasPart
+        contains File objects with 'name' as a string (filename) rather than
+        a list of dicts (as with Person objects).
+        """
+        buf = io.StringIO()
+        index = mock.MagicMock()
+        index.identifier = '2000'
+        index.title = 'MEBYO Test Index'
+        node_id = 'mebyotest'
+
+        target_schema = RegistrationSchema.objects \
+            .filter(name='ムーンショット目標2データベース（未病DB）のメタデータ登録') \
+            .order_by('-schema_version') \
+            .first()
+
+        # Files from choose-additional-metadata
+        files = [[('text1.csv', 'text/csv')]]
+        file_metadatas = []  # MEBYO uses allow_empty_files
+
+        # Project metadata based on real production data
+        project_metadata = {
+            'title-of-dataset': {
+                'value': '未病DBメタデータテスト',
+            },
+            'title-of-dataset-en': {
+                'value': 'Mebyo DB Metadata Test',
+            },
+            'purpose-of-experiment': {
+                'value': 'test',
+            },
+            'purpose-of-experiment-en': {
+                'value': 'test purpose',
+            },
+            'data-creator': {
+                'value': '[{"name":"test","name-en":"test"}]',
+            },
+            'data-manager': {
+                'value': '[{"name":"test"}]',
+            },
+            'choose-additional-metadata': {
+                'value': '[{"path":"osfstorage/text1.csv","urlpath":"","metadata":{}}]',
+            },
+            'date-registered-in-metadata': {
+                'value': '2026-02-05',
+            },
+            'date-updated-in-metadata': {
+                'value': '2026-02-05',
+            },
+            'access-rights': {
+                'value': '公開|open access',
+            },
+            'dataset-research-field': {
+                'value': '自然科学一般|Natural Science',
+            },
+            'project-name': {
+                'value': 'MS2合原PJ|MS2 Aihara PJ',
+            },
+            'keywords': {
+                'value': '[{"filename":"test"}]',
+            },
+            'grdm-files': {
+                'value': '',
+            },
+        }
+
+        # This should NOT raise TypeError: string indices must be integers
+        schema.write_ro_crate_json(
+            self.user,
+            buf,
+            index,
+            files,
+            target_schema._id,
+            file_metadatas,
+            [project_metadata],
+            node_id
+        )
+
+        actual_json = json.loads(buf.getvalue())
+        graph = {item['@id']: item for item in actual_json['@graph'] if '@id' in item}
+
+        # Root dataset entity should exist
+        assert_in('./', graph, 'Root dataset entity should exist')
+        root = graph['./']
+        assert_equal(root['@type'], ['Dataset', 'rdm:Dataset'])
+
+        # ro-crate-metadata.json entity should exist
+        assert_in('ro-crate-metadata.json', graph, 'RO-Crate metadata entity should exist')
+        ro_crate_meta = graph['ro-crate-metadata.json']
+        assert_equal(ro_crate_meta['about']['@id'], './')
+
+        # Project metadata should be reflected
+        assert_equal(root['name'], 'Mebyo DB Metadata Test')
+        assert_equal(root['description'], 'test purpose')
+
+        # hasPart should contain File reference
+        assert_in('hasPart', root)
+        has_part = root['hasPart']
+        assert_true(isinstance(has_part, list))
+
+        # hasPart should not contain duplicates
+        has_part_ids = [part['@id'] for part in has_part]
+        assert_equal(
+            len(has_part_ids),
+            len(set(has_part_ids)),
+            f'hasPart contains duplicate entries: {has_part_ids}'
+        )
+
+        # File entity should exist with name as string (not list)
+        file_entities = [
+            item for item in actual_json['@graph']
+            if item.get('@type') == 'File'
+        ]
+        assert_true(len(file_entities) > 0, 'File entity should exist')
+        file_entity = file_entities[0]
+        assert_equal(file_entity['name'], 'text1.csv')
+        assert_true(isinstance(file_entity['name'], str), 'File name should be a string')
+
+    def test_write_ro_crate_json_erad_requires_files(self):
+        """Test that e-Rad schema (公的資金) requires files and raises error when empty.
+
+        The e-Rad schema should NOT allow empty files, as file metadata is required
+        for public funding data submissions.
+        """
+        buf = io.StringIO()
+        index = mock.MagicMock()
+        index.identifier = '1000'
+        index.title = 'Test Index'
+        node_id = 'testnode'
+
+        target_schema = RegistrationSchema.objects \
+            .filter(name='公的資金による研究データのメタデータ登録') \
+            .order_by('-schema_version') \
+            .first()
+
+        # No files - empty lists
+        files = []
+        file_metadatas = []
+        project_metadata = {
+            'funder': {'value': 'JST'},
+            'japan-grant-number': {'value': 'JP123456'},
+        }
+
+        # Should raise ValueError because e-Rad schema requires files
+        with assert_raises(ValueError) as context:
+            schema.write_ro_crate_json(
+                self.user,
+                buf,
+                index,
+                files,
+                target_schema._id,
+                file_metadatas,
+                [project_metadata],
+                node_id
+            )
+
+        assert_in(
+            'No file metadata available',
+            str(context.exception),
+            'Error message should indicate missing file metadata'
+        )
+
+    def test_write_ro_crate_json_additional_funding(self):
+        buf = io.StringIO()
+        index = mock.MagicMock()
+        index.identifier = '1000'
+        index.title = 'TITLE'
+        node_id = 'rvm3q'
+        files = [
+            [('test.jpg', 'image/jpeg')],
+        ]
+        target_schema = RegistrationSchema.objects \
+            .filter(name='公的資金による研究データのメタデータ登録') \
+            .order_by('-schema_version') \
+            .first()
+        file_metadata = {
+            'items': [
+                {
+                    'schema': target_schema._id,
+                    'data': dict([(k, {
+                        'value': v,
+                    })for k, v in {
+                        'grdm-file:title-en': 'TEST DATA',
+                        'grdm-file:data-description-ja': 'テスト説明',
+                    }.items()]),
+                },
+            ],
+        }
+        project_metadata = {
+            'funder': {
+                'value': 'JST',
+            },
+            'japan-grant-number': {
+                'value': 'JP100001',
+            },
+            'project-name-ja': {
+                'value': 'メインプロジェクト',
+            },
+            'project-name-en': {
+                'value': 'Main Project',
+            },
+            'additional-funding': {
+                'value': json.dumps([
+                    {
+                        'funder': 'JSPS',
+                        'japan-grant-number': 'JP200002',
+                        'project-name-ja': '追加プロジェクト1',
+                        'project-name-en': 'Additional Project 1',
+                    },
+                    {
+                        'funder': 'AMED',
+                        'japan-grant-number': 'JP300003',
+                        'project-name-ja': '追加プロジェクト2',
+                        'project-name-en': 'Additional Project 2',
+                    },
+                ]),
+            },
+        }
+
+        schema.write_ro_crate_json(
+            self.user,
+            buf,
+            index,
+            files,
+            target_schema._id,
+            [file_metadata],
+            [project_metadata],
+            node_id
+        )
+
+        actual_json = json.loads(buf.getvalue())
+        graph = actual_json['@graph']
+        entities = {e['@id']: e for e in graph if '@id' in e}
+
+        def resolve_ref(ref):
+            return entities[ref['@id']]
+
+        dataset = entities['./']
+        funding_refs = dataset['jpcoar:fundingReference']
+        assert_equal(len(funding_refs), 3)
+
+        resolved_fundings = []
+        for ref in funding_refs:
+            fr = resolve_ref(ref)
+            assert_equal(fr['@type'], 'PropertyValue')
+
+            award_number = resolve_ref(fr['jpcoar:awardNumber'])
+            assert_equal(award_number['@type'], 'jpcoar:awardNumber')
+            assert_equal(award_number['jpcoar:awardNumberType'], 'JGN')
+
+            funder_names = [resolve_ref(r) for r in fr['jpcoar:funderName']]
+            assert_equal(len(funder_names), 2)
+            funder_ja = next(n for n in funder_names if n['language'] == 'ja')
+            funder_en = next(n for n in funder_names if n['language'] == 'en')
+
+            award_titles = [resolve_ref(r) for r in fr['jpcoar:awardTitle']]
+            assert_equal(len(award_titles), 2)
+            title_ja = next(t for t in award_titles if t['language'] == 'ja')
+            title_en = next(t for t in award_titles if t['language'] == 'en')
+
+            resolved_fundings.append({
+                'grant_number': award_number['value'],
+                'funder_ja': funder_ja['value'],
+                'funder_en': funder_en['value'],
+                'title_ja': title_ja['value'],
+                'title_en': title_en['value'],
+            })
+
+        resolved_fundings.sort(key=lambda f: f['grant_number'])
+
+        assert_equal(resolved_fundings[0], {
+            'grant_number': 'JP100001',
+            'funder_ja': '国立研究開発法人科学技術振興機構(JST)',
+            'funder_en': 'Japan Science and Technology Agency(JST)',
+            'title_ja': 'メインプロジェクト',
+            'title_en': 'Main Project',
+        })
+        assert_equal(resolved_fundings[1], {
+            'grant_number': 'JP200002',
+            'funder_ja': '独立行政法人日本学術振興会(JSPS)',
+            'funder_en': 'Japan Society for the Promotion of Science(JSPS)',
+            'title_ja': '追加プロジェクト1',
+            'title_en': 'Additional Project 1',
+        })
+        assert_equal(resolved_fundings[2], {
+            'grant_number': 'JP300003',
+            'funder_ja': '国立研究開発法人日本医療研究開発機構(AMED)',
+            'funder_en': 'Japan Agency for Medical Research and Development(AMED)',
+            'title_ja': '追加プロジェクト2',
+            'title_en': 'Additional Project 2',
+        })
+
+    def test_write_csv_unsplit_creator_name(self):
+        """Migrated data: last = full name, first/middle empty.
+        familyName/givenName should NOT be output."""
+        buf = io.StringIO()
+        index = mock.MagicMock()
+        index.identifier = '1000'
+        index.title = 'TITLE'
+        files = [
+            [('test.jpg', 'image/jpeg')],
+        ]
+        target_schema = RegistrationSchema.objects \
+            .filter(name='公的資金による研究データのメタデータ登録') \
+            .order_by('-schema_version') \
+            .first()
+        file_metadata = {
+            'items': [
+                {
+                    'schema': target_schema._id,
+                    'data': dict([(k, {
+                        'value': v,
+                    }) for k, v in {
+                        'grdm-file:title-en': 'TEST DATA',
+                        'grdm-file:title-ja': 'テストデータ',
+                        'grdm-file:data-description-ja': 'テスト説明',
+                        'grdm-file:data-description-en': 'TEST DESCRIPTION',
+                        'grdm-file:data-type': 'dataset',
+                        'grdm-file:access-rights': 'open access',
+                    }.items()] + [
+                        ('grdm-file:creators', {
+                            'value': [
+                                {
+                                    'number': '99999',
+                                    'name-ja': {'last': '情報太郎', 'middle': '', 'first': ''},
+                                    'name-en': {'last': 'Taro Joho', 'middle': '', 'first': ''},
+                                }
+                            ],
+                        }),
+                    ]),
+                },
+            ],
+        }
+
+        schema.write_csv(
+            self.user,
+            buf,
+            index,
+            files,
+            target_schema._id,
+            [file_metadata],
+            [],
+        )
+
+        buf.seek(0)
+        reader = csv.reader(buf)
+        lines = list(reader)
+        data_row = lines[5]
+        header_row = lines[1]
+
+        # Build column map
+        col = dict(zip(header_row, data_row))
+
+        # creatorName should be the full name (no comma since first is empty)
+        assert_equal(
+            col['.metadata.item_30002_creator2[0].creatorNames[0].creatorName'],
+            '情報太郎',
+        )
+        assert_equal(
+            col['.metadata.item_30002_creator2[0].creatorNames[1].creatorName'],
+            'Taro Joho',
+        )
+
+        # familyName/givenName should NOT exist in headers (not output)
+        assert '.metadata.item_30002_creator2[0].familyNames[0].familyName' not in col
+        assert '.metadata.item_30002_creator2[0].givenNames[0].givenName' not in col
+
+    def test_write_ro_crate_json_unsplit_creator_name(self):
+        """Migrated data: last = full name, first/middle empty.
+        familyName/givenName should NOT be output in RO-Crate."""
+        buf = io.StringIO()
+        index = mock.MagicMock()
+        index.identifier = '1000'
+        index.title = 'TITLE'
+        node_id = 'rvm3q'
+        files = [
+            [('test.jpg', 'image/jpeg')],
+        ]
+        target_schema = RegistrationSchema.objects \
+            .filter(name='公的資金による研究データのメタデータ登録') \
+            .order_by('-schema_version') \
+            .first()
+        file_metadata = {
+            'items': [
+                {
+                    'schema': target_schema._id,
+                    'data': dict([(k, {
+                        'value': v,
+                    }) for k, v in {
+                        'grdm-file:title-en': 'TEST DATA',
+                        'grdm-file:title-ja': 'テストデータ',
+                        'grdm-file:data-description-ja': 'テスト説明',
+                        'grdm-file:data-description-en': 'TEST DESCRIPTION',
+                        'grdm-file:data-type': 'dataset',
+                        'grdm-file:access-rights': 'open access',
+                        'grdm-file:data-man-type': 'individual',
+                    }.items()] + [
+                        ('grdm-file:creators', {
+                            'value': [
+                                {
+                                    'number': '99999',
+                                    'name-ja': {'last': '情報太郎', 'middle': '', 'first': ''},
+                                    'name-en': {'last': 'Taro Joho', 'middle': '', 'first': ''},
+                                }
+                            ],
+                        }),
+                        ('grdm-file:data-man-name-ja', {
+                            'value': {'last': '管理花子', 'middle': '', 'first': ''},
+                        }),
+                        ('grdm-file:data-man-name-en', {
+                            'value': {'last': 'Hanako Manager', 'middle': '', 'first': ''},
+                        }),
+                    ]),
+                },
+            ],
+        }
+
+        schema.write_ro_crate_json(
+            self.user,
+            buf,
+            index,
+            files,
+            target_schema._id,
+            [file_metadata],
+            [],
+            node_id,
+        )
+
+        data = json.loads(buf.getvalue())
+        entities = {e['@id']: e for e in data['@graph']}
+
+        # Find creator entity
+        dataset = entities['./']
+        creator_refs = dataset.get('jpcoar:creator', [])
+        assert_equal(len(creator_refs), 1)
+        creator = entities[creator_refs[0]['@id']]
+
+        # creatorName should exist
+        assert 'jpcoar:creatorName' in creator
+
+        # familyName/givenName should NOT exist (unsplit)
+        assert 'jpcoar:familyName' not in creator
+        assert 'jpcoar:givenName' not in creator
+
+        # Verify creatorName values
+        name_refs = creator['jpcoar:creatorName']
+        names = [entities[r['@id']] for r in name_refs]
+        ja_name = next(n for n in names if n.get('language') == 'ja')
+        en_name = next(n for n in names if n.get('language') == 'en')
+        assert_equal(ja_name['value'], '情報太郎')
+        assert_equal(en_name['value'], 'Taro Joho')
+
+        # Find data manager contributor
+        contributor_refs = dataset.get('jpcoar:contributor', [])
+        dm = None
+        for ref in contributor_refs:
+            entity = entities[ref['@id']]
+            if entity.get('jpcoar:contributorType') == 'DataManager':
+                dm = entity
+                break
+        assert dm is not None
+
+        # contributorName should exist
+        assert 'jpcoar:contributorName' in dm
+
+        # familyName/givenName should NOT exist (unsplit)
+        assert 'jpcoar:familyName' not in dm
+        assert 'jpcoar:givenName' not in dm

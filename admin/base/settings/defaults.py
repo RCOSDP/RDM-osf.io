@@ -128,6 +128,7 @@ INSTALLED_APPS = (
     'addons.azureblobstorage',
     'addons.weko',
     'addons.s3compat',
+    'addons.s3compatsigv4',
     'addons.s3compatb3',
     'addons.nextcloud',
     'addons.gitlab',
@@ -139,6 +140,7 @@ INSTALLED_APPS = (
     'addons.ociinstitutions',
     'addons.onedrivebusiness',
     'addons.metadata',
+    'addons.workflow',
 )
 
 MIGRATION_MODULES = {
@@ -164,6 +166,7 @@ MIGRATION_MODULES = {
     'addons_azureblobstorage': None,
     'addons_weko': None,
     'addons_s3compat': None,
+    'addons_s3compatsigv4': None,
     'addons_s3compatb3': None,
     'addons_nextcloud': None,
     'addons_gitlab': None,
@@ -181,6 +184,7 @@ UNSUPPORTED_FORCE_TO_USE_ADDONS = [
     'swift',
     'weko',
     's3compat',
+    's3compatsigv4',
     's3compatb3',
     'nextcloud',
     'gitlab',

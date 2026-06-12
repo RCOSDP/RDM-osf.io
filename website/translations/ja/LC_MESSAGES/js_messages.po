@@ -28,7 +28,7 @@ msgid "Launch"
 msgstr "起動"
 
 #: addons/metadata/static/files.js:338
-msgid "Metadata Schema:"
+msgid "Schema:"
 msgstr "メタデータ様式:"
 
 #: addons/metadata/static/files.js:535
@@ -278,6 +278,14 @@ msgstr "データはありません"
 msgid "Add"
 msgstr "追加"
 
+#: addons/metadata/static/metadata-fields.js:892
+msgid "Move up"
+msgstr "上へ移動"
+
+#: addons/metadata/static/metadata-fields.js:899
+msgid "Move down"
+msgstr "下へ移動"
+
 #: addons/metadata/static/metadata-fields.js:916
 msgid "Please enter the correct value. "
 msgstr "正しい値を入力してください。 "
@@ -294,6 +302,10 @@ msgstr "このフィールドは必須項目です。"
 #: addons/metadata/static/metadata-fields.js:1071
 msgid "Overwrite already entered value?"
 msgstr "すでに入力されている値を上書きしますか？"
+
+#: addons/metadata/static/metadata-fields.js:1558
+msgid "No metadata found."
+msgstr "メタデータが見つかりません。"
 
 #: addons/metadata/static/metadataImportDatasetButton.js:26
 #: addons/metadata/static/metadataImportDatasetButton.js:57
@@ -416,9 +428,17 @@ msgstr "登録"
 msgid "Error occurred: "
 msgstr "エラーが発生しました: "
 
-#: addons/weko/static/wekoFangornConfig.js:299
+#: addons/weko/static/wekoFangornConfig.js:243
+msgid "Deposit Result"
+msgstr "登録結果"
+
+#: addons/weko/static/wekoFangornConfig.js:245
+msgid "Deposit request was submitted. Awaiting review by repository administrator."
+msgstr "登録申請を送信しました。機関リポジトリ管理者の審査をお待ちください。"
+
+#: addons/weko/static/wekoFangornConfig.js:246
 msgid "Deposit was successful."
-msgstr "登録が成功しました。"
+msgstr "登録が完了しました。"
 
 #: addons/weko/static/wekoFangornConfig.js:553
 msgid "Error occurred while "
@@ -442,11 +462,9 @@ msgstr "送信するファイルメタデータのメタデータ様式を選択
 msgid "Project Metadata"
 msgstr "プロジェクトメタデータ"
 
-#: addons/weko/static/wekoFangornConfig.js:593
-msgid ""
-"Select a registration for the file. You can also select a draft "
-"registration."
-msgstr "送信するプロジェクトメタデータを選択してください。下書きも指定可能です。"
+#: addons/weko/static/wekoFangornConfig.js:626
+msgid "Select a project metadata for the file."
+msgstr "送信するプロジェクトメタデータを選択してください。"
 
 #: addons/weko/static/wekoFangornConfig.js:617
 msgid ""
@@ -10560,3 +10578,269 @@ msgstr "統合管理者代理アカウントが${contributors}をコントリビ
 
 msgid "Not enough quota to upload. The total size of all files is %1$s."
 msgstr "アップロードするための空き容量が足りません。全ファイルの合計サイズは %1$s です"
+
+msgid "${title} from workflow ${workflow_name} in ${node}"
+msgstr "${node}でワークフロー${workflow_name}から通知: ${title}"
+msgid "Select workflow"
+msgstr "ワークフローを選択"
+
+msgid "Please select a workflow."
+msgstr "ワークフローを選択してください。"
+
+msgid "Enter Workflow Form"
+msgstr "ワークフローフォームを入力"
+
+msgid "Start Workflow"
+msgstr "ワークフローを開始"
+
+msgid "You need write access on this project to start a workflow."
+msgstr "このプロジェクトでワークフローを開始するには編集権限が必要です。"
+
+msgid "Queued"
+msgstr "待機中"
+
+msgid "Running"
+msgstr "実行中"
+
+msgid "Completed"
+msgstr "完了"
+
+msgid "Failed"
+msgstr "失敗"
+
+msgid "Cancelled"
+msgstr "中止"
+
+msgid "Unknown"
+msgstr "不明"
+
+msgid "Unassigned"
+msgstr "未割り当て"
+
+msgid "Workflow starter"
+msgstr "ワークフロー起動者"
+
+msgid "Registration project writer"
+msgstr "登録プロジェクトの書き込み権限者"
+
+msgid "Project admin"
+msgstr "プロジェクト管理者"
+
+msgid "Project contributor"
+msgstr "プロジェクト共同研究者"
+
+msgid "Select a workflow"
+msgstr "ワークフローを選択"
+
+msgid "Workflow API is not available for this project."
+msgstr "このプロジェクトではワークフローAPIを利用できません。"
+
+msgid "Could not load workflow activations."
+msgstr "ワークフローの有効化情報を読み込めませんでした。"
+
+msgid "Could not load workflow runs."
+msgstr "ワークフローの実行履歴を読み込めませんでした。"
+
+msgid "Could not load workflow tasks."
+msgstr "ワークフローのタスクを読み込めませんでした。"
+
+msgid "This project"
+msgstr "このプロジェクト"
+
+msgid "Shared project"
+msgstr "共有プロジェクト"
+
+msgid "Enabled"
+msgstr "有効"
+
+msgid "Disabled"
+msgstr "無効"
+
+msgid "Select an engine…"
+msgstr "エンジンを選択…"
+
+msgid "ReadWrite permission: Full access to read and modify resources"
+msgstr "読み書き権限: リソースの閲覧と編集が可能"
+
+msgid "Read permission: Read-only access to resources"
+msgstr "閲覧権限: リソースを閲覧のみ可能"
+
+msgid "All RDM users"
+msgstr "すべてのRDM利用者"
+
+msgid "Users at this project's institutions"
+msgstr "このプロジェクトと同じ所属機関のユーザー"
+
+msgid "This project's members only"
+msgstr "このプロジェクトのメンバーのみ"
+
+msgid "No active workflow engines are available for this project."
+msgstr "このプロジェクトでは利用可能なワークフローエンジンがありません。"
+
+msgid "No workflow engines are registered yet."
+msgstr "ワークフローエンジンはまだ登録されていません。"
+
+msgid "Could not load available workflow engines."
+msgstr "利用可能なワークフローエンジンを読み込めませんでした。"
+
+msgid "Could not load workflow templates."
+msgstr "ワークフローテンプレートを読み込めませんでした。"
+
+msgid "Engine selection is required."
+msgstr "エンジンの選択が必要です。"
+
+msgid "Workflow ZIP file is required."
+msgstr "ワークフローZIPファイルは必須です。"
+
+msgid "Workflow template registered."
+msgstr "ワークフローテンプレートを登録しました。"
+
+msgid "Workflow template updated."
+msgstr "ワークフローテンプレートを更新しました。"
+
+msgid "Failed to register workflow."
+msgstr "ワークフローの登録に失敗しました。"
+
+msgid "Workflow activated."
+msgstr "ワークフローを有効にしました。"
+
+msgid "Failed to activate workflow."
+msgstr "ワークフローを有効にできませんでした。"
+
+msgid "Workflow deactivated."
+msgstr "ワークフローを無効にしました。"
+
+msgid "Failed to deactivate workflow."
+msgstr "ワークフローを無効にできませんでした。"
+
+msgid "Workflow template enabled."
+msgstr "ワークフローテンプレートを有効にしました。"
+
+msgid "Workflow template disabled."
+msgstr "ワークフローテンプレートを無効にしました。"
+
+msgid "Are you sure you want to disable %s?"
+msgstr "%sを無効にしますか？"
+
+msgid "Are you sure you want to delete %s?"
+msgstr "%sを削除しますか？"
+
+msgid "Failed to update workflow template."
+msgstr "ワークフローテンプレートの更新に失敗しました。"
+
+msgid "Workflow template deleted."
+msgstr "ワークフローテンプレートを削除しました。"
+
+msgid "Failed to delete workflow template."
+msgstr "ワークフローテンプレートの削除に失敗しました。"
+
+msgid "Workflow deleted."
+msgstr "ワークフローを削除しました。"
+
+msgid "Failed to delete workflow."
+msgstr "ワークフローの削除に失敗しました。"
+
+msgid "Workflow enabled."
+msgstr "ワークフローを有効にしました。"
+
+msgid "Failed to update workflow activation."
+msgstr "ワークフローを有効にできませんでした。"
+
+msgid "No workflow engines are available."
+msgstr "利用可能なワークフローエンジンがありません。"
+
+#: scripts/translations/messages_addonsJson.js:52
+msgid ""
+"\n"
+"\n"
+"<h3>Workflow Add-on Terms</h3>\n"
+"\n"
+"<table class=\"table table-bordered table-addon-terms\">\n"
+"\n"
+"    <thead>\n"
+"        <tr>\n"
+"            <th>Function</th>\n"
+"            <th>Status</th>\n"
+"        </tr>\n"
+"    </thead>\n"
+"\n"
+"    <tbody>\n"
+"            <tr class=\"danger\">\n"
+"                <td>Permissions</td>\n"
+"                <td>The workflow add-on does not change project permissions or external workflow engine access policies.</td>\n"
+"            </tr>\n"
+"            <tr class=\"danger\">\n"
+"                <td>View / download file versions</td>\n"
+"                <td>The workflow add-on does not expose file storage or versioning capabilities.</td>\n"
+"            </tr>\n"
+"            <tr class=\"danger\">\n"
+"                <td>Add / update files</td>\n"
+"                <td>The workflow add-on does not upload or update files within GakuNin RDM or external systems.</td>\n"
+"            </tr>\n"
+"            <tr class=\"danger\">\n"
+"                <td>Delete files</td>\n"
+"                <td>The workflow add-on does not delete files within GakuNin RDM or external systems.</td>\n"
+"            </tr>\n"
+"            <tr class=\"warning\">\n"
+"                <td>Logs</td>\n"
+"                <td>Workflow template and activation actions performed via GakuNin RDM are recorded in project logs; activity inside the external workflow engine is not.</td>\n"
+"            </tr>\n"
+"            <tr class=\"warning\">\n"
+"                <td>Forking</td>\n"
+"                <td>Forking a project copies workflow templates in a disabled state; administrators must review engine connections before use.</td>\n"
+"            </tr>\n"
+"    </tbody>\n"
+"\n"
+"</table>\n"
+"\n"
+"<ul>\n"
+"        <li>This add-on connects your GakuNin RDM project to an external service. Use of this service is bound by its terms and conditions. The GakuNin RDM is not responsible for the service or for your use thereof.</li>\n"
+"        <li>This add-on allows you to store files using an external service. Files added to this add-on are not stored within the GakuNin RDM.</li>\n"
+"</ul>\n"
+msgstr ""
+"\n"
+"\n"
+"<h3>Workflow アドオン規約</h3>\n"
+"\n"
+"<table class=\"table table-bordered table-addon-terms\">\n"
+"\n"
+"    <thead>\n"
+"        <tr>\n"
+"            <th>機能</th>\n"
+"            <th>ステータス</th>\n"
+"        </tr>\n"
+"    </thead>\n"
+"\n"
+"    <tbody>\n"
+"            <tr class=\"danger\">\n"
+"                <td>権限</td>\n"
+"                <td>Workflowアドオンはプロジェクトの権限や外部ワークフローエンジンのアクセス方針を変更しません。</td>\n"
+"            </tr>\n"
+"            <tr class=\"danger\">\n"
+"                <td>ファイルバージョンの閲覧/ダウンロード</td>\n"
+"                <td>Workflowアドオンはファイルストレージやバージョン管理機能を提供しません。</td>\n"
+"            </tr>\n"
+"            <tr class=\"danger\">\n"
+"                <td>ファイルの追加/更新</td>\n"
+"                <td>WorkflowアドオンはGakuNin RDMや外部システム上でファイルのアップロードや更新を行いません。</td>\n"
+"            </tr>\n"
+"            <tr class=\"danger\">\n"
+"                <td>ファイルの削除</td>\n"
+"                <td>WorkflowアドオンはGakuNin RDMや外部システム上のファイルを削除しません。</td>\n"
+"            </tr>\n"
+"            <tr class=\"warning\">\n"
+"                <td>ログ</td>\n"
+"                <td>GakuNin RDMから実行したワークフローテンプレートやアクティベーションの操作はプロジェクトログに記録されますが、外部ワークフローエンジン内での動作は記録されません。</td>\n"
+"            </tr>\n"
+"            <tr class=\"warning\">\n"
+"                <td>フォーク</td>\n"
+"                <td>プロジェクトをフォークするとワークフローテンプレートは無効な状態で複製されるため、利用前に管理者がエンジン接続を確認する必要があります。</td>\n"
+"            </tr>\n"
+"    </tbody>\n"
+"\n"
+"</table>\n"
+"\n"
+"<ul>\n"
+"        <li>このアドオンにより、GakuNin RDMプロジェクトは外部サービスに接続されます。このサービスを利用すると、外部サービスの利用規約に拘束されます。GakuNin RDMはサービスおよびその利用について責任を負いません。</li>\n"
+"        <li>このアドオンを利用すると外部サービスにファイルを保存できます。このアドオンに追加したファイルはGakuNin RDM内には保存されません。</li>\n"
+"</ul>\n"

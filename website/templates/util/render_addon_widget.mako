@@ -3,7 +3,13 @@
     % if addon_data['complete'] or permissions.WRITE in user['permissions']:
         <div class="panel panel-default" name="${addon_data['short_name']}">
             <div class="panel-heading clearfix">
-                <h3 class="panel-title">${addon_data['full_name']}</h3>
+                <h3 class="panel-title">
+                    % if addon_name == 'workflow':
+                        ${_("Workflow")}
+                    % else:
+                        ${addon_data['full_name']}
+                    % endif
+                </h3>
                 <div class="pull-right">
                     % if addon_data['has_page']:
                         <a href="${node['url']}${addon_data['short_name']}"><i class="fa fa-external-link"></i></a>
@@ -229,6 +235,215 @@
                           <!-- /ko -->
                         <!-- /ko -->
                       <!-- /ko -->
+                    </div>
+                % endif
+
+                % if addon_name == 'workflow':
+                    <div id="workflow-dashboard" class="scripted">
+                        <!-- ko if: loadingTemplates -->
+                            <div class="text-muted">
+                                <i class="fa fa-spinner fa-spin"></i>
+                                ${_("Loading workflows...")}
+                            </div>
+                        <!-- /ko -->
+
+                        <!-- ko if: templateError -->
+                            <div class="alert alert-danger" data-bind="text: templateError"></div>
+                        <!-- /ko -->
+
+                        <!-- ko if: !loadingTemplates() && !templateError() -->
+                            <!-- ko if: pendingTemplates().length -->
+                                <div class="alert alert-info">
+                                    <strong>${_("Available workflows")}</strong>
+                                    <!-- ko foreach: pendingTemplates -->
+                                        <div style="margin-top: 6px;">
+                                            <span data-bind="text: displayLabel"></span>
+                                            <button class="btn btn-xs btn-primary" data-bind="click: $parent.acceptPending">
+                                                ${_("Activate")}
+                                            </button>
+                                            <button class="btn btn-xs btn-default" data-bind="click: $parent.dismissPending">
+                                                ${_("Dismiss")}
+                                            </button>
+                                        </div>
+                                    <!-- /ko -->
+                                </div>
+                            <!-- /ko -->
+                            <div data-bind="if: activeTemplates().length">
+                                <!-- ko if: canStartWorkflow -->
+                                    <div class="form-inline m-b-sm">
+                                        <label class="control-label m-r-sm">${_("Launch workflow")}</label>
+                                        <div class="btn-group btn-group-sm">
+                                            <a class="btn btn-primary"
+                                               data-bind="text: selectedTemplateLabel,
+                                                          attr: { href: selectedTemplateUrl }"></a>
+                                            <button type="button" class="btn btn-primary dropdown-toggle"
+                                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                <span class="caret"></span>
+                                                <span class="sr-only">${_("Toggle workflow selection")}</span>
+                                            </button>
+                                            <ul class="dropdown-menu"
+                                                data-bind="foreach: activeTemplates">
+                                                <li data-bind="css: { active: id === $parent.selectedTemplateId() }">
+                                                    <a data-bind="text: displayLabel,
+                                                                  attr: { href: $parent.launchUrlFor(id) },
+                                                                  click: $parent.selectTemplate"></a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <p class="text-muted">
+                                        ${_("Select a workflow to open the workflow console and start a run.")}
+                                    </p>
+                                <!-- /ko -->
+                                <!-- ko ifnot: canStartWorkflow -->
+                                    <p class="text-muted" data-bind="text: permissionDeniedMessage"></p>
+                                <!-- /ko -->
+                            </div>
+
+                            <p class="text-muted" data-bind="if: !activeTemplates().length">
+                                ${_("No active workflows are available for this project.")}
+                            </p>
+
+                            <hr />
+
+                            <ul class="nav nav-tabs" style="margin-bottom: 10px;">
+                                <li data-bind="css: { active: activeTab() === 'runs' }">
+                                    <a href="#" data-bind="click: setActiveTab.bind($data, 'runs')">${_("Recent runs")}</a>
+                                </li>
+                                <li data-bind="css: { active: activeTab() === 'tasks' }">
+                                    <a href="#" data-bind="click: setActiveTab.bind($data, 'tasks')">
+                                        ${_("Open tasks")}
+                                        <!-- ko if: assignedTaskCount() > 0 -->
+                                        <span class="badge" style="background-color: #d9534f;" data-bind="text: assignedTaskCount"></span>
+                                        <!-- /ko -->
+                                    </a>
+                                </li>
+                            </ul>
+
+                            <!-- Recent runs tab -->
+                            <div data-bind="visible: activeTab() === 'runs'">
+                                <div class="clearfix m-b-sm">
+                                    <button type="button" class="btn btn-default btn-xs pull-right"
+                                            data-bind="click: fetchAll, disable: isRefreshingRuns">
+                                        <i class="fa fa-refresh" data-bind="css: { 'fa-spin': isRefreshingRuns }"></i>
+                                        ${_("Refresh")}
+                                    </button>
+                                </div>
+
+                                <!-- ko if: loadingRuns -->
+                                    <div class="text-muted">
+                                        <i class="fa fa-spinner fa-spin"></i>
+                                        ${_("Loading runs...")}
+                                    </div>
+                                <!-- /ko -->
+
+                                <!-- ko if: runsError -->
+                                    <div class="alert alert-danger" data-bind="text: runsError"></div>
+                                <!-- /ko -->
+
+                                <div class="table-responsive" data-bind="if: !loadingRuns() && runs().length">
+                                    <table class="table table-condensed table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>${_("Label")}</th>
+                                                <th>${_("Status")}</th>
+                                                <th>${_("Started")}</th>
+                                                <th>${_("Completed")}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody data-bind="foreach: runs">
+                                            <tr>
+                                                <td>
+                                                    <strong data-bind="text: label || business_key || id"></strong>
+                                                    <div class="text-muted" data-bind="text: engine_process_id, visible: engine_process_id"></div>
+                                                </td>
+                                                <td>
+                                                    <span class="label" data-bind="css: $parent.runStatusClass($data), text: $parent.runStatusLabel($data)"></span>
+                                                </td>
+                                                <td data-bind="text: $parent.formatDate(started_at || created)"></td>
+                                                <td data-bind="text: $parent.formatDate(completed_at)"></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <p class="text-muted" data-bind="if: !loadingRuns() && !runs().length">
+                                    ${_("No workflow runs have been recorded yet.")}
+                                </p>
+                            </div>
+
+                            <!-- Open tasks tab -->
+                            <div data-bind="visible: activeTab() === 'tasks'">
+                                <div class="clearfix m-b-sm">
+                                    <button type="button" class="btn btn-default btn-xs pull-right"
+                                            data-bind="click: fetchAll, disable: isRefreshingTasks">
+                                        <i class="fa fa-refresh" data-bind="css: { 'fa-spin': isRefreshingTasks }"></i>
+                                        ${_("Refresh")}
+                                    </button>
+                                </div>
+
+                                <!-- ko if: loadingTasks -->
+                                    <div class="text-muted">
+                                        <i class="fa fa-spinner fa-spin"></i>
+                                        ${_("Loading tasks...")}
+                                    </div>
+                                <!-- /ko -->
+
+                                <!-- ko if: tasksError -->
+                                    <div class="alert alert-danger" data-bind="text: tasksError"></div>
+                                <!-- /ko -->
+
+                                <div class="table-responsive" data-bind="if: !loadingTasks() && tasks().length">
+                                    <table class="table table-condensed table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>${_("Task")}</th>
+                                                <th>${_("Assignee")}</th>
+                                                <th>${_("Created")}</th>
+                                                <th>${_("Due")}</th>
+                                                <th>${_("Actions")}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody data-bind="foreach: tasks">
+                                            <tr>
+                                                <td>
+                                                    <strong data-bind="text: name || id"></strong>
+                                                    <div class="text-muted" data-bind="text: business_key, visible: business_key"></div>
+                                                </td>
+                                                <td>
+                                                    <!-- ko if: $parent.taskAssigneeUrl($data) -->
+                                                        <a target="_blank" rel="noopener noreferrer"
+                                                           data-bind="attr: { href: $parent.taskAssigneeUrl($data) }, text: $parent.taskAssigneeLabel($data)"></a>
+                                                    <!-- /ko -->
+                                                    <!-- ko ifnot: $parent.taskAssigneeUrl($data) -->
+                                                        <span data-bind="text: $parent.taskAssigneeLabel($data)"></span>
+                                                    <!-- /ko -->
+                                                </td>
+                                                <td data-bind="text: $parent.formatDate(created)"></td>
+                                                <td data-bind="text: $parent.formatDate(due)"></td>
+                                                <td>
+                                                    <!-- ko if: $parent.canEditTask($data) -->
+                                                        <button type="button" class="btn btn-primary btn-xs"
+                                                                data-bind="click: $parent.openTaskInWorkflowPage.bind($parent, $data)">
+                                                            <i class="fa fa-pencil"></i>
+                                                            ${_("Edit")}
+                                                        </button>
+                                                    <!-- /ko -->
+                                                    <!-- ko ifnot: $parent.canEditTask($data) -->
+                                                        <span class="text-muted" data-bind="text: $parent.unassignedLabel"></span>
+                                                    <!-- /ko -->
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <p class="text-muted" data-bind="if: !loadingTasks() && !tasks().length">
+                                    ${_("No open tasks for this project.")}
+                                </p>
+                            </div>
+
+                        <!-- /ko -->
                     </div>
                 % endif
 

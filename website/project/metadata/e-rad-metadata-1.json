@@ -1,20 +1,60 @@
 {
   "name": "公的資金による研究データのメタデータ登録",
+  "ui": {
+    "label": "研究成果（公的資金対応）のメタデータ登録|Metadata Registration for Research Outputs (Public Funding)",
+    "description": "公的資金による研究データの管理・利活用に関するメタデータ様式です。資金配分機関へのデータ提出フォーマットに対応しています。|A metadata format for the management and utilization of publicly funded research data. Compatible with the submission format for funding agencies.",
+    "variant": "grdm-file:file-type"
+  },
   "version": 3,
   "description": "公的資金による研究データのメタデータ登録",
   "pages": [
     {
       "id": "page1",
-      "title": "メタデータ登録|Metadata Registration",
-      "description": "公的資金による研究データの管理・利活用に関するメタデータの入力画面です。GakuNin RDMをお使いの方は、登録することで資金配分機関へデータ提出するフォーマットでダウンロードできます。|This is the metadata input form for the Management and Utilization of Publicly Funded Research Data. You may download the file in the format that can be submitted to the funding agencies by registering this form.",
+      "title": "助成情報登録|Funding Information Registration",
+      "description": "公的資金による研究プロジェクトの成果情報を登録できます。助成情報とファイルメタデータを紐づけ、資金配分機関への専用データ形式や機関リポジトリ登録にご利用できます。「公的資金による研究データの管理・利活用に関するメタデータ説明書」（内閣府）におけるメタデータの共通項目（以下「共通項目」）に準拠しています。 https://www8.cao.go.jp/cstp/metadatainstructions.pdf|You can register research output information for publicly funded research projects. Link funding information with file metadata for use in funding agency submission formats and institutional repository registration. Conforms to the Common Metadata Elements in the \"Metadata Manual for the Management and Utilization of Publicly Funded Research Data\" (Cabinet Office). https://www8.cao.go.jp/cstp/metadatainstructions_en.pdf",
+      "ui": [
+        {
+          "condition": { "grdm-file:file-type": "dataset" },
+          "header": "ファイル種別「データセット」は、<a href=\"https://www8.cao.go.jp/cstp/metadatainstructions.pdf\" target=\"_blank\" rel=\"noopener noreferrer\">「公的資金による研究データの管理・利活用に関するメタデータ説明書」（内閣府）</a>におけるメタデータの共通項目（以下「共通項目」）に準拠しています。|The \"Dataset\" file type conforms to the Common Metadata Elements in <a href=\"https://www8.cao.go.jp/cstp/metadatainstructions_en.pdf\" target=\"_blank\" rel=\"noopener noreferrer\">the \"Metadata Manual for the Management and Utilization of Publicly Funded Research Data\" (Cabinet Office)</a>."
+        },
+        {}
+      ],
       "questions": [
         {
           "qid": "japan-grant-number",
           "nav": "体系的番号",
           "title": "体系的番号|Japan Grant Number",
           "type": "string",
-          "format": "japan-grant-number",
-          "required": true
+          "format": "text",
+          "ui": { "item": { "marker": "circle", "width": "narrow", "info": "研究費ごとに付与される体系的な番号です。公募型の研究資金以外の場合は記入不要です。|The Japan Grant Number assigned to each research grant. No entry required except for public research funds.", "tags": [{ "id": "共通|Common", "info": "共通項目において必須（リポジトリや助成機関側で補完される場合あり）とされている項目です。<br>※（日本語）（English）の入力欄がある項目では、いずれか一方の入力が必須です。|An item required as a Common Metadata Element (may be supplemented by the repository or funding agency).<br>※Items with both (Japanese) and (English) input fields require at least one of them to be filled in." }] } },
+          "suggestion": [
+            {
+              "key": "erad:japan_grant_number",
+              "template": "<div style=\"background-color: white;\"><span>{{japan_grant_number}}</span><span><small class=\"m-l-md text-muted\">{{kadai_mei}} ({{nendo}})</small></span></div>",
+              "autofill": {
+                "funder": "haibunkikan_cd",
+                "project-research-field": "bunya_cd",
+                "funding-stream-code": "funding_stream_code",
+                "program-name-ja": "program_name_ja",
+                "program-name-en": "program_name_en",
+                "project-name-ja": "kadai_mei_ja",
+                "project-name-en": "kadai_mei_en"
+              }
+            },
+            {
+              "key": "kaken:japan_grant_number",
+              "template": "<div style=\"background-color: white;\"><span>{{japan_grant_number}}</span><span><small class=\"m-l-md text-muted\">{{kadai_mei}} ({{nendo}}) [KAKEN]</small></span></div>",
+              "autofill": {
+                "funder": "haibunkikan_cd",
+                "project-research-field": "bunya_cd",
+                "funding-stream-code": "funding_stream_code",
+                "program-name-ja": "program_name_ja",
+                "program-name-en": "program_name_en",
+                "project-name-ja": "kadai_mei_ja",
+                "project-name-en": "kadai_mei_en"
+              }
+            }
+          ]
         },
         {
           "qid": "funder",
@@ -22,7 +62,8 @@
           "title": "資金配分機関情報|Funder",
           "help": "資金配分機関情報を選択してください。一覧に無い場合は英語略称を記入してください。|Please select the funder. If not listed, please enter the English abbreviation.",
           "type": "choose",
-          "format": "e-rad-award-funder",
+          "format": "singleselect-pulldown",
+          "ui": { "item": { "marker": "circle", "width": "half", "freetext": true, "info": "研究資金を配分した資金配分機関（府省含む）の名称です（英語略称可）。公募型の研究資金以外の場合は記入不要です。|The name of the funding agency providing the research funds. No entry required except for public research funds.", "tags": ["共通|Common"] } },
           "options": [
             {
               "text": "AMED",
@@ -108,62 +149,124 @@
               "text": "BIBIOHN",
               "tooltip": "国立研究開発法人医薬基盤・健康・栄養研究所|National Institutes of Biomedical Innovation|1106"
             }
-          ],
-          "required": true,
-          "pattern": "^[a-zA-Z0-9]+$"
+          ]
         },
         {
           "qid": "funding-stream-code",
           "nav": "体系的番号におけるプログラム情報コード",
           "title": "体系的番号におけるプログラム情報コード|Funding stream code in Japan Grant Number",
           "type": "string",
-          "format": "funding-stream-code",
-          "required": false,
-          "pattern": "^[a-zA-Z0-9]{0,5}$",
+          "format": "text",
+          "ui": { "item": { "marker": "circle", "width": "narrow", "info": "体系的番号のうち、「機関コード」および「施策・事業の特定コード」を表すコードです。公募型の研究資金以外の場合は記入不要です。|The code representing the \"Agency Code\" and \"Program Specific Code\" in the Japan Grant Number. No entry required except for public research funds." } },
           "space_normalization": true
         },
         {
           "qid": "program-name-ja",
           "nav": "プログラム名 (日本語)",
           "title": "プログラム名 (日本語)|Program name (Japanese)",
+          "ui": {
+            "group": { "id": "program-name", "marker": "circle", "title": "プログラム名|Program name", "info": "競争的研究費制度の名称です。|The name of the competitive research funding program." },
+            "sub_label": "（日本語）|(Japanese)"
+          },
           "type": "string",
-          "format": "jgn-program-name-ja",
-          "required": false
+          "format": "text"
         },
         {
           "qid": "program-name-en",
           "nav": "Program name (English)",
           "title": "Program name (English)",
+          "ui": { "group": "program-name", "sub_label": "（English）|(English)" },
           "type": "string",
-          "format": "jgn-program-name-en",
-          "required": false
+          "format": "text"
         },
         {
           "qid": "project-name-ja",
           "nav": "プロジェクト名 (日本語)",
           "title": "プロジェクト名 (日本語)|Project name (Japanese)",
+          "ui": {
+            "group": { "id": "project-name", "marker": "circle", "title": "プロジェクト名|Project name", "tags": ["共通|Common"], "info": "研究代表者が統括する研究開発の範囲の名称です（e-Rad課題名称等）。公式な名称がない場合は、所属機関のルールに従って入力してください。|The name of the scope of R&D under the Principal Investigator (e.g., e-Rad Project Name). If there is no official name, follow your institution's rules." },
+            "sub_label": "（日本語）|(Japanese)"
+          },
           "type": "string",
-          "format": "e-rad-award-title-ja",
-          "required": false,
-          "required_if": "project-name-en",
-          "space_normalization": true
+          "format": "text",
+          "space_normalization": true,
+          "suggestion": [
+            {
+              "key": "erad:kadai_mei",
+              "valueField": "kadai_mei_ja",
+              "template": "<div style=\"background-color: white;\"><span>{{kadai_mei_ja}}</span><span><small class=\"m-l-md text-muted\">{{japan_grant_number}} ({{nendo}})</small></span></div>",
+              "autofill": {
+                "japan-grant-number": "japan_grant_number",
+                "funder": "haibunkikan_cd",
+                "project-research-field": "bunya_cd",
+                "funding-stream-code": "funding_stream_code",
+                "program-name-ja": "program_name_ja",
+                "program-name-en": "program_name_en",
+                "project-name-en": "kadai_mei_en"
+              }
+            },
+            {
+              "key": "kaken:kadai_mei",
+              "valueField": "kadai_mei_ja",
+              "template": "<div style=\"background-color: white;\"><span>{{kadai_mei_ja}}</span><span><small class=\"m-l-md text-muted\">{{japan_grant_number}} ({{nendo}}) [KAKEN]</small></span></div>",
+              "autofill": {
+                "japan-grant-number": "japan_grant_number",
+                "funder": "haibunkikan_cd",
+                "project-research-field": "bunya_cd",
+                "funding-stream-code": "funding_stream_code",
+                "program-name-ja": "program_name_ja",
+                "program-name-en": "program_name_en",
+                "project-name-en": "kadai_mei_en"
+              }
+            }
+          ]
         },
         {
           "qid": "project-name-en",
           "nav": "Project name (English)",
           "title": "Project name (English)",
+          "ui": { "group": "project-name", "sub_label": "（English）|(English)" },
           "type": "string",
-          "format": "e-rad-award-title-en",
-          "required": false,
-          "required_if": "project-name-ja",
-          "space_normalization": true
+          "format": "text",
+          "space_normalization": true,
+          "suggestion": [
+            {
+              "key": "erad:kadai_mei",
+              "valueField": "kadai_mei_en",
+              "template": "<div style=\"background-color: white;\"><span>{{kadai_mei_en}}</span><span><small class=\"m-l-md text-muted\">{{japan_grant_number}} ({{nendo}})</small></span></div>",
+              "autofill": {
+                "japan-grant-number": "japan_grant_number",
+                "funder": "haibunkikan_cd",
+                "project-research-field": "bunya_cd",
+                "funding-stream-code": "funding_stream_code",
+                "program-name-ja": "program_name_ja",
+                "program-name-en": "program_name_en",
+                "project-name-ja": "kadai_mei_ja"
+              }
+            },
+            {
+              "key": "kaken:kadai_mei",
+              "valueField": "kadai_mei_en",
+              "template": "<div style=\"background-color: white;\"><span>{{kadai_mei_en}}</span><span><small class=\"m-l-md text-muted\">{{japan_grant_number}} ({{nendo}}) [KAKEN]</small></span></div>",
+              "autofill": {
+                "japan-grant-number": "japan_grant_number",
+                "funder": "haibunkikan_cd",
+                "project-research-field": "bunya_cd",
+                "funding-stream-code": "funding_stream_code",
+                "program-name-ja": "program_name_ja",
+                "program-name-en": "program_name_en",
+                "project-name-ja": "kadai_mei_ja"
+              }
+            }
+          ]
         },
         {
           "qid": "project-research-field",
           "nav": "プロジェクトの分野",
           "title": "プロジェクトの分野|Research field",
           "type": "choose",
-          "format": "e-rad-award-field",
+          "format": "singleselect-pulldown",
+          "ui": { "item": { "marker": "circle", "width": "narrow", "info": "e-Radの研究分野（主分野）です。|The primary research field registered in e-Rad.", "tags": ["共通|Common"] } },
           "options": [
               {
                 "text": "189",
@@ -209,8 +312,239 @@
                 "text": "9999",
                 "tooltip": "その他|Others|9999"
               }
-          ],
-          "required": true
+          ]
+        },
+        {
+          "qid": "additional-funding",
+          "nav": "追加の助成情報",
+          "title": "追加の助成情報|Additional Funding",
+          "help": "追加の資金配分機関情報がある場合は入力してください。|Enter additional funding information if applicable.",
+          "type": "array",
+          "properties": [
+            {
+              "id": "japan-grant-number",
+              "title": "体系的番号|Japan Grant Number",
+              "type": "string",
+              "format": "text",
+              "ui": { "item": { "width": "narrow" } },
+              "suggestion": [
+                {
+                  "key": "erad:japan_grant_number",
+                  "template": "<div style=\"background-color: white;\"><span>{{japan_grant_number}}</span><span><small class=\"m-l-md text-muted\">{{kadai_mei}} ({{nendo}})</small></span></div>",
+                  "autofill": {
+                    "funder": "haibunkikan_cd",
+                    "funding-stream-code": "funding_stream_code",
+                    "program-name-ja": "program_name_ja",
+                    "program-name-en": "program_name_en",
+                    "project-name-ja": "kadai_mei_ja",
+                    "project-name-en": "kadai_mei_en"
+                  }
+                },
+                {
+                  "key": "kaken:japan_grant_number",
+                  "template": "<div style=\"background-color: white;\"><span>{{japan_grant_number}}</span><span><small class=\"m-l-md text-muted\">{{kadai_mei}} ({{nendo}}) [KAKEN]</small></span></div>",
+                  "autofill": {
+                    "funder": "haibunkikan_cd",
+                    "funding-stream-code": "funding_stream_code",
+                    "program-name-ja": "program_name_ja",
+                    "program-name-en": "program_name_en",
+                    "project-name-ja": "kadai_mei_ja",
+                    "project-name-en": "kadai_mei_en"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "funder",
+              "title": "資金配分機関情報|Funder",
+              "type": "choose",
+              "format": "singleselect-pulldown",
+              "ui": { "item": { "width": "half", "freetext": true } },
+              "options": [
+                {
+                  "text": "AMED",
+                  "tooltip": "国立研究開発法人日本医療研究開発機構|Japan Agency for Medical Research and Development|303"
+                },
+                {
+                  "text": "MOD",
+                  "tooltip": "防衛省|Ministry of Defense|501"
+                },
+                {
+                  "text": "NRA",
+                  "tooltip": "原子力規制庁|Nuclear Regulation Authority|1503"
+                },
+                {
+                  "text": "ERCA",
+                  "tooltip": "独立行政法人環境再生保全機構|Environmental Restoration and Conservation Agency|1502"
+                },
+                {
+                  "text": "CAO",
+                  "tooltip": "内閣府|Cabinet Office|301"
+                },
+                {
+                  "text": "SOUMU",
+                  "tooltip": "総務省|Ministry of Internal Affairs and Communications|601"
+                },
+                {
+                  "text": "FDMA",
+                  "tooltip": "消防庁|Fire and Disaster Management Agency|605"
+                },
+                {
+                  "text": "NICT",
+                  "tooltip": "国立研究開発法人情報通信研究機構|National Institute of Information and Communications Technology|615"
+                },
+                {
+                  "text": "MEXT",
+                  "tooltip": "文部科学省|Ministry of Education|1001"
+                },
+                {
+                  "text": "JST",
+                  "tooltip": "国立研究開発法人科学技術振興機構|Japan Science and Technology Agency|1020"
+                },
+                {
+                  "text": "JSPS",
+                  "tooltip": "独立行政法人日本学術振興会|Japan Society for the Promotion of Science|1025"
+                },
+                {
+                  "text": "MHLW",
+                  "tooltip": "厚生労働省|Ministry of Health|1101"
+                },
+                {
+                  "text": "MAFF",
+                  "tooltip": "農林水産省|Ministry of Agriculture|1201"
+                },
+                {
+                  "text": "PRIMAFF",
+                  "tooltip": "農林水産省農林水産政策研究所|Policy Research Institute|1203"
+                },
+                {
+                  "text": "NARO",
+                  "tooltip": "国立研究開発法人農業・食品産業技術総合研究機構|National Agriculture and Food Research Organization|1205"
+                },
+                {
+                  "text": "METI",
+                  "tooltip": "経済産業省|Ministry of Economy|1301"
+                },
+                {
+                  "text": "NEDO",
+                  "tooltip": "国立研究開発法人新エネルギー・産業技術総合開発機構|New Energy and Industrial Technology Development|1305 Organization"
+                },
+                {
+                  "text": "MLIT",
+                  "tooltip": "国土交通省|Ministry of Land|1401"
+                },
+                {
+                  "text": "NILIM",
+                  "tooltip": "国土技術政策総合研究所|National Institute for Land and Infrastructure Management|1405"
+                },
+                {
+                  "text": "ENV",
+                  "tooltip": "環境省|Ministry of the Environment|1501"
+                },
+                {
+                  "text": "BIBIOHN",
+                  "tooltip": "国立研究開発法人医薬基盤・健康・栄養研究所|National Institutes of Biomedical Innovation|1106"
+                }
+              ]
+            },
+            {
+              "id": "funding-stream-code",
+              "title": "体系的番号におけるプログラム情報コード|Funding stream code",
+              "type": "string",
+              "format": "text",
+              "ui": { "item": { "width": "narrow" } }
+            },
+            {
+              "id": "program-name-ja",
+              "title": "プログラム名 (日本語)|Program name (Japanese)",
+              "ui": {
+                "group": { "id": "program-name", "title": "プログラム名|Program name" },
+                "sub_label": "（日本語）|(Japanese)"
+              },
+              "type": "string",
+              "format": "text"
+            },
+            {
+              "id": "program-name-en",
+              "title": "Program name (English)",
+              "ui": { "group": "program-name", "sub_label": "（English）|(English)" },
+              "type": "string",
+              "format": "text"
+            },
+            {
+              "id": "project-name-ja",
+              "title": "プロジェクト名 (日本語)|Project name (Japanese)",
+              "ui": {
+                "group": { "id": "project-name", "title": "プロジェクト名|Project name" },
+                "sub_label": "（日本語）|(Japanese)"
+              },
+              "type": "string",
+              "format": "text",
+              "suggestion": [
+                {
+                  "key": "erad:kadai_mei",
+                  "valueField": "kadai_mei_ja",
+                  "template": "<div style=\"background-color: white;\"><span>{{kadai_mei_ja}}</span><span><small class=\"m-l-md text-muted\">{{japan_grant_number}} ({{nendo}})</small></span></div>",
+                  "autofill": {
+                    "japan-grant-number": "japan_grant_number",
+                    "funder": "haibunkikan_cd",
+                    "funding-stream-code": "funding_stream_code",
+                    "program-name-ja": "program_name_ja",
+                    "program-name-en": "program_name_en",
+                    "project-name-en": "kadai_mei_en"
+                  }
+                },
+                {
+                  "key": "kaken:kadai_mei",
+                  "valueField": "kadai_mei_ja",
+                  "template": "<div style=\"background-color: white;\"><span>{{kadai_mei_ja}}</span><span><small class=\"m-l-md text-muted\">{{japan_grant_number}} ({{nendo}}) [KAKEN]</small></span></div>",
+                  "autofill": {
+                    "japan-grant-number": "japan_grant_number",
+                    "funder": "haibunkikan_cd",
+                    "funding-stream-code": "funding_stream_code",
+                    "program-name-ja": "program_name_ja",
+                    "program-name-en": "program_name_en",
+                    "project-name-en": "kadai_mei_en"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "project-name-en",
+              "title": "Project name (English)",
+              "ui": { "group": "project-name", "sub_label": "（English）|(English)" },
+              "type": "string",
+              "format": "text",
+              "suggestion": [
+                {
+                  "key": "erad:kadai_mei",
+                  "valueField": "kadai_mei_en",
+                  "template": "<div style=\"background-color: white;\"><span>{{kadai_mei_en}}</span><span><small class=\"m-l-md text-muted\">{{japan_grant_number}} ({{nendo}})</small></span></div>",
+                  "autofill": {
+                    "japan-grant-number": "japan_grant_number",
+                    "funder": "haibunkikan_cd",
+                    "funding-stream-code": "funding_stream_code",
+                    "program-name-ja": "program_name_ja",
+                    "program-name-en": "program_name_en",
+                    "project-name-ja": "kadai_mei_ja"
+                  }
+                },
+                {
+                  "key": "kaken:kadai_mei",
+                  "valueField": "kadai_mei_en",
+                  "template": "<div style=\"background-color: white;\"><span>{{kadai_mei_en}}</span><span><small class=\"m-l-md text-muted\">{{japan_grant_number}} ({{nendo}}) [KAKEN]</small></span></div>",
+                  "autofill": {
+                    "japan-grant-number": "japan_grant_number",
+                    "funder": "haibunkikan_cd",
+                    "funding-stream-code": "funding_stream_code",
+                    "program-name-ja": "program_name_ja",
+                    "program-name-en": "program_name_en",
+                    "project-name-ja": "kadai_mei_ja"
+                  }
+                }
+              ]
+            }
+          ]
         }
       ]
     },
@@ -224,8 +558,26 @@
           "nav": "登録データ一覧",
           "title": "登録データ一覧|Registered Data List",
           "type": "string",
-          "format": "file-metadata",
-          "required": true
+          "format": "file-metadata"
+        },
+        {
+          "qid": "grdm-file:file-type",
+          "nav": "ファイル種別",
+          "title": "ファイル種別|File Type",
+          "type": "choose",
+          "format": "singleselect",
+          "ui": { "item": { "widget": "radio" } },
+          "options": [
+              {
+                "text": "dataset",
+                "tooltip": "データセット|dataset",
+                "default": true
+              },
+              {
+                "text": "manuscript",
+                "tooltip": "論文|manuscript"
+              }
+          ]
         },
         {
           "qid": "grdm-file:data-number",
@@ -233,23 +585,155 @@
           "title": "データ No.|Data No.",
           "type": "string",
           "format": "text",
-          "required": false,
           "space_normalization": true,
+          "ui": { "item": { "marker": "circle", "tags": [{ "id": "共通|Common", "info": "共通項目において必須（リポジトリや助成機関側で補完される場合あり）とされている項目です。<br>※（日本語）（English）の入力欄がある項目では、いずれか一方の入力が必須です。|An item required as a Common Metadata Element (may be supplemented by the repository or funding agency).<br>※Items with both (Japanese) and (English) input fields require at least one of them to be filled in." }], "width": "narrow", "info": "管理対象データを特定するために付与する番号です。資金配分機関やデータ管理機関から指定がある場合はそれに従ってください。|The number assigned to identify the managed data. If specified by the funding agency or Hosting Institution, align with their specification." } },
+          "enabled_if": {
+            "grdm-file:file-type": "dataset"
+          }
+        },
+        {
+          "qid": "grdm-file:doi",
+          "nav": "論文（出版社版）のDOI",
+          "title": "論文（出版社版）のDOI|DOI of the publication (publisher version)",
+          "type": "string",
+          "format": "text",
+          "pattern": "^(https?://doi\\.org/)?10\\.[0-9]{4,}(/[-._;()/:a-zA-Z0-9]+)*$",
+          "ui": { "item": { "marker": "circle", "width": "half", "placeholder": "10.1234/5678" } },
+          "enabled_if": {
+            "grdm-file:file-type": "manuscript"
+          },
           "suggestion": [
             {
-              "key": "file-data-number",
-              "button": "入力|Fill"
+              "key": "crossref:doi",
+              "button": "Crossrefから取得|Fetch from Crossref",
+              "autofill": {
+                "grdm-file:doi": "doi",
+                "grdm-file:manuscript-type": "manuscript_type_common_metadata_format",
+                "grdm-file:title-en": "title",
+                "grdm-file:journal-name-en": "journal_title",
+                "grdm-file:date-published": "publication_year_month",
+                "grdm-file:volume": "volume",
+                "grdm-file:issue": "issue",
+                "grdm-file:page-start": "page_start",
+                "grdm-file:page-end": "page_end",
+                "grdm-file:authors": "authors_common_metadata_format"
+              }
+            },
+            {
+              "key": "jalc:doi",
+              "button": "JaLCから取得|Fetch from JaLC",
+              "autofill": {
+                "grdm-file:doi": "doi",
+                "grdm-file:manuscript-type": "manuscript_type_common_metadata_format",
+                "grdm-file:title-ja": "title_ja",
+                "grdm-file:title-en": "title_en",
+                "grdm-file:journal-name-ja": "journal_title_ja",
+                "grdm-file:journal-name-en": "journal_title_en",
+                "grdm-file:date-published": "publication_year_month",
+                "grdm-file:volume": "volume",
+                "grdm-file:issue": "issue",
+                "grdm-file:page-start": "page_start",
+                "grdm-file:page-end": "page_end",
+                "grdm-file:authors": "authors_common_metadata_format"
+              }
+            },
+            {
+              "key": "pubmed:doi",
+              "button": "PubMedから取得|Fetch from PubMed",
+              "autofill": {
+                "grdm-file:doi": "doi",
+                "grdm-file:manuscript-type": "manuscript_type_common_metadata_format",
+                "grdm-file:title-en": "title",
+                "grdm-file:journal-name-en": "journal_title",
+                "grdm-file:date-published": "publication_year_month",
+                "grdm-file:volume": "volume",
+                "grdm-file:issue": "issue",
+                "grdm-file:page-start": "page_start",
+                "grdm-file:page-end": "page_end",
+                "grdm-file:authors": "authors_common_metadata_format"
+              }
+            },
+            {
+              "key": "arxiv:doi",
+              "button": "arXivから取得|Fetch from arXiv",
+              "autofill": {
+                "grdm-file:doi": "doi",
+                "grdm-file:manuscript-type": "manuscript_type_common_metadata_format",
+                "grdm-file:title-en": "title",
+                "grdm-file:journal-name-en": "journal_title",
+                "grdm-file:date-published": "publication_year_month",
+                "grdm-file:volume": "volume",
+                "grdm-file:page-start": "page_start",
+                "grdm-file:page-end": "page_end",
+                "grdm-file:authors": "authors_common_metadata_format"
+              }
             }
           ]
         },
         {
+          "qid": "grdm-file:manuscript-type",
+          "nav": "論文の種類",
+          "title": "論文の種類|Type of manuscript",
+          "type": "choose",
+          "format": "singleselect",
+          "ui": { "item": { "marker": "circle", "width": "narrow", "tags": [{ "id": "リポジトリ|Repository", "info": "機関リポジトリ登録時に必須となる項目です。<br>※（日本語）（English）の入力欄がある項目では、いずれか一方の入力が必須です。|An item required when registering with an institutional repository.<br>※Items with both (Japanese) and (English) input fields require at least one of them to be filled in." }] } },
+          "enabled_if": {
+            "grdm-file:file-type": "manuscript"
+          },
+          "options": [
+              {
+                "text": "conference paper",
+                "tooltip": "会議発表論文|conference paper"
+              },
+              {
+                "text": "data paper",
+                "tooltip": "データ論文|data paper"
+              },
+              {
+                "text": "departmental bulletin paper",
+                "tooltip": "紀要論文|departmental bulletin paper"
+              },
+              {
+                "text": "editorial",
+                "tooltip": "エディトリアル|editorial"
+              },
+              {
+                "text": "journal article",
+                "tooltip": "学術雑誌論文|journal article"
+              },
+              {
+                "text": "review article",
+                "tooltip": "レビュー論文|review article"
+              },
+              {
+                "text": "software paper",
+                "tooltip": "ソフトウェア論文|software paper"
+              },
+              {
+                "text": "article",
+                "tooltip": "その他の記事|article"
+              }
+          ]
+        },
+        {
           "qid": "grdm-file:title-ja",
-          "nav": "データの名称 (日本語)",
-          "title": "データの名称 (日本語)|Title (Japanese)",
+          "nav": "データの名称または論文表題 (日本語)",
+          "title": "データの名称または論文表題 (日本語)|Title (Japanese)",
+          "ui": [
+            {
+              "condition": { "grdm-file:file-type": "dataset" },
+              "group": { "id": "title", "marker": "circle", "title": "データの名称|Data Title", "tags": ["共通|Common", "リポジトリ|Repository"], "info": "管理対象データの特徴を示す名称を入力してください。「学会資料」、「報告資料」、「測定結果」などの中身の分からない名称は避けてください。|Enter a title that indicates the characteristics of managed data. Avoid ambiguous titles such as 'Conference Materials', 'Report Materials', 'Measurement Results', etc." },
+              "sub_label": "（日本語）|(Japanese)",
+              "item": { "placeholder": "研究データ管理に関する意識調査" }
+            },
+            {
+              "group": { "id": "title", "marker": "circle", "title": "論文表題|Paper Title", "tags": ["リポジトリ|Repository"] },
+              "sub_label": "（日本語）|(Japanese)",
+              "item": { "placeholder": "研究データ管理に関する意識調査" }
+            }
+          ],
           "type": "string",
           "format": "text",
-          "required": false,
-          "required_if": "grdm-file:title-en",
           "space_normalization": true,
           "suggestion": [
             {
@@ -269,10 +753,9 @@
           "qid": "grdm-file:title-en",
           "nav": "Title (English)",
           "title": "Title (English)",
+          "ui": { "group": "title", "sub_label": "（English）|(English)", "item": { "placeholder": "Survey on Research Data Management Awareness" } },
           "type": "string",
           "format": "text",
-          "required": false,
-          "required_if": "grdm-file:title-ja",
           "space_normalization": true,
           "suggestion": [
             {
@@ -289,32 +772,416 @@
           ]
         },
         {
+          "qid": "grdm-file:authors",
+          "nav": "著者名",
+          "title": "著者名|Author Name",
+          "type": "array",
+          "ui": { "item": { "marker": "circle", "initial_rows": 1 } },
+          "display_template": "{{number}}|{% if name-ja.last || name-ja.first || name-ja.middle %}{% if name-ja.last %}{{name-ja.last}} {% endif %}{{name-ja.middle}} {{name-ja.first}}{% endif %}|{% if name-en.last || name-en.first || name-en.middle %}{% if name-en.last %}{{name-en.last}}, {% endif %}{{name-en.first}} {{name-en.middle}}{% endif %}|{{affiliation-name-ja}}|{{affiliation-name-en}}",
+          "enabled_if": {
+            "grdm-file:file-type": "manuscript"
+          },
+          "properties": [
+            {
+              "id": "number",
+              "title": "e-Rad 研究者番号|e-Rad Researcher Number",
+              "type": "string",
+              "format": "text",
+              "ui": { "item": { "width": "narrow" } },
+              "space_normalization": true,
+              "suggestion": [
+                {
+                  "key": "erad:kenkyusha_no",
+                  "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{kenkyusha_no}} - {{kenkyukikan_mei}} - {{kadai_mei}} ({{nendo}})</small></span></div>",
+                  "autofill": {
+                    "number": "kenkyusha_no",
+                    "name-ja": "kenkyusha_shimei_ja",
+                    "name-en": "kenkyusha_shimei_en",
+                    "affiliation-name-ja": "kenkyukikan_mei_ja",
+                    "affiliation-name-en": "kenkyukikan_mei_en"
+                  }
+                },
+                {
+                  "key": "contributor:erad",
+                  "template": "<div style=\"background-color: white;\"><span>{{name-ja-full}}|{{name-en-full}}</span><span><small class=\"m-l-md text-muted\">{{erad}}</small></span></div>",
+                  "autofill": {
+                    "number": "erad",
+                    "name-ja": "name-ja",
+                    "name-en": "name-en",
+                    "affiliation-name-ja": "affiliated-institution-name-ja",
+                    "affiliation-name-en": "affiliated-institution-name-en"
+                  }
+                },
+                {
+                  "key": "kaken:erad",
+                  "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{kenkyukikan_mei}} (KAKEN)</small></span></div>",
+                  "autofill": {
+                    "number": "erad",
+                    "name-ja": "kenkyusha_shimei_ja_parts",
+                    "name-en": "kenkyusha_shimei_en_parts",
+                    "affiliation-name-ja": "kenkyukikan_mei_ja",
+                    "affiliation-name-en": "kenkyukikan_mei_en"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "name-ja",
+              "title": "名前(日本語)|Name (Japanese)",
+              "type": "object",
+              "ui": {
+                "group": { "id": "author-name", "title": "名前|Name" },
+                "sub_label": "（日本語）|(Japanese)"
+              },
+              "properties": [
+                {
+                  "id": "last",
+                  "title": "姓|Last Name",
+                  "type": "string",
+                  "format": "text",
+                  "space_normalization": true,
+                  "suggestion": [
+                    {
+                      "key": "erad:kenkyusha_shimei",
+                      "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{kenkyusha_no}} - {{kenkyukikan_mei}} - {{kadai_mei}} ({{nendo}})</small></span></div>",
+                      "autofill": {
+                        "../number": "kenkyusha_no",
+                        "../name-ja": "kenkyusha_shimei_ja",
+                        "../name-en": "kenkyusha_shimei_en",
+                        "../affiliation-name-ja": "kenkyukikan_mei_ja",
+                        "../affiliation-name-en": "kenkyukikan_mei_en"
+                      }
+                    },
+                    {
+                      "key": "contributor:name",
+                      "template": "<div style=\"background-color: white;\"><span>{{name-ja-full}}|{{name-en-full}}</span><span><small class=\"m-l-md text-muted\">{{erad}}</small></span></div>",
+                      "autofill": {
+                        "../number": "erad",
+                        "../name-ja": "name-ja",
+                        "../name-en": "name-en",
+                        "../affiliation-name-ja": "affiliated-institution-name-ja",
+                        "../affiliation-name-en": "affiliated-institution-name-en"
+                      }
+                    },
+                    {
+                      "key": "kaken:kenkyusha_shimei",
+                      "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{kenkyukikan_mei}} (KAKEN)</small></span></div>",
+                      "autofill": {
+                        "../number": "erad",
+                        "../name-ja": "kenkyusha_shimei_ja_parts",
+                        "../name-en": "kenkyusha_shimei_en_parts",
+                        "../affiliation-name-ja": "kenkyukikan_mei_ja",
+                        "../affiliation-name-en": "kenkyukikan_mei_en"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "middle",
+                  "title": "ミドルネーム|Middle Name",
+                  "type": "string",
+                  "format": "text",
+                  "space_normalization": true,
+                  "suggestion": [
+                    {
+                      "key": "erad:kenkyusha_shimei",
+                      "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{kenkyusha_no}} - {{kenkyukikan_mei}} - {{kadai_mei}} ({{nendo}})</small></span></div>",
+                      "autofill": {
+                        "../number": "kenkyusha_no",
+                        "../name-ja": "kenkyusha_shimei_ja",
+                        "../name-en": "kenkyusha_shimei_en",
+                        "../affiliation-name-ja": "kenkyukikan_mei_ja",
+                        "../affiliation-name-en": "kenkyukikan_mei_en"
+                      }
+                    },
+                    {
+                      "key": "contributor:name",
+                      "template": "<div style=\"background-color: white;\"><span>{{name-ja-full}}|{{name-en-full}}</span><span><small class=\"m-l-md text-muted\">{{erad}}</small></span></div>",
+                      "autofill": {
+                        "../number": "erad",
+                        "../name-ja": "name-ja",
+                        "../name-en": "name-en",
+                        "../affiliation-name-ja": "affiliated-institution-name-ja",
+                        "../affiliation-name-en": "affiliated-institution-name-en"
+                      }
+                    },
+                    {
+                      "key": "kaken:kenkyusha_shimei",
+                      "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{kenkyukikan_mei}} (KAKEN)</small></span></div>",
+                      "autofill": {
+                        "../number": "erad",
+                        "../name-ja": "kenkyusha_shimei_ja_parts",
+                        "../name-en": "kenkyusha_shimei_en_parts",
+                        "../affiliation-name-ja": "kenkyukikan_mei_ja",
+                        "../affiliation-name-en": "kenkyukikan_mei_en"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "first",
+                  "title": "名|First Name",
+                  "type": "string",
+                  "format": "text",
+                  "space_normalization": true,
+                  "suggestion": [
+                    {
+                      "key": "erad:kenkyusha_shimei",
+                      "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{kenkyusha_no}} - {{kenkyukikan_mei}} - {{kadai_mei}} ({{nendo}})</small></span></div>",
+                      "autofill": {
+                        "../number": "kenkyusha_no",
+                        "../name-ja": "kenkyusha_shimei_ja",
+                        "../name-en": "kenkyusha_shimei_en",
+                        "../affiliation-name-ja": "kenkyukikan_mei_ja",
+                        "../affiliation-name-en": "kenkyukikan_mei_en"
+                      }
+                    },
+                    {
+                      "key": "contributor:name",
+                      "template": "<div style=\"background-color: white;\"><span>{{name-ja-full}}|{{name-en-full}}</span><span><small class=\"m-l-md text-muted\">{{erad}}</small></span></div>",
+                      "autofill": {
+                        "../number": "erad",
+                        "../name-ja": "name-ja",
+                        "../name-en": "name-en",
+                        "../affiliation-name-ja": "affiliated-institution-name-ja",
+                        "../affiliation-name-en": "affiliated-institution-name-en"
+                      }
+                    },
+                    {
+                      "key": "kaken:kenkyusha_shimei",
+                      "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{kenkyukikan_mei}} (KAKEN)</small></span></div>",
+                      "autofill": {
+                        "../number": "erad",
+                        "../name-ja": "kenkyusha_shimei_ja_parts",
+                        "../name-en": "kenkyusha_shimei_en_parts",
+                        "../affiliation-name-ja": "kenkyukikan_mei_ja",
+                        "../affiliation-name-en": "kenkyukikan_mei_en"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "name-en",
+              "title": "Name (English)",
+              "type": "object",
+              "ui": {
+                "group": "author-name",
+                "sub_label": "（English）|(English)"
+              },
+              "properties": [
+                {
+                  "id": "last",
+                  "title": "Last Name",
+                  "type": "string",
+                  "format": "text",
+                  "space_normalization": true,
+                  "suggestion": [
+                    {
+                      "key": "erad:kenkyusha_shimei",
+                      "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{kenkyusha_no}} - {{kenkyukikan_mei}} - {{kadai_mei}} ({{nendo}})</small></span></div>",
+                      "autofill": {
+                        "../number": "kenkyusha_no",
+                        "../name-ja": "kenkyusha_shimei_ja",
+                        "../name-en": "kenkyusha_shimei_en",
+                        "../affiliation-name-ja": "kenkyukikan_mei_ja",
+                        "../affiliation-name-en": "kenkyukikan_mei_en"
+                      }
+                    },
+                    {
+                      "key": "contributor:name",
+                      "template": "<div style=\"background-color: white;\"><span>{{name-ja-full}}|{{name-en-full}}</span><span><small class=\"m-l-md text-muted\">{{erad}}</small></span></div>",
+                      "autofill": {
+                        "../number": "erad",
+                        "../name-ja": "name-ja",
+                        "../name-en": "name-en",
+                        "../affiliation-name-ja": "affiliated-institution-name-ja",
+                        "../affiliation-name-en": "affiliated-institution-name-en"
+                      }
+                    },
+                    {
+                      "key": "kaken:kenkyusha_shimei",
+                      "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{kenkyukikan_mei}} (KAKEN)</small></span></div>",
+                      "autofill": {
+                        "../number": "erad",
+                        "../name-ja": "kenkyusha_shimei_ja_parts",
+                        "../name-en": "kenkyusha_shimei_en_parts",
+                        "../affiliation-name-ja": "kenkyukikan_mei_ja",
+                        "../affiliation-name-en": "kenkyukikan_mei_en"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "middle",
+                  "title": "Middle Name",
+                  "type": "string",
+                  "format": "text",
+                  "space_normalization": true,
+                  "suggestion": [
+                    {
+                      "key": "erad:kenkyusha_shimei",
+                      "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{kenkyusha_no}} - {{kenkyukikan_mei}} - {{kadai_mei}} ({{nendo}})</small></span></div>",
+                      "autofill": {
+                        "../number": "kenkyusha_no",
+                        "../name-ja": "kenkyusha_shimei_ja",
+                        "../name-en": "kenkyusha_shimei_en",
+                        "../affiliation-name-ja": "kenkyukikan_mei_ja",
+                        "../affiliation-name-en": "kenkyukikan_mei_en"
+                      }
+                    },
+                    {
+                      "key": "contributor:name",
+                      "template": "<div style=\"background-color: white;\"><span>{{name-ja-full}}|{{name-en-full}}</span><span><small class=\"m-l-md text-muted\">{{erad}}</small></span></div>",
+                      "autofill": {
+                        "../number": "erad",
+                        "../name-ja": "name-ja",
+                        "../name-en": "name-en",
+                        "../affiliation-name-ja": "affiliated-institution-name-ja",
+                        "../affiliation-name-en": "affiliated-institution-name-en"
+                      }
+                    },
+                    {
+                      "key": "kaken:kenkyusha_shimei",
+                      "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{kenkyukikan_mei}} (KAKEN)</small></span></div>",
+                      "autofill": {
+                        "../number": "erad",
+                        "../name-ja": "kenkyusha_shimei_ja_parts",
+                        "../name-en": "kenkyusha_shimei_en_parts",
+                        "../affiliation-name-ja": "kenkyukikan_mei_ja",
+                        "../affiliation-name-en": "kenkyukikan_mei_en"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "first",
+                  "title": "First Name",
+                  "type": "string",
+                  "format": "text",
+                  "space_normalization": true,
+                  "suggestion": [
+                    {
+                      "key": "erad:kenkyusha_shimei",
+                      "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{kenkyusha_no}} - {{kenkyukikan_mei}} - {{kadai_mei}} ({{nendo}})</small></span></div>",
+                      "autofill": {
+                        "../number": "kenkyusha_no",
+                        "../name-ja": "kenkyusha_shimei_ja",
+                        "../name-en": "kenkyusha_shimei_en",
+                        "../affiliation-name-ja": "kenkyukikan_mei_ja",
+                        "../affiliation-name-en": "kenkyukikan_mei_en"
+                      }
+                    },
+                    {
+                      "key": "contributor:name",
+                      "template": "<div style=\"background-color: white;\"><span>{{name-ja-full}}|{{name-en-full}}</span><span><small class=\"m-l-md text-muted\">{{erad}}</small></span></div>",
+                      "autofill": {
+                        "../number": "erad",
+                        "../name-ja": "name-ja",
+                        "../name-en": "name-en",
+                        "../affiliation-name-ja": "affiliated-institution-name-ja",
+                        "../affiliation-name-en": "affiliated-institution-name-en"
+                      }
+                    },
+                    {
+                      "key": "kaken:kenkyusha_shimei",
+                      "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{kenkyukikan_mei}} (KAKEN)</small></span></div>",
+                      "autofill": {
+                        "../number": "erad",
+                        "../name-ja": "kenkyusha_shimei_ja_parts",
+                        "../name-en": "kenkyusha_shimei_en_parts",
+                        "../affiliation-name-ja": "kenkyukikan_mei_ja",
+                        "../affiliation-name-en": "kenkyukikan_mei_en"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "affiliation-name-ja",
+              "title": "所属機関名(日本語)|Affiliation (Japanese)",
+              "ui": {
+                "group": { "id": "author-affiliation", "title": "所属機関名|Affiliation" },
+                "sub_label": "（日本語）|(Japanese)"
+              },
+              "type": "string",
+              "format": "text",
+              "space_normalization": true,
+              "suggestion": [
+                {
+                  "key": "kaken:kenkyukikan_mei",
+                  "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{kenkyukikan_mei}} (KAKEN)</small></span></div>",
+                  "autofill": {
+                    "number": "erad",
+                    "name-ja": "kenkyusha_shimei_ja_parts",
+                    "name-en": "kenkyusha_shimei_en_parts",
+                    "affiliation-name-ja": "kenkyukikan_mei_ja",
+                    "affiliation-name-en": "kenkyukikan_mei_en"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "affiliation-name-en",
+              "title": "所属機関名(英語)|Affiliation (English)",
+              "ui": { "group": "author-affiliation", "sub_label": "（English）|(English)" },
+              "type": "string",
+              "format": "text",
+              "space_normalization": true,
+              "suggestion": [
+                {
+                  "key": "kaken:kenkyukikan_mei",
+                  "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{kenkyukikan_mei}} (KAKEN)</small></span></div>",
+                  "autofill": {
+                    "number": "erad",
+                    "name-ja": "kenkyusha_shimei_ja_parts",
+                    "name-en": "kenkyusha_shimei_en_parts",
+                    "affiliation-name-ja": "kenkyukikan_mei_ja",
+                    "affiliation-name-en": "kenkyukikan_mei_en"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
           "qid": "grdm-file:date-issued-updated",
           "nav": "掲載日・掲載更新日",
           "title": "掲載日・掲載更新日|Date (Issued / Updated)",
           "type": "string",
           "format": "date",
-          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
-          "help": "例: 2010-01-01|E.g., 2010-01-01"
+          "ui": { "item": { "marker": "circle", "tags": ["共通|Common"], "width": "narrow", "placeholder": "2020-01-01", "info": "メタデータを公開した日、または更新した日を入力してください。|Enter the date the metadata was issued or updated." } },
+          "enabled_if": {
+            "grdm-file:file-type": "dataset"
+          }
         },
         {
           "qid": "grdm-file:data-description-ja",
           "nav": "データの説明 (日本語)",
           "title": "データの説明 (日本語)|Description (Japanese)",
+          "ui": {
+            "group": { "id": "data-description", "marker": "circle", "title": "データの説明|Description", "tags": ["共通|Common"], "info": "管理対象データ取得時の条件や方法、結果等、当該データの内容を入力してください。|Enter the contents of managed data, including the conditions and methods of acquiring the managed data, the results, etc." },
+            "sub_label": "（日本語）|(Japanese)",
+            "item": { "placeholder": "例: 〇〇実証においてセンサより撮像したデータであり、道路の画像データ, 〇〇のシミュレーションにおいて〇〇の条件のもとで得られたデータ, 〇〇への応用が期待できる、〇〇〇〇のゲノム解析と、その効率的な化合物生産に役立てるための発現プロファイル情報" }
+          },
           "type": "string",
           "format": "textarea",
-          "required": false,
-          "required_if": "grdm-file:data-description-en",
-          "help": "例: 〇〇実証においてセンサより撮像したデータであり、道路の画像データ, 〇〇のシミュレーションにおいて〇〇の条件のもとで得られたデータ, 〇〇への応用が期待できる、〇〇〇〇のゲノム解析と、その効率的な化合物生産に役立てるための発現プロファイル情報"
+          "enabled_if": {
+            "grdm-file:file-type": "dataset"
+          }
         },
         {
           "qid": "grdm-file:data-description-en",
           "nav": "Description (English)",
           "title": "Description (English)",
+          "ui": { "group": "data-description", "sub_label": "（English）|(English)", "item": { "placeholder": "E.g., The image data of the road captured by the sensor in the XX validation test, The simulation data of XX obtained under the conditions of XX, The expression profile information for the genome analysis of XXXX, which is expected to be applied to XX, and for its efficient production of compounds" } },
           "type": "string",
           "format": "textarea",
-          "required": false,
-          "required_if": "grdm-file:data-description-ja"
+          "enabled_if": {
+            "grdm-file:file-type": "dataset"
+          }
         },
         {
           "qid": "grdm-file:data-research-field",
@@ -322,6 +1189,10 @@
           "title": "データの分野|Research field",
           "type": "choose",
           "format": "singleselect",
+          "ui": { "item": { "marker": "circle", "tags": ["共通|Common"], "width": "narrow", "info": "e-Radで登録したプロジェクトの研究分野（主）に基づき、いずれかを選択してください。データの分野とプロジェクトの研究分野が異なる場合は、データの分野を選択してください。|Select based on the research field (main) of the project registered in e-Rad. If the data field is different from the research field of the project, select the data field." } },
+          "enabled_if": {
+            "grdm-file:file-type": "dataset"
+          },
           "options": [
               {
                 "text": "project",
@@ -372,8 +1243,7 @@
                 "text": "9999",
                 "tooltip": "その他|Others"
               }
-          ],
-          "required": true
+          ]
         },
         {
           "qid": "grdm-file:data-type",
@@ -381,6 +1251,10 @@
           "title": "データ種別|Data type",
           "type": "choose",
           "format": "singleselect",
+          "ui": { "item": { "marker": "circle", "tags": ["共通|Common", "リポジトリ|Repository"], "width": "narrow", "info": "「dataset」またはより具体的な詳細項目の選択を推奨します。|Selecting \"dataset\" or one of the following detail elements is recommended." } },
+          "enabled_if": {
+            "grdm-file:file-type": "dataset"
+          },
           "options": [
               {
                 "text": "dataset",
@@ -439,8 +1313,7 @@
                   "text": "survey data",
                   "tooltip": "調査データ|survey data"
               }
-          ],
-          "required": true
+          ]
         },
         {
           "qid": "grdm-file:file-size",
@@ -448,41 +1321,51 @@
           "title": "概略データ量|File size",
           "type": "string",
           "format": "text",
-          "required": false,
-          "pattern": "^[><]?([0-9]+(\\.[0-9]+)?-)?([0-9]+)(\\.[0-9]+)?([A-Za-z]*B)$",
-          "help": "例: >100GB, <10GB, 100-10MB|E.g., >100GB, <10GB, 100-10MB",
+          "ui": { "item": { "marker": "circle", "placeholder": "例: <1GB, 1-10GB, 10-100GB, >100GB|E.g., <1GB, 1-10GB, 10-100GB, >100GB", "width": "half" } },
           "suggestion": [
             {
               "key": "file-size",
               "button": "計算|Calculate"
             }
-          ]
+          ],
+          "enabled_if": {
+            "grdm-file:file-type": "dataset"
+          }
         },
         {
           "qid": "grdm-file:data-policy-free",
-          "nav": "管理対象データの利活用・提供方針 (有償/無償)",
-          "title": "管理対象データの利活用・提供方針 (有償/無償)|Data utilization and provision policy (free/consideration)",
+          "nav": "有償/無償",
+          "title": "有償/無償|Fee-based/Free",
           "type": "choose",
           "format": "singleselect",
+          "ui": {
+            "group": { "id": "data-policy", "marker": "circle", "title": "管理対象データの利活用・提供方針|Data utilization and provision policy", "bar": true, "info": "データ提供者が利用者に求める利用条件（有償/無償、ライセンス、引用方法等）を入力してください。|Enter the terms of use (fee-based/free, license, citation information, etc.) that the data provider requires from the user." },
+            "item": { "widget": "radio", "tags": ["共通|Common"] }
+          },
           "options": [
+              {
+                  "text": "consideration",
+                  "tooltip": "有償|fee-based"
+              },
               {
                   "text": "free",
                   "tooltip": "無償|free"
-              },
-              {
-                  "text": "consideration",
-                  "tooltip": "有償|consideration"
               }
           ],
-          "required": true
+          "enabled_if": {
+            "grdm-file:file-type": "dataset"
+          }
         },
         {
           "qid": "grdm-file:data-policy-license",
-          "nav": "管理対象データの利活用・提供方針 (ライセンス)",
-          "title": "管理対象データの利活用・提供方針 (ライセンス)|Data utilization and provision policy (License)",
-          "required": true,
+          "nav": "ライセンス",
+          "title": "ライセンス|License",
+          "ui": { "group": "data-policy", "item": { "width": "half", "tags": ["共通|Common"] } },
           "type": "choose",
           "format": "singleselect",
+          "enabled_if": {
+            "grdm-file:file-type": "dataset"
+          },
           "options": [
             {
               "text": "group:None:1",
@@ -602,19 +1485,26 @@
           "qid": "grdm-file:data-policy-cite-ja",
           "nav": "管理対象データの利活用・提供方針 (引用方法等・日本語)",
           "title": "管理対象データの利活用・提供方針 (引用方法等・日本語)|Data utilization and provision policy (citation information, Japanese)",
+          "ui": {
+            "group": { "id": "data-policy-cite", "parent": "data-policy", "title": "引用方法等|Citation information" },
+            "sub_label": "（日本語）|(Japanese)"
+          },
           "type": "string",
           "format": "textarea",
-          "required": false,
-          "required_if": "grdm-file:data-policy-cite-en"
+          "enabled_if": {
+            "grdm-file:file-type": "dataset"
+          }
         },
         {
           "qid": "grdm-file:data-policy-cite-en",
           "nav": "Data utilization and provision policy (citation information, English)",
           "title": "Data utilization and provision policy (citation information, English)",
+          "ui": { "group": "data-policy-cite", "sub_label": "（English）|(English)" },
           "type": "string",
           "format": "textarea",
-          "required": false,
-          "required_if": "grdm-file:data-policy-cite-ja"
+          "enabled_if": {
+            "grdm-file:file-type": "dataset"
+          }
         },
         {
           "qid": "grdm-file:access-rights",
@@ -622,6 +1512,7 @@
           "title": "アクセス権|Access rights",
           "type": "choose",
           "format": "singleselect",
+          "ui": { "item": { "marker": "circle", "tags": ["共通|Common"], "width": "narrow", "info": "管理対象データのアクセス権を選択してください。<br>・公開 (open access): 一般に公開されるデータ<br>・共有 (restricted access): 限定された関係者での利活用を目的として共有されるデータ<br>・非共有・非公開 (metadata only access): 公開も共有もされないデータ<br>・公開期間猶予 (embargoed access): 一定期間後に公開されるデータ。公開予定日の記載が必須です|Select the access rights for managed data.<br>・Open access: data that are open to the public<br>・Restricted access: data shared for the purpose of use by the limited stakeholders<br>・Metadata only access: data that is neither open access nor restricted access<br>・Embargoed access: data to be published after a certain period of time. Available Date is required" } },
           "options": [
             {
               "text": "open access",
@@ -640,37 +1531,179 @@
               "tooltip": "公開期間猶予|embargoed access"
             }
           ],
-          "required": true
+          "enabled_if": {
+            "grdm-file:file-type": "dataset"
+          }
         },
         {
           "qid": "grdm-file:available-date",
           "nav": "公開予定日",
-          "title": "公開予定日 (公開期間猶予の場合)|Publication date (for embargoed access)",
+          "title": "公開予定日|Available Date",
           "type": "string",
           "format": "date",
-          "required": false,
-          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
-          "help": "例: 2010-01-01|E.g., 2010-01-01",
-          "required_if": {
-            "grdm-file:access-rights": "embargoed access"
-          },
-          "message_required_if": "公開期間猶予の場合は必須項目です|This field is required for embargoed access"
+          "ui": { "item": { "marker": "circle", "tags": ["共通|Common"], "width": "narrow", "placeholder": "2020-01-01", "description": "アクセス権が「公開期間猶予」の場合は入力必須|Required when access rights is \"Embargoed Access\"", "info": "公開予定日を迎えた後、データ管理者がリポジトリ等でデータの公開手続きを行う必要があります。|For data that has reached the Available Date, the Data Manager is responsible for making it open access on a repository, etc." } },
+          "enabled_if": {
+            "grdm-file:file-type": "dataset"
+          }
         },
         {
           "qid": "grdm-file:repo-information-ja",
           "nav": "リポジトリ情報 (日本語)",
           "title": "リポジトリ情報 (日本語)|Repository information (Japanese)",
+          "ui": {
+            "group": { "id": "repo-information", "marker": "circle", "title": "リポジトリ情報|Repository information", "tags": ["共通|Common"], "info": "現在のリポジトリ情報、あるいはプロジェクト終了後のリポジトリ情報を入力してください。|Enter the current repository information or the repository information after the project has completed." },
+            "sub_label": "（日本語）|(Japanese)"
+          },
           "type": "string",
           "format": "text",
-          "required": false
+          "enabled_if": {
+            "grdm-file:file-type": "dataset"
+          }
         },
         {
           "qid": "grdm-file:repo-information-en",
           "nav": "Repository information (English)",
           "title": "Repository information (English)",
+          "ui": { "group": "repo-information", "sub_label": "（English）|(English)" },
           "type": "string",
           "format": "text",
-          "required": false
+          "enabled_if": {
+            "grdm-file:file-type": "dataset"
+          }
+        },
+        {
+          "qid": "grdm-file:journal-name-ja",
+          "nav": "掲載誌名 (日本語)",
+          "title": "掲載誌名 (日本語)|Journal Name (Japanese)",
+          "ui": {
+            "group": { "id": "journal-name", "marker": "circle", "title": "掲載誌名|Journal Name" },
+            "sub_label": "（日本語）|(Japanese)"
+          },
+          "type": "string",
+          "format": "text",
+          "enabled_if": {
+            "grdm-file:file-type": "manuscript"
+          }
+        },
+        {
+          "qid": "grdm-file:journal-name-en",
+          "nav": "Journal Name (English)",
+          "title": "Journal Name (English)",
+          "ui": { "group": "journal-name", "sub_label": "（English）|(English)" },
+          "type": "string",
+          "format": "text",
+          "enabled_if": {
+            "grdm-file:file-type": "manuscript"
+          }
+        },
+        {
+          "qid": "grdm-file:date-published",
+          "nav": "発行年月",
+          "title": "発行年月|Date (Published)",
+          "type": "string",
+          "format": "text",
+          "ui": { "item": { "marker": "circle", "placeholder": "2020-01", "width": "narrow" } },
+          "enabled_if": {
+            "grdm-file:file-type": "manuscript"
+          }
+        },
+        {
+          "qid": "grdm-file:volume",
+          "nav": "巻",
+          "title": "巻|Volume",
+          "type": "string",
+          "format": "text",
+          "ui": { "item": { "marker": "circle", "width": "narrow" } },
+          "enabled_if": {
+            "grdm-file:file-type": "manuscript"
+          }
+        },
+        {
+          "qid": "grdm-file:issue",
+          "nav": "号",
+          "title": "号|Issue",
+          "type": "string",
+          "format": "text",
+          "ui": { "item": { "marker": "circle", "width": "narrow" } },
+          "enabled_if": {
+            "grdm-file:file-type": "manuscript"
+          }
+        },
+        {
+          "qid": "grdm-file:page-start",
+          "nav": "掲載ページ (開始)",
+          "title": "掲載ページ (開始)|Page Start",
+          "type": "string",
+          "format": "text",
+          "ui": {
+            "group": { "id": "pages", "marker": "circle", "title": "掲載ページ|Pages" },
+            "sub_label": "（開始）|(Start)",
+            "item": { "width": "narrow" }
+          },
+          "enabled_if": {
+            "grdm-file:file-type": "manuscript"
+          }
+        },
+        {
+          "qid": "grdm-file:page-end",
+          "nav": "掲載ページ (終了)",
+          "title": "掲載ページ (終了)|Page End",
+          "type": "string",
+          "format": "text",
+          "ui": {
+            "group": "pages",
+            "sub_label": "（終了）|(End)",
+            "item": { "width": "narrow" }
+          },
+          "enabled_if": {
+            "grdm-file:file-type": "manuscript"
+          }
+        },
+        {
+          "qid": "grdm-file:reviewed",
+          "nav": "査読の有無",
+          "title": "査読の有無|Peer reviewed",
+          "type": "choose",
+          "format": "singleselect",
+          "ui": { "item": { "marker": "circle", "width": "narrow", "widget": "radio" } },
+          "options": [
+            {
+              "text": "yes",
+              "tooltip": "あり|yes"
+            },
+            {
+              "text": "no",
+              "tooltip": "なし|no"
+            }
+          ],
+          "enabled_if": {
+            "grdm-file:file-type": "manuscript"
+          }
+        },
+        {
+          "qid": "grdm-file:version",
+          "nav": "版情報",
+          "title": "版情報|Version Information",
+          "type": "choose",
+          "format": "singleselect",
+          "ui": { "item": { "marker": "circle", "width": "narrow", "info": "このファイルが以下のいずれに該当するかを選択:<br>・出版社版: 早期公開を含む出版社の最終版。<br>・著者最終稿: 査読を経て出版雑誌に受理された原稿。内容とレイアウトは出版社の投稿様式に沿ったもの。<br>・プレプリント: 著者が査読に提出した原稿。|Select which of the following applies to this file:<br>・Publisher version: The final version from the publisher, including early publication.<br>・Author accepted manuscript: A manuscript accepted by the journal after peer review, with content and layout following the publisher's submission format.<br>・Preprint: A manuscript submitted by the author for peer review." } },
+          "options": [
+            {
+              "text": "VoR",
+              "tooltip": "出版社版|Version of Record"
+            },
+            {
+              "text": "AM",
+              "tooltip": "著者最終稿|Accepted Manuscript"
+            },
+            {
+              "text": "AO",
+              "tooltip": "プレプリント|Author's Original"
+            }
+          ],
+          "enabled_if": {
+            "grdm-file:file-type": "manuscript"
+          }
         },
         {
           "qid": "grdm-file:repo-url-doi-link",
@@ -678,49 +1711,81 @@
           "title": "リポジトリURL・DOIリンク|Repository URL/ DOI link",
           "type": "string",
           "format": "text",
-          "required": false,
-          "pattern": "[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)$",
-          "help": "例: https://example.com/example|E.g., https://example.com/example",
+          "ui": { "item": { "marker": "circle", "width": "half", "placeholder": "https://example.com/example", "info": "DOIが付与されている場合はDOIリンク、付与されていない場合は管理対象データのランディングページのURLを記入してください。URLが変更された際はメタデータの更新を行ってください。|If a DOI has been assigned, enter the DOI link. If no DOI has been assigned, enter the URL of the landing page for the managed data. Update the metadata if the URL changes." } },
           "suggestion": [
             {
               "key": "file-url",
-              "button": "入力|Fill"
+              "button": "GakuNin RDM URL入力|Fill GakuNin RDM URL"
             }
-          ]
+          ],
+          "enabled_if": {
+            "grdm-file:file-type": "dataset"
+          }
+        },
+
+        {
+          "qid": "grdm-file:publication-link",
+          "nav": "学術論文を掲載した「機関リポジトリ等の情報基盤」のDOI",
+          "title": "学術論文を掲載した「機関リポジトリ等の情報基盤」のDOI|DOI of the institutional repository or other information infrastructure where the academic paper is published",
+          "pattern": "^(https?://doi\\.org/)?10\\.[0-9]{4,}(/[-._;()/:a-zA-Z0-9]+)*$",
+          "ui": { "item": { "marker": "circle", "width": "half", "placeholder": "10.1234/5678", "info": "このファイルを根拠データとして用いている学術論文のDOIを記載してください。|Enter the DOI of the academic paper that uses this file as supporting data." } },
+          "type": "string",
+          "format": "text",
+          "enabled_if": {
+            "grdm-file:file-type": "dataset"
+          }
+        },
+        {
+          "qid": "grdm-file:dataset-link",
+          "nav": "根拠データを掲載した「機関リポジトリ等の情報基盤」のDOI",
+          "title": "根拠データを掲載した「機関リポジトリ等の情報基盤」のDOI|DOI of the institutional repository or other information infrastructure where the supplemental data is published",
+          "pattern": "^(https?://doi\\.org/)?10\\.[0-9]{4,}(/[-._;()/:a-zA-Z0-9]+)*$",
+          "ui": { "item": { "marker": "circle", "width": "half", "placeholder": "10.1234/5678", "info": "この論文が根拠データとして用いている研究データのDOIを記載してください。|Enter the DOI of the research data used as supporting data for this paper." } },
+          "type": "string",
+          "format": "text",
+          "enabled_if": {
+            "grdm-file:file-type": "manuscript"
+          }
         },
         {
           "qid": "grdm-file:creators",
           "nav": "データ作成者",
           "title": "データ作成者|Creator Name",
           "type": "array",
-          "required": false,
-          "help": "e-Rad 研究者番号(半角数字)|e-Rad Researcher Number(single-byte numeric characters)",
+          "ui": { "item": { "marker": "circle", "initial_rows": 1, "info": "管理対象データを生み出した研究者の名前を記入してください。|Enter the name of the researcher who created the managed data." } },
+          "display_template": "{{number}}|{% if name-ja.last || name-ja.first || name-ja.middle %}{% if name-ja.last %}{{name-ja.last}} {% endif %}{{name-ja.middle}} {{name-ja.first}}{% endif %}|{% if name-en.last || name-en.first || name-en.middle %}{% if name-en.last %}{{name-en.last}}, {% endif %}{{name-en.first}} {{name-en.middle}}{% endif %}|{{affiliation-name-ja}}|{{affiliation-name-en}}",
+          "enabled_if": {
+            "grdm-file:file-type": "dataset"
+          },
           "properties": [
             {
               "id": "number",
               "title": "e-Rad 研究者番号|e-Rad Researcher Number",
               "type": "string",
               "format": "text",
-              "required": false,
-              "pattern": "^[0-9a-zA-Z]*$",
+              "ui": { "item": { "width": "narrow" } },
               "space_normalization": true,
               "suggestion": [
                 {
-                  "key": "contributor:erad",
-                  "template": "<div style=\"background-color: white;\"><span>{{display-fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{affiliated-institution-name-ja}}|{{affiliated-institution-name-en}} (Contributor)</small></span></div>",
+                  "key": "erad:kenkyusha_no",
+                  "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{kenkyusha_no}} - {{kenkyukikan_mei}} - {{kadai_mei}} ({{nendo}})</small></span></div>",
                   "autofill": {
-                    "number": "erad",
-                    "name_ja": "name-ja-msfullname",
-                    "name_en": "name-en-msfullname"
+                    "number": "kenkyusha_no",
+                    "name-ja": "kenkyusha_shimei_ja",
+                    "name-en": "kenkyusha_shimei_en",
+                    "affiliation-name-ja": "kenkyukikan_mei_ja",
+                    "affiliation-name-en": "kenkyukikan_mei_en"
                   }
                 },
                 {
-                  "key": "erad:kenkyusha_no",
-                  "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{kenkyusha_no}} - {{kenkyukikan_mei}} (e-Rad)</small></span></div>",
+                  "key": "contributor:erad",
+                  "template": "<div style=\"background-color: white;\"><span>{{name-ja-full}}|{{name-en-full}}</span><span><small class=\"m-l-md text-muted\">{{erad}}</small></span></div>",
                   "autofill": {
-                    "number": "kenkyusha_no",
-                    "name_ja": "kenkyusha_shimei_ja_msfullname",
-                    "name_en": "kenkyusha_shimei_en_msfullname"
+                    "number": "erad",
+                    "name-ja": "name-ja",
+                    "name-en": "name-en",
+                    "affiliation-name-ja": "affiliated-institution-name-ja",
+                    "affiliation-name-en": "affiliated-institution-name-en"
                   }
                 },
                 {
@@ -728,82 +1793,329 @@
                   "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{kenkyukikan_mei}} (KAKEN)</small></span></div>",
                   "autofill": {
                     "number": "erad",
-                    "name_ja": "kenkyusha_shimei_ja_msfullname",
-                    "name_en": "kenkyusha_shimei_en_msfullname"
+                    "name-ja": "kenkyusha_shimei_ja_parts",
+                    "name-en": "kenkyusha_shimei_en_parts",
+                    "affiliation-name-ja": "kenkyukikan_mei_ja",
+                    "affiliation-name-en": "kenkyukikan_mei_en"
                   }
                 }
               ]
             },
             {
-              "id": "name_ja",
+              "id": "name-ja",
               "title": "名前(日本語)|Name (Japanese)",
+              "type": "object",
+              "ui": {
+                "group": { "id": "creator-name", "title": "名前|Name" },
+                "sub_label": "（日本語）|(Japanese)"
+              },
+              "properties": [
+                {
+                  "id": "last",
+                  "title": "姓|Last Name",
+                  "type": "string",
+                  "format": "text",
+                  "space_normalization": true,
+                  "suggestion": [
+                    {
+                      "key": "erad:kenkyusha_shimei",
+                      "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{kenkyusha_no}} - {{kenkyukikan_mei}} - {{kadai_mei}} ({{nendo}})</small></span></div>",
+                      "autofill": {
+                        "../number": "kenkyusha_no",
+                        "../name-ja": "kenkyusha_shimei_ja",
+                        "../name-en": "kenkyusha_shimei_en",
+                        "../affiliation-name-ja": "kenkyukikan_mei_ja",
+                        "../affiliation-name-en": "kenkyukikan_mei_en"
+                      }
+                    },
+                    {
+                      "key": "contributor:name",
+                      "template": "<div style=\"background-color: white;\"><span>{{name-ja-full}}|{{name-en-full}}</span><span><small class=\"m-l-md text-muted\">{{erad}}</small></span></div>",
+                      "autofill": {
+                        "../number": "erad",
+                        "../name-ja": "name-ja",
+                        "../name-en": "name-en",
+                        "../affiliation-name-ja": "affiliated-institution-name-ja",
+                        "../affiliation-name-en": "affiliated-institution-name-en"
+                      }
+                    },
+                    {
+                      "key": "kaken:kenkyusha_shimei",
+                      "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{kenkyukikan_mei}} (KAKEN)</small></span></div>",
+                      "autofill": {
+                        "../number": "erad",
+                        "../name-ja": "kenkyusha_shimei_ja_parts",
+                        "../name-en": "kenkyusha_shimei_en_parts",
+                        "../affiliation-name-ja": "kenkyukikan_mei_ja",
+                        "../affiliation-name-en": "kenkyukikan_mei_en"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "middle",
+                  "title": "ミドルネーム|Middle Name",
+                  "type": "string",
+                  "format": "text",
+                  "space_normalization": true,
+                  "suggestion": [
+                    {
+                      "key": "erad:kenkyusha_shimei",
+                      "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{kenkyusha_no}} - {{kenkyukikan_mei}} - {{kadai_mei}} ({{nendo}})</small></span></div>",
+                      "autofill": {
+                        "../number": "kenkyusha_no",
+                        "../name-ja": "kenkyusha_shimei_ja",
+                        "../name-en": "kenkyusha_shimei_en",
+                        "../affiliation-name-ja": "kenkyukikan_mei_ja",
+                        "../affiliation-name-en": "kenkyukikan_mei_en"
+                      }
+                    },
+                    {
+                      "key": "contributor:name",
+                      "template": "<div style=\"background-color: white;\"><span>{{name-ja-full}}|{{name-en-full}}</span><span><small class=\"m-l-md text-muted\">{{erad}}</small></span></div>",
+                      "autofill": {
+                        "../number": "erad",
+                        "../name-ja": "name-ja",
+                        "../name-en": "name-en",
+                        "../affiliation-name-ja": "affiliated-institution-name-ja",
+                        "../affiliation-name-en": "affiliated-institution-name-en"
+                      }
+                    },
+                    {
+                      "key": "kaken:kenkyusha_shimei",
+                      "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{kenkyukikan_mei}} (KAKEN)</small></span></div>",
+                      "autofill": {
+                        "../number": "erad",
+                        "../name-ja": "kenkyusha_shimei_ja_parts",
+                        "../name-en": "kenkyusha_shimei_en_parts",
+                        "../affiliation-name-ja": "kenkyukikan_mei_ja",
+                        "../affiliation-name-en": "kenkyukikan_mei_en"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "first",
+                  "title": "名|First Name",
+                  "type": "string",
+                  "format": "text",
+                  "space_normalization": true,
+                  "suggestion": [
+                    {
+                      "key": "erad:kenkyusha_shimei",
+                      "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{kenkyusha_no}} - {{kenkyukikan_mei}} - {{kadai_mei}} ({{nendo}})</small></span></div>",
+                      "autofill": {
+                        "../number": "kenkyusha_no",
+                        "../name-ja": "kenkyusha_shimei_ja",
+                        "../name-en": "kenkyusha_shimei_en",
+                        "../affiliation-name-ja": "kenkyukikan_mei_ja",
+                        "../affiliation-name-en": "kenkyukikan_mei_en"
+                      }
+                    },
+                    {
+                      "key": "contributor:name",
+                      "template": "<div style=\"background-color: white;\"><span>{{name-ja-full}}|{{name-en-full}}</span><span><small class=\"m-l-md text-muted\">{{erad}}</small></span></div>",
+                      "autofill": {
+                        "../number": "erad",
+                        "../name-ja": "name-ja",
+                        "../name-en": "name-en",
+                        "../affiliation-name-ja": "affiliated-institution-name-ja",
+                        "../affiliation-name-en": "affiliated-institution-name-en"
+                      }
+                    },
+                    {
+                      "key": "kaken:kenkyusha_shimei",
+                      "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{kenkyukikan_mei}} (KAKEN)</small></span></div>",
+                      "autofill": {
+                        "../number": "erad",
+                        "../name-ja": "kenkyusha_shimei_ja_parts",
+                        "../name-en": "kenkyusha_shimei_en_parts",
+                        "../affiliation-name-ja": "kenkyukikan_mei_ja",
+                        "../affiliation-name-en": "kenkyukikan_mei_en"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "name-en",
+              "title": "Name (English)",
+              "type": "object",
+              "ui": {
+                "group": "creator-name",
+                "sub_label": "（English）|(English)"
+              },
+              "properties": [
+                {
+                  "id": "last",
+                  "title": "Last Name",
+                  "type": "string",
+                  "format": "text",
+                  "space_normalization": true,
+                  "suggestion": [
+                    {
+                      "key": "erad:kenkyusha_shimei",
+                      "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{kenkyusha_no}} - {{kenkyukikan_mei}} - {{kadai_mei}} ({{nendo}})</small></span></div>",
+                      "autofill": {
+                        "../number": "kenkyusha_no",
+                        "../name-ja": "kenkyusha_shimei_ja",
+                        "../name-en": "kenkyusha_shimei_en",
+                        "../affiliation-name-ja": "kenkyukikan_mei_ja",
+                        "../affiliation-name-en": "kenkyukikan_mei_en"
+                      }
+                    },
+                    {
+                      "key": "contributor:name",
+                      "template": "<div style=\"background-color: white;\"><span>{{name-ja-full}}|{{name-en-full}}</span><span><small class=\"m-l-md text-muted\">{{erad}}</small></span></div>",
+                      "autofill": {
+                        "../number": "erad",
+                        "../name-ja": "name-ja",
+                        "../name-en": "name-en",
+                        "../affiliation-name-ja": "affiliated-institution-name-ja",
+                        "../affiliation-name-en": "affiliated-institution-name-en"
+                      }
+                    },
+                    {
+                      "key": "kaken:kenkyusha_shimei",
+                      "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{kenkyukikan_mei}} (KAKEN)</small></span></div>",
+                      "autofill": {
+                        "../number": "erad",
+                        "../name-ja": "kenkyusha_shimei_ja_parts",
+                        "../name-en": "kenkyusha_shimei_en_parts",
+                        "../affiliation-name-ja": "kenkyukikan_mei_ja",
+                        "../affiliation-name-en": "kenkyukikan_mei_en"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "middle",
+                  "title": "Middle Name",
+                  "type": "string",
+                  "format": "text",
+                  "space_normalization": true,
+                  "suggestion": [
+                    {
+                      "key": "erad:kenkyusha_shimei",
+                      "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{kenkyusha_no}} - {{kenkyukikan_mei}} - {{kadai_mei}} ({{nendo}})</small></span></div>",
+                      "autofill": {
+                        "../number": "kenkyusha_no",
+                        "../name-ja": "kenkyusha_shimei_ja",
+                        "../name-en": "kenkyusha_shimei_en",
+                        "../affiliation-name-ja": "kenkyukikan_mei_ja",
+                        "../affiliation-name-en": "kenkyukikan_mei_en"
+                      }
+                    },
+                    {
+                      "key": "contributor:name",
+                      "template": "<div style=\"background-color: white;\"><span>{{name-ja-full}}|{{name-en-full}}</span><span><small class=\"m-l-md text-muted\">{{erad}}</small></span></div>",
+                      "autofill": {
+                        "../number": "erad",
+                        "../name-ja": "name-ja",
+                        "../name-en": "name-en",
+                        "../affiliation-name-ja": "affiliated-institution-name-ja",
+                        "../affiliation-name-en": "affiliated-institution-name-en"
+                      }
+                    },
+                    {
+                      "key": "kaken:kenkyusha_shimei",
+                      "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{kenkyukikan_mei}} (KAKEN)</small></span></div>",
+                      "autofill": {
+                        "../number": "erad",
+                        "../name-ja": "kenkyusha_shimei_ja_parts",
+                        "../name-en": "kenkyusha_shimei_en_parts",
+                        "../affiliation-name-ja": "kenkyukikan_mei_ja",
+                        "../affiliation-name-en": "kenkyukikan_mei_en"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "first",
+                  "title": "First Name",
+                  "type": "string",
+                  "format": "text",
+                  "space_normalization": true,
+                  "suggestion": [
+                    {
+                      "key": "erad:kenkyusha_shimei",
+                      "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{kenkyusha_no}} - {{kenkyukikan_mei}} - {{kadai_mei}} ({{nendo}})</small></span></div>",
+                      "autofill": {
+                        "../number": "kenkyusha_no",
+                        "../name-ja": "kenkyusha_shimei_ja",
+                        "../name-en": "kenkyusha_shimei_en",
+                        "../affiliation-name-ja": "kenkyukikan_mei_ja",
+                        "../affiliation-name-en": "kenkyukikan_mei_en"
+                      }
+                    },
+                    {
+                      "key": "contributor:name",
+                      "template": "<div style=\"background-color: white;\"><span>{{name-ja-full}}|{{name-en-full}}</span><span><small class=\"m-l-md text-muted\">{{erad}}</small></span></div>",
+                      "autofill": {
+                        "../number": "erad",
+                        "../name-ja": "name-ja",
+                        "../name-en": "name-en",
+                        "../affiliation-name-ja": "affiliated-institution-name-ja",
+                        "../affiliation-name-en": "affiliated-institution-name-en"
+                      }
+                    },
+                    {
+                      "key": "kaken:kenkyusha_shimei",
+                      "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{kenkyukikan_mei}} (KAKEN)</small></span></div>",
+                      "autofill": {
+                        "../number": "erad",
+                        "../name-ja": "kenkyusha_shimei_ja_parts",
+                        "../name-en": "kenkyusha_shimei_en_parts",
+                        "../affiliation-name-ja": "kenkyukikan_mei_ja",
+                        "../affiliation-name-en": "kenkyukikan_mei_en"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "affiliation-name-ja",
+              "title": "所属機関名(日本語)|Affiliation (Japanese)",
+              "ui": {
+                "group": { "id": "creator-affiliation", "title": "所属機関名|Affiliation" },
+                "sub_label": "（日本語）|(Japanese)"
+              },
               "type": "string",
               "format": "text",
-              "required": false,
-              "required_if": "name_en",
+              "space_normalization": true,
               "suggestion": [
                 {
-                  "key": "contributor:name",
-                  "template": "<div style=\"background-color: white;\"><span>{{display-fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{affiliated-institution-name-ja}}|{{affiliated-institution-name-en}} (Contributor)</small></span></div>",
-                  "autofill": {
-                    "number": "erad",
-                    "name_ja": "name-ja-msfullname",
-                    "name_en": "name-en-msfullname"
-                  }
-                },
-                {
-                  "key": "erad:kenkyusha_shimei",
-                  "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{kenkyusha_no}} - {{kenkyukikan_mei}} (e-Rad)</small></span></div>",
-                  "autofill": {
-                    "number": "kenkyusha_no",
-                    "name_ja": "kenkyusha_shimei_ja_msfullname",
-                    "name_en": "kenkyusha_shimei_en_msfullname"
-                  }
-                },
-                {
-                  "key": "kaken:kenkyusha_shimei",
+                  "key": "kaken:kenkyukikan_mei",
                   "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{kenkyukikan_mei}} (KAKEN)</small></span></div>",
                   "autofill": {
                     "number": "erad",
-                    "name_ja": "kenkyusha_shimei_ja_msfullname",
-                    "name_en": "kenkyusha_shimei_en_msfullname"
+                    "name-ja": "kenkyusha_shimei_ja_parts",
+                    "name-en": "kenkyusha_shimei_en_parts",
+                    "affiliation-name-ja": "kenkyukikan_mei_ja",
+                    "affiliation-name-en": "kenkyukikan_mei_en"
                   }
                 }
               ]
             },
             {
-              "id": "name_en",
-              "title": "Name (English)",
+              "id": "affiliation-name-en",
+              "title": "所属機関名(英語)|Affiliation (English)",
+              "ui": { "group": "creator-affiliation", "sub_label": "（English）|(English)" },
               "type": "string",
               "format": "text",
-              "required": false,
-              "required_if": "name_ja",
+              "space_normalization": true,
               "suggestion": [
                 {
-                  "key": "contributor:name",
-                  "template": "<div style=\"background-color: white;\"><span>{{display-fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{affiliated-institution-name-ja}}|{{affiliated-institution-name-en}} (Contributor)</small></span></div>",
-                  "autofill": {
-                    "number": "erad",
-                    "name_ja": "name-ja-msfullname",
-                    "name_en": "name-en-msfullname"
-                  }
-                },
-                {
-                  "key": "erad:kenkyusha_shimei",
-                  "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{kenkyusha_no}} - {{kenkyukikan_mei}} (e-Rad)</small></span></div>",
-                  "autofill": {
-                    "number": "kenkyusha_no",
-                    "name_ja": "kenkyusha_shimei_ja_msfullname",
-                    "name_en": "kenkyusha_shimei_en_msfullname"
-                  }
-                },
-                {
-                  "key": "kaken:kenkyusha_shimei",
+                  "key": "kaken:kenkyukikan_mei",
                   "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{kenkyukikan_mei}} (KAKEN)</small></span></div>",
                   "autofill": {
                     "number": "erad",
-                    "name_ja": "kenkyusha_shimei_ja_msfullname",
-                    "name_en": "kenkyusha_shimei_en_msfullname"
+                    "name-ja": "kenkyusha_shimei_ja_parts",
+                    "name-en": "kenkyusha_shimei_en_parts",
+                    "affiliation-name-ja": "kenkyukikan_mei_ja",
+                    "affiliation-name-en": "kenkyukikan_mei_en"
                   }
                 }
               ]
@@ -814,11 +2126,16 @@
           "qid": "grdm-file:hosting-inst-ja",
           "nav": "データ管理機関 (日本語)",
           "title": "データ管理機関 (日本語)|Hosting institution (Japanese)",
+          "ui": {
+            "group": { "id": "hosting-inst", "marker": "circle", "title": "データ管理機関|Hosting institution", "tags": ["共通|Common"], "info": "管理対象データを管理する研究開発を行う機関の名称を入力してください。機関名は略称不可です（株式会社、国立大学法人、一般社団法人等の法人格も記載してください）。データ管理者の異動により移管する場合は、データ管理機関を更新してください。|Enter the name of the institution conducting R&D that manages the data. The name should not be abbreviated (include Corporation, National University Corporation, General Incorporated Association, etc.). Update the Hosting Institution if the data is transferred due to the Data Manager's reassignment." },
+            "sub_label": "（日本語）|(Japanese)"
+          },
           "type": "string",
           "format": "text",
-          "required": false,
-          "required_if": "grdm-file:hosting-inst-en",
           "space_normalization": true,
+          "enabled_if": {
+            "grdm-file:file-type": "dataset"
+          },
           "suggestion": [
             {
               "key": "ror",
@@ -835,11 +2152,13 @@
           "qid": "grdm-file:hosting-inst-en",
           "nav": "Hosting institution (English)",
           "title": "Hosting institution (English)",
+          "ui": { "group": "hosting-inst", "sub_label": "（English）|(English)" },
           "type": "string",
           "format": "text",
-          "required": false,
-          "required_if": "grdm-file:hosting-inst-ja",
           "space_normalization": true,
+          "enabled_if": {
+            "grdm-file:file-type": "dataset"
+          },
           "suggestion": [
             {
               "key": "ror",
@@ -858,8 +2177,11 @@
           "title": "データ管理機関コード|Hosting institution Identifier",
           "type": "string",
           "format": "text",
-          "required": false,
-          "space_normalization": true
+          "ui": { "item": { "marker": "circle", "width": "half", "info": "データ管理機関のResearch Organization Registry (ROR) コードです（https://ror.org/xxxxxxxxx の形式）。|The Research Organization Registry (ROR) code of the hosting institution (format: https://ror.org/xxxxxxxxx)." } },
+          "space_normalization": true,
+          "enabled_if": {
+            "grdm-file:file-type": "dataset"
+          }
         },
         {
           "qid": "grdm-file:data-man-type",
@@ -867,6 +2189,7 @@
           "title": "データ管理者の種類|Type of data manager",
           "type": "choose",
           "format": "singleselect",
+          "ui": { "item": { "marker": "circle", "widget": "radio" } },
           "options": [
             {
               "text": "individual",
@@ -878,19 +2201,29 @@
               "tooltip": "組織|organization"
             }
           ],
-          "required": true
+          "enabled_if": {
+            "grdm-file:file-type": "dataset"
+          }
         },
         {
           "qid": "grdm-file:data-man-number",
-          "nav": "データ管理者の e-Rad 研究者番号",
-          "title": "データ管理者の e-Rad 研究者番号|Data manager identifier (e-Rad)",
+          "nav": "e-Rad研究者番号",
+          "title": "e-Rad研究者番号|e-Rad Researcher Number",
           "type": "string",
           "format": "text",
-          "required": false,
-          "pattern": "^[a-zA-Z0-9]+$",
-          "help": "e-Rad 研究者番号(半角数字)|e-Rad Researcher Number(single-byte numeric characters)",
+          "ui": {
+            "group": { "id": "data-man-individual", "marker": "circle", "title": "データ管理者（個人）|Data manager (individual)", "bar": true, "tags": ["共通|Common"], "enabled_if": { "grdm-file:data-man-type": "individual" }, "info": "管理対象データを管理する担当者の情報を入力してください。データ管理者の異動により変更する場合は、メタデータを更新してください。|Enter information about the person who manages the data. Update the metadata if the Data Manager changes." },
+            "item": { "enabled_if": { "disabled": { "grdm-file:file-type": "dataset" } } }
+          },
           "enabled_if": {
-            "grdm-file:data-man-type": "individual"
+            "$and": [
+              {
+                "grdm-file:data-man-type": "individual"
+              },
+              {
+                "grdm-file:file-type": "dataset"
+              }
+            ]
           },
           "suggestion": [
             {
@@ -898,8 +2231,8 @@
               "template": "<div style=\"background-color: white;\"><span>{{display-fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{affiliated-institution-name-ja}}|{{affiliated-institution-name-en}} (Contributor)</small></span></div>",
               "autofill": {
                 "grdm-file:data-man-number": "erad",
-                "grdm-file:data-man-name-ja": "name-ja-msfullname",
-                "grdm-file:data-man-name-en": "name-en-msfullname",
+                "grdm-file:data-man-name-ja": "name-ja",
+                "grdm-file:data-man-name-en": "name-en",
                 "grdm-file:data-man-org-ja": "affiliated-institution-name-ja",
                 "grdm-file:data-man-org-en": "affiliated-institution-name-en"
               }
@@ -909,8 +2242,8 @@
               "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{kenkyusha_no}} - {{kenkyukikan_mei}} (e-Rad)</small></span></div>",
               "autofill": {
                 "grdm-file:data-man-number": "kenkyusha_no",
-                "grdm-file:data-man-name-ja": "kenkyusha_shimei_ja_msfullname",
-                "grdm-file:data-man-name-en": "kenkyusha_shimei_en_msfullname",
+                "grdm-file:data-man-name-ja": "kenkyusha_shimei_ja",
+                "grdm-file:data-man-name-en": "kenkyusha_shimei_en",
                 "grdm-file:data-man-org-ja": "kenkyukikan_mei_ja",
                 "grdm-file:data-man-org-en": "kenkyukikan_mei_en"
               }
@@ -920,8 +2253,8 @@
               "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{kenkyukikan_mei}} (KAKEN)</small></span></div>",
               "autofill": {
                 "grdm-file:data-man-number": "erad",
-                "grdm-file:data-man-name-ja": "kenkyusha_shimei_ja_msfullname",
-                "grdm-file:data-man-name-en": "kenkyusha_shimei_en_msfullname",
+                "grdm-file:data-man-name-ja": "kenkyusha_shimei_ja_parts",
+                "grdm-file:data-man-name-en": "kenkyusha_shimei_en_parts",
                 "grdm-file:data-man-org-ja": "kenkyukikan_mei_ja",
                 "grdm-file:data-man-org-en": "kenkyukikan_mei_en"
               }
@@ -932,46 +2265,148 @@
           "qid": "grdm-file:data-man-name-ja",
           "nav": "データ管理者 (日本語)",
           "title": "データ管理者 (日本語)|Data manager (Japanese)",
-          "type": "string",
-          "format": "text",
-          "required": false,
-          "required_if": "grdm-file:data-man-name-en",
-          "enabled_if": {
-            "grdm-file:data-man-type": "individual"
+          "type": "object",
+          "ui": {
+            "group": { "id": "data-man-name", "parent": "data-man-individual", "title": "名前|Name" },
+            "sub_label": "（日本語）|(Japanese)",
+            "item": { "enabled_if": { "disabled": { "grdm-file:file-type": "dataset" } } }
           },
-          "suggestion": [
-            {
-              "key": "contributor:name",
-              "template": "<div style=\"background-color: white;\"><span>{{display-fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{affiliated-institution-name-ja}}|{{affiliated-institution-name-en}} (Contributor)</small></span></div>",
-              "autofill": {
-                "grdm-file:data-man-number": "erad",
-                "grdm-file:data-man-name-ja": "name-ja-msfullname",
-                "grdm-file:data-man-name-en": "name-en-msfullname",
-                "grdm-file:data-man-org-ja": "affiliated-institution-name-ja",
-                "grdm-file:data-man-org-en": "affiliated-institution-name-en"
+          "enabled_if": {
+            "$and": [
+              {
+                "grdm-file:data-man-type": "individual"
+              },
+              {
+                "grdm-file:file-type": "dataset"
               }
+            ]
+          },
+          "properties": [
+            {
+              "id": "last",
+              "title": "姓|Last Name",
+              "type": "string",
+              "format": "text",
+              "space_normalization": true,
+              "suggestion": [
+                {
+                  "key": "contributor:name",
+                  "template": "<div style=\"background-color: white;\"><span>{{name-ja-full}}|{{name-en-full}}</span><span><small class=\"m-l-md text-muted\">{{erad}}</small></span></div>",
+                  "autofill": {
+                    "../grdm-file:data-man-number": "erad",
+                    "../grdm-file:data-man-name-ja": "name-ja",
+                    "../grdm-file:data-man-name-en": "name-en",
+                    "../grdm-file:data-man-org-ja": "affiliated-institution-name-ja",
+                    "../grdm-file:data-man-org-en": "affiliated-institution-name-en"
+                  }
+                },
+                {
+                  "key": "erad:kenkyusha_shimei",
+                  "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{kenkyusha_no}} - {{kenkyukikan_mei}} (e-Rad)</small></span></div>",
+                  "autofill": {
+                    "../grdm-file:data-man-number": "kenkyusha_no",
+                    "../grdm-file:data-man-name-ja": "kenkyusha_shimei_ja",
+                    "../grdm-file:data-man-name-en": "kenkyusha_shimei_en",
+                    "../grdm-file:data-man-org-ja": "kenkyukikan_mei_ja",
+                    "../grdm-file:data-man-org-en": "kenkyukikan_mei_en"
+                  }
+                },
+                {
+                  "key": "kaken:kenkyusha_shimei",
+                  "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{kenkyukikan_mei}} (KAKEN)</small></span></div>",
+                  "autofill": {
+                    "../grdm-file:data-man-number": "erad",
+                    "../grdm-file:data-man-name-ja": "kenkyusha_shimei_ja_parts",
+                    "../grdm-file:data-man-name-en": "kenkyusha_shimei_en_parts",
+                    "../grdm-file:data-man-org-ja": "kenkyukikan_mei_ja",
+                    "../grdm-file:data-man-org-en": "kenkyukikan_mei_en"
+                  }
+                }
+              ]
             },
             {
-              "key": "erad:kenkyusha_shimei",
-              "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{kenkyusha_no}} - {{kenkyukikan_mei}} (e-Rad)</small></span></div>",
-              "autofill": {
-                "grdm-file:data-man-number": "kenkyusha_no",
-                "grdm-file:data-man-name-ja": "kenkyusha_shimei_ja_msfullname",
-                "grdm-file:data-man-name-en": "kenkyusha_shimei_en_msfullname",
-                "grdm-file:data-man-org-ja": "kenkyukikan_mei_ja",
-                "grdm-file:data-man-org-en": "kenkyukikan_mei_en"
-              }
+              "id": "middle",
+              "title": "ミドルネーム|Middle Name",
+              "type": "string",
+              "format": "text",
+              "space_normalization": true,
+              "suggestion": [
+                {
+                  "key": "contributor:name",
+                  "template": "<div style=\"background-color: white;\"><span>{{name-ja-full}}|{{name-en-full}}</span><span><small class=\"m-l-md text-muted\">{{erad}}</small></span></div>",
+                  "autofill": {
+                    "../grdm-file:data-man-number": "erad",
+                    "../grdm-file:data-man-name-ja": "name-ja",
+                    "../grdm-file:data-man-name-en": "name-en",
+                    "../grdm-file:data-man-org-ja": "affiliated-institution-name-ja",
+                    "../grdm-file:data-man-org-en": "affiliated-institution-name-en"
+                  }
+                },
+                {
+                  "key": "erad:kenkyusha_shimei",
+                  "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{kenkyusha_no}} - {{kenkyukikan_mei}} (e-Rad)</small></span></div>",
+                  "autofill": {
+                    "../grdm-file:data-man-number": "kenkyusha_no",
+                    "../grdm-file:data-man-name-ja": "kenkyusha_shimei_ja",
+                    "../grdm-file:data-man-name-en": "kenkyusha_shimei_en",
+                    "../grdm-file:data-man-org-ja": "kenkyukikan_mei_ja",
+                    "../grdm-file:data-man-org-en": "kenkyukikan_mei_en"
+                  }
+                },
+                {
+                  "key": "kaken:kenkyusha_shimei",
+                  "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{kenkyukikan_mei}} (KAKEN)</small></span></div>",
+                  "autofill": {
+                    "../grdm-file:data-man-number": "erad",
+                    "../grdm-file:data-man-name-ja": "kenkyusha_shimei_ja_parts",
+                    "../grdm-file:data-man-name-en": "kenkyusha_shimei_en_parts",
+                    "../grdm-file:data-man-org-ja": "kenkyukikan_mei_ja",
+                    "../grdm-file:data-man-org-en": "kenkyukikan_mei_en"
+                  }
+                }
+              ]
             },
             {
-              "key": "kaken:kenkyusha_shimei",
-              "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{kenkyukikan_mei}} (KAKEN)</small></span></div>",
-              "autofill": {
-                "grdm-file:data-man-number": "erad",
-                "grdm-file:data-man-name-ja": "kenkyusha_shimei_ja_msfullname",
-                "grdm-file:data-man-name-en": "kenkyusha_shimei_en_msfullname",
-                "grdm-file:data-man-org-ja": "kenkyukikan_mei_ja",
-                "grdm-file:data-man-org-en": "kenkyukikan_mei_en"
-              }
+              "id": "first",
+              "title": "名|First Name",
+              "type": "string",
+              "format": "text",
+              "space_normalization": true,
+              "suggestion": [
+                {
+                  "key": "contributor:name",
+                  "template": "<div style=\"background-color: white;\"><span>{{name-ja-full}}|{{name-en-full}}</span><span><small class=\"m-l-md text-muted\">{{erad}}</small></span></div>",
+                  "autofill": {
+                    "../grdm-file:data-man-number": "erad",
+                    "../grdm-file:data-man-name-ja": "name-ja",
+                    "../grdm-file:data-man-name-en": "name-en",
+                    "../grdm-file:data-man-org-ja": "affiliated-institution-name-ja",
+                    "../grdm-file:data-man-org-en": "affiliated-institution-name-en"
+                  }
+                },
+                {
+                  "key": "erad:kenkyusha_shimei",
+                  "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{kenkyusha_no}} - {{kenkyukikan_mei}} (e-Rad)</small></span></div>",
+                  "autofill": {
+                    "../grdm-file:data-man-number": "kenkyusha_no",
+                    "../grdm-file:data-man-name-ja": "kenkyusha_shimei_ja",
+                    "../grdm-file:data-man-name-en": "kenkyusha_shimei_en",
+                    "../grdm-file:data-man-org-ja": "kenkyukikan_mei_ja",
+                    "../grdm-file:data-man-org-en": "kenkyukikan_mei_en"
+                  }
+                },
+                {
+                  "key": "kaken:kenkyusha_shimei",
+                  "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{kenkyukikan_mei}} (KAKEN)</small></span></div>",
+                  "autofill": {
+                    "../grdm-file:data-man-number": "erad",
+                    "../grdm-file:data-man-name-ja": "kenkyusha_shimei_ja_parts",
+                    "../grdm-file:data-man-name-en": "kenkyusha_shimei_en_parts",
+                    "../grdm-file:data-man-org-ja": "kenkyukikan_mei_ja",
+                    "../grdm-file:data-man-org-en": "kenkyukikan_mei_en"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -979,46 +2414,148 @@
           "qid": "grdm-file:data-man-name-en",
           "nav": "Data manager (English)",
           "title": "Data manager (English)",
-          "type": "string",
-          "format": "text",
-          "required": false,
-          "required_if": "grdm-file:data-man-name-ja",
-          "enabled_if": {
-            "grdm-file:data-man-type": "individual"
+          "type": "object",
+          "ui": {
+            "group": "data-man-name",
+            "sub_label": "（English）|(English)",
+            "item": { "enabled_if": { "disabled": { "grdm-file:file-type": "dataset" } } }
           },
-          "suggestion": [
-            {
-              "key": "contributor:name",
-              "template": "<div style=\"background-color: white;\"><span>{{display-fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{affiliated-institution-name-ja}}|{{affiliated-institution-name-en}} (Contributor)</small></span></div>",
-              "autofill": {
-                "grdm-file:data-man-number": "erad",
-                "grdm-file:data-man-name-ja": "name-ja-msfullname",
-                "grdm-file:data-man-name-en": "name-en-msfullname",
-                "grdm-file:data-man-org-ja": "affiliated-institution-name-ja",
-                "grdm-file:data-man-org-en": "affiliated-institution-name-en"
+          "enabled_if": {
+            "$and": [
+              {
+                "grdm-file:data-man-type": "individual"
+              },
+              {
+                "grdm-file:file-type": "dataset"
               }
+            ]
+          },
+          "properties": [
+            {
+              "id": "last",
+              "title": "Last Name",
+              "type": "string",
+              "format": "text",
+              "space_normalization": true,
+              "suggestion": [
+                {
+                  "key": "contributor:name",
+                  "template": "<div style=\"background-color: white;\"><span>{{name-ja-full}}|{{name-en-full}}</span><span><small class=\"m-l-md text-muted\">{{erad}}</small></span></div>",
+                  "autofill": {
+                    "../grdm-file:data-man-number": "erad",
+                    "../grdm-file:data-man-name-ja": "name-ja",
+                    "../grdm-file:data-man-name-en": "name-en",
+                    "../grdm-file:data-man-org-ja": "affiliated-institution-name-ja",
+                    "../grdm-file:data-man-org-en": "affiliated-institution-name-en"
+                  }
+                },
+                {
+                  "key": "erad:kenkyusha_shimei",
+                  "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{kenkyusha_no}} - {{kenkyukikan_mei}} (e-Rad)</small></span></div>",
+                  "autofill": {
+                    "../grdm-file:data-man-number": "kenkyusha_no",
+                    "../grdm-file:data-man-name-ja": "kenkyusha_shimei_ja",
+                    "../grdm-file:data-man-name-en": "kenkyusha_shimei_en",
+                    "../grdm-file:data-man-org-ja": "kenkyukikan_mei_ja",
+                    "../grdm-file:data-man-org-en": "kenkyukikan_mei_en"
+                  }
+                },
+                {
+                  "key": "kaken:kenkyusha_shimei",
+                  "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{kenkyukikan_mei}} (KAKEN)</small></span></div>",
+                  "autofill": {
+                    "../grdm-file:data-man-number": "erad",
+                    "../grdm-file:data-man-name-ja": "kenkyusha_shimei_ja_parts",
+                    "../grdm-file:data-man-name-en": "kenkyusha_shimei_en_parts",
+                    "../grdm-file:data-man-org-ja": "kenkyukikan_mei_ja",
+                    "../grdm-file:data-man-org-en": "kenkyukikan_mei_en"
+                  }
+                }
+              ]
             },
             {
-              "key": "erad:kenkyusha_shimei",
-              "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{kenkyusha_no}} - {{kenkyukikan_mei}} (e-Rad)</small></span></div>",
-              "autofill": {
-                "grdm-file:data-man-number": "kenkyusha_no",
-                "grdm-file:data-man-name-ja": "kenkyusha_shimei_ja_msfullname",
-                "grdm-file:data-man-name-en": "kenkyusha_shimei_en_msfullname",
-                "grdm-file:data-man-org-ja": "kenkyukikan_mei_ja",
-                "grdm-file:data-man-org-en": "kenkyukikan_mei_en"
-              }
+              "id": "middle",
+              "title": "Middle Name",
+              "type": "string",
+              "format": "text",
+              "space_normalization": true,
+              "suggestion": [
+                {
+                  "key": "contributor:name",
+                  "template": "<div style=\"background-color: white;\"><span>{{name-ja-full}}|{{name-en-full}}</span><span><small class=\"m-l-md text-muted\">{{erad}}</small></span></div>",
+                  "autofill": {
+                    "../grdm-file:data-man-number": "erad",
+                    "../grdm-file:data-man-name-ja": "name-ja",
+                    "../grdm-file:data-man-name-en": "name-en",
+                    "../grdm-file:data-man-org-ja": "affiliated-institution-name-ja",
+                    "../grdm-file:data-man-org-en": "affiliated-institution-name-en"
+                  }
+                },
+                {
+                  "key": "erad:kenkyusha_shimei",
+                  "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{kenkyusha_no}} - {{kenkyukikan_mei}} (e-Rad)</small></span></div>",
+                  "autofill": {
+                    "../grdm-file:data-man-number": "kenkyusha_no",
+                    "../grdm-file:data-man-name-ja": "kenkyusha_shimei_ja",
+                    "../grdm-file:data-man-name-en": "kenkyusha_shimei_en",
+                    "../grdm-file:data-man-org-ja": "kenkyukikan_mei_ja",
+                    "../grdm-file:data-man-org-en": "kenkyukikan_mei_en"
+                  }
+                },
+                {
+                  "key": "kaken:kenkyusha_shimei",
+                  "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{kenkyukikan_mei}} (KAKEN)</small></span></div>",
+                  "autofill": {
+                    "../grdm-file:data-man-number": "erad",
+                    "../grdm-file:data-man-name-ja": "kenkyusha_shimei_ja_parts",
+                    "../grdm-file:data-man-name-en": "kenkyusha_shimei_en_parts",
+                    "../grdm-file:data-man-org-ja": "kenkyukikan_mei_ja",
+                    "../grdm-file:data-man-org-en": "kenkyukikan_mei_en"
+                  }
+                }
+              ]
             },
             {
-              "key": "kaken:kenkyusha_shimei",
-              "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{kenkyukikan_mei}} (KAKEN)</small></span></div>",
-              "autofill": {
-                "grdm-file:data-man-number": "erad",
-                "grdm-file:data-man-name-ja": "kenkyusha_shimei_ja_msfullname",
-                "grdm-file:data-man-name-en": "kenkyusha_shimei_en_msfullname",
-                "grdm-file:data-man-org-ja": "kenkyukikan_mei_ja",
-                "grdm-file:data-man-org-en": "kenkyukikan_mei_en"
-              }
+              "id": "first",
+              "title": "First Name",
+              "type": "string",
+              "format": "text",
+              "space_normalization": true,
+              "suggestion": [
+                {
+                  "key": "contributor:name",
+                  "template": "<div style=\"background-color: white;\"><span>{{name-ja-full}}|{{name-en-full}}</span><span><small class=\"m-l-md text-muted\">{{erad}}</small></span></div>",
+                  "autofill": {
+                    "../grdm-file:data-man-number": "erad",
+                    "../grdm-file:data-man-name-ja": "name-ja",
+                    "../grdm-file:data-man-name-en": "name-en",
+                    "../grdm-file:data-man-org-ja": "affiliated-institution-name-ja",
+                    "../grdm-file:data-man-org-en": "affiliated-institution-name-en"
+                  }
+                },
+                {
+                  "key": "erad:kenkyusha_shimei",
+                  "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{kenkyusha_no}} - {{kenkyukikan_mei}} (e-Rad)</small></span></div>",
+                  "autofill": {
+                    "../grdm-file:data-man-number": "kenkyusha_no",
+                    "../grdm-file:data-man-name-ja": "kenkyusha_shimei_ja",
+                    "../grdm-file:data-man-name-en": "kenkyusha_shimei_en",
+                    "../grdm-file:data-man-org-ja": "kenkyukikan_mei_ja",
+                    "../grdm-file:data-man-org-en": "kenkyukikan_mei_en"
+                  }
+                },
+                {
+                  "key": "kaken:kenkyusha_shimei",
+                  "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{kenkyukikan_mei}} (KAKEN)</small></span></div>",
+                  "autofill": {
+                    "../grdm-file:data-man-number": "erad",
+                    "../grdm-file:data-man-name-ja": "kenkyusha_shimei_ja_parts",
+                    "../grdm-file:data-man-name-en": "kenkyusha_shimei_en_parts",
+                    "../grdm-file:data-man-org-ja": "kenkyukikan_mei_ja",
+                    "../grdm-file:data-man-org-en": "kenkyukikan_mei_en"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -1026,30 +2563,29 @@
           "qid": "grdm-file:data-man-org-ja",
           "nav": "データ管理者の所属組織名 (日本語)",
           "title": "データ管理者の所属組織名 (日本語)|Contact organization of data manager (Japanese)",
+          "ui": {
+            "group": {
+              "id": "data-man-org",
+              "parent": { "id": "data-man-contact", "marker": "circle", "title": "データ管理者の連絡先|Contact of data manager", "bar": true, "tags": ["共通|Common"], "help": "下記の①②いずれかのフィールドは入力必須<br>①「データ管理者の所属組織名」(日英どちらか)＋「データ管理者の所属機関の連絡先住所」(日英どちらか)＋「データ管理者の所属機関の連絡先電話番号」<br>②「データ管理者の所属機関の連絡先メールアドレス」|Either ① or ② below is required<br>① Contact organization (Japanese or English) + Contact address (Japanese or English) + Contact phone number<br>② Contact email address", "info": "管理者の所属組織名、電話番号、メールアドレス等を記入してください（メールアドレスが必須、他は任意です。メールアドレスがない場合は、所属組織名・住所・電話番号が必須となります）。個人情報保護の観点から、個人ではなく組織の連絡先が望ましいです。|Enter the name of the affiliated institution, telephone number, email address, etc. (Email address is mandatory, and others are optional. If there is no email address, the name of the affiliated institution, address, and telephone number are mandatory). It is preferable to use the contact information of an organization rather than an individual." },
+              "title": "データ管理者の所属組織名（①）|Contact organization of data manager (①)"
+            },
+            "sub_label": "（日本語）|(Japanese)",
+            "item": { "placeholder": "例: 〇〇研究所〇〇部門〇〇課, 〇〇大学〇〇研究室" }
+          },
           "type": "string",
           "format": "text",
-          "required": false,
-          "required_if": {
-            "$and": [
-              {
-                "grdm-file:data-man-email": {"$exists":  false}
-              },
-              {
-                "grdm-file:data-man-org-en": {"$exists":  false}
-              }
-            ]
+          "enabled_if": {
+            "grdm-file:file-type": "dataset"
           },
-          "message_required_if": "「データ管理者の所属機関の連絡先メールアドレス」を入力する必要があります。もしくは、「データ管理者の所属組織名」(日英どちらか)および「データ管理者の所属機関の連絡先住所」(日英どちらか)、「データ管理者の所属機関の連絡先電話番号」を入力する必要があります。|\"Contact mail address of data manager\" must be filled. Or \"Contact organization of data manager\" (either Japanese or English), \"Contact address of data manager\" (either Japanese or English) and \"Contact phone number of data manager\" must be filled.",
           "space_normalization": true,
-          "help": "例: 〇〇研究所〇〇部門〇〇課, 〇〇大学〇〇研究室",
           "suggestion": [
             {
               "key": "contributor:affiliated-institution-name",
               "template": "<div style=\"background-color: white;\"><span>{{display-fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{affiliated-institution-name-ja}}|{{affiliated-institution-name-en}} (Contributor)</small></span></div>",
               "autofill": {
                 "grdm-file:data-man-number": "erad",
-                "grdm-file:data-man-name-ja": "name-ja-msfullname",
-                "grdm-file:data-man-name-en": "name-en-msfullname",
+                "grdm-file:data-man-name-ja": "name-ja",
+                "grdm-file:data-man-name-en": "name-en",
                 "grdm-file:data-man-org-ja": "affiliated-institution-name-ja",
                 "grdm-file:data-man-org-en": "affiliated-institution-name-en"
               }
@@ -1059,8 +2595,8 @@
               "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{kenkyusha_no}} - {{kenkyukikan_mei}} (e-Rad)</small></span></div>",
               "autofill": {
                 "grdm-file:data-man-number": "kenkyusha_no",
-                "grdm-file:data-man-name-ja": "kenkyusha_shimei_ja_msfullname",
-                "grdm-file:data-man-name-en": "kenkyusha_shimei_en_msfullname",
+                "grdm-file:data-man-name-ja": "kenkyusha_shimei_ja",
+                "grdm-file:data-man-name-en": "kenkyusha_shimei_en",
                 "grdm-file:data-man-org-ja": "kenkyukikan_mei_ja",
                 "grdm-file:data-man-org-en": "kenkyukikan_mei_en"
               }
@@ -1070,8 +2606,8 @@
               "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{kenkyukikan_mei}} (KAKEN)</small></span></div>",
               "autofill": {
                 "grdm-file:data-man-number": "erad",
-                "grdm-file:data-man-name-ja": "kenkyusha_shimei_ja_msfullname",
-                "grdm-file:data-man-name-en": "kenkyusha_shimei_en_msfullname",
+                "grdm-file:data-man-name-ja": "kenkyusha_shimei_ja_parts",
+                "grdm-file:data-man-name-en": "kenkyusha_shimei_en_parts",
                 "grdm-file:data-man-org-ja": "kenkyukikan_mei_ja",
                 "grdm-file:data-man-org-en": "kenkyukikan_mei_en"
               }
@@ -1082,20 +2618,12 @@
           "qid": "grdm-file:data-man-org-en",
           "nav": "Contact organization of data manager (English)",
           "title": "Contact organization of data manager (English)",
+          "ui": { "group": "data-man-org", "sub_label": "（English）|(English)", "item": { "placeholder": "E.g., XX Section, XX Department, XX Research Institute" } },
           "type": "string",
           "format": "text",
-          "required": false,
-          "required_if": {
-            "$and": [
-              {
-                "grdm-file:data-man-email": {"$exists":  false}
-              },
-              {
-                "grdm-file:data-man-org-ja": {"$exists":  false}
-              }
-            ]
+          "enabled_if": {
+            "grdm-file:file-type": "dataset"
           },
-          "message_required_if": "「データ管理者の所属機関の連絡先メールアドレス」を入力する必要があります。もしくは、「データ管理者の所属組織名」(日英どちらか)および「データ管理者の所属機関の連絡先住所」(日英どちらか)、「データ管理者の所属機関の連絡先電話番号」を入力する必要があります。|\"Contact mail address of data manager\" must be filled. Or \"Contact organization of data manager\" (either Japanese or English), \"Contact address of data manager\" (either Japanese or English) and \"Contact phone number of data manager\" must be filled.",
           "space_normalization": true,
           "suggestion": [
             {
@@ -1103,8 +2631,8 @@
               "template": "<div style=\"background-color: white;\"><span>{{display-fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{affiliated-institution-name-ja}}|{{affiliated-institution-name-en}} (Contributor)</small></span></div>",
               "autofill": {
                 "grdm-file:data-man-number": "erad",
-                "grdm-file:data-man-name-ja": "name-ja-msfullname",
-                "grdm-file:data-man-name-en": "name-en-msfullname",
+                "grdm-file:data-man-name-ja": "name-ja",
+                "grdm-file:data-man-name-en": "name-en",
                 "grdm-file:data-man-org-ja": "affiliated-institution-name-ja",
                 "grdm-file:data-man-org-en": "affiliated-institution-name-en"
               }
@@ -1114,8 +2642,8 @@
               "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{kenkyusha_no}} - {{kenkyukikan_mei}} (e-Rad)</small></span></div>",
               "autofill": {
                 "grdm-file:data-man-number": "kenkyusha_no",
-                "grdm-file:data-man-name-ja": "kenkyusha_shimei_ja_msfullname",
-                "grdm-file:data-man-name-en": "kenkyusha_shimei_en_msfullname",
+                "grdm-file:data-man-name-ja": "kenkyusha_shimei_ja",
+                "grdm-file:data-man-name-en": "kenkyusha_shimei_en",
                 "grdm-file:data-man-org-ja": "kenkyukikan_mei_ja",
                 "grdm-file:data-man-org-en": "kenkyukikan_mei_en"
               }
@@ -1125,8 +2653,8 @@
               "template": "<div style=\"background-color: white;\"><span>{{display_fullname}}</span><span><small class=\"m-l-md text-muted\">{{erad}} - {{kenkyukikan_mei}} (KAKEN)</small></span></div>",
               "autofill": {
                 "grdm-file:data-man-number": "erad",
-                "grdm-file:data-man-name-ja": "kenkyusha_shimei_ja_msfullname",
-                "grdm-file:data-man-name-en": "kenkyusha_shimei_en_msfullname",
+                "grdm-file:data-man-name-ja": "kenkyusha_shimei_ja_parts",
+                "grdm-file:data-man-name-en": "kenkyusha_shimei_en_parts",
                 "grdm-file:data-man-org-ja": "kenkyukikan_mei_ja",
                 "grdm-file:data-man-org-en": "kenkyukikan_mei_en"
               }
@@ -1137,129 +2665,90 @@
           "qid": "grdm-file:data-man-address-ja",
           "nav": "データ管理者の所属機関の連絡先住所 (日本語)",
           "title": "データ管理者の所属機関の連絡先住所 (日本語)|Contact address of data manager (Japanese)",
+          "ui": {
+            "group": { "id": "data-man-address", "parent": "data-man-contact", "title": "データ管理者の所属機関の連絡先住所（①）|Contact address of data manager (①)" },
+            "sub_label": "（日本語）|(Japanese)"
+          },
           "type": "string",
           "format": "text",
-          "required": false,
-          "required_if": {
-            "$and": [
-              {
-                "grdm-file:data-man-email": {"$exists":  false}
-              },
-              {
-                "grdm-file:data-man-address-en": {"$exists":  false}
-              }
-            ]
+          "enabled_if": {
+            "grdm-file:file-type": "dataset"
           },
-          "message_required_if": "「データ管理者の所属機関の連絡先メールアドレス」を入力する必要があります。もしくは、「データ管理者の所属組織名」(日英どちらか)および「データ管理者の所属機関の連絡先住所」(日英どちらか)、「データ管理者の所属機関の連絡先電話番号」を入力する必要があります。|\"Contact mail address of data manager\" must be filled. Or \"Contact organization of data manager\" (either Japanese or English), \"Contact address of data manager\" (either Japanese or English) and \"Contact phone number of data manager\" must be filled.",
           "space_normalization": true
         },
         {
           "qid": "grdm-file:data-man-address-en",
           "nav": "Contact address of data manager (English)",
           "title": "Contact address of data manager (English)",
+          "ui": { "group": "data-man-address", "sub_label": "（English）|(English)" },
           "type": "string",
           "format": "text",
-          "required": false,
-          "required_if": {
-            "$and": [
-              {
-                "grdm-file:data-man-email": {"$exists":  false}
-              },
-              {
-                "grdm-file:data-man-address-ja": {"$exists":  false}
-              }
-            ]
+          "enabled_if": {
+            "grdm-file:file-type": "dataset"
           },
-          "message_required_if": "「データ管理者の所属機関の連絡先メールアドレス」を入力する必要があります。もしくは、「データ管理者の所属組織名」(日英どちらか)および「データ管理者の所属機関の連絡先住所」(日英どちらか)、「データ管理者の所属機関の連絡先電話番号」を入力する必要があります。|\"Contact mail address of data manager\" must be filled. Or \"Contact organization of data manager\" (either Japanese or English), \"Contact address of data manager\" (either Japanese or English) and \"Contact phone number of data manager\" must be filled.",
           "space_normalization": true
         },
         {
           "qid": "grdm-file:data-man-tel",
           "nav": "データ管理者の所属機関の連絡先電話番号",
-          "title": "データ管理者の所属機関の連絡先電話番号|Contact phone number of data manager",
+          "title": "データ管理者の所属機関の連絡先電話番号（①）|Contact phone number of data manager (①)",
+          "ui": { "group": "data-man-contact", "item": { "width": "narrow", "placeholder": "0300000000" } },
           "type": "string",
           "format": "text",
-          "required": false,
-          "required_if": {
-            "grdm-file:data-man-email": {"$exists":  false}
+          "enabled_if": {
+            "grdm-file:file-type": "dataset"
           },
-          "message_required_if": "「データ管理者の所属機関の連絡先メールアドレス」を入力する必要があります。もしくは、「データ管理者の所属組織名」(日英どちらか)および「データ管理者の所属機関の連絡先住所」(日英どちらか)、「データ管理者の所属機関の連絡先電話番号」を入力する必要があります。|\"Contact mail address of data manager\" must be filled. Or \"Contact organization of data manager\" (either Japanese or English), \"Contact address of data manager\" (either Japanese or English) and \"Contact phone number of data manager\" must be filled.",
           "space_normalization": true
         },
         {
           "qid": "grdm-file:data-man-email",
           "nav": "データ管理者の所属機関の連絡先メールアドレス",
-          "title": "データ管理者の所属機関の連絡先メールアドレス|Contact mail address of data manager",
+          "title": "データ管理者の所属機関の連絡先メールアドレス（②）|Contact mail address of data manager (②)",
+          "ui": { "group": "data-man-contact", "item": { "width": "half", "placeholder": "sample@univ.ac.jp" } },
           "type": "string",
           "format": "text",
-          "required": false,
-          "required_if": {
-            "$or": [
-              {
-                "grdm-file:data-man-tel": {"$exists":  false}
-              },
-              {
-                "$and":  [
-                  {
-                    "grdm-file:data-man-address-ja": {"$exists":  false}
-                  },
-                  {
-                    "grdm-file:data-man-address-en": {"$exists":  false}
-                  }
-                ]
-              },
-              {
-                "$and":  [
-                  {
-                    "grdm-file:data-man-org-ja": {"$exists":  false}
-                  },
-                  {
-                    "grdm-file:data-man-org-en": {"$exists":  false}
-                  }
-                ]
-              }
-            ]
+          "enabled_if": {
+            "grdm-file:file-type": "dataset"
           },
-          "message_required_if": "「データ管理者の所属機関の連絡先メールアドレス」を入力する必要があります。もしくは、「データ管理者の所属組織名」(日英どちらか)および「データ管理者の所属機関の連絡先住所」(日英どちらか)、「データ管理者の所属機関の連絡先電話番号」を入力する必要があります。|\"Contact mail address of data manager\" must be filled. Or \"Contact organization of data manager\" (either Japanese or English), \"Contact address of data manager\" (either Japanese or English) and \"Contact phone number of data manager\" must be filled.",
           "space_normalization": true
         },
         {
           "qid": "grdm-file:remarks-ja",
           "nav": "備考 (日本語)",
           "title": "備考 (日本語)|Remarks (Japanese)",
+          "ui": {
+            "group": { "id": "remarks", "marker": "circle", "title": "備考|Remarks" },
+            "sub_label": "（日本語）|(Japanese)"
+          },
           "type": "string",
-          "format": "textarea",
-          "required": false
+          "format": "textarea"
         },
         {
           "qid": "grdm-file:remarks-en",
           "nav": "Remarks (English)",
           "title": "Remarks (English)",
+          "ui": { "group": "remarks", "sub_label": "（English）|(English)" },
           "type": "string",
-          "format": "textarea",
-          "required": false
+          "format": "textarea"
+        }
+      ]
+    },
+    {
+      "id": "page3",
+      "title": "内部用編集不可メタデータ|Uneditable Internal Metadata",
+      "hide_projectmetadata": true,
+      "concealment_page_navigator": true,
+      "description": "プロジェクトメタデータ・ファイルメタデータのどちらにも表示せずユーザー編集不可とする内部用メタデータ",
+      "questions": [
+        {
+          "qid": "internal:weko-item-id",
+          "type": "string",
+          "format": "text"
         },
         {
-          "qid": "grdm-file:metadata-access-rights",
-          "nav": "メタデータのアクセス権",
-          "title": "メタデータのアクセス権|Access rights of metadata",
-          "type": "choose",
-          "format": "singleselect",
-          "options": [
-            {
-              "text": "open access",
-              "tooltip": "公開|open access"
-            },
-            {
-              "text": "restricted access",
-              "tooltip": "共有|restricted access"
-            },
-            {
-              "text": "closed access",
-              "tooltip": "非共有・非公開|closed access"
-            }
-          ],
-          "required": true
+          "qid": "internal:workflow-run-id",
+          "type": "string",
+          "format": "text"
         }
       ]
     }

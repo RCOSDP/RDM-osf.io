@@ -476,7 +476,7 @@
             <!-- Show widgets in left column if present -->
             % for addon in addons_enabled:
                 % if addons[addon]['has_widget']:
-                    %if addon != 'wiki' and addon != 'iqbrims': ## We already show the wiki widget at the top
+                    %if addon != 'wiki' and addon != 'iqbrims' and addon != 'workflow': ## We show wiki at the top, iqbrims and workflow in right column
                         ${ render_addon_widget.render_addon_widget(addon, addons_widget_data[addon]) }
                     %endif
                 % endif
@@ -490,6 +490,14 @@
 
     <div class="col-sm-12 col-md-6 osf-dash-col">
         % if addons:
+            <!-- Show Workflow widget in right column at top if present -->
+            % for addon in addons_enabled:
+                % if addons[addon]['has_widget']:
+                    %if addon == 'workflow':
+                        ${ render_addon_widget.render_addon_widget(addon, addons_widget_data[addon]) }
+                    %endif
+                % endif
+            % endfor
             <!-- Show IQB-RIMS widgets in right column if present -->
             % for addon in addons_enabled:
                 % if addons[addon]['has_widget']:
@@ -710,6 +718,8 @@ ${parent.javascript_bottom()}
             canComment: ${ user['can_comment'] | sjson, n },
             canEdit: ${ user['can_edit'] | sjson, n },
             canEditTags: ${ user['can_edit_tags'] | sjson, n },
+            isAdmin: ${ user['is_admin'] | sjson, n },
+            permissions: ${ user['permissions'] | sjson, n },
         },
         node: {
             id: ${node['id'] | sjson, n},

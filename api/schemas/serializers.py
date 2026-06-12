@@ -48,6 +48,7 @@ class RegistrationSchemaBlockSerializer(JSONAPISerializer):
     message_required_if = ser.CharField(read_only=True)
     enabled_if = ser.CharField(read_only=True)
     suggestion = ser.CharField(read_only=True)
+    display_template = ser.CharField(read_only=True)
     auto_value = ser.BooleanField(read_only=True)
     auto_date = ser.BooleanField(read_only=True)
     auto_title = ser.BooleanField(read_only=True)
@@ -62,6 +63,7 @@ class RegistrationSchemaBlockSerializer(JSONAPISerializer):
     readonly = ser.CharField(read_only=True)
     sentence = ser.CharField(read_only=True)
     row_addition_caption = ser.CharField(read_only=True)
+    ui = ser.JSONField(read_only=True, required=False)
 
     links = LinksField({
         'self': 'get_absolute_url',

@@ -2,6 +2,7 @@ from datetime import datetime
 import json
 import logging
 import re
+from typing import Any, Union
 
 from jinja2 import Environment
 
@@ -9,6 +10,19 @@ from ..mappings.utils import JINJA2_FILTERS
 
 
 logger = logging.getLogger(__name__)
+
+
+def get_weko_item_id(project_metadatas: Any) -> Union[str, None]:
+    '''プロジェクトメタデータから JAIRO Cloud の item_id を取得'''
+    if len(project_metadatas) != 1:
+        raise ValueError('Choose 1 project metadata to export.')
+    project_metadata = project_metadatas[0]
+    if isinstance(project_metadata, str):
+        project_metadata = json.loads(project_metadata)
+    item_id = project_metadata.get('internal:weko-item-id')
+    if item_id and item_id.get('value'):
+        return item_id.get('value')
+    return None
 
 
 def _get_metadata_value(file_metadata_data, item, lang, index):
@@ -32,6 +46,34 @@ def _get_metadata_value(file_metadata_data, item, lang, index):
         return json.loads(value)[index][item['value']]
     raise KeyError(item['type'])
 
+def _resolve_options(value, options):
+    normalized = []
+    for o in options:
+        if isinstance(o, str):
+            normalized.append({'text': o})
+        elif isinstance(o, dict):
+            normalized.append(o)
+        else:
+            logger.debug(f'Unexpected option type: {type(o)} for value={value}')
+    filtered = [
+        o for o in normalized
+        if o.get('text', None) == value or (not value and o.get('default', False))
+    ]
+    if not filtered:
+        return None, {}
+    option = filtered[0]
+    tooltips = {}
+    if 'tooltip' in option:
+        tooltips['tooltip'] = option['tooltip']
+        langs = option['tooltip'].split('|')
+        if len(langs) > 1:
+            for i, s in enumerate(langs):
+                tooltips[f'tooltip_{i}'] = s
+        else:
+            for i in range(2):
+                tooltips[f'tooltip_{i}'] = option['tooltip']
+    return option['text'], tooltips
+
 def _get_item_variables(file_metadata, schema=None):
     values = {
         'value': '',
@@ -41,47 +83,34 @@ def _get_item_variables(file_metadata, schema=None):
     if 'value' in file_metadata:
         v = file_metadata['value']
         if schema is not None and 'options' in schema:
-            options = []
-            for o in schema['options']:
-                if isinstance(o, str):
-                    options.append({'text': o})
-                elif isinstance(o, dict):
-                    options.append(o)
-                else:
-                    logger.debug(f'Unexpected option type: {type(o)} for value={v}')
-                filtered_options = [
-                    o
-                    for o in options
-                    if o.get('text', None) == v or (not v and o.get('default', False))
-                ]
-            if len(filtered_options) == 0:
+            resolved, tooltips = _resolve_options(v, schema['options'])
+            if resolved is None:
                 logger.debug(f'No suitable options: value={v}, schema={schema}')
             else:
-                option = filtered_options[0]
-                v = option['text']
-                if 'tooltip' in option:
-                    values['tooltip'] = option['tooltip']
-                    langs = option['tooltip'].split('|')
-                    if len(langs) > 1:
-                        for i, s in enumerate(langs):
-                            values[f'tooltip_{i}'] = s
-                    else:
-                        for i in range(2):
-                            values[f'tooltip_{i}'] = option['tooltip']
+                v = resolved
+                values.update(tooltips)
         values['value'] = v
     if 'object' in file_metadata:
         o = file_metadata['object']
-        values.update(_get_object_variables(o, 'object_'))
+        values.update(_get_object_variables(o, 'object_', schema=schema))
     return values
 
-def _get_object_variables(o, prefix):
+def _get_object_variables(o, prefix, schema=None):
     values = {}
+    properties = schema['properties'] if schema is not None and 'properties' in schema else None
     for k, v in o.items():
         key_ = k.replace('-', '_').replace(':', '_').replace('.', '_')
         if isinstance(v, dict):
             values.update(_get_object_variables(v, f'{prefix}{key_}_'))
             continue
         values[f'{prefix}{key_}'] = v
+        if properties is not None:
+            prop_schema = next((p for p in properties if p['id'] == k), None)
+            if prop_schema is not None and 'options' in prop_schema:
+                resolved, tooltips = _resolve_options(v, prop_schema['options'])
+                if resolved is not None:
+                    for tk, tv in tooltips.items():
+                        values[f'{prefix}{key_}_{tk}'] = tv
     return values
 
 def get_value(file_metadata, text, commonvars=None, schema=None):
@@ -259,8 +288,11 @@ def _has_serializable_attr(object, k):
         return False
 
 def get_sources_for_key(
-    user, target_index, file_metadatas, download_file_names, project_metadatas, schema, key,
+    user, target_index, file_metadata_or_list, download_file_names, project_metadatas, schema, key,
 ):
+    # For formats supporting multiple items per payload (e.g., RO-Crate), file_metadata_or_list is a single dict.
+    # For formats requiring one item per payload (e.g., CSV), file_metadata_or_list is a list.
+    file_metadatas = file_metadata_or_list if isinstance(file_metadata_or_list, list) else [file_metadata_or_list]
     common_file_metadata_datas = sum([
         [item['data'] for item in file_metadata['items'] if item['schema'] == schema._id]
         for file_metadata in file_metadatas
@@ -281,10 +313,14 @@ def get_sources_for_key(
         skip_empty=True,
     )
     if key == '@files':
-        if len(file_metadatas) != len(download_file_names):
-            raise ValueError(f'File metadata count mismatch: {len(file_metadatas)} != {len(download_file_names)}')
+        if isinstance(file_metadata_or_list, list):
+            file_metadatas_for_files = file_metadata_or_list
+        else:
+            file_metadatas_for_files = [file_metadata_or_list] * len(download_file_names)
+        if len(file_metadatas_for_files) != len(download_file_names):
+            raise ValueError(f'File metadata count mismatch: {len(file_metadatas_for_files)} != {len(download_file_names)}')
         r = []
-        for file_metadata, (download_file_name, download_file_type) in zip(file_metadatas, download_file_names):
+        for file_metadata, (download_file_name, download_file_type) in zip(file_metadatas_for_files, download_file_names):
             file_metadata_items = [item for item in file_metadata['items'] if item['schema'] == schema._id]
             if len(file_metadata_items) == 0:
                 raise ValueError(f'Schema not found: {file_metadata}, {schema._id}')

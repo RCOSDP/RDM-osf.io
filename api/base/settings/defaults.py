@@ -126,6 +126,7 @@ INSTALLED_APPS = (
     'addons.binderhub',
     'addons.onedrivebusiness',
     'addons.metadata',
+    'addons.workflow',
     'addons.onlyoffice',
 )
 
@@ -302,7 +303,7 @@ VARNISH_SERVERS = osf_settings.VARNISH_SERVERS
 ESI_MEDIA_TYPES = osf_settings.ESI_MEDIA_TYPES
 
 ADDONS_FOLDER_CONFIGURABLE = ['box', 'dropbox', 's3', 'googledrive', 'figshare', 'owncloud', 'onedrive', 'swift', 'azureblobstorage', 'weko', 'iqbrims']
-ADDONS_OAUTH = ADDONS_FOLDER_CONFIGURABLE + ['dataverse', 'github', 'bitbucket', 'gitlab', 'mendeley', 'zotero', 'forward', 'binderhub', 'metadata']
+ADDONS_OAUTH = ADDONS_FOLDER_CONFIGURABLE + ['dataverse', 'github', 'bitbucket', 'gitlab', 'mendeley', 'zotero', 'forward', 'binderhub', 'metadata', 'workflow']
 
 BYPASS_THROTTLE_TOKEN = 'test-token'
 
@@ -370,6 +371,9 @@ CLOUD_GATEWAY_ISMEMBEROF_PREFIX = osf_settings.CLOUD_GATEWAY_ISMEMBEROF_PREFIX
 INSTALLED_APPS += ('addons.s3compat',)
 ADDONS_FOLDER_CONFIGURABLE.append('s3compat')
 ADDONS_OAUTH.append('s3compat')
+INSTALLED_APPS += ('addons.s3compatsigv4',)
+ADDONS_FOLDER_CONFIGURABLE.append('s3compatsigv4')
+ADDONS_OAUTH.append('s3compatsigv4')
 INSTALLED_APPS += ('addons.s3compatb3',)
 ADDONS_FOLDER_CONFIGURABLE.append('s3compatb3')
 ADDONS_OAUTH.append('s3compatb3')

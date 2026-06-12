@@ -80,6 +80,15 @@ msgstr "モバイル写真の代替テキスト"
 msgid "Name"
 msgstr "名前"
 
+#: admin/templates/rdm_workflow/engine_list.html:18
+msgid "Choose another institution"
+msgstr "別の機関を選択"
+
+#: admin/templates/rdm_workflow/institution_list.html:10
+#: admin/templates/rdm_workflow/institution_list.html:14
+msgid "Workflow Engines by Institution"
+msgstr "機関別ワークフローエンジン"
+
 #: admin/banners/forms.py:25 admin/templates/messages.html:32
 msgid "Start date"
 msgstr "開始日"
@@ -484,6 +493,10 @@ msgstr "アナウンス"
 #: admin/templates/base.html:305
 msgid "Timestamp Control"
 msgstr "証跡管理"
+
+#: admin/templates/base.html:341
+msgid "RDM Workflow"
+msgstr "RDMワークフロー"
 
 #: admin/templates/base.html:307
 msgid "User Keys Management"
@@ -4039,3 +4052,342 @@ msgstr "有効化する"
 
 msgid "No@encrypt_uploads"
 msgstr "有効化しない"
+#: admin/rdm_workflow/forms.py:102
+#: admin/templates/rdm_workflow/engine_keys.html:105
+msgid "Algorithm"
+msgstr "アルゴリズム"
+
+
+#: admin/rdm_workflow/forms.py:118
+msgid "Key ID (kid)"
+msgstr "キーID (kid)"
+
+
+#: admin/templates/rdm_workflow/engine_keys.html:12
+msgid "Back to workflow engine list"
+msgstr "ワークフローエンジン一覧に戻る"
+
+
+#: admin/templates/rdm_workflow/engine_keys.html:106
+msgid "Created"
+msgstr "作成日時"
+
+
+#: admin/templates/rdm_workflow/engine_list.html:86
+msgid "Created by"
+msgstr "作成者"
+
+
+#: admin/templates/rdm_workflow/engine_keys.html:127
+msgid "Revoke this key? The workflow engine may not be able to access project resources."
+msgstr "この鍵を失効させますか？ワークフローエンジンがプロジェクトリソースにアクセスできなくなる可能性があります。"
+
+#: admin/templates/rdm_workflow/engine_keys.html
+msgid "Revoked"
+msgstr "失効"
+
+#: admin/templates/rdm_workflow/engine_keys.html:132
+msgid "Revoke"
+msgstr "失効"
+
+
+#: admin/templates/rdm_workflow/engine_edit.html:5
+#: admin/templates/rdm_workflow/engine_edit.html:9
+msgid "Edit Workflow Engine"
+msgstr "ワークフローエンジンを編集"
+
+
+#: admin/templates/rdm_workflow/engine_edit.html:17
+msgid "Workflow Engine Configuration"
+msgstr "ワークフローエンジン設定"
+
+
+#: admin/templates/rdm_workflow/engine_keys.html:47
+msgid "Fetch and register public keys from the gateway's /keyset endpoint."
+msgstr "ゲートウェイの/keysetエンドポイントから公開鍵を取得して登録します。"
+
+
+#: admin/templates/rdm_workflow/engine_keys.html:21
+#: admin/templates/rdm_workflow/engine_list.html:83
+#: admin/rdm_workflow/forms.py:27
+msgid "Gateway URL"
+msgstr "ゲートウェイURL"
+
+
+#: admin/rdm_workflow/forms.py:31
+msgid "Verify SSL certificate"
+msgstr "SSL証明書を検証"
+
+
+#: admin/rdm_workflow/forms.py:42
+msgid "Upload whitelist node IDs"
+msgstr "アップロード許可ノードID"
+
+
+#: admin/rdm_workflow/forms.py:43
+msgid "Enter node IDs separated by commas or newlines (e.g., \"abc12, def34\" or one per line). Only listed projects can upload workflow ZIPs."
+msgstr "ノードIDをカンマまたは改行（例: \"abc12, def34\" や1行に1つ）で区切って入力してください。記載されたプロジェクトのみワークフローZIPをアップロードできます。"
+
+
+#: admin/rdm_workflow/forms.py:89
+msgid "Select the signing key that RDM will use when calling the gateway."
+msgstr "ゲートウェイとの通信時にRDMが使用する署名鍵を選択してください。"
+
+
+#: admin/rdm_workflow/forms.py:49
+msgid "Request timeout (seconds)"
+msgstr "リクエストタイムアウト（秒）"
+
+
+#: admin/rdm_workflow/forms.py:106
+msgid "Public key"
+msgstr "公開鍵"
+
+
+#: admin/templates/rdm_workflow/engine_keys.html:46
+msgid "Import from gateway keyset"
+msgstr "ゲートウェイの鍵一覧から取り込む"
+
+
+#: admin/templates/rdm_workflow/engine_keys.html
+#: admin/templates/rdm_workflow/engine_list.html
+msgid "Enabled"
+msgstr "有効"
+
+#: admin/templates/rdm_workflow/engine_list.html
+msgid "No keys"
+msgstr "鍵なし"
+
+#: admin/templates/rdm_workflow/engine_list.html:111
+msgid "Manage keys"
+msgstr "鍵を管理"
+
+
+#: admin/templates/rdm_workflow/engine_keys.html:107
+msgid "Modified"
+msgstr "更新日時"
+
+
+#: admin/templates/rdm_workflow/engine_keys.html:139
+msgid "No keys have been registered for this workflow engine."
+msgstr "このワークフローエンジンにはまだ鍵が登録されていません。"
+
+
+#: admin/templates/rdm_workflow/engine_list.html:135
+msgid "No workflow engines have been registered yet."
+msgstr "ワークフローエンジンはまだ登録されていません。"
+
+
+#: admin/templates/rdm_workflow/engine_list.html:141
+msgid "Enable"
+msgstr "有効にする"
+
+#: admin/templates/rdm_workflow/engine_list.html:132
+msgid "Disable"
+msgstr "無効にする"
+
+
+#: admin/templates/rdm_workflow/engine_list.html:26
+msgid "Register New Workflow Engine"
+msgstr "新しいワークフローエンジンを登録"
+
+
+#: admin/templates/rdm_workflow/engine_keys.html:39
+msgid "Register Public Key"
+msgstr "公開鍵を登録"
+
+
+#: admin/templates/rdm_workflow/engine_list.html:76
+msgid "Register workflow engine"
+msgstr "ワークフローエンジンを登録"
+
+
+#: admin/templates/rdm_workflow/engine_list.html:21
+msgid "Register external workflow engines. Only Integrated Admins and Institutional Admins may manage engines."
+msgstr "外部ワークフローエンジンを登録します。エンジンの管理は統合管理者と機関管理者のみが実施できます。"
+
+
+#: admin/templates/rdm_workflow/engine_keys.html:89
+msgid "Register key"
+msgstr "鍵を登録"
+
+
+#: admin/templates/rdm_workflow/engine_list.html:84
+msgid "Registered Workflow Engines"
+msgstr "登録済みワークフローエンジン"
+
+
+#: admin/templates/rdm_workflow/engine_keys.html:97
+msgid "Registered Keys"
+msgstr "登録済みの鍵"
+
+
+#: admin/templates/rdm_workflow/engine_edit.html:66
+msgid "Save changes"
+msgstr "変更を保存"
+
+
+#: admin/templates/rdm_workflow/engine_keys.html:23
+#: admin/templates/rdm_workflow/engine_list.html:84
+msgid "Signing kid"
+msgstr "署名kid"
+
+
+#: admin/templates/rdm_workflow/engine_edit.html:12
+msgid "Update the configuration for this workflow engine."
+msgstr "このワークフローエンジンの設定を更新します。"
+
+
+#: admin/templates/rdm_workflow/engine_keys.html:5
+#: admin/templates/rdm_workflow/engine_keys.html:9
+msgid "Workflow Engine Keys"
+msgstr "ワークフローエンジンの鍵"
+
+
+#: admin/templates/rdm_workflow/engine_list.html:5
+#: admin/templates/rdm_workflow/engine_list.html:9
+msgid "Workflow Engine Management"
+msgstr "ワークフローエンジン管理"
+
+
+#: admin/templates/rdm_workflow/engine_keys.html:104
+msgid "kid"
+msgstr "kid"
+
+
+#: admin/rdm_workflow/views.py:113
+msgid "Workflow engine "%(engine)s" was registered successfully and imported %(count)d public key(s) from the gateway."
+msgstr "ワークフローエンジン"%(engine)s"を登録し、ゲートウェイから%(count)d件の公開鍵をインポートしました。"
+
+#: admin/rdm_workflow/views.py:123
+msgid "Engine "%(engine)s" registered, but keyset import failed: %(error)s"
+msgstr "エンジン"%(engine)s"を登録しましたが、鍵セットのインポートに失敗しました: %(error)s"
+
+#: admin/rdm_workflow/views.py:128
+msgid "Workflow engine "%(engine)s" was registered successfully."
+msgstr "ワークフローエンジン"%(engine)s"を正常に登録しました。"
+
+#: admin/rdm_workflow/views.py:104
+msgid "Gateway keyset import failed"
+msgstr "ゲートウェイの鍵セットのインポートに失敗しました"
+
+#: admin/rdm_workflow/views.py:144 admin/rdm_workflow/views.py:162
+msgid "Engine identifier is required."
+msgstr "エンジン識別子は必須です。"
+
+
+#: admin/rdm_workflow/forms.py:43
+msgid "Enter node IDs separated by commas or newlines (e.g., "abc12, def34" or one per line). Only listed projects can upload workflow ZIPs."
+msgstr "ノードIDをカンマまたは改行で区切って入力してください（例: "abc12, def34" または1行ずつ）。指定したプロジェクトのみがワークフローZIPをアップロードできます。"
+
+#: admin/rdm_workflow/views.py:92
+msgid "Failed to register workflow engine: %(error)s"
+msgstr "ワークフローエンジンの登録に失敗しました: %(error)s"
+
+#: admin/rdm_workflow/views.py:73 admin/rdm_workflow/views.py:250
+msgid "Unsupported action requested."
+msgstr "サポートされていない操作です。"
+
+#: admin/rdm_workflow/views.py:222
+msgid "Workflow engine "%(engine)s" was disabled."
+msgstr "ワークフローエンジン"%(engine)s"を無効にしました。"
+
+#: admin/rdm_workflow/views.py:239
+msgid "Workflow engine "%(engine)s" is already enabled."
+msgstr "ワークフローエンジン"%(engine)s"は既に有効になっています。"
+
+#: admin/rdm_workflow/views.py:248
+msgid "Workflow engine "%(engine)s" was enabled."
+msgstr "ワークフローエンジン"%(engine)s"を有効にしました。"
+
+#: admin/rdm_workflow/views.py:215
+msgid "Workflow engine "%(engine)s" was updated successfully."
+msgstr "ワークフローエンジン"%(engine)s"を更新しました。"
+
+#: admin/rdm_workflow/views.py:271
+msgid "Public key "%(kid)s" was registered for engine %(engine)s."
+msgstr "公開鍵"%(kid)s"をエンジン%(engine)sに登録しました。"
+
+#: admin/rdm_workflow/views.py:279
+msgid "Key identifier is required."
+msgstr "鍵識別子は必須です。"
+
+#: admin/rdm_workflow/views.py:286
+msgid "Public key "%(kid)s" was deactivated."
+msgstr "公開鍵"%(kid)s"を無効にしました。"
+
+#: admin/rdm_workflow/views.py:290
+msgid "No matching active key was found to deactivate."
+msgstr "無効にできる対象のアクティブな鍵が見つかりませんでした。"
+
+#: admin/rdm_workflow/views.py:301
+msgid "Successfully imported %(count)d public key(s) from the gateway."
+msgstr "ゲートウェイから%(count)d件の公開鍵をインポートしました。"
+
+#: admin/rdm_workflow/views.py:321
+msgid "Keyset import failed: %(error)s"
+msgstr "鍵セットのインポートに失敗しました: %(error)s"
+
+#: admin/rdm_workflow/views.py:327
+msgid "Keyset import encountered an unexpected error: %(error)s"
+msgstr "鍵セットのインポート中に予期しないエラーが発生しました: %(error)s"
+
+#: admin/rdm_workflow/views.py:266
+msgid "Cannot delete active engine. Disable it first."
+msgstr "有効なエンジンは削除できません。先に無効にしてください。"
+
+#: admin/rdm_workflow/views.py:273
+msgid "Cannot delete engine with running workflows."
+msgstr "実行中のワークフローがあるエンジンは削除できません。"
+
+#: admin/rdm_workflow/views.py:281
+msgid "Workflow engine "%(engine)s" was deleted."
+msgstr "ワークフローエンジン"%(engine)s"を削除しました。"
+
+#: admin/templates/rdm_workflow/engine_list.html:157
+msgid "Disable Workflow Engine"
+msgstr "ワークフローエンジンの無効化"
+
+#: admin/templates/rdm_workflow/engine_list.html:160
+msgid "Are you sure you want to disable this workflow engine?"
+msgstr "このワークフローエンジンを無効にしますか？"
+
+#: admin/templates/rdm_workflow/engine_list.html:162
+msgid "When disabled:"
+msgstr "無効にすると："
+
+#: admin/templates/rdm_workflow/engine_list.html:165
+msgid "New workflow templates cannot be registered to this engine"
+msgstr "このエンジンに新しいワークフローテンプレートを登録できなくなります"
+
+#: admin/templates/rdm_workflow/engine_list.html:166
+msgid "Existing templates will be disabled"
+msgstr "既存のテンプレートは無効になります"
+
+#: admin/templates/rdm_workflow/engine_list.html:167
+msgid "Running workflow processes will continue to execute"
+msgstr "実行中のワークフロープロセスは継続して実行されます"
+
+#: admin/templates/rdm_workflow/engine_list.html:170
+msgid "You can re-enable this engine at any time."
+msgstr "このエンジンはいつでも再度有効にできます。"
+
+#: admin/templates/rdm_workflow/engine_list.html:187
+msgid "Delete Workflow Engine"
+msgstr "ワークフローエンジンの削除"
+
+#: admin/templates/rdm_workflow/engine_list.html:190
+msgid "Are you sure you want to delete this workflow engine?"
+msgstr "このワークフローエンジンを削除しますか？"
+
+#: admin/templates/rdm_workflow/engine_list.html:193
+msgid "This action cannot be undone."
+msgstr "この操作は元に戻せません。"
+
+#: admin/templates/rdm_workflow/engine_list.html:194
+msgid "All associated workflow templates and activations will be permanently removed."
+msgstr "関連するすべてのワークフローテンプレートとワークフローは完全に削除されます。"
+
+#: admin/templates/rdm_workflow/engine_list.html:196
+msgid "If there are running workflow processes, deletion will fail."
+msgstr "実行中のワークフロープロセスがある場合、エラーになります。"
