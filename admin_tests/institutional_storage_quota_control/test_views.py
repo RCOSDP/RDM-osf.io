@@ -253,6 +253,108 @@ class TestUpdateQuotaUserListByInstitutionStorageID(AdminTestCase):
         nt.assert_is_not_none(new_user_quota)
         nt.assert_equal(new_user_quota.max_quota, api_settings.DEFAULT_MAX_QUOTA)
 
+    def test_post__institution_default_max_quota_created(self):
+        """Test that InstitutionDefaultMaxQuota is created/updated on POST"""
+        from osf.models.institution_default_max_quota import InstitutionDefaultMaxQuota
+
+        new_max_quota = 200
+        region = RegionFactory(_id=self.institution01._id)
+        region.waterbutler_settings['storage']['type'] = Region.INSTITUTIONS
+        region.save()
+
+        request = RequestFactory().post(
+            reverse(self.view_name,
+                    kwargs={'institution_id': self.institution01.id}),
+            {'maxQuota': new_max_quota})
+        request.user = self.superuser
+        response = self.view(request, institution_id=self.institution01.id)
+
+        nt.assert_equal(response.status_code, 302)
+
+        # Verify InstitutionDefaultMaxQuota record was created
+        quota = InstitutionDefaultMaxQuota.objects.filter(
+            institution_id=self.institution01.id
+        ).first()
+        nt.assert_is_not_none(quota)
+        nt.assert_equal(quota.default_max_quota, new_max_quota)
+
+    def test_post__institution_default_max_quota_updated(self):
+        """Test that InstitutionDefaultMaxQuota is updated on subsequent POST"""
+        from osf.models.institution_default_max_quota import InstitutionDefaultMaxQuota
+
+        # Create initial record
+        InstitutionDefaultMaxQuota.objects.update_or_create(
+            institution_id=self.institution01.id,
+            defaults={'default_max_quota': 100}
+        )
+
+        # Update via POST
+        new_max_quota = 250
+        region = RegionFactory(_id=self.institution01._id)
+        region.waterbutler_settings['storage']['type'] = Region.INSTITUTIONS
+        region.save()
+
+        request = RequestFactory().post(
+            reverse(self.view_name,
+                    kwargs={'institution_id': self.institution01.id}),
+            {'maxQuota': new_max_quota})
+        request.user = self.superuser
+        response = self.view(request, institution_id=self.institution01.id)
+
+        nt.assert_equal(response.status_code, 302)
+
+        # Verify InstitutionDefaultMaxQuota record was updated
+        quota = InstitutionDefaultMaxQuota.objects.filter(
+            institution_id=self.institution01.id
+        ).first()
+        nt.assert_is_not_none(quota)
+        nt.assert_equal(quota.default_max_quota, new_max_quota)
+
+        # Verify only one record exists for this institution
+        count = InstitutionDefaultMaxQuota.objects.filter(
+            institution_id=self.institution01.id
+        ).count()
+        nt.assert_equal(count, 1)
+
+    def test_post__integrity_error_handles_fallback_update(self):
+        """Test that IntegrityError in update_or_create triggers fallback update logic"""
+        from unittest import mock
+
+        new_max_quota = 300
+        region = RegionFactory(_id=self.institution01.guid)
+        region.waterbutler_settings['storage']['type'] = Region.INSTITUTIONS
+        region.save()
+
+        # Create initial UserQuota
+        initial_quota = UserQuota.objects.create(
+            user=self.institution01_admin,
+            storage_type=UserQuota.CUSTOM_STORAGE,
+            max_quota=100
+        )
+
+        # Mock update_or_create to raise IntegrityError, simulating race condition
+        with mock.patch.object(UserQuota.objects, 'update_or_create') as mock_update:
+            from django.db import IntegrityError
+            mock_update.side_effect = IntegrityError("Simulated race condition")
+
+            request = RequestFactory().post(
+                reverse(self.view_name,
+                        kwargs={'institution_id': self.institution01.id}),
+                {'maxQuota': new_max_quota})
+            request.user = self.institution01_admin
+            response = self.view(request, institution_id=self.institution01.id)
+
+        # Verify response is redirect
+        nt.assert_equal(response.status_code, 302)
+
+        # Verify max_quota was updated via fallback logic
+        updated_quota = UserQuota.objects.filter(
+            user=self.institution01_admin, storage_type=UserQuota.CUSTOM_STORAGE
+        ).first()
+        nt.assert_is_not_none(updated_quota)
+        nt.assert_equal(updated_quota.max_quota, new_max_quota)
+        nt.assert_equal(updated_quota.id, initial_quota.id)
+
 
 class TestUserListByInstitutionStorageID(AdminTestCase):
     def setUp(self):
@@ -261,7 +363,11 @@ class TestUserListByInstitutionStorageID(AdminTestCase):
         self.institution02 = InstitutionFactory(name='inst02')
 
         self.region01 = RegionFactory(_id=self.institution01._id, name='Storage 01')
+        self.region01.waterbutler_settings['storage']['type'] = Region.INSTITUTIONS
+        self.region01.save()
         self.region02 = RegionFactory(_id=self.institution02._id, name='Storage 02')
+        self.region02.waterbutler_settings['storage']['type'] = Region.INSTITUTIONS
+        self.region02.save()
 
         self.anon = AnonymousUser()
         self.user = AuthUserFactory(fullname='user')
@@ -441,18 +547,17 @@ class TestUserListByInstitutionStorageID(AdminTestCase):
             view.get_institution()
 
         # Institution use NII Storage
-        self.institution01._id = ''
-        self.institution01.save()
+        nii_institution = InstitutionFactory(_id='', name='nii_inst')
         request = RequestFactory().get(
             reverse(
                 self.view_name,
-                kwargs={'institution_id': self.institution01.id}
+                kwargs={'institution_id': nii_institution.id}
             )
         )
         request.user = self.superuser
 
         view = setup_view(self.view_instance, request,
-                          institution_id=self.institution01.id)
+                          institution_id=nii_institution.id)
         with nt.assert_raises(Http404):
             view.get_institution()
 
@@ -475,6 +580,95 @@ class TestUserListByInstitutionStorageID(AdminTestCase):
                     kwargs={'institution_id': 'fake_id'}
                 )
             )
+
+    def test_get_default_max_quota__institution_has_default(self):
+        """Test get_default_max_quota returns value from DB when record exists"""
+        from osf.models.institution_default_max_quota import InstitutionDefaultMaxQuota
+
+        # Create default max quota for institution
+        InstitutionDefaultMaxQuota.objects.update_or_create(
+            institution_id=self.institution01.id,
+            defaults={'default_max_quota': 500}
+        )
+
+        request = RequestFactory().get(
+            reverse(
+                self.view_name,
+                kwargs={'institution_id': self.institution01.id}
+            )
+        )
+        request.user = self.institution01_admin
+
+        view = setup_view(self.view_instance, request,
+                          institution_id=self.institution01.id)
+        view.institution_id = self.institution01.id
+        default_max_quota = view.get_default_max_quota()
+
+        nt.assert_equal(default_max_quota, 500)
+
+    def test_get_default_max_quota__institution_no_default(self):
+        """Test get_default_max_quota returns DEFAULT_MAX_QUOTA when record doesn't exist"""
+        request = RequestFactory().get(
+            reverse(
+                self.view_name,
+                kwargs={'institution_id': self.institution01.id}
+            )
+        )
+        request.user = self.institution01_admin
+
+        view = setup_view(self.view_instance, request,
+                          institution_id=self.institution01.id)
+        view.institution_id = self.institution01.id
+        default_max_quota = view.get_default_max_quota()
+
+        nt.assert_equal(default_max_quota, api_settings.DEFAULT_MAX_QUOTA)
+
+    def test_get_context_data__includes_default_max_quota(self):
+        """Test get_context_data includes default_max_quota in context"""
+        from osf.models.institution_default_max_quota import InstitutionDefaultMaxQuota
+
+        # Create default max quota for institution
+        InstitutionDefaultMaxQuota.objects.update_or_create(
+            institution_id=self.institution01.id,
+            defaults={'default_max_quota': 300}
+        )
+
+        request = RequestFactory().get(
+            reverse(
+                self.view_name,
+                kwargs={'institution_id': self.institution01.id}
+            )
+        )
+        request.user = self.institution01_admin
+
+        view = setup_view(self.view_instance, request,
+                          institution_id=self.institution01.id)
+        view.institution_id = self.institution01.id
+        view.object_list = view.get_queryset()
+        context = view.get_context_data()
+
+        nt.assert_in('default_max_quota', context)
+        nt.assert_equal(context['default_max_quota'], 300)
+
+    def test_get_context_data__default_max_quota_fallback(self):
+        """Test get_context_data uses DEFAULT_MAX_QUOTA as fallback"""
+        request = RequestFactory().get(
+            reverse(
+                self.view_name,
+                kwargs={'institution_id': self.institution01.id}
+            )
+        )
+        request.user = self.institution01_admin
+
+        view = setup_view(self.view_instance, request,
+                          institution_id=self.institution01.id)
+        view.institution_id = self.institution01.id
+        view.object_list = view.get_queryset()
+        context = view.get_context_data()
+
+        nt.assert_in('default_max_quota', context)
+        nt.assert_equal(context['default_max_quota'], api_settings.DEFAULT_MAX_QUOTA)
+
 
 class TestAccessInstitutionStorageList(AdminTestCase):
     def setUp(self):
