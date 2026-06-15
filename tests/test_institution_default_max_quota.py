@@ -51,4 +51,4 @@ class TestInstitutionDefaultMaxQuota(OsfTestCase):
 
         result = InstitutionDefaultMaxQuota.get_quota_by_user(user.id)
 
-        nt.assert_true(result in [100, 200])
+        nt.assert_equal(result, 100)

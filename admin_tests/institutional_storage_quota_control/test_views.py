@@ -319,6 +319,7 @@ class TestUpdateQuotaUserListByInstitutionStorageID(AdminTestCase):
     def test_post__integrity_error_handles_fallback_update(self):
         """Test that IntegrityError in update_or_create triggers fallback update logic"""
         from unittest import mock
+        from django.db import IntegrityError, transaction
 
         new_max_quota = 300
         region = RegionFactory(_id=self.institution01.guid)
@@ -332,25 +333,37 @@ class TestUpdateQuotaUserListByInstitutionStorageID(AdminTestCase):
             max_quota=100
         )
 
-        # Mock update_or_create to raise IntegrityError, simulating race condition
+        def raise_integrity_error(*args, **kwargs):
+            transaction.set_rollback(True)
+            raise IntegrityError('Simulated race condition')
+
+        # Mock update_or_create to raise IntegrityError and mark transaction for rollback
         with mock.patch.object(UserQuota.objects, 'update_or_create') as mock_update:
-            from django.db import IntegrityError
-            mock_update.side_effect = IntegrityError("Simulated race condition")
+            mock_update.side_effect = raise_integrity_error
 
             request = RequestFactory().post(
-                reverse(self.view_name,
-                        kwargs={'institution_id': self.institution01.id}),
-                {'maxQuota': new_max_quota})
+                reverse(
+                    self.view_name,
+                    kwargs={'institution_id': self.institution01.id}
+                ),
+                {'maxQuota': new_max_quota}
+            )
             request.user = self.institution01_admin
-            response = self.view(request, institution_id=self.institution01.id)
+
+            response = self.view(
+                request,
+                institution_id=self.institution01.id
+            )
 
         # Verify response is redirect
         nt.assert_equal(response.status_code, 302)
 
         # Verify max_quota was updated via fallback logic
         updated_quota = UserQuota.objects.filter(
-            user=self.institution01_admin, storage_type=UserQuota.CUSTOM_STORAGE
+            user=self.institution01_admin,
+            storage_type=UserQuota.CUSTOM_STORAGE
         ).first()
+
         nt.assert_is_not_none(updated_quota)
         nt.assert_equal(updated_quota.max_quota, new_max_quota)
         nt.assert_equal(updated_quota.id, initial_quota.id)

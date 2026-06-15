@@ -188,11 +188,12 @@ class UpdateQuotaUserListByInstitutionStorageID(RdmPermissionMixin, UserPassesTe
                 for user in OSFUser.objects.filter(
                         affiliated_institutions=self.institution_id):
                     try:
-                        UserQuota.objects.update_or_create(
-                            user=user,
-                            storage_type=UserQuota.CUSTOM_STORAGE,
-                            defaults={'max_quota': max_quota}
-                        )
+                        with transaction.atomic():
+                            UserQuota.objects.update_or_create(
+                                user=user,
+                                storage_type=UserQuota.CUSTOM_STORAGE,
+                                defaults={'max_quota': max_quota}
+                            )
                     except IntegrityError:
                         UserQuota.objects.filter(user=user, storage_type=UserQuota.CUSTOM_STORAGE).update(max_quota=max_quota)
         return redirect(

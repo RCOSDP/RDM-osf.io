@@ -2039,7 +2039,6 @@ class TestUserQuotaGetOrCreate(OsfTestCase):
 
         quota.file_modified(
             target=self.node,
-            user=self.user,
             payload={
                 'metadata': {
                     'size': 5000
@@ -2066,7 +2065,6 @@ class TestUserQuotaGetOrCreate(OsfTestCase):
 
         quota.file_modified(
             target=self.node,
-            user=self.user,
             payload={
                 'metadata': {
                     'size': 200
@@ -2095,7 +2093,6 @@ class TestUserQuotaGetOrCreate(OsfTestCase):
 
         quota.file_modified(
             target=self.node,
-            user=self.user,
             payload={
                 'metadata': {
                     'size': 3000
@@ -2128,7 +2125,6 @@ class TestUserQuotaGetOrCreate(OsfTestCase):
 
         quota.file_modified(
             target=self.node,
-            user=self.user,
             payload={
                 'metadata': {
                     'size': 2000
@@ -2170,7 +2166,6 @@ class TestUserQuotaGetOrCreate(OsfTestCase):
         # Create NII_STORAGE first
         quota.file_modified(
             target=self.node,
-            user=self.user,
             payload={
                 'metadata': {
                     'size': 1000
@@ -2183,7 +2178,6 @@ class TestUserQuotaGetOrCreate(OsfTestCase):
         # Create CUSTOM_STORAGE
         quota.file_modified(
             target=self.node,
-            user=self.user,
             payload={
                 'metadata': {
                     'size': 2000
@@ -2211,7 +2205,6 @@ class TestUserQuotaGetOrCreate(OsfTestCase):
 
         quota.file_modified(
             target=self.node,
-            user=self.user,
             payload={
                 'metadata': {
                     'size': 1500
@@ -2232,7 +2225,6 @@ class TestUserQuotaGetOrCreate(OsfTestCase):
 
         quota.file_modified(
             target=self.node,
-            user=self.user,
             payload={
                 'metadata': {
                     'size': 5000
@@ -2260,7 +2252,6 @@ class TestUserQuotaGetOrCreate(OsfTestCase):
 
         quota.file_modified(
             target=self.node,
-            user=self.user,
             payload={
                 'metadata': {
                     'size': 200
@@ -2290,7 +2281,6 @@ class TestUserQuotaGetOrCreate(OsfTestCase):
 
         quota.file_modified(
             target=self.node,
-            user=self.user,
             payload={
                 'metadata': {
                     'size': 3000
@@ -2314,7 +2304,6 @@ class TestUserQuotaGetOrCreate(OsfTestCase):
 
         quota.file_modified(
             target=self.node,
-            user=self.user,
             payload={
                 'metadata': {
                     'size': 1200
@@ -2336,7 +2325,6 @@ class TestUserQuotaGetOrCreate(OsfTestCase):
         """file_modified should handle FileInfo.DoesNotExist without select_for_update"""
         quota.file_modified(
             target=self.node,
-            user=self.user,
             payload={
                 'metadata': {
                     'size': 2000
@@ -2362,7 +2350,6 @@ class TestUserQuotaGetOrCreate(OsfTestCase):
 
         quota.file_modified(
             target=self.node,
-            user=self.user,
             payload={
                 'metadata': {
                     'size': 1500

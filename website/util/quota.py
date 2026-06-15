@@ -217,7 +217,7 @@ def update_used_quota(self, target, user, event_type, payload):
             else:
                 node_removed(target, user, payload, file_node, storage_type)
         elif event_type == FileLog.FILE_UPDATED:
-            file_modified(target, user, payload, file_node, storage_type)
+            file_modified(target, payload, file_node, storage_type)
     else:
         return
 
@@ -298,7 +298,7 @@ def node_removed(target, user, payload, file_node, storage_type):
             file_info.save()
         user_quota.save()
 
-def file_modified(target, user, payload, file_node, storage_type):
+def file_modified(target, payload, file_node, storage_type):
     file_size = int(payload['metadata']['size'])
     if file_size < 0:
         return
