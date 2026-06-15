@@ -86,8 +86,8 @@
               "value": [
                 {
                   "number": "C0001",
-                  "name-ja": "研究 太郎",
-                  "name-en": "Taro Research"
+                  "name-ja": {"last": "研究", "middle": "", "first": "太郎"},
+                  "name-en": {"last": "Research", "middle": "", "first": "Taro"}
                 }
               ]
             },
@@ -107,10 +107,10 @@
               "value": "DM0001"
             },
             "grdm-file:data-man-name-ja": {
-              "value": "情報 花子"
+              "value": {"last": "情報", "middle": "", "first": "花子"}
             },
             "grdm-file:data-man-name-en": {
-              "value": "Hanako Joho"
+              "value": {"last": "Joho", "middle": "", "first": "Hanako"}
             },
             "grdm-file:data-man-org-ja": {
               "value": "国立情報学研究所"
@@ -135,9 +135,6 @@
             },
             "grdm-file:remarks-en": {
               "value": "Test remarks"
-            },
-            "grdm-file:metadata-access-rights": {
-              "value": "open"
             }
           }
         }

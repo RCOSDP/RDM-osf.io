@@ -4076,10 +4076,18 @@ msgstr ""
 msgid "Please click the button below if you would like to receive an invitation to the project again."
 msgstr ""
 
-msgid "\"Full name\", \"Family name\", \"Given name\", \"Family name (EN)\", \"Given name (EN)\" on the Name tab, and \"Affiliation\" and \"Affiliation (English)\" on the Employment tab is required."
+msgid "The following fields are required: \"Full name\", \"Family name\", \"Given name\", \"Family name (EN)\", \"Given name (EN)\" on the Name tab, and \"Affiliation\" and \"Affiliation (English)\" on the Employment tab. (For students: Please add your university and faculty/graduate school information in the Employment tab.)"
 msgstr ""
 
 msgid "If you do not have an email address registered, please enter or add your email address in the \"Registered email address\" entry field first."
+msgstr ""
+
+#: website/templates/util/render_addon_widget.mako
+msgid "Available workflows"
+msgstr ""
+
+#: website/templates/util/render_addon_widget.mako
+msgid "Dismiss"
 msgstr ""
 
 msgid "Groups"

@@ -872,6 +872,18 @@ var LogPieces = {
             return returnTextParams('file_format', _('unknown format'), logObject);
         }
     },
+
+    workflow_name: {
+        view: function(ctrl, logObject) {
+            return returnTextParams('workflow_name', _('a workflow'), logObject);
+        }
+    },
+
+    title: {
+        view: function(ctrl, logObject) {
+            return returnTextParams('title', _('a notification'), logObject);
+        }
+    },
 };
 
 module.exports = {

@@ -22,6 +22,7 @@ from admin.rdm_custom_storage_location.utils import (
     test_owncloud_connection,
     test_s3_connection,
     test_s3compat_connection,
+    test_s3compatsigv4_connection,
     wd_info_for_institutions,
 )
 from api.base.utils import waterbutler_api_url_for
@@ -171,6 +172,37 @@ def save_s3compat_credentials(institution_guid, storage_name, host_url, access_k
             'provider': 's3compat',
         }
     }
+
+    update_storage_location(institution_guid, storage_name, wb_credentials, wb_settings)
+
+    return {'message': 'Saved credentials successfully!!'}, http_status.HTTP_200_OK
+
+
+def save_s3compatsigv4_credentials(institution_guid, storage_name, host_url, access_key, secret_key, bucket, region=None):
+    test_connection_result = test_s3compatsigv4_connection(host_url, access_key, secret_key, bucket)
+    if test_connection_result[1] != http_status.HTTP_200_OK:
+        return test_connection_result
+
+    host = host_url.rstrip('/').replace('https://', '').replace('http://', '')
+
+    wb_credentials = {
+        'storage': {
+            'access_key': access_key,
+            'secret_key': secret_key,
+            'host': host,
+        }
+    }
+    wb_settings = {
+        'storage': {
+            'folder': {
+                'encrypt_uploads': True,
+            },
+            'bucket': bucket,
+            'provider': 's3compatsigv4',
+        }
+    }
+    if region:
+        wb_settings['storage']['region'] = region
 
     update_storage_location(institution_guid, storage_name, wb_credentials, wb_settings)
 

@@ -161,8 +161,8 @@
               "value": [
                 {
                   "number": "MANU001",
-                  "name-ja": "論文 太郎",
-                  "name-en": "Taro Manuscript"
+                  "name-ja": {"last": "論文", "middle": "", "first": "太郎"},
+                  "name-en": {"last": "Manuscript", "middle": "", "first": "Taro"}
                 }
               ]
             },
@@ -182,10 +182,10 @@
               "value": "MGR-001"
             },
             "grdm-file:data-man-name-ja": {
-              "value": "管理 花子"
+              "value": {"last": "管理", "middle": "", "first": "花子"}
             },
             "grdm-file:data-man-name-en": {
-              "value": "Hanako Manager"
+              "value": {"last": "Manager", "middle": "", "first": "Hanako"}
             },
             "grdm-file:data-man-org-ja": {
               "value": "国立情報学研究所"
@@ -210,9 +210,6 @@
             },
             "grdm-file:remarks-en": {
               "value": "Main manuscript"
-            },
-            "grdm-file:metadata-access-rights": {
-              "value": "open"
             }
           }
         }
@@ -338,9 +335,6 @@
             },
             "grdm-file:remarks-en": {
               "value": "Supporting dataset"
-            },
-            "grdm-file:metadata-access-rights": {
-              "value": "open"
             }
           }
         }
@@ -466,9 +460,6 @@
             },
             "grdm-file:remarks-en": {
               "value": "Supporting dataset"
-            },
-            "grdm-file:metadata-access-rights": {
-              "value": "open"
             }
           }
         }

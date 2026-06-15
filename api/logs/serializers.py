@@ -102,6 +102,8 @@ class NodeLogParamsSerializer(RestrictedDictSerializer):
     institution = NodeLogInstitutionSerializer(read_only=True)
     anonymous_link = ser.BooleanField(read_only=True)
     file_format = ser.CharField(read_only=True)
+    title = ser.CharField(read_only=True)
+    workflow_name = ser.CharField(read_only=True)
     mapcore_groups = ser.SerializerMethodField(read_only=True)
 
     def get_view_url(self, obj):

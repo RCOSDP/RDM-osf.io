@@ -146,6 +146,14 @@ $('#s3compat_modal input').on('paste', function(e) {
     validateRequiredFields('s3compat');
 });
 
+$('#s3compatsigv4_modal input').keyup(function () {
+    validateRequiredFields('s3compatsigv4');
+});
+
+$('#s3compatsigv4_modal input').on('paste', function (e) {
+    validateRequiredFields('s3compatsigv4');
+});
+
 $('#s3compatinstitutions_modal input').keyup(function () {
     validateRequiredFields('s3compatinstitutions');
 });
