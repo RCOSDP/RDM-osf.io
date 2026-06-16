@@ -35,7 +35,7 @@ from api.preprints.serializers import PreprintSerializer
 from api.registrations.serializers import RegistrationSerializer
 
 from api.users.permissions import (
-    CurrentUser,
+    CurrentUser, ReadOnlyOrCurrentUser,
     CurrentUserRelationship,
     ClaimUserPermission,
 )
@@ -175,8 +175,8 @@ class UserDetail(JSONAPIBaseView, generics.RetrieveUpdateAPIView, UserMixin):
     """The documentation for this endpoint can be found [here](https://developer.osf.io/#operation/users_read).
     """
     permission_classes = (
-        drf_permissions.IsAuthenticated,
-        CurrentUser,
+        drf_permissions.IsAuthenticatedOrReadOnly,
+        ReadOnlyOrCurrentUser,
         base_permissions.TokenHasScope,
     )
 
