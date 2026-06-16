@@ -477,3 +477,6 @@ class SearchPagination(JSONAPIPagination):
                     ]),
                 ),
             ])
+
+class MapCoreGroupPagination(JSONAPIPagination):
+    page_size = 5

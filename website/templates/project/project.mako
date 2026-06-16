@@ -1,6 +1,7 @@
 <%inherit file="project/project_base.mako"/>
 <%namespace name="render_nodes" file="util/render_nodes.mako" />
 <%namespace name="contributor_list" file="util/contributor_list.mako" />
+<%namespace name="group_list" file="util/group_list.mako" />
 <%namespace name="render_addon_widget" file="util/render_addon_widget.mako" />
 <%include file="project/nodes_privacy.mako"/>
 <%include file="util/render_grdm_addons_context.mako"/>
@@ -174,6 +175,27 @@
                     </ol>
                 % endif
                 </div>
+                % if node['enabled_mapcore_groups']:
+                <div id="groupsList" style="height: 25px; overflow: hidden">
+                % if user['is_contributor_or_group_member']:
+                    <a class="link-dashed" href="${node['url']}groups/">${_("Groups")}</a>:
+                % else:
+                    ${_("Groups:")}
+                % endif
+
+                % if node['anonymous']:
+                    <ol>${_("Anonymous Groups")}</ol>
+                % else:
+                    % if node['mapcore_groups'] != []:
+                    <ol>
+                        ${group_list.render_groups_full(groups=node['mapcore_groups'])}
+                    </ol>
+                    % else:
+                    <span> ${_("None")} </span>
+                    % endif
+                % endif
+                </div>
+                % endif
                 % if node['groups']:
                     <div>
                         Groups:
