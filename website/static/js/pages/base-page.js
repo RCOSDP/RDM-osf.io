@@ -195,6 +195,14 @@ function confirmEmails(emailsToAdd) {
                             $osf.growl('Success', confirmMessage, 'success', 3000);
                             confirmEmails(emailsToAdd.slice(1));
                         }).fail(function (xhr, textStatus, error) {
+                            if (xhr.status === 401) {
+                                if (xhr.responseJSON && xhr.responseJSON.redirect_url) {
+                                    window.location.href = xhr.responseJSON.redirect_url;
+                                } else {
+                                    window.location.href = '/?login_not_available=true';
+                                }
+                                return;
+                            }
                             Raven.captureMessage(_('Could not add email'), {
                                 extra: {
                                     url: confirmedEmailURL,
