@@ -71,7 +71,7 @@ OSFUSER_JSON_COLUMNS = [
 
 RESULT_FIELDNAMES = [
     'source_table', 'id', 'user_guid', 'user_id', 'field_path',
-    'issues', 'original_value', 'suggested_fix', 'fix_applied', 'value_after',
+    'issues', 'original_value', 'suggested_fix', 'fix_applied', 'value_after', 'fix_status',
 ]
 
 # --- Helper Functions ---
@@ -149,6 +149,15 @@ def walk(obj, path=''):
         yield (path, obj)
 
 
+def compute_fix_status(suggested_fix):
+    """Return 'clean', 'partial', or 'unrecoverable' based on suggested_fix."""
+    if suggested_fix == UNRECOVERABLE_CANNOT_FIX:
+        return 'unrecoverable'
+    if suggested_fix.startswith(UNRECOVERABLE_NOTICE):
+        return 'partial'
+    return 'clean'
+
+
 def make_error_row(source_table, record_id, user_guid, user_id, path, val):
     """Build a single error row dict from a string value that has issues."""
     issues = detect_issues(val)
@@ -170,6 +179,7 @@ def make_error_row(source_table, record_id, user_guid, user_id, path, val):
         'issues':         ','.join(issues),
         'original_value': val,
         'suggested_fix':  suggested,
+        'fix_status':     compute_fix_status(suggested),
     }
 
 
@@ -572,6 +582,7 @@ def main():
                                 'suggested_fix': row.get('suggested_fix') or '',
                                 'fix_applied': 'NO ({})'.format(reason),
                                 'value_after': row.get('original_value') or '',
+                                'fix_status': 'unrecoverable',
                             }
 
                         # Validate source_table
@@ -625,6 +636,7 @@ def main():
                             'original_value': row.get('original_value') or '',
                             'suggested_fix': suggested_fix,
                             'fix_applied': fix_applied,
+                            'fix_status': compute_fix_status(suggested_fix),
                         })
                 except csv.Error as e:
                     print('Error: Failed to parse CSV file "{}" due to formatting error: {}'.format(args.input_csv, e))
