@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-fix_encoding_errors_django.py
+fix_encoding_errors.py
 
 Scan and fix Japanese encoding issues and HTML entities using Django ORM,
 then export the results directly to a CSV file.
@@ -13,15 +13,17 @@ This script targets:
 
 Usage:
     # Scan, update encoding errors in DB using Django ORM, and export results to CSV
-    python -m scripts.fix_encoding_errors_django
-    python -m scripts.fix_encoding_errors_django --output result.csv
+    python -m scripts.fix_encoding_errors
+    python -m scripts.fix_encoding_errors --output result.csv
 
     # Preview updates and export results to CSV without making changes to DB (dry run)
-    python -m scripts.fix_encoding_errors_django --dry
-    python -m scripts.fix_encoding_errors_django --dry --include-unrecoverable --output preview.csv
+    python -m scripts.fix_encoding_errors --dry
+    python -m scripts.fix_encoding_errors --dry --include-unrecoverable --output preview.csv
+
+    # Also apply partial fixes to records where encoding cannot be fully recovered
+    python -m scripts.fix_encoding_errors --include-unrecoverable
 """
 
-import sys
 import os
 import re
 import csv
@@ -328,7 +330,7 @@ def save_result_csv(result_rows, output_path):
 
 # --- Updating Operations ---
 
-def apply_fixes(rows, include_unrecoverable, dry_run=False, is_from_csv=False):
+def apply_fixes(rows, include_unrecoverable, dry_run=False):
     """
     Apply fixes to database using Django ORM inside a transaction.
     If dry_run is True, the transaction will be rolled back at the end.
@@ -377,10 +379,7 @@ def apply_fixes(rows, include_unrecoverable, dry_run=False, is_from_csv=False):
                     result['fix_applied'] = ''
                     result['value_after'] = ''
 
-                    if is_from_csv:
-                        should_fix = row.get('fix_applied', '').strip().upper() == 'YES'
-                    else:
-                        should_fix = is_fixable(row, include_unrecoverable)
+                    should_fix = is_fixable(row, include_unrecoverable)
 
                     if should_fix:
                         clean_fix = get_clean_fix(row['suggested_fix'])
@@ -391,10 +390,7 @@ def apply_fixes(rows, include_unrecoverable, dry_run=False, is_from_csv=False):
                         fixable_count += 1
                         logger.info('   Fixed: [UserExtendedData] id={} path={}'.format(record_id, row['field_path']))
                     else:
-                        if is_from_csv:
-                            result['fix_applied'] = row.get('fix_applied', '')
-                        else:
-                            result['fix_applied'] = 'NO (UNRECOVERABLE)'
+                        result['fix_applied'] = 'NO (UNRECOVERABLE)'
                         result['value_after'] = row['original_value']
                         skipped_count += 1
 
@@ -426,10 +422,7 @@ def apply_fixes(rows, include_unrecoverable, dry_run=False, is_from_csv=False):
                     result['fix_applied'] = ''
                     result['value_after'] = ''
 
-                    if is_from_csv:
-                        should_fix = row.get('fix_applied', '').strip().upper() == 'YES'
-                    else:
-                        should_fix = is_fixable(row, include_unrecoverable)
+                    should_fix = is_fixable(row, include_unrecoverable)
 
                     if should_fix:
                         clean_fix = get_clean_fix(row['suggested_fix'])
@@ -457,10 +450,7 @@ def apply_fixes(rows, include_unrecoverable, dry_run=False, is_from_csv=False):
                             fixable_count += 1
                             logger.info('   Fixed: [OSFUser] id={} field={}'.format(user_id, path))
                     else:
-                        if is_from_csv:
-                            result['fix_applied'] = row.get('fix_applied', '')
-                        else:
-                            result['fix_applied'] = 'NO (UNRECOVERABLE)'
+                        result['fix_applied'] = 'NO (UNRECOVERABLE)'
                         result['value_after'] = row['original_value']
                         skipped_count += 1
 
@@ -510,16 +500,7 @@ def main():
         '--dry', action='store_true', default=False,
         help='Run script in dry-run mode (do not commit updates to the database).',
     )
-    parser.add_argument(
-        '--input-csv', '-i',
-        default=None,
-        help='Input CSV file generated in a dry run to apply specific fixes from.',
-    )
-
     args = parser.parse_args()
-
-    if not args.dry and not args.input_csv:
-        parser.error('the following arguments are required: --input-csv/-i (unless running in dry run mode with --dry)')
 
     if not args.dry:
         # For actual runs modifying data, set up file logging
@@ -531,141 +512,20 @@ def main():
         format='%(asctime)s %(levelname)s %(message)s',
     )
 
-    # 1. Scan errors or load from CSV
+    # 1. Scan errors from database
     rows = []
-    skipped_load_rows = []
-    is_from_csv = False
-    if args.input_csv:
-        logger.info('Loading records to fix from CSV file: {}'.format(args.input_csv))
-        if not os.path.exists(args.input_csv):
-            print('Error: Input CSV file "{}" does not exist.'.format(args.input_csv))
-            sys.exit(1)
+    rows.extend(scan_userextendeddata())
+    rows.extend(scan_osfuser())
 
-        try:
-            with open(args.input_csv, mode='r', encoding='utf-8-sig') as f:
-                reader = csv.DictReader(f)
-
-                # Check required headers
-                required_headers = {'source_table', 'id', 'field_path', 'suggested_fix', 'fix_applied'}
-                if not reader.fieldnames or not required_headers.issubset(reader.fieldnames):
-                    print('Error: Input CSV must contain headers: {}'.format(', '.join(required_headers)))
-                    sys.exit(1)
-
-                try:
-                    for line_no, row in enumerate(reader, start=2):
-                        if not row:
-                            logger.warning('Row {} is skipped: row is empty.'.format(line_no))
-                            skipped_load_rows.append({
-                                'source_table': '',
-                                'id': '',
-                                'user_guid': '',
-                                'user_id': '',
-                                'field_path': '',
-                                'issues': '',
-                                'original_value': '',
-                                'suggested_fix': '',
-                                'fix_applied': 'NO (empty row)',
-                                'value_after': '',
-                            })
-                            continue
-
-                        # Helper to build a result dict for skipped rows
-                        def make_skipped_load_row(reason):
-                            return {
-                                'source_table': row.get('source_table') or '',
-                                'id': row.get('id') or '',
-                                'user_guid': (row.get('user_guid') or 'N/A').strip(),
-                                'user_id': (row.get('user_id') or 'N/A').strip(),
-                                'field_path': row.get('field_path') or '',
-                                'issues': row.get('issues') or '',
-                                'original_value': row.get('original_value') or '',
-                                'suggested_fix': row.get('suggested_fix') or '',
-                                'fix_applied': 'NO ({})'.format(reason),
-                                'value_after': row.get('original_value') or '',
-                                'fix_status': 'unrecoverable',
-                            }
-
-                        # Validate source_table
-                        source_table = row.get('source_table')
-                        if not source_table:
-                            logger.warning('Row {} is skipped: missing "source_table".'.format(line_no))
-                            skipped_load_rows.append(make_skipped_load_row('missing "source_table"'))
-                            continue
-                        source_table = source_table.strip()
-                        if source_table not in ('osf_userextendeddata', 'osf_osfuser'):
-                            logger.warning('Row {} is skipped: invalid "source_table" "{}".'.format(line_no, source_table))
-                            skipped_load_rows.append(make_skipped_load_row('invalid "source_table"'))
-                            continue
-
-                        # Validate id
-                        id_val = row.get('id')
-                        if not id_val:
-                            logger.warning('Row {} is skipped: missing "id".'.format(line_no))
-                            skipped_load_rows.append(make_skipped_load_row('missing "id"'))
-                            continue
-                        try:
-                            record_id = int(id_val.strip())
-                        except ValueError:
-                            logger.warning('Row {} is skipped: "id" "{}" is not a valid integer.'.format(line_no, id_val))
-                            skipped_load_rows.append(make_skipped_load_row('invalid "id"'))
-                            continue
-
-                        # Validate field_path
-                        field_path = row.get('field_path')
-                        if not field_path:
-                            logger.warning('Row {} is skipped: missing "field_path".'.format(line_no))
-                            skipped_load_rows.append(make_skipped_load_row('missing "field_path"'))
-                            continue
-                        field_path = field_path.strip()
-
-                        # Validate suggested_fix if fix_applied is YES
-                        fix_applied = (row.get('fix_applied') or '').strip()
-                        suggested_fix = row.get('suggested_fix') or ''
-                        if fix_applied.upper() == 'YES' and not suggested_fix:
-                            logger.warning('Row {} is skipped: "fix_applied" is "YES" but "suggested_fix" is empty.'.format(line_no))
-                            skipped_load_rows.append(make_skipped_load_row('missing "suggested_fix"'))
-                            continue
-
-                        rows.append({
-                            'source_table': source_table,
-                            'id': record_id,
-                            'user_guid': (row.get('user_guid') or 'N/A').strip(),
-                            'user_id': (row.get('user_id') or 'N/A').strip(),
-                            'field_path': field_path,
-                            'issues': (row.get('issues') or '').strip(),
-                            'original_value': row.get('original_value') or '',
-                            'suggested_fix': suggested_fix,
-                            'fix_applied': fix_applied,
-                            'fix_status': compute_fix_status(suggested_fix),
-                        })
-                except csv.Error as e:
-                    print('Error: Failed to parse CSV file "{}" due to formatting error: {}'.format(args.input_csv, e))
-                    sys.exit(1)
-        except Exception as e:
-            print('Error: Unexpected error while opening/reading CSV file: {}'.format(e))
-            sys.exit(1)
-
-        is_from_csv = True
-        logger.info('Loaded {} records from CSV.'.format(len(rows)))
-    else:
-        # Default: scan database
-        rows.extend(scan_userextendeddata())
-        rows.extend(scan_osfuser())
-
-    if not rows and not skipped_load_rows:
+    if not rows:
         print('No encoding errors found.')
         return
 
-    # Print the table of found/loaded errors
-    if rows:
-        print_errors(rows)
+    # Print the table of found errors
+    print_errors(rows)
 
     # 2. Apply fixes (conditionally committing or rolling back)
-    result_rows = apply_fixes(rows, args.include_unrecoverable, dry_run=args.dry, is_from_csv=is_from_csv)
-
-    # Append any rows that were skipped during the load phase so they appear in the output CSV
-    if skipped_load_rows:
-        result_rows.extend(skipped_load_rows)
+    result_rows = apply_fixes(rows, args.include_unrecoverable, dry_run=args.dry)
 
     # 3. Export results to CSV
     save_result_csv(result_rows, args.output)
