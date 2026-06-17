@@ -102,7 +102,7 @@ def write_csv(user, f, target_index, download_file_names, schema_id, file_metada
     for metadata, files in zip(file_metadatas, download_file_names):
         expanded_file_metadatas.extend([metadata] * len(files))
 
-    columns = [('.publish_status', '.PUBLISH_STATUS', '', 'Required', 'private')]
+    columns = [('.publish_status', '.PUBLISH_STATUS', '', 'Required', 'public')]
     columns.append(('.metadata.path[0]', '.IndexID[0]', '', 'Allow Multiple', target_index.identifier))
     columns.append(('.pos_index[0]', '.POS_INDEX[0]', '', 'Allow Multiple', target_index.title))
     for i, (download_file_name, download_file_type) in enumerate(flat_download_file_names):

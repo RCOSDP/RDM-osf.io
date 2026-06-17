@@ -28,6 +28,7 @@ from addons.workflow.models import (
     WorkflowEngine,
     WorkflowEngineKey,
     WorkflowExecutorToken,
+    WorkflowTaskCompletion,
     WorkflowTemplate,
 )
 from addons.workflow.token import create_delegation_token, revoke_delegation_token
@@ -739,8 +740,10 @@ def _serialize_task_payload(
     from addons.workflow.views import STATUS_RUNNING, STATUS_COMPLETED, STATUS_CANCELLED
 
     metadata = _extract_metadata(instance)
-    process_instance_id = task_payload.get('processInstanceId')
+    process_instance_id = task_payload['processInstanceId']
     end_time = task_payload.get('endTime')
+    # Runtime tasks use 'createTime'; historic tasks use 'startTime'
+    created = task_payload.get('createTime') or task_payload.get('startTime')
 
     if end_time:
         delete_reason = task_payload.get('deleteReason')
@@ -752,14 +755,14 @@ def _serialize_task_payload(
         task_status = STATUS_RUNNING
 
     return {
-        'id': task_payload.get('id'),
-        'name': task_payload.get('name'),
+        'id': task_payload['id'],
+        'name': task_payload['name'],
         'description': task_payload.get('description'),
         'assignee': task_payload.get('assignee'),
         'owner': task_payload.get('owner'),
         'task_status': task_status,
         'delete_reason': task_payload.get('deleteReason'),
-        'created': task_payload.get('createTime'),
+        'created': created,
         'end_time': end_time,
         'completed': end_time,
         'due': task_payload.get('dueDate'),
@@ -767,7 +770,7 @@ def _serialize_task_payload(
         'category': task_payload.get('category'),
         'form_key': task_payload.get('formKey'),
         'engine_id': engine_id,
-        'process_definition_id': task_payload.get('processDefinitionId'),
+        'process_definition_id': task_payload['processDefinitionId'],
         'process_instance_id': process_instance_id,
         'business_key': task_payload.get('processInstanceBusinessKey'),
         'run_id': process_instance_id,
@@ -784,6 +787,8 @@ def list_workflow_tasks(
     limit: int = 100,
     status_filter: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
+    from addons.workflow.views import STATUS_RUNNING
+
     all_activations = _get_visible_activations(node, user)
 
     activation_map: Dict[int, WorkflowActivation] = {}
@@ -793,82 +798,91 @@ def list_workflow_tasks(
     if not activation_map:
         return []
 
-    # Fetch tasks for each activation
-    all_tasks: List[Dict[str, Any]] = []
-
+    # Build per-activation context
+    contexts: List[tuple] = []
     for activation in activation_map.values():
-        activation_node = activation.node
-        if activation_node.is_deleted:
+        if activation.node.is_deleted:
             continue
-
         template = activation.template
         engine_id = template.definition.engine.engine_id
-        business_key = f'rdm:node:{activation_node._id}:activation:{activation.id}'
-
+        business_key = f'rdm:node:{activation.node._id}:activation:{activation.id}'
         client = get_gateway_client(engine_id)
+        contexts.append((activation, client, engine_id, business_key))
 
-        # Runtime and historic tasks use different parameter names for business key filtering
-        runtime_params = {
+    if not contexts:
+        return []
+
+    def _serialize_entry(entry, activation, engine_id):
+        from addons.workflow.views import STATUS_COMPLETED
+        serialized = _serialize_task_payload(entry, engine_id=engine_id, instance=entry)
+        metadata = _extract_metadata(entry)
+        eligibility = _eligible_users_for_assignee(activation.node, entry.get('assignee'), metadata)
+        operator = None
+        if serialized['task_status'] == STATUS_COMPLETED:
+            operator_user = _resolve_completed_operator(activation.node, entry['id'])
+            if operator_user:
+                operator = (operator_user, activation.node)
+        serialized['assignee_user'] = _resolve_assignee_user_field(
+            eligibility, caller=user, operator=operator,
+        )
+        serialized['can_complete'] = (
+            serialized['task_status'] == STATUS_RUNNING
+            and any(user == eligible for eligible, _ in eligibility)
+        )
+        return serialized
+
+    # Phase 1: Collect runtime tasks from all activations
+    runtime_tasks: List[Dict[str, Any]] = []
+    runtime_ids: set = set()
+
+    for activation, client, engine_id, business_key in contexts:
+        response = client.list_tasks({
             'processInstanceBusinessKey': business_key,
             'includeProcessVariables': 'true',
+            'sort': 'createTime',
+            'order': 'desc',
             'size': limit,
-        }
-        historic_params = {
-            'processBusinessKey': business_key,
-            'includeProcessVariables': 'true',
-            'size': limit,
-        }
+        })
+        for entry in response['data']:
+            runtime_tasks.append(_serialize_entry(entry, activation, engine_id))
+            runtime_ids.add(entry['id'])
 
-        # Fetch both runtime and historic tasks
-        runtime_response = client.list_tasks(runtime_params)
-        runtime_payload = runtime_response.get('data')
+    if status_filter == 'active':
+        runtime_tasks.sort(key=lambda item: item['created'], reverse=True)
+        return runtime_tasks[:limit]
 
-        if status_filter == 'active':
-            # Only include runtime (active) tasks
-            payload = runtime_payload or []
-        else:
-            historic_response = client.list_historic_tasks(historic_params)
-            historic_payload = historic_response.get('data')
+    # Phase 2: Collect historic tasks from all activations
+    remaining = limit - len(runtime_tasks)
+    historic_tasks: List[Dict[str, Any]] = []
 
-            # Merge runtime and historic tasks, removing duplicates (prefer runtime for active tasks)
-            task_map: Dict[str, Dict[str, Any]] = {}
-            for entry in (historic_payload or []):
-                task_map[entry['id']] = entry
-            for entry in (runtime_payload or []):
-                task_map[entry['id']] = entry
+    if remaining > 0:
+        for activation, client, engine_id, business_key in contexts:
+            response = client.list_historic_tasks({
+                'processBusinessKey': business_key,
+                'includeProcessVariables': 'true',
+                'sort': 'startTime',
+                'order': 'desc',
+                'size': remaining,
+            })
+            for entry in response['data']:
+                if entry['id'] in runtime_ids:
+                    continue
+                historic_tasks.append(_serialize_entry(entry, activation, engine_id))
 
-            payload = list(task_map.values())
-
-        for entry in payload:
-            if not isinstance(entry, dict):
-                continue
-
-            metadata = _extract_metadata(entry)
-
-            serialized = _serialize_task_payload(entry, engine_id=engine_id, instance=entry)
-            assignee = entry.get('assignee')
-            from addons.workflow.views import STATUS_RUNNING
-            serialized['can_complete'] = (
-                serialized['task_status'] == STATUS_RUNNING and
-                _can_complete_task(activation_node, user, assignee, metadata)
-            )
-            all_tasks.append(serialized)
-
-            if len(all_tasks) >= limit:
-                break
-        if len(all_tasks) >= limit:
-            break
-
-    all_tasks.sort(key=lambda item: item.get('created') or '', reverse=True)
-    return all_tasks[:limit]
+    # Runtime tasks are always included; limit applies only to historic
+    historic_tasks.sort(key=lambda item: item['created'], reverse=True)
+    all_tasks = runtime_tasks + historic_tasks[:max(0, remaining)]
+    all_tasks.sort(key=lambda item: item['created'], reverse=True)
+    return all_tasks
 
 
 def _fetch_task_from_engines(
     node: 'AbstractNode',
+    user: 'OSFUser',
     task_id: str,
     *,
     engine_id: str,
-) -> Tuple[Dict[str, Any], str, Dict[str, Any]]:
+) -> Tuple[Dict[str, Any], str, Dict[str, Any], WorkflowActivation]:
     client = get_gateway_client(engine_id)
     task_payload = client.get_task(task_id)
     if not isinstance(task_payload, dict):
@@ -899,7 +913,72 @@ def _fetch_task_from_engines(
         )
 
     instance = instances[0]
-    return task_payload, engine_id, instance
+    metadata = _extract_metadata(instance)
+    activation_id = str(metadata['activation_id'])
+    visible_activations = _get_visible_activations(node, user)
+    activation = next(
+        (entry for entry in visible_activations if str(entry.id) == activation_id),
+        None,
+    )
+    if activation is None:
+        raise HTTPError(
+            http_status.HTTP_404_NOT_FOUND,
+            data={'message': 'Workflow task not found.'},
+        )
+    return task_payload, engine_id, instance, activation
+
+
+ASSIGNEE_ROLES = frozenset({'executor', 'creator', 'manager', 'contributor'})
+
+
+def _eligible_users_for_assignee(
+    node: 'AbstractNode',
+    assignee: Optional[str],
+    metadata: Dict[str, Any],
+) -> List[Tuple['OSFUser', 'AbstractNode']]:
+    """Resolve a flowable:assignee attribute to (eligible OSFUser, visibility node) pairs.
+
+    The visibility node is the project whose READ membership gates revealing the
+    user's identity to a caller. It matches the project the user is sourced from,
+    so callers without permission on that project see only the role label.
+
+    Supports:
+    - empty assignee: anyone with read permission on the activation node
+    - 'executor': user who started the workflow run
+    - 'creator': contributors with write permission on the WorkflowTemplate's project
+    - 'manager': admin contributors of the activation node
+    - 'contributor': read contributors of the activation node
+    - any other string: users with matching username (visibility gated on activation node)
+    """
+    if not assignee:
+        return [(u, node) for u in node.get_users_with_perm(READ)]
+
+    assignee_lower = assignee.lower()
+
+    if assignee_lower == 'executor':
+        started_by_id = metadata.get('started_by')
+        if not started_by_id:
+            return []
+        user = OSFUser.load(started_by_id)
+        return [(user, node)] if user else []
+
+    if assignee_lower == 'creator':
+        template_id = metadata.get('template_id')
+        if not template_id:
+            return []
+        try:
+            template = WorkflowTemplate.objects.select_related('node').get(id=int(template_id))
+        except (WorkflowTemplate.DoesNotExist, ValueError):
+            return []
+        return [(u, template.node) for u in template.node.get_users_with_perm(WRITE)]
+
+    if assignee_lower == 'manager':
+        return [(u, node) for u in node.get_users_with_perm(ADMIN)]
+
+    if assignee_lower == 'contributor':
+        return [(u, node) for u in node.get_users_with_perm(READ)]
+
+    return [(u, node) for u in OSFUser.objects.filter(username=assignee)]
 
 
 def _can_complete_task(
@@ -908,42 +987,48 @@ def _can_complete_task(
     assignee: Optional[str],
     metadata: Dict[str, Any],
 ) -> bool:
-    """Check if user can complete a task based on flowable:assignee attribute.
+    return any(user == eligible for eligible, _ in _eligible_users_for_assignee(node, assignee, metadata))
 
-    Supports:
-    - empty assignee: anyone with read permission can complete
-    - 'executor': user who started the workflow run
-    - 'creator': WorkflowTemplate project's contributors with write permission
-    - 'manager': project admin
-    - 'contributor': project contributor (read permission)
-    - email address: users with matching username
+
+def _resolve_completed_operator(
+    node: 'AbstractNode',
+    task_id: str,
+) -> Optional['OSFUser']:
+    """Return the OSFUser who actually submitted the given task, or None if unknown."""
+    completion = WorkflowTaskCompletion.objects.filter(
+        node=node,
+        task_id=task_id,
+    ).select_related('completed_by').first()
+    return completion.completed_by if completion else None
+
+
+def _resolve_assignee_user_field(
+    eligibility: List[Tuple['OSFUser', 'AbstractNode']],
+    *,
+    caller: 'OSFUser',
+    operator: Optional[Tuple['OSFUser', 'AbstractNode']] = None,
+) -> Optional[Dict[str, str]]:
+    """Return {id, fullname} for display in the assignee column.
+
+    Each (user, visibility_node) pair gates revealing that user's identity on
+    the caller's READ permission for visibility_node. The eligible-single-user
+    fallback is suppressed when the caller cannot see the source project.
+
+    Resolution order:
+    - operator (the OSFUser who actually submitted the task) takes precedence
+    - else, eligibility when it resolves to a single user
+    - None when caller lacks READ on the relevant visibility node, or no
+      single user can be resolved
     """
-    if not assignee:
-        return node.has_permission(user, READ)
-
-    assignee_lower = assignee.lower()
-
-    if assignee_lower == 'executor':
-        started_by_id = metadata.get('started_by')
-        return user._id == started_by_id
-
-    if assignee_lower == 'creator':
-        template_id = metadata.get('template_id')
-        if not template_id:
-            return False
-        try:
-            template = WorkflowTemplate.objects.select_related('node').get(id=int(template_id))
-            return template.node.has_permission(user, WRITE)
-        except (WorkflowTemplate.DoesNotExist, ValueError):
-            return False
-
-    if assignee_lower == 'manager':
-        return node.has_permission(user, ADMIN)
-
-    if assignee_lower == 'contributor':
-        return node.has_permission(user, READ)
-
-    return user.username == assignee
+    if operator is not None:
+        target, visibility_node = operator
+    elif len(eligibility) == 1:
+        target, visibility_node = eligibility[0]
+    else:
+        return None
+    if not visibility_node.has_permission(caller, READ):
+        return None
+    return {'id': target._id, 'fullname': target.fullname}
 
 
 def get_workflow_task(
@@ -954,7 +1039,7 @@ def get_workflow_task(
     engine_id: str,
     include_form: bool = False,
 ) -> Dict[str, Any]:
-    task_payload, engine_id, instance = _fetch_task_from_engines(node, task_id, engine_id=engine_id)
+    task_payload, engine_id, instance, activation = _fetch_task_from_engines(node, user, task_id, engine_id=engine_id)
     client = get_gateway_client(engine_id)
 
     form_payload: Optional[Dict[str, Any]] = None
@@ -969,13 +1054,22 @@ def get_workflow_task(
             if status_code not in {http_status.HTTP_404_NOT_FOUND, http_status.HTTP_400_BAD_REQUEST}:
                 raise
 
+    from addons.workflow.views import STATUS_COMPLETED
     serialized = _serialize_task_payload(task_payload, engine_id=engine_id, instance=instance)
     if form_payload is not None:
         serialized['form'] = form_payload
 
     metadata = _extract_metadata(instance)
-    assignee = task_payload.get('assignee')
-    serialized['can_complete'] = _can_complete_task(node, user, assignee, metadata)
+    eligibility = _eligible_users_for_assignee(activation.node, task_payload.get('assignee'), metadata)
+    operator = None
+    if serialized['task_status'] == STATUS_COMPLETED:
+        operator_user = _resolve_completed_operator(activation.node, task_id)
+        if operator_user:
+            operator = (operator_user, activation.node)
+    serialized['assignee_user'] = _resolve_assignee_user_field(
+        eligibility, caller=user, operator=operator,
+    )
+    serialized['can_complete'] = any(user == eligible for eligible, _ in eligibility)
 
     return serialized
 
@@ -1006,11 +1100,11 @@ def submit_workflow_task_action(
     variables: Any = None,
     assignee: Optional[str] = None,
 ) -> Optional[Dict[str, Any]]:
-    task_payload, engine_id, instance = _fetch_task_from_engines(node, task_id, engine_id=engine_id)
+    task_payload, engine_id, instance, activation = _fetch_task_from_engines(node, user, task_id, engine_id=engine_id)
 
     metadata = _extract_metadata(instance)
     task_assignee = task_payload.get('assignee')
-    if not _can_complete_task(node, user, task_assignee, metadata):
+    if not _can_complete_task(activation.node, user, task_assignee, metadata):
         raise HTTPError(
             http_status.HTTP_403_FORBIDDEN,
             data={'message': 'You are not assigned to this task.'},
@@ -1027,6 +1121,16 @@ def submit_workflow_task_action(
         request_payload['assignee'] = assignee
 
     client.update_task(task_id, request_payload)
+
+    if action == 'complete':
+        WorkflowTaskCompletion.objects.update_or_create(
+            node=activation.node,
+            task_id=task_id,
+            defaults={
+                'process_instance_id': task_payload['processInstanceId'],
+                'completed_by': user,
+            },
+        )
 
     try:
         return get_workflow_task(node, task_id, user, engine_id=engine_id, include_form=False)
@@ -1057,6 +1161,10 @@ def activate_workflow_activation(activation: WorkflowActivation, activated_by: '
         activation.is_enabled = True
         update_fields.append('is_enabled')
 
+    if activation.is_dismissed:
+        activation.is_dismissed = False
+        update_fields.append('is_dismissed')
+
     if activation.activated_by_id != activated_by.id:
         activation.activated_by = activated_by
         update_fields.append('activated_by')
@@ -1066,6 +1174,19 @@ def activate_workflow_activation(activation: WorkflowActivation, activated_by: '
 
     update_fields.append('modified')
     activation.save(update_fields=update_fields)
+
+
+def dismiss_workflow_activation(activation: WorkflowActivation) -> None:
+    """Dismiss a pending auto-activate template for a node.
+
+    Creates a disabled+dismissed activation record to suppress the pending banner.
+    """
+    if activation.is_dismissed:
+        return
+
+    activation.is_dismissed = True
+    activation.is_enabled = False
+    activation.save(update_fields=['is_dismissed', 'is_enabled', 'modified'])
 
 
 def deactivate_workflow_activation(activation: WorkflowActivation) -> None:
@@ -1303,29 +1424,10 @@ def resolve_workflow_notification_recipients(
 
     if assignees:
         for role in assignees:
-            if role == 'executor':
-                started_by = metadata['started_by']
-                user = OSFUser.load(started_by)
-                if not user:
-                    raise ValueError(f'Executor user not found: {started_by}')
-                recipients.add(user)
-            elif role == 'manager':
-                activation_id = metadata['activation_id']
-                activation = WorkflowActivation.objects.filter(
-                    id=activation_id
-                ).select_related('activated_by').first()
-                recipients.add(activation.activated_by)
-            elif role == 'creator':
-                template_id = metadata['template_id']
-                template = WorkflowTemplate.objects.filter(
-                    id=template_id
-                ).select_related('registered_by').first()
-                recipients.add(template.registered_by)
-            elif role == 'contributor':
-                for contributor in node.contributors.all():
-                    recipients.add(contributor)
-            else:
+            role_lower = role.lower() if role else ''
+            if role_lower not in ASSIGNEE_ROLES:
                 raise ValueError(f'Invalid assignee role: {role}')
+            recipients.update(u for u, _ in _eligible_users_for_assignee(node, role_lower, metadata))
 
     if user_ids:
         for user_id in user_ids:
@@ -1333,7 +1435,6 @@ def resolve_workflow_notification_recipients(
             if not user:
                 raise ValueError(f'User not found: {user_id}')
             recipients.add(user)
-
     return recipients
 
 
@@ -1417,6 +1518,7 @@ def send_workflow_notification(
                 html_text=html_text,
                 node_title=node.title,
                 node_url=node.absolute_url,
+                can_change_preferences=False,
             )
 
     return [user._id for user in recipients]

@@ -64,6 +64,7 @@ function WorkflowWidgetViewModel() {
     self.isRefreshing = ko.observable(false);
     self.templateError = ko.observable('');
     self.templates = ko.observableArray([]);
+    self.pendingTemplates = ko.observableArray([]);
 
     self.loadingRuns = ko.observable(true);
     self.isRefreshingRuns = ko.observable(false);
@@ -195,7 +196,10 @@ function WorkflowWidgetViewModel() {
         return self.runStatusClasses[run.status] || 'label-default';
     };
 
-    self.taskAssignee = function(task) {
+    self.taskAssigneeLabel = function(task) {
+        if (task && task.assignee_user && task.assignee_user.fullname) {
+            return task.assignee_user.fullname;
+        }
         if (!task || !task.assignee) {
             return self.unassignedLabel;
         }
@@ -214,6 +218,13 @@ function WorkflowWidgetViewModel() {
             return _('Project contributor');
         }
         return assignee;
+    };
+
+    self.taskAssigneeUrl = function(task) {
+        if (!task || !task.assignee_user || !task.assignee_user.id) {
+            return null;
+        }
+        return '/' + task.assignee_user.id;
     };
 
     self.canEditTask = function(task) {
@@ -368,6 +379,52 @@ function WorkflowWidgetViewModel() {
         return request;
     };
 
+    self.fetchAll = function() {
+        self.fetchRuns();
+        self.fetchTasks();
+    };
+
+    self.fetchPendingTemplates = function() {
+        if (!self.apiBaseUrl || !self.canStartWorkflow) {
+            return $.Deferred().resolve();
+        }
+        return $.ajax({
+            url: self.apiBaseUrl + 'templates/',
+            type: 'GET',
+            dataType: 'json',
+        }).done(function(response) {
+            var data = response && response.data ? response.data : [];
+            var pending = data.filter(function(t) {
+                return t.auto_activate && !t.activation_id && t.is_effectively_active;
+            }).map(function(t) {
+                return {
+                    id: t.id,
+                    displayLabel: buildDisplayLabel(t),
+                };
+            });
+            self.pendingTemplates(pending);
+        });
+    };
+
+    self.acceptPending = function(entry) {
+        return osfHelpers.putJSON(
+            self.apiBaseUrl + 'templates/' + entry.id + '/activation/',
+            {is_enabled: true}
+        ).done(function() {
+            self.pendingTemplates.remove(entry);
+            self.fetchTemplates();
+        });
+    };
+
+    self.dismissPending = function(entry) {
+        return osfHelpers.putJSON(
+            self.apiBaseUrl + 'templates/' + entry.id + '/activation/',
+            {is_dismissed: true}
+        ).done(function() {
+            self.pendingTemplates.remove(entry);
+        });
+    };
+
     self.initialize = function() {
         if (!self.apiBaseUrl) {
             self.templateError(_('Workflow API is not available for this project.'));
@@ -377,6 +434,7 @@ function WorkflowWidgetViewModel() {
             return;
         }
         $.when(self.fetchTemplates()).always(function() {
+            self.fetchPendingTemplates();
             self.fetchRuns();
             self.fetchTasks(true);
         });
