@@ -98,6 +98,13 @@ class TestNodeSettings(OAuthAddonNodeSettingsTestSuiteMixin, unittest.TestCase):
         last_log = self.node.logs.latest()
         assert last_log.action == f'{self.short_name}_bucket_linked'
 
+    @mock.patch('addons.s3.models.bucket_exists')
+    def test_set_folder_nonexistent_bucket(self, mock_exists):
+        from addons.base import exceptions
+        mock_exists.return_value = False
+        with pytest.raises(exceptions.InvalidFolderError):
+            self.node_settings.set_folder('nonexistent-bucket:/', auth=Auth(self.user))
+
     def test_serialize_settings(self):
         settings = self.node_settings.serialize_waterbutler_settings()
         expected = {
