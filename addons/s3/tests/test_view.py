@@ -6,7 +6,7 @@ import pytest
 
 from framework.auth import Auth
 from tests.base import OsfTestCase, get_default_metaschema
-from osf_tests.factories import ProjectFactory, AuthUserFactory, DraftRegistrationFactory
+from osf_tests.factories import ProjectFactory, AuthUserFactory, DraftRegistrationFactory, InstitutionFactory
 
 from addons.base.tests.views import (
     OAuthAddonConfigViewsTestCaseMixin
@@ -61,8 +61,8 @@ class TestS3Views(S3AddonTestCase, OAuthAddonConfigViewsTestCaseMixin, OsfTestCa
             'access_key': 'Non-empty-access-key',
             'secret_key': ''
         }, auth=self.user.auth, expect_errors=True)
-        assert_equals(rv.status_int, http_status.HTTP_400_BAD_REQUEST)
-        assert_in('All the fields above are required.', rv.body.decode())
+        assert rv.status_code == http_status.HTTP_400_BAD_REQUEST
+        assert 'All the fields above are required.' in rv.text
 
     def test_s3_settings_rdm_addons_denied(self):
         institution = InstitutionFactory()
@@ -72,12 +72,12 @@ class TestS3Views(S3AddonTestCase, OAuthAddonConfigViewsTestCaseMixin, OsfTestCa
         rdm_addon_option.is_allowed = False
         rdm_addon_option.save()
         url = self.project.api_url_for('s3_add_user_account')
-        rv = self.app.post_json(url,{
+        rv = self.app.post(url, json={
             'access_key': 'aldkjf',
             'secret_key': 'las'
         }, auth=self.user.auth, expect_errors=True)
-        assert_equal(rv.status_int, http_status.HTTP_403_FORBIDDEN)
-        assert_in(b'You are prohibited from using this add-on.', rv.body)
+        assert rv.status_code == http_status.HTTP_403_FORBIDDEN
+        assert 'You are prohibited from using this add-on.' in rv.text
 
     def test_s3_set_bucket_no_settings(self):
         user = AuthUserFactory()
