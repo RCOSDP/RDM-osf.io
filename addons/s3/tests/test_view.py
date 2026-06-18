@@ -15,6 +15,7 @@ from addons.s3.tests.utils import S3AddonTestCase
 from addons.s3.utils import validate_bucket_name, validate_bucket_location
 from website.util import api_url_for
 from admin.rdm_addons.utils import get_rdm_addon_option
+from osf.models import ExternalAccount
 
 pytestmark = pytest.mark.django_db
 
@@ -78,6 +79,45 @@ class TestS3Views(S3AddonTestCase, OAuthAddonConfigViewsTestCaseMixin, OsfTestCa
         }, auth=self.user.auth, expect_errors=True)
         assert rv.status_code == http_status.HTTP_403_FORBIDDEN
         assert 'You are prohibited from using this add-on.' in rv.text
+
+    # G5: GRDM-53044 provider_id = "{aws_account_id}\t{access_key}"
+    @mock.patch('addons.s3.views.utils.can_list')
+    @mock.patch('addons.s3.views.utils.get_user_info')
+    def test_provider_id_format(self, mock_uid, mock_can_list):
+        mock_uid.return_value = mock.MagicMock(id='123456789012', display_name='Test User')
+        mock_can_list.return_value = True
+        url = self.project.api_url_for('s3_add_user_account')
+        access_key = 'AKIAIOSFODNN7EXAMPLE'
+        rv = self.app.post(url, json={
+            'access_key': access_key,
+            'secret_key': 'wJalrXUtnFEMI/K7MDENG',
+        }, auth=self.user.auth)
+        assert rv.status_code == http_status.HTTP_200_OK
+        account = ExternalAccount.objects.get(provider='s3', oauth_key=access_key)
+        assert account.provider_id == f'123456789012\t{access_key}'
+
+    @mock.patch('addons.s3.views.utils.can_list')
+    @mock.patch('addons.s3.views.utils.get_user_info')
+    def test_provider_id_dedup(self, mock_uid, mock_can_list):
+        mock_uid.return_value = mock.MagicMock(id='123456789012', display_name='Test User')
+        mock_can_list.return_value = True
+        url = self.project.api_url_for('s3_add_user_account')
+        access_key = 'AKIAIOSFODNN7EXAMPLE'
+        rv1 = self.app.post(url, json={
+            'access_key': access_key,
+            'secret_key': 'secret1',
+        }, auth=self.user.auth)
+        assert rv1.status_code == http_status.HTTP_200_OK
+        # Same AWS account (same provider_id) with new secret → update, no duplicate
+        rv2 = self.app.post(url, json={
+            'access_key': access_key,
+            'secret_key': 'secret2',
+        }, auth=self.user.auth)
+        assert rv2.status_code == http_status.HTTP_200_OK
+        provider_id = f'123456789012\t{access_key}'
+        accounts = ExternalAccount.objects.filter(provider='s3', provider_id=provider_id)
+        assert accounts.count() == 1
+        assert accounts.first().oauth_secret == 'secret2'
 
     def test_s3_set_bucket_no_settings(self):
         user = AuthUserFactory()
