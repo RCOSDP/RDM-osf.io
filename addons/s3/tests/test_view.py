@@ -82,6 +82,8 @@ class TestS3Views(S3AddonTestCase, OAuthAddonConfigViewsTestCaseMixin, OsfTestCa
 
     # G5: GRDM-53044 provider_id = "{aws_account_id}\t{access_key}"
     # setUp already patches get_user_info/can_list as truthy MagicMocks.
+    # Note: oauth_key/oauth_secret are EncryptedTextField (JWE, non-deterministic),
+    # so we query by provider_id (plain CharField) and verify via attribute access.
     def test_provider_id_format(self):
         url = self.project.api_url_for('s3_add_user_account')
         access_key = 'AKIAIOSFODNN7EXAMPLE'
@@ -90,14 +92,18 @@ class TestS3Views(S3AddonTestCase, OAuthAddonConfigViewsTestCaseMixin, OsfTestCa
             'secret_key': 'wJalrXUtnFEMI/K7MDENG',
         }, auth=self.user.auth)
         assert rv.status_code == http_status.HTTP_200_OK
-        account = ExternalAccount.objects.get(provider='s3', oauth_key=access_key)
+        # provider_id is not encrypted — safe to query
+        provider_id = f'1234567890\t{access_key}'
+        account = ExternalAccount.objects.get(provider='s3', provider_id=provider_id)
         # provider_id must be "{aws_account_id}\t{access_key}" (GRDM-53044)
         assert account.provider_id.endswith(f'\t{access_key}')
         assert '\t' in account.provider_id
+        assert account.oauth_key == access_key
 
     def test_provider_id_dedup(self):
         url = self.project.api_url_for('s3_add_user_account')
         access_key = 'AKIAIOSFODNN7EXAMPLE'
+        provider_id = f'1234567890\t{access_key}'
         rv1 = self.app.post_json(url, {
             'access_key': access_key,
             'secret_key': 'secret1',
@@ -109,7 +115,8 @@ class TestS3Views(S3AddonTestCase, OAuthAddonConfigViewsTestCaseMixin, OsfTestCa
             'secret_key': 'secret2',
         }, auth=self.user.auth)
         assert rv2.status_code == http_status.HTTP_200_OK
-        accounts = ExternalAccount.objects.filter(provider='s3', oauth_key=access_key)
+        # Query by provider_id (plain CharField) — oauth_key is encrypted (JWE)
+        accounts = ExternalAccount.objects.filter(provider='s3', provider_id=provider_id)
         assert accounts.count() == 1
         assert accounts.first().oauth_secret == 'secret2'
 
