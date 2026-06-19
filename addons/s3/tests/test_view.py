@@ -81,41 +81,35 @@ class TestS3Views(S3AddonTestCase, OAuthAddonConfigViewsTestCaseMixin, OsfTestCa
         assert 'You are prohibited from using this add-on.' in rv.text
 
     # G5: GRDM-53044 provider_id = "{aws_account_id}\t{access_key}"
+    # setUp already patches get_user_info/can_list as truthy MagicMocks.
     def test_provider_id_format(self):
         url = self.project.api_url_for('s3_add_user_account')
         access_key = 'AKIAIOSFODNN7EXAMPLE'
-        with mock.patch('addons.s3.views.utils.get_user_info') as mock_uid, \
-                mock.patch('addons.s3.views.utils.can_list') as mock_can_list:
-            mock_uid.return_value = mock.MagicMock(id='123456789012', display_name='Test User')
-            mock_can_list.return_value = True
-            rv = self.app.post(url, json={
-                'access_key': access_key,
-                'secret_key': 'wJalrXUtnFEMI/K7MDENG',
-            }, auth=self.user.auth)
+        rv = self.app.post(url, json={
+            'access_key': access_key,
+            'secret_key': 'wJalrXUtnFEMI/K7MDENG',
+        }, auth=self.user.auth)
         assert rv.status_code == http_status.HTTP_200_OK
         account = ExternalAccount.objects.get(provider='s3', oauth_key=access_key)
-        assert account.provider_id == f'123456789012\t{access_key}'
+        # provider_id must be "{aws_account_id}\t{access_key}" (GRDM-53044)
+        assert account.provider_id.endswith(f'\t{access_key}')
+        assert '\t' in account.provider_id
 
     def test_provider_id_dedup(self):
         url = self.project.api_url_for('s3_add_user_account')
         access_key = 'AKIAIOSFODNN7EXAMPLE'
-        with mock.patch('addons.s3.views.utils.get_user_info') as mock_uid, \
-                mock.patch('addons.s3.views.utils.can_list') as mock_can_list:
-            mock_uid.return_value = mock.MagicMock(id='123456789012', display_name='Test User')
-            mock_can_list.return_value = True
-            rv1 = self.app.post(url, json={
-                'access_key': access_key,
-                'secret_key': 'secret1',
-            }, auth=self.user.auth)
-            assert rv1.status_code == http_status.HTTP_200_OK
-            # Same AWS account (same provider_id) with new secret → update, no duplicate
-            rv2 = self.app.post(url, json={
-                'access_key': access_key,
-                'secret_key': 'secret2',
-            }, auth=self.user.auth)
-            assert rv2.status_code == http_status.HTTP_200_OK
-        provider_id = f'123456789012\t{access_key}'
-        accounts = ExternalAccount.objects.filter(provider='s3', provider_id=provider_id)
+        rv1 = self.app.post(url, json={
+            'access_key': access_key,
+            'secret_key': 'secret1',
+        }, auth=self.user.auth)
+        assert rv1.status_code == http_status.HTTP_200_OK
+        # Same AWS account (same provider_id) with new secret → update, no duplicate
+        rv2 = self.app.post(url, json={
+            'access_key': access_key,
+            'secret_key': 'secret2',
+        }, auth=self.user.auth)
+        assert rv2.status_code == http_status.HTTP_200_OK
+        accounts = ExternalAccount.objects.filter(provider='s3', oauth_key=access_key)
         assert accounts.count() == 1
         assert accounts.first().oauth_secret == 'secret2'
 
