@@ -378,6 +378,25 @@ class TestCreateBucket(S3AddonTestCase, OsfTestCase):
         assert ret.status_code == http_status.HTTP_400_BAD_REQUEST
         assert 'That bucket name is not valid.' in ret.text
 
+    @mock.patch('addons.s3.views.utils.create_bucket')
+    def test_create_bucket_client_error(self, mock_make):
+        from botocore.exceptions import ClientError
+        error = ClientError(
+            {'Error': {'Code': 'BucketAlreadyExists', 'Message': 'The requested bucket name is not available.'}},
+            'CreateBucket'
+        )
+        mock_make.side_effect = error
+        url = f'/api/v1/project/{self.project._id}/s3/newbucket/'
+        ret = self.app.post_json(
+            url,
+            {'bucket_name': 'valid-bucket-name', 'bucket_location': ''},
+            auth=self.user.auth,
+            expect_errors=True,
+        )
+        assert ret.status_code == http_status.HTTP_400_BAD_REQUEST
+        assert ret.json['title'] == "Problem creating bucket 'valid-bucket-name'"
+        assert 'BucketAlreadyExists' in ret.json['message']
+
 
 class TestS3Utils:
     """Pure unit tests for utility functions — no DB required."""
