@@ -2381,6 +2381,9 @@ class TestWEKOSchema(OsfTestCase):
             'grdm-files': {
                 'value': [],  # No files
             },
+            'choose-additional-metadata': {  # No additional metadata files
+                'value': '',
+            },
         }
 
         schema.write_ro_crate_json(
@@ -2410,6 +2413,7 @@ class TestWEKOSchema(OsfTestCase):
         # Project metadata should be reflected
         assert_equal(root['name'], 'Test Dataset')
         assert_equal(root['description'], 'Description of experiment purpose')
+        assert_in('ams:purposeOfExperiment', root)
 
     def test_write_ro_crate_json_mebyo_with_additional_metadata_files(self):
         """Test MEBYO schema with choose-additional-metadata containing files.
