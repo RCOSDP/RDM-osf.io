@@ -110,6 +110,7 @@ var PROVIDER_SETTINGS = {
     'onedrive': { parallelNum: 4, fileSizeThreshold: 128000000 },
     'dropbox': { parallelNum: 1, fileSizeThreshold: null },
     's3compatb3': { parallelNum: 4, fileSizeThreshold: 128000000 },
+    's3compatsigv4': { parallelNum: 4, fileSizeThreshold: 128000000 },
     'azureblobstorage': { parallelNum: 1, fileSizeThreshold: null },
     'dataverse': { parallelNum: 1, fileSizeThreshold: null },
     'figshare': { parallelNum: 1, fileSizeThreshold: null },
