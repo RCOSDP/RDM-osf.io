@@ -1,0 +1,2 @@
+# boto (v2) was removed as part of SigV4 migration.
+# boto3/botocore are declared in the root requirements.txt.
