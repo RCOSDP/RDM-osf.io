@@ -9241,3 +9241,15 @@ msgstr ""
 
 msgid "The Integrated Admin added ${contributors} as contributor(s) to ${node}"
 msgstr ""
+
+msgid "File「%1$s」 is too large (%2$s). Max file size is %3$s."
+msgstr ""
+
+msgid "You do not have enough available quota."
+msgstr ""
+
+msgid "Not enough quota to move/copy the file."
+msgstr ""
+
+msgid "Not enough quota to move/copy. The total size of the folder %1$s."
+msgstr ""

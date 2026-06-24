@@ -25,7 +25,7 @@ from osf_tests.factories import (
     DraftRegistrationFactory,
     ExportDataLocationFactory,
 )
-from website import settings
+from website import settings, mails
 from api.base import settings as api_settings
 from addons.base import views
 from addons.github.exceptions import ApiError
@@ -113,7 +113,9 @@ class TestAddonAuth(OsfTestCase):
         data = jwt.decode(jwe.decrypt(res.json['payload'].encode('utf-8'), self.JWE_KEY), settings.WATERBUTLER_JWT_SECRET, algorithm=settings.WATERBUTLER_JWT_ALGORITHM)['data']
         assert_equal(data['auth'], views.make_auth(self.user))
         assert_equal(data['credentials'], self.node_addon.serialize_waterbutler_credentials())
-        assert_equal(data['settings'], self.node_addon.serialize_waterbutler_settings())
+        expected_settings = self.node_addon.serialize_waterbutler_settings().copy()
+        expected_settings['max_file_size'] = 100
+        assert_equal(data['settings'], expected_settings)
         expected_url = furl.furl(self.node.api_url_for('create_waterbutler_log', _absolute=True, _internal=True))
         observed_url = furl.furl(data['callback_url'])
         observed_url.port = expected_url.port
@@ -153,7 +155,9 @@ class TestAddonAuth(OsfTestCase):
         data = jwt.decode(jwe.decrypt(res.json['payload'].encode('utf-8'), self.JWE_KEY), settings.WATERBUTLER_JWT_SECRET, algorithm=settings.WATERBUTLER_JWT_ALGORITHM)['data']
         assert_equal(data['auth'], views.make_auth(self.user))
         assert_equal(data['credentials'], self.node_addon.serialize_waterbutler_credentials())
-        assert_equal(data['settings'], self.node_addon.serialize_waterbutler_settings())
+        expected_settings = self.node_addon.serialize_waterbutler_settings().copy()
+        expected_settings['max_file_size'] = 100
+        assert_equal(data['settings'], expected_settings)
         expected_url = furl.furl(self.node.api_url_for('create_waterbutler_log', _absolute=True, _internal=True))
         observed_url = furl.furl(data['callback_url'])
         observed_url.port = expected_url.port
@@ -1018,6 +1022,99 @@ class TestAddonLogs(OsfTestCase):
         self.node.reload()
         assert_equal(self.node.logs.count(), nlogs + 1)
         assert('urls' not in self.node.logs.filter(action='osf_storage_file_added')[0].params)
+
+    @mock.patch('website.mails.send_mail')
+    def test_create_waterbutler_log_quota_exceeded_error(self, mock_send_mail):
+        url = self.node.api_url_for('create_waterbutler_log')
+        payload = self.build_payload(
+            action='move',
+            metadata={'path': 'pizza'},
+            source={
+                'provider': 'github',
+                'materialized': '/src.txt',
+                'path': '/src.txt',
+                'name': 'src.txt',
+                'nid': self.node._id,
+            },
+            destination={
+                'provider': 'github',
+                'materialized': '/dest.txt',
+                'path': '/dest.txt',
+                'name': 'dest.txt',
+                'nid': self.node._id,
+            },
+            errors=['<InvalidParameters(413, {"message_key": "quota_exceeded"})>']
+        )
+        res = self.app.put_json(url, payload, headers={'Content-Type': 'application/json'})
+        assert_equal(res.status_code, 200)
+        assert_true(mock_send_mail.called)
+        call_args = mock_send_mail.call_args[1]
+        assert_equal(call_args['error_info'], {'type': 'quota_exceeded'})
+        assert_equal(mock_send_mail.call_args[0][1], mails.FILE_OPERATION_FAILED)
+
+    @mock.patch('website.mails.send_mail')
+    def test_create_waterbutler_log_oversized_error(self, mock_send_mail):
+        url = self.node.api_url_for('create_waterbutler_log')
+        payload = self.build_payload(
+            action='move',
+            metadata={'path': 'pizza'},
+            source={
+                'provider': 'github',
+                'materialized': '/src.txt',
+                'path': '/src.txt',
+                'name': 'src.txt',
+                'nid': self.node._id,
+            },
+            destination={
+                'provider': 'github',
+                'materialized': '/dest.txt',
+                'path': '/dest.txt',
+                'name': 'dest.txt',
+                'nid': self.node._id,
+            },
+            errors=['<InvalidParameters(413, {"oversized_files": [{"name": "large.zip", "size": 2000000000}], "max_size": 1000000000})>']
+        )
+        res = self.app.put_json(url, payload, headers={'Content-Type': 'application/json'})
+        assert_equal(res.status_code, 200)
+        assert_true(mock_send_mail.called)
+        call_args = mock_send_mail.call_args[1]
+        assert_equal(call_args['error_info'], {
+            'type': 'oversized',
+            'oversized_files': [{'name': 'large.zip', 'size': 2000000000}],
+            'max_size': 1000000000
+        })
+        assert_equal(mock_send_mail.call_args[0][1], mails.FILE_OPERATION_FAILED)
+
+    @mock.patch('addons.base.views.logger.warning')
+    @mock.patch('website.mails.send_mail')
+    def test_create_waterbutler_log_unparseable_error(self, mock_send_mail, mock_logger_warning):
+        url = self.node.api_url_for('create_waterbutler_log')
+        payload = self.build_payload(
+            action='move',
+            metadata={'path': 'pizza'},
+            source={
+                'provider': 'github',
+                'materialized': '/src.txt',
+                'path': '/src.txt',
+                'name': 'src.txt',
+                'nid': self.node._id,
+            },
+            destination={
+                'provider': 'github',
+                'materialized': '/dest.txt',
+                'path': '/dest.txt',
+                'name': 'dest.txt',
+                'nid': self.node._id,
+            },
+            errors=['<InvalidParameters(413, {invalid json})>']
+        )
+        res = self.app.put_json(url, payload, headers={'Content-Type': 'application/json'})
+        assert_equal(res.status_code, 200)
+        assert_true(mock_send_mail.called)
+        assert_true(mock_logger_warning.called)
+        call_args = mock_send_mail.call_args[1]
+        assert_equal(call_args['error_info'], None)
+        assert_equal(mock_send_mail.call_args[0][1], mails.FILE_OPERATION_FAILED)
 
 class TestAddonLogsDifferentProvider(OsfTestCase):
 

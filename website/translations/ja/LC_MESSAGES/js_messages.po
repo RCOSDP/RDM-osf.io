@@ -10841,3 +10841,15 @@ msgstr ""
 "        <li>このアドオンにより、GakuNin RDMプロジェクトは外部サービスに接続されます。このサービスを利用すると、外部サービスの利用規約に拘束されます。GakuNin RDMはサービスおよびその利用について責任を負いません。</li>\n"
 "        <li>このアドオンを利用すると外部サービスにファイルを保存できます。このアドオンに追加したファイルはGakuNin RDM内には保存されません。</li>\n"
 "</ul>\n"
+
+msgid "File「%1$s」is too large (%2$s). Max file size is %3$s."
+msgstr "ファイル「%1$s」は大きすぎます (%2$s)。最大ファイルサイズは %3$s です。"
+
+msgid "You do not have enough available quota."
+msgstr "利用可能なクォータが不足しています。"
+
+msgid "Not enough quota to move/copy the file."
+msgstr "ファイルを移動/コピーするのに十分なクォータがありません。"
+
+msgid "Not enough quota to move/copy. The total size of the folder %1$s."
+msgstr "移動/コピーするための空き容量が足りません。フォルダのサイズは%1$sです。"

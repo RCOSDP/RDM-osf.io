@@ -89,6 +89,10 @@ var OPERATIONS = {
     }
 };
 
+var MESSAGE_MAP = {
+    'quota_exceeded': gettext('You do not have enough available quota.'),
+};
+
 var isInUploadFolderProcess = false;
 var isOngoingUploadFolder = false;
 
@@ -583,6 +587,44 @@ function checkConflictsRename(tb, item, name, cb) {
     cb('replace');
 }
 
+/**
+ * Recursively finds all individual files that exceed maxSizeBytes.
+ * Returns an array of offending item objects.
+ */
+function _findOversizedFiles(item, maxSizeBytes) {
+    var oversized = [];
+    if (item.kind === 'file') {
+        var size = item.data.size || 0;
+        if (size > 0 && size > maxSizeBytes) {
+            oversized.push(item);
+        }
+    } else if (item.kind === 'folder' && item.children && item.children.length > 0) {
+        for (var i = 0; i < item.children.length; i++) {
+            oversized = oversized.concat(_findOversizedFiles(item.children[i], maxSizeBytes));
+        }
+    }
+    return oversized;
+}
+
+/**
+ * Helper function to reject a conflict item (e.g. if file size or quota check fails)
+ * and advance the sync move/copy queue.
+ */
+function _rejectConflictItem(tb, from, to, notRenameOp, conflict) {
+    from.inProgress = false;
+    if (notRenameOp) {
+        addFileStatus(tb, from, false, '', '', conflict);
+        // Use object identity (not data.id): for MOVE, .done() replaces from.data
+        // in-place so from.data.id changes before .always() runs.
+        tb.pendingReadyFiles = (tb.pendingReadyFiles || []).filter(function(file) {
+            return file !== from;
+        });
+        if (!tb.pendingReadyFiles.length) {
+            doSyncMove(tb, to.data.provider);
+        }
+    }
+}
+
 function doItemOp(operation, to, from, rename, conflict) {
     var tb = this;
     // dismiss old modal immediately to prevent button mashing
@@ -626,7 +668,79 @@ function doItemOp(operation, to, from, rename, conflict) {
         return;
     }
 
+    if (operation !== OPERATIONS.RENAME) {
+        var destMaxSize = to.data && to.data.accept && to.data.accept.maxSize;
+        if (destMaxSize) {
+            var maxSizeBytes = destMaxSize * 1000000;
+            var oversizedFiles = _findOversizedFiles(from, maxSizeBytes);
+            if (oversizedFiles.length > 0) {
+                var maxSizeDisplay = $osf.humanFileSize(maxSizeBytes, true);
+                oversizedFiles.forEach(function(oversized) {
+                    var displaySize = $osf.humanFileSize(oversized.data.size, true);
+                    $osf.growl(sprintf(
+                        gettext('File「%1$s」is too large (%2$s). Max file size is %3$s.'),
+                        oversized.data.name, displaySize, maxSizeDisplay
+                    ));
+                });
+                _rejectConflictItem(tb, from, to, notRenameOp, conflict);
+                return;
+            }
+        }
+
+        var destProvider = to.data.provider;
+        if (destProvider === 'osfstorage') {
+            // Sum size of all files in the item being moved/copied
+            var totalMoveSize = 0;
+            if (from.kind === 'file') {
+                totalMoveSize = parseInt(from.data.size, 10) || 0;
+            } else {
+                getAllChildren(from).forEach(function(child) {
+                    if (child.kind === 'file') {
+                        totalMoveSize += parseInt(child.data.size, 10) || 0;
+                    }
+                });
+            }
+
+            if (totalMoveSize > 0) {
+                var quotaResp = $.ajax({
+                    async: false,
+                    method: 'GET',
+                    url: to.data.nodeApiUrl + 'get_creator_quota/'
+                });
+                if (quotaResp.responseJSON) {
+                    var quotaData = quotaResp.responseJSON;
+                    var quotaMsgText = '';
+
+                    if (quotaData.used + totalMoveSize > quotaData.max) {
+                        if (from.kind === 'file') {
+                            quotaMsgText = sprintf(gettext('Not enough quota to move/copy the file.'));
+                        } else {
+                            var folderSize = $osf.humanFileSize(totalMoveSize, true);
+                            quotaMsgText = sprintf(gettext('Not enough quota to move/copy. The total size of the folder %1$s.'), folderSize);
+                        }
+                        from.notify.update(quotaMsgText, 'warning', undefined, 3000);
+                        _rejectConflictItem(tb, from, to, notRenameOp, conflict);
+                        return;
+                    }
+                    if (quotaData.used + totalMoveSize > quotaData.max * window.contextVars.threshold) {
+                        $osf.growl(
+                            gettext('Quota usage alert'),
+                            sprintf(
+                                gettext('You have used more than %1$s%% of your quota.'),
+                                (window.contextVars.threshold * 100)
+                            ),
+                            'warning'
+                        );
+                    }
+                }
+            }
+        }
+    }
+
     var origFrom = Object.assign({}, from);
+    // Must capture before COPY rebinds `from` to a new clone.
+    // .done() replaces from.data in-place, so ID-based filtering breaks for MOVE ops.
+    var originalFrom = from;
     if (operation === OPERATIONS.COPY) {
         from = tb.createItem($.extend(true, {status: operation.status}, from.data), to.id);
     } else {
@@ -731,6 +845,41 @@ function doItemOp(operation, to, from, rename, conflict) {
             from.data.status = undefined;
         }
 
+        if (xhr.status === 413 && xhr.responseJSON && xhr.responseJSON.oversized_files) {
+            var serverMaxSize = xhr.responseJSON.max_size;
+            var destMaxSize = to.data && to.data.accept && to.data.accept.maxSize;
+            var maxSizeDisplay = serverMaxSize ?
+                $osf.humanFileSize(serverMaxSize, true) :
+                (destMaxSize ? $osf.humanFileSize(destMaxSize * 1000000, true) : null);
+            xhr.responseJSON.oversized_files.forEach(function(fileObj) {
+                var displaySize = $osf.humanFileSize(fileObj.size, true);
+                var msg = maxSizeDisplay ?
+                    sprintf(gettext('File「%1$s」is too large (%2$s). Max file size is %3$s.'), fileObj.name, displaySize, maxSizeDisplay) :
+                    sprintf(gettext('File「%1$s」is too large (%2$s).'), fileObj.name, displaySize);
+                $osf.growl(msg);
+            });
+
+            if (notRenameOp) {
+                addFileStatus(tb, from, false, '', '', conflict);
+            }
+            orderFolder.call(tb, from.parent());
+            // NOTE: pendingReadyFiles filter, from.inProgress reset, and doSyncMove
+            // are all handled by .always() below. Do NOT duplicate them here.
+            return;
+        }
+        if (xhr.status === 406 && xhr.responseJSON && xhr.responseJSON.message) {
+            var key = xhr.responseJSON.message_key;
+            var msg = (key && MESSAGE_MAP[key]) ? MESSAGE_MAP[key] : xhr.responseJSON.message;
+            $osf.growl(msg);
+            if (notRenameOp) {
+                addFileStatus(tb, from, false, '', '', conflict);
+            }
+            orderFolder.call(tb, from.parent());
+            // NOTE: pendingReadyFiles filter, from.inProgress reset, and doSyncMove
+            // are all handled by .always() below. Do NOT duplicate them here.
+            return;
+        }
+
         var message;
 
         if (xhr.status !== 500 && xhr.responseJSON && (xhr.responseJSON.message || xhr.responseJSON.message_long)) {
@@ -755,7 +904,9 @@ function doItemOp(operation, to, from, rename, conflict) {
         orderFolder.call(tb, from.parent());
     }).always(function(){
 
-        tb.pendingReadyFiles = (tb.pendingReadyFiles || []).filter(function (file) { return file.data.id !== from.data.id; });
+        // Use object identity: .done() replaces from.data in-place (MOVE op),
+        // making ID-based comparison unreliable by the time .always() runs.
+        tb.pendingReadyFiles = (tb.pendingReadyFiles || []).filter(function (file) { return file !== originalFrom; });
         from.inProgress = false;
         if (notRenameOp && !tb.pendingReadyFiles.length){
             doSyncMove(tb, to.data.provider);
@@ -3365,6 +3516,7 @@ function _dropLogic(event, items, folder) {
 
     if (toMove.conflicts.length > 0) {
         tb.syncFileMoveCache[folder.data.provider].conflicts = tb.syncFileMoveCache[folder.data.provider].conflicts || [];
+        tb.syncFileMoveCache[folder.data.provider].ready = tb.syncFileMoveCache[folder.data.provider].ready || [];
         toMove.conflicts.forEach(function(item) {
             tb.syncFileMoveCache[folder.data.provider].conflicts.push({'item' : item, 'folder' : folder});
         });
