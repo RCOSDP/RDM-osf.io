@@ -13,6 +13,7 @@ const _ = rdmGettext._;
 const ImportDatasetButton = require('./metadataImportDatasetButton.js');
 
 const QuestionPage = require('./metadata-fields.js').QuestionPage;
+const getLocalizedText = require('./util.js').getLocalizedText;
 const WaterButlerCache = require('./wbcache.js').WaterButlerCache;
 const registrations = require('./registration.js');
 const RegistrationSchemas = registrations.RegistrationSchemas;
@@ -283,20 +284,17 @@ function MetadataButtons() {
     self.lastQuestionPage = self.createQuestionPage(
       schema.attributes.schema,
       lastMetadataItem,
-      {
+      Object.assign({}, options, {
         readonly: !((context.projectMetadata || {}).editable) || lastMetadataItem.readonly,
-        multiple: options.multiple,
         context: context,
         filepath: filepath,
         wbcache: context.wbcache,
         fileitem: fileitem
-      }
+      })
     );
     self.lastFields = self.lastQuestionPage.fields;
     container.empty();
-    self.lastFields.forEach(function(field) {
-      container.append(field.element);
-    });
+    container.append(self.lastQuestionPage.container);
     self.lastQuestionPage.validateAll();
   }
 
@@ -335,8 +333,9 @@ function MetadataButtons() {
   }
 
   self.createSchemaSelector = function(targetItem) {
-    const label = $('<label></label>').text(_('Metadata Schema:'));
-    const schema = $('<select></select>');
+    const label = $('<label></label>').text(_('Schema:'))
+      .css({ 'margin-right': '8px', 'margin-bottom': 0, 'white-space': 'nowrap', 'min-width': '8em', 'text-align': 'right' });
+    const schema = $('<select></select>').addClass('form-control');
     const activeSchemas = (self.registrationSchemas.schemas || [])
       .filter(function(s) {
         return s.attributes.active;
@@ -347,7 +346,7 @@ function MetadataButtons() {
     activeSchemas.forEach(function(s) {
       schema.append($('<option></option>')
         .attr('value', s.id)
-        .text(s.attributes.name));
+        .text(getLocalizedText(s.attributes.schema.ui && s.attributes.schema.ui.label) || s.attributes.name));
     });
     var currentSchemaId = null;
     const activeSchemaIds = activeSchemas.map(function(s) {
@@ -364,6 +363,7 @@ function MetadataButtons() {
       schema.val(currentSchemaId);
     }
     const group = $('<div></div>').addClass('form-group')
+      .css({ 'margin-bottom': 0, display: 'flex', 'align-items': 'center' })
       .append(label)
       .append(schema);
     return {
@@ -522,10 +522,12 @@ function MetadataButtons() {
         self.findSchemaById(self.currentSchemaId),
         filepath,
         item,
-        {}
+        { variantContainer: variantSlot }
       );
     });
-    dialog.toolbar.append(selector.group);
+    var variantSlot = $('<div>');
+    var selectorColumn = $('<div>').append(selector.group).append(variantSlot);
+    dialog.toolbar.append(selectorColumn);
     if ((context.projectMetadata || {}).editable && !extraMetadata) {
       const pasteButton = $('<button></button>')
         .addClass('btn btn-default')
@@ -535,9 +537,7 @@ function MetadataButtons() {
         .append(_('Paste from Clipboard'))
         .attr('type', 'button')
         .on('click', self.pasteFromClipboard);
-      dialog.toolbar.append($('<div></div>')
-        .css('display', 'flex')
-        .append(pasteButton));
+      dialog.toolbar.append(pasteButton);
     }
     if (dialog.customHandler) {
       dialog.customHandler.empty();
@@ -567,9 +567,12 @@ function MetadataButtons() {
       self.findSchemaById(self.currentSchemaId),
       filepath,
       item,
-      {}
+      { variantContainer: variantSlot }
     );
     dialog.container.append(fieldContainer);
+    dialog.dialog.one('shown.bs.modal', function() {
+      dialog.dialog.find('.metadata-scroll-area').scrollTop(0);
+    });
     dialog.dialog.modal('show');
   };
 
@@ -602,6 +605,47 @@ function MetadataButtons() {
     const targetItem = targetItems.filter(Boolean)[0] || {};
     const selector = self.createSchemaSelector(targetItem);
     self.currentSchemaId = selector.currentSchemaId;
+
+    // Compute common values and default values for selected files
+    function computeValuesForMultipleEdit(schemaId) {
+      const schema = self.findSchemaById(schemaId);
+      const schemaObj = schema.attributes.schema;
+      const defaultValues = {};
+      const allQids = [];
+      (schemaObj.pages || []).forEach(function(page) {
+        (page.questions || []).forEach(function(question) {
+          allQids.push(question.qid);
+          (question.options || []).forEach(function(opt) {
+            if (opt.default) {
+              defaultValues[question.qid] = opt.text;
+            }
+          });
+        });
+      });
+      const commonValues = {};
+      allQids.forEach(function(qid) {
+        const values = filepaths.map(function(filepath) {
+          const metadata = self.findMetadataByPath(context.nodeId, filepath);
+          if (!metadata) {
+            return defaultValues[qid] || null;
+          }
+          const item = (metadata.items || []).find(function(item) {
+            return item.schema === schemaId;
+          });
+          if (!item) {
+            return defaultValues[qid] || null;
+          }
+          const field = item.data[qid];
+          return (field && field.value) || defaultValues[qid] || null;
+        });
+        const first = values[0];
+        if (first && values.every(function(v) { return v === first; })) {
+          commonValues[qid] = first;
+        }
+      });
+      return {commonValues: commonValues, defaultValues: defaultValues};
+    }
+
     selector.schema.change(function(event) {
       if (event.target.value === self.currentSchemaId) {
         return;
@@ -613,11 +657,13 @@ function MetadataButtons() {
         self.findSchemaById(self.currentSchemaId),
         filepaths,
         items,
-        {multiple: true}
+        Object.assign({multiple: true, variantContainer: variantSlot}, computeValuesForMultipleEdit(self.currentSchemaId))
       );
     });
     dialog.toolbar.empty();
-    dialog.toolbar.append(selector.group);
+    var variantSlot = $('<div>');
+    var selectorColumn = $('<div>').append(selector.group).append(variantSlot);
+    dialog.toolbar.append(selectorColumn);
 
     // container
     dialog.container.empty();
@@ -628,10 +674,12 @@ function MetadataButtons() {
       self.findSchemaById(self.currentSchemaId),
       filepaths,
       items,
-      {multiple: true}
+      Object.assign({multiple: true, variantContainer: variantSlot}, computeValuesForMultipleEdit(self.currentSchemaId))
     );
     dialog.container.append(fieldContainer);
-
+    dialog.dialog.one('shown.bs.modal', function() {
+      dialog.dialog.find('.metadata-scroll-area').scrollTop(0);
+    });
     dialog.dialog.modal('show');
   };
 
@@ -1086,22 +1134,24 @@ function MetadataButtons() {
     );
     self.lastFields = self.lastQuestionPage.fields;
     container.empty();
-    self.lastFields.forEach(function(field) {
-      container.append(field.element);
-    });
+    container.append(self.lastQuestionPage.container);
     self.lastQuestionPage.validateAll();
     const message = $('<div></div>');
     if (self.lastQuestionPage.hasValidationError) {
       message.text(_('There are errors in some fields.')).css('color', 'red');
     }
-    if (self.selectDraftDialog) {
-      self.selectDraftDialog.select.attr('disabled', self.lastQuestionPage.hasValidationError);
-    }
     draftSelectionContainer.empty();
     draftSelectionContainer.append(message);
-    draftSelectionContainer.append(
-      self.createDraftsSelect(schema, self.lastQuestionPage.hasValidationError).css('margin', '1em 0')
-    );
+    const draftsSelect = self.createDraftsSelect(schema, false).css('margin', '1em 0');
+    draftSelectionContainer.append(draftsSelect);
+    if (self.selectDraftDialog) {
+      const updateSelectButton = function() {
+        const hasChecked = draftsSelect.find('input[type="checkbox"]:checked').length > 0;
+        self.selectDraftDialog.select.attr('disabled', !hasChecked);
+      };
+      draftsSelect.find('input[type="checkbox"]').on('change', updateSelectButton);
+      updateSelectButton();
+    }
   };
 
   self.openDraftModal = function(currentMetadata) {
@@ -2159,7 +2209,10 @@ function MetadataButtons() {
     copyToClipboard.on('click', function(event) {
       self.copyToClipboard(event, copyStatus);
     });
-    const toolbar = $('<div></div>');
+    const toolbar = $('<div></div>')
+      .css('display', 'flex')
+      .css('align-items', 'flex-end')
+      .css('margin-bottom', '10px');
     const customHandler = $('<span></span>');
     const container = $('<ul></ul>').css('padding', '0 20px');
     var notice = $('<span></span>');
@@ -2180,9 +2233,11 @@ function MetadataButtons() {
               .append($('<div class="row"></div>')
                 .append($('<div class="col-sm-12"></div>')
                   .append(toolbar))
-                .append($('<div class="col-sm-12"></div>')
+                .append($('<div class="col-sm-12 metadata-scroll-area"></div>')
                   .css('overflow-y', 'scroll')
                   .css('height', '66vh')
+                  .css('background-color', '#fff')
+                  .css('padding-top', '12px')
                   .append(container))))
             .append($('<div class="modal-footer"></div>')
               .css('display', 'flex')
@@ -2225,7 +2280,10 @@ function MetadataButtons() {
           $(dialog).modal('hide');
       });
     });
-    const toolbar = $('<div></div>');
+    const toolbar = $('<div></div>')
+      .css('display', 'flex')
+      .css('align-items', 'flex-end')
+      .css('margin-bottom', '10px');
     const container = $('<ul></ul>').css('padding', '0 20px');
     dialog
       .append($('<div class="modal-dialog modal-lg"></div>')
@@ -2237,9 +2295,11 @@ function MetadataButtons() {
               .append($('<div class="row"></div>')
                 .append($('<div class="col-sm-12"></div>')
                   .append(toolbar))
-                .append($('<div class="col-sm-12"></div>')
+                .append($('<div class="col-sm-12 metadata-scroll-area"></div>')
                   .css('overflow-y', 'scroll')
                   .css('height', '70vh')
+                  .css('background-color', '#fff')
+                  .css('padding-top', '12px')
                   .append(container))))
             .append($('<div class="modal-footer"></div>')
               .css('display', 'flex')

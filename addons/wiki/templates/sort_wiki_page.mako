@@ -14,7 +14,7 @@
                 <div class="modal-body sort-modal-body">
                     <h3 class="sort-title">${_("Wiki Tree")}</h3>
                     <div id="manageWikitree" class="scripted">
-                        <ul class="sort-tree" data-bind="sortable: {template: 'wikitreeRow', data: $root.data, afterMove: $root.afterMove, beforeMove: $root.beforeMove}"></ul>
+                        <ul class="sort-tree" data-bind="sortable: {template: 'wikitreeRow', data: $root.data, afterMove: $root.afterMove, beforeMove: $root.beforeMove, options: { dropOnEmpty: true } }"></ul>
                     </div>
                 </div><!-- end modal-body -->
                 <div class="modal-footer sort-modal-footer">
@@ -41,7 +41,7 @@
     </div>
     <!-- /ko -->
     <!-- ko if: $data.children() -->
-    <ul class="sort-children" data-bind="sortable: { template: 'wikitreeRow', data: $data.children, afterMove: $root.afterMove, beforeMove: $root.beforeMove}"></ul>
+    <ul class="sort-children" data-bind="sortable: { template: 'wikitreeRow', data: $data.children, afterMove: $root.afterMove, beforeMove: $root.beforeMove, options: { dropOnEmpty: true }}"></ul>
     <!-- /ko -->
   </li>
 </script>

@@ -90,6 +90,11 @@ class TestExportDataRestore(TestCase):
         expect_value = dict(self.export_data_location.waterbutler_credentials['storage']).copy()
         nt.assert_equal(res['secret_key'], expect_value['secret_key'])
 
+    def test_serialize_waterbutler_credentials_s3compatsigv4(self):
+        res = self.export_data_location.serialize_waterbutler_credentials('s3compatsigv4')
+        expect_value = dict(self.export_data_location.waterbutler_credentials['storage']).copy()
+        nt.assert_equal(res['secret_key'], expect_value['secret_key'])
+
     def test_serialize_waterbutler_credentials_nextcloudinstitutions(self):
         res = self.export_data_location.serialize_waterbutler_credentials('nextcloudinstitutions')
         nt.assert_equal(res['host'], self.export_data_location.waterbutler_credentials['external_account']['oauth_secret'])
@@ -104,6 +109,10 @@ class TestExportDataRestore(TestCase):
 
     def test_serialize_waterbutler_settings_s3compat(self):
         res = self.export_data_location.serialize_waterbutler_settings('s3compat')
+        nt.assert_equal(res['bucket'], self.export_data_location.waterbutler_settings['storage']['bucket'])
+
+    def test_serialize_waterbutler_settings_s3compatsigv4(self):
+        res = self.export_data_location.serialize_waterbutler_settings('s3compatsigv4')
         nt.assert_equal(res['bucket'], self.export_data_location.waterbutler_settings['storage']['bucket'])
 
     def test_serialize_waterbutler_settings_nextcloudinstitutions(self):

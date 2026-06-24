@@ -1,24 +1,35 @@
 {
     "@metadata": {
-        "filename": "ro-crate-metadata.json"
+        "filename": "ro-crate-metadata.json",
+        "allow_empty_files": false
     },
     "@files": {
         "@type": "object",
         "file[]": {
             ".@type": "File",
             "name": "{{object_filename}}",
-            "encodingFormat": "{{object_format}}"
+            "jpcoar:mimeType": "{{object_format}}",
+            "jpcoar:format": "preview",
+            "dcterms:accessRights": "{% if object_grdm_file_access_rights == 'open access' %}open_access{% elif object_grdm_file_access_rights == 'restricted access' %}open_login{% elif object_grdm_file_access_rights == 'embargoed access' %}open_date{% elif object_grdm_file_file_type == 'manuscript' %}open_access{% else %}open_no{% endif %}",
+            "datePublished": "{{nowdate}}",
+            "datacite:date[]": {
+                "@createIf": "{% if object_grdm_file_access_rights == 'embargoed access' %}{{object_grdm_file_available_date}}{% endif %}",
+                ".@type": "Date",
+                "value": "{{object_grdm_file_available_date}}",
+                "dateType": "Available"
+            }
         }
     },
     "@projects": {
         "@type": "object",
-        "root.fundingReference[]": {
-            ".@type": "jpcoar:fundingReference",
+        "root.jpcoar:fundingReference[]": {
+            "@createIf": "{{funder_value}}{{funding_stream_code_value}}{{japan_grant_number_value}}{{project_name_ja_value}}{{project_name_en_value}}{{program_name_ja_value}}{{program_name_en_value}}",
+            ".@type": "PropertyValue",
             "jpcoar:funderIdentifier": {
-                "@createIf": "{{ funder_value }}",
+                "@createIf": "{{ funder_value | to_funder_ror_id }}",
                 ".@type": "jpcoar:funderIdentifier",
-                "jpcoar:funderIdentifierType": "e-Rad_funder",
-                "value": "{{funder_value}}"
+                "jpcoar:funderIdentifierType": "ROR",
+                "value": "{{ funder_value | to_funder_ror_id }}"
             },
             "jpcoar:funderName[FUNDER_NAME_JA]": {
                 "@createIf": "{{ funder_value }}",
@@ -70,396 +81,677 @@
             }
         }
     },
+    "additional-funding": {
+        "@type": "jsonarray",
+        "root.jpcoar:fundingReference[]": {
+            "@createIf": "{{object_funder}}{{object_funding_stream_code}}{{object_japan_grant_number}}{{object_project_name_ja}}{{object_project_name_en}}{{object_program_name_ja}}{{object_program_name_en}}",
+            ".@type": "PropertyValue",
+            "jpcoar:funderIdentifier": {
+                "@createIf": "{{ object_funder | to_funder_ror_id }}",
+                ".@type": "jpcoar:funderIdentifier",
+                "jpcoar:funderIdentifierType": "ROR",
+                "value": "{{ object_funder | to_funder_ror_id }}"
+            },
+            "jpcoar:funderName[FUNDER_NAME_JA]": {
+                "@createIf": "{{ object_funder }}",
+                ".@type": "PropertyValue",
+                "value": "{{object_funder_tooltip_0}}({{object_funder}})",
+                "language": "ja"
+            },
+            "jpcoar:funderName[FUNDER_NAME_EN]": {
+                "@createIf": "{{ object_funder }}",
+                ".@type": "PropertyValue",
+                "value": "{{object_funder_tooltip_1}}({{object_funder}})",
+                "language": "en"
+            },
+            "jpcoar:fundingStreamIdentifier": {
+                "@createIf": "{{ object_funding_stream_code }}",
+                ".@type": "jpcoar:fundingStreamIdentifier",
+                "value": "{{object_funding_stream_code}}",
+                "jpcoar:fundingStreamIdentifierType": "JGN_fundingStream"
+            },
+            "jpcoar:fundingStream[FUNDING_STREAM_JA]": {
+                "@createIf": "{{ object_program_name_ja }}",
+                ".@type": "PropertyValue",
+                "value": "{{object_program_name_ja}}",
+                "language": "ja"
+            },
+            "jpcoar:fundingStream[FUNDING_STREAM_EN]": {
+                "@createIf": "{{ object_program_name_en }}",
+                ".@type": "PropertyValue",
+                "value": "{{object_program_name_en}}",
+                "language": "en"
+            },
+            "jpcoar:awardNumber": {
+                "@createIf": "{{ object_japan_grant_number }}",
+                ".@type": "jpcoar:awardNumber",
+                "jpcoar:awardNumberType": "JGN",
+                "value": "{{object_japan_grant_number}}"
+            },
+            "jpcoar:awardTitle[PROJECT_NAME_JA]": {
+                "@createIf": "{{ object_project_name_ja }}",
+                ".@type": "PropertyValue",
+                "language": "ja",
+                "value": "{{object_project_name_ja}}"
+            },
+            "jpcoar:awardTitle[PROJECT_NAME_EN]": {
+                "@createIf": "{{ object_project_name_en }}",
+                ".@type": "PropertyValue",
+                "language": "en",
+                "value": "{{object_project_name_en}}"
+            }
+        }
+    },
     "grdm-file:data-number": {
         "@type": "string",
-        "@createIf": "{{value}}"
+        "@createIf": "{% if grdm_file_file_type_value != \"manuscript\" %}{{value}}{% endif %}"
     },
     "grdm-file:title-ja": {
         "@type": "string",
         "@createIf": "{{value}}",
-        "root.rdm:name": {
-            ".@type": "Thing",
-            "value[]": [
-                {
-                    ".@type": "PropertyValue",
-                    "value": "{{value}}",
-                    "language": "ja"
-                }
-            ]
+        "root.dc:title[TITLE_JA]": {
+            ".@type": "PropertyValue",
+            "value": "{{value}}",
+            "language": "ja"
         }
     },
     "grdm-file:title-en": {
         "@type": "string",
         "@createIf": "{{value}}",
-        "root.rdm:name": {
-            ".@type": "Thing",
-            "value[]": [
-                {
-                    ".@type": "PropertyValue",
-                    "value": "{{value}}",
-                    "language": "en"
-                }
-            ]
+        "root.dc:title[TITLE_EN]": {
+            ".@type": "PropertyValue",
+            "value": "{{value}}",
+            "language": "en"
         }
     },
     "grdm-file:date-issued-updated": null,
     "grdm-file:data-description-ja": {
         "@type": "string",
-        "@createIf": "{{value}}",
-        "root.rdm:description": {
-            ".@type": "Thing",
-            "value[]": [
-                {
-                    ".@type": "PropertyValue",
-                    "value": "{{value}}",
-                    "language": "ja"
-                }
-            ]
+        "@createIf": "{% if grdm_file_file_type_value != \"manuscript\" %}{{value}}{% endif %}",
+        "root.datacite:description[ABSTRACT_JA]": {
+            ".@type": "PropertyValue",
+            "descriptionType": "Abstract",
+            "value": "{{value}}",
+            "language": "ja"
         }
     },
     "grdm-file:data-description-en": {
         "@type": "string",
-        "@createIf": "{{value}}",
-        "root.rdm:description": {
-            ".@type": "Thing",
-            "value[]": [
-                {
-                    ".@type": "PropertyValue",
-                    "value": "{{value}}",
-                    "language": "en"
-                }
-            ]
+        "@createIf": "{% if grdm_file_file_type_value != \"manuscript\" %}{{value}}{% endif %}",
+        "root.datacite:description[ABSTRACT_EN]": {
+            ".@type": "PropertyValue",
+            "descriptionType": "Abstract",
+            "value": "{{value}}",
+            "language": "en"
         }
     },
     "grdm-file:data-research-field": {
         "@type": "string",
-        "@createIf": "{{grdm_file_data_research_field_value}}{{project_research_field_value}}",
-        "root.rdm:field[]": {
-            ".@type": "Thing",
-            "value[RESEARCH_FIELD_JA]": {
-                ".@type": "PropertyValue",
-                "name": "e-Rad_field",
-                "value": "{% if grdm_file_data_research_field_value != \"project\" %}{{grdm_file_data_research_field_tooltip_0}}{% else %}{{project_research_field_tooltip_0}}{% endif %}",
-                "language": "ja"
-            },
-            "value[RESEARCH_FIELD_EN]": {
-                ".@type": "PropertyValue",
-                "name": "e-Rad_field",
-                "value": "{% if grdm_file_data_research_field_value != \"project\" %}{{grdm_file_data_research_field_tooltip_1}}{% else %}{{project_research_field_tooltip_1}}{% endif %}",
-                "language": "en"
-            }
+        "@createIf": "{% if grdm_file_file_type_value != \"manuscript\" %}{{grdm_file_data_research_field_value}}{{project_research_field_value}}{% endif %}",
+        "root.jpcoar:subject[RESEARCH_FIELD_JA]": {
+            "@createIf": "{% if grdm_file_data_research_field_value != \"project\" %}{{grdm_file_data_research_field_tooltip_0}}{% else %}{{project_research_field_tooltip_0}}{% endif %}",
+            ".@type": "PropertyValue",
+            "value": "{% if grdm_file_data_research_field_value != \"project\" %}{{grdm_file_data_research_field_tooltip_0}}{% else %}{{project_research_field_tooltip_0}}{% endif %}",
+            "language": "ja",
+            "subjectScheme": "e-Rad_field"
+        },
+        "root.jpcoar:subject[RESEARCH_FIELD_EN]": {
+            "@createIf": "{% if grdm_file_data_research_field_value != \"project\" %}{{grdm_file_data_research_field_tooltip_1}}{% else %}{{project_research_field_tooltip_1}}{% endif %}",
+            ".@type": "PropertyValue",
+            "value": "{% if grdm_file_data_research_field_value != \"project\" %}{{grdm_file_data_research_field_tooltip_1}}{% else %}{{project_research_field_tooltip_1}}{% endif %}",
+            "language": "en",
+            "subjectScheme": "e-Rad_field"
         }
     },
     "grdm-file:data-type": {
         "@type": "string",
-        "@createIf": "{{value}}",
-        "root": {
-            "dc:type": "{{value}}"
+        "@createIf": "{% if grdm_file_file_type_value != \"manuscript\" %}{{value}}{% endif %}",
+        "root.dc:type": {
+            ".@type": "PropertyValue",
+            "value": "{{ value }}",
+            "rdf:resource": "{{ value | to_resource_type_uri }}"
         }
     },
     "grdm-file:file-size": {
         "@type": "string",
-        "@createIf": "{{value}}"
+        "@createIf": "{% if grdm_file_file_type_value != \"manuscript\" %}{{value}}{% endif %}"
     },
     "grdm-file:data-policy-free": {
         "@type": "string",
-        "@createIf": "{{value}}",
-        "root.rdm:licenseInformation[]": [
-            {
-                ".@type": "rdm:License",
-                "ams:dataPolicyFree": "{{tooltip_1}}"
-            }
-        ]
+        "@createIf": "{% if grdm_file_file_type_value != \"manuscript\" %}{{value}}{% endif %}",
+        "root.dc:rights[RIGHTS_TEXT_JA]": {
+            ".@type": "PropertyValue",
+            "value": "{{tooltip_0}}",
+            "language": "ja"
+        },
+        "root.dc:rights[RIGHTS_TEXT_EN]": {
+            ".@type": "PropertyValue",
+            "value": "{{tooltip_1}}",
+            "language": "en"
+        }
     },
     "grdm-file:data-policy-license": {
         "@type": "string",
-        "@createIf": "{{value}}",
-        "root.license": [
-            {
-                "@createIf": "{% if (value | has_license_def_for_jpcoar2) %}yes{% endif %}",
-                ".@type[]": ["rdm:License", "CreativeWork"],
-                "name": "{% if (value | to_normalized_en_license_name_for_jpcoar2) %}{{ value | to_normalized_en_license_name_for_jpcoar2 }}{% else %}{{ value | to_normalized_ja_license_name_for_jpcoar2 }}{% endif %}",
-                "rdm:name[]": [
-                    {
-                        "@createIf": "{{ value | to_normalized_ja_license_name_for_jpcoar2 }}",
-                        ".@type": "PropertyValue",
-                        "value": "{{ value | to_normalized_ja_license_name_for_jpcoar2 }}",
-                        "language": "ja"
-                    },
-                    {
-                        "@createIf": "{{ value | to_normalized_en_license_name_for_jpcoar2 }}",
-                        ".@type": "PropertyValue",
-                        "value": "{{ value | to_normalized_en_license_name_for_jpcoar2 }}",
-                        "language": "en"
-                    }
-                ],
-                "rdm:url": "{{ value | to_license_url_for_jpcoar2 }}"
-            },
-            {
-                "@createIf": "{% if not (value | has_license_def_for_jpcoar2) %}yes{% endif %}",
-                ".@type[]": ["rdm:License", "CreativeWork"],
-                "name": "{{tooltip_1}}",
-                "rdm:name[]": [
-                    {
-                        ".@type": "PropertyValue",
-                        "value": "{{tooltip_0}}",
-                        "language": "ja"
-                    },
-                    {
-                        ".@type": "PropertyValue",
-                        "value": "{{tooltip_1}}",
-                        "language": "en"
-                    }
-                ]
-            }
-        ]
+        "@createIf": "{% if grdm_file_file_type_value != \"manuscript\" %}{{value}}{% endif %}",
+        "root.dc:rights[RIGHTS_JA]": {
+            "@createIf": "{{ value }}",
+            ".@type": "PropertyValue",
+            "value": "{{ (value | to_normalized_ja_license_name_for_jpcoar2) or tooltip_0 or value }}",
+            "language": "ja",
+            "rdf:resource": "{{ value | to_license_url_for_jpcoar2 or '' }}"
+        },
+        "root.dc:rights[RIGHTS_EN]": {
+            "@createIf": "{{ value }}",
+            ".@type": "PropertyValue",
+            "value": "{{ (value | to_normalized_en_license_name_for_jpcoar2) or tooltip_1 or value }}",
+            "language": "en",
+            "rdf:resource": "{{ value | to_license_url_for_jpcoar2 or '' }}"
+        }
     },
     "grdm-file:data-policy-cite-ja": {
         "@type": "string",
-        "@createIf": "{{value}}",
-        "root.rdm:licenseInformation[]": [
-            {
-                ".@type": "rdm:License",
-                "memo": "TODO",
-                "subitem_rights": "{{value}}",
-                "subitem_rights_language": "ja"
-            }
-        ]
+        "@createIf": "{% if grdm_file_file_type_value != \"manuscript\" %}{{value}}{% endif %}",
+        "root.dc:rights[CITATION_JA]": {
+            ".@type": "PropertyValue",
+            "value": "{{value}}",
+            "language": "ja"
+        }
     },
     "grdm-file:data-policy-cite-en": {
         "@type": "string",
-        "@createIf": "{{value}}",
-        "root.rdm:licenseInformation[]": [
-            {
-                ".@type": "rdm:License",
-                "memo": "TODO",
-                "subitem_rights": "{{value}}",
-                "subitem_rights_language": "en"
-            }
-        ]
+        "@createIf": "{% if grdm_file_file_type_value != \"manuscript\" %}{{value}}{% endif %}",
+        "root.dc:rights[CITATION_EN]": {
+            ".@type": "PropertyValue",
+            "value": "{{value}}",
+            "language": "en"
+        }
     },
     "grdm-file:access-rights": {
         "@type": "string",
-        "@createIf": "{{value}}",
-        "root.rdm:accessRightsInformation[0]": {
-            ".@type": "rdm:AccessRights",
-            "rdm:conditionOfAccess": {
-                ".@id": "{% if value == \"embargoed\" %}https://purl.org/rdm/ontology/EmbargoedAccess{% else %}TODO{% endif %}"
-            }
+        "@createIf": "{% if grdm_file_file_type_value != \"manuscript\" %}{{value}}{% endif %}",
+        "root.dcterms:accessRights[]": {
+            ".@type": "PropertyValue",
+            "value": "{{ value }}",
+            "rdf:resource": "{{ value | to_access_rights_uri or '' }}"
         }
     },
     "grdm-file:available-date": {
         "@type": "string",
-        "@createIf": "{{value}}",
-        "root.rdm:accessRightsInformation[0]": {
-            "rdm:dateAvailable": "{{value}}"
+        "@createIf": "{% if grdm_file_file_type_value != \"manuscript\" %}{{value}}{% endif %}",
+        "root.datacite:date[AVAILABLE]": {
+            ".@type": "Date",
+            "value": "{{value}}",
+            "dateType": "Available"
         }
     },
     "grdm-file:repo-information-ja": null,
     "grdm-file:repo-information-en": null,
     "grdm-file:repo-url-doi-link": null,
-    "grdm-file:creators": {
+    "grdm-file:doi": {
+        "@type": "string",
+        "@createIf": "{% if grdm_file_file_type_value == \"manuscript\" %}{{value}}{% endif %}",
+        "root.jpcoar:relation[]": {
+            ".@type": "PropertyValue",
+            "jpcoar:relationType": "{% if grdm_file_version_value == 'VoR' %}isIdenticalTo{% else %}isVersionOf{% endif %}",
+            "jpcoar:relatedIdentifier": {
+                ".@type": "PropertyValue",
+                "identifierType": "DOI",
+                "value": "https://doi.org/{{value}}"
+            }
+        }
+    },
+    "grdm-file:manuscript-type": {
+        "@type": "string",
+        "@createIf": "{% if grdm_file_file_type_value == \"manuscript\" %}{{value}}{% endif %}",
+        "root.dc:type": {
+            ".@type": "PropertyValue",
+            "value": "{{value}}",
+            "rdf:resource": "{{value | to_manuscript_type_uri}}"
+        }
+    },
+    "grdm-file:authors": {
         "@type": "array",
-        "root.creator[]": {
+        "@createIf": "{% if grdm_file_file_type_value == \"manuscript\" %}true{% endif %}",
+        "root.jpcoar:creator[]": {
             ".@type": "Person",
-            "identifier[]": {
+            "jpcoar:nameIdentifier[]": {
                 "@createIf": "{{object_number}}",
-                ".@type": "jpcoar:nameIdentifierType",
+                ".@type": "Person",
                 "value": "{{object_number}}",
-                "jpcoar:nameIdentifierScheme": "e-Rad_Researcher"
+                "nameIdentifierScheme": "e-Rad_Researcher"
             },
-            "name": "{% if object_name_en %}{{object_name_en}}{% elif object_name_ja %}{{object_name_ja}}{% endif %}",
-            "rdm:name[]": [
-                {
-                    "@createIf": "{{object_name_ja}}",
+            "jpcoar:creatorName[CREATOR_NAME_JA]": {
+                "@createIf": "{{object_name_ja_last}}{{object_name_ja_middle}}{{object_name_ja_first}}",
+                ".@type": "Person",
+                "value": "{{object_name_ja_last}}, {{object_name_ja_middle}}{% if object_name_ja_middle %} {% endif %}{{object_name_ja_first}}",
+                "language": "ja"
+            },
+            "jpcoar:creatorName[CREATOR_NAME_EN]": {
+                "@createIf": "{{object_name_en_last}}{{object_name_en_middle}}{{object_name_en_first}}",
+                ".@type": "Person",
+                "value": "{{object_name_en_last}}, {{object_name_en_middle}}{% if object_name_en_middle %} {% endif %}{{object_name_en_first}}",
+                "language": "en"
+            },
+            "jpcoar:familyName[FAMILY_NAME_JA]": {
+                "@createIf": "{{object_name_ja_last}}",
+                ".@type": "Person",
+                "value": "{{object_name_ja_last}}",
+                "language": "ja"
+            },
+            "jpcoar:familyName[FAMILY_NAME_EN]": {
+                "@createIf": "{{object_name_en_last}}",
+                ".@type": "Person",
+                "value": "{{object_name_en_last}}",
+                "language": "en"
+            },
+            "jpcoar:givenName[GIVEN_NAME_JA]": {
+                "@createIf": "{{object_name_ja_middle}}{{object_name_ja_first}}",
+                ".@type": "Person",
+                "value": "{{object_name_ja_middle}}{% if object_name_ja_middle %} {% endif %}{{object_name_ja_first}}",
+                "language": "ja"
+            },
+            "jpcoar:givenName[GIVEN_NAME_EN]": {
+                "@createIf": "{{object_name_en_middle}}{{object_name_en_first}}",
+                ".@type": "Person",
+                "value": "{{object_name_en_middle}}{% if object_name_en_middle %} {% endif %}{{object_name_en_first}}",
+                "language": "en"
+            },
+            "jpcoar:affiliation[AFFILIATION]": {
+                "@createIf": "{{object_affiliation_name_ja}}{{object_affiliation_name_en}}",
+                ".@type": "Organization",
+                "jpcoar:affiliationName[AFFILIATION_NAME_JA]": {
+                    "@createIf": "{{object_affiliation_name_ja}}",
                     ".@type": "PropertyValue",
-                    "value": "{{object_name_ja}}",
+                    "value": "{{object_affiliation_name_ja}}",
                     "language": "ja"
                 },
-                {
-                    "@createIf": "{{object_name_en}}",
+                "jpcoar:affiliationName[AFFILIATION_NAME_EN]": {
+                    "@createIf": "{{object_affiliation_name_en}}",
                     ".@type": "PropertyValue",
-                    "value": "{{object_name_en}}",
+                    "value": "{{object_affiliation_name_en}}",
                     "language": "en"
                 }
-            ]
+            }
+        }
+    },
+    "grdm-file:journal-name-ja": {
+        "@type": "string",
+        "@createIf": "{% if grdm_file_file_type_value == \"manuscript\" %}{{value}}{% endif %}",
+        "root.jpcoar:sourceTitle[SOURCE_TITLE_JA]": {
+            ".@type": "PropertyValue",
+            "value": "{{value}}",
+            "language": "ja"
+        }
+    },
+    "grdm-file:journal-name-en": {
+        "@type": "string",
+        "@createIf": "{% if grdm_file_file_type_value == \"manuscript\" %}{{value}}{% endif %}",
+        "root.jpcoar:sourceTitle[SOURCE_TITLE_EN]": {
+            ".@type": "PropertyValue",
+            "value": "{{value}}",
+            "language": "en"
+        }
+    },
+    "grdm-file:date-published": {
+        "@type": "string",
+        "@createIf": "{% if grdm_file_file_type_value == \"manuscript\" %}{{value}}{% endif %}",
+        "root.datacite:date[ISSUED]": {
+            ".@type": "Date",
+            "value": "{{value}}",
+            "dateType": "Issued"
+        }
+    },
+    "grdm-file:volume": {
+        "@type": "string",
+        "@createIf": "{% if grdm_file_file_type_value == \"manuscript\" %}{{value}}{% endif %}",
+        "root.jpcoar:volume": {
+            ".@type": "PropertyValue",
+            "value": "{{value}}"
+        }
+    },
+    "grdm-file:issue": {
+        "@type": "string",
+        "@createIf": "{% if grdm_file_file_type_value == \"manuscript\" %}{{value}}{% endif %}",
+        "root.jpcoar:issue": {
+            ".@type": "PropertyValue",
+            "value": "{{value}}"
+        }
+    },
+    "grdm-file:page-start": {
+        "@type": "string",
+        "@createIf": "{% if grdm_file_file_type_value == \"manuscript\" %}{{value}}{% endif %}",
+        "root.jpcoar:pageStart": {
+            ".@type": "PropertyValue",
+            "value": "{{value}}"
+        }
+    },
+    "grdm-file:page-end": {
+        "@type": "string",
+        "@createIf": "{% if grdm_file_file_type_value == \"manuscript\" %}{{value}}{% endif %}",
+        "root.jpcoar:pageEnd": {
+            ".@type": "PropertyValue",
+            "value": "{{value}}"
+        }
+    },
+    "grdm-file:version grdm-file:reviewed": {
+        "@type": "string",
+        "@createIf": "{% if grdm_file_file_type_value == \"manuscript\" %}{{grdm_file_version_value}}{% endif %}",
+        "root.oaire:version": {
+            ".@type": "PropertyValue",
+            "value": "{{grdm_file_version_value}}",
+            "rdf:resource": "{{grdm_file_version_value | to_version_type_uri}}",
+            "itemReviewed": "{% if grdm_file_reviewed_value == \"yes\" %}Peer reviewed{% else %}Not peer reviewed{% endif %}"
+        }
+    },
+    "grdm-file:publication-link": {
+        "@type": "string",
+        "@createIf": "{% if grdm_file_file_type_value != \"manuscript\" %}{{value}}{% endif %}",
+        "root.jpcoar:relation[]": {
+            ".@type": "PropertyValue",
+            "jpcoar:relationType": "isSupplementTo",
+            "jpcoar:relatedIdentifier": {
+                ".@type": "PropertyValue",
+                "identifierType": "DOI",
+                "value": "https://doi.org/{{value}}"
+            }
+        }
+    },
+    "grdm-file:dataset-link": {
+        "@type": "string",
+        "@createIf": "{% if grdm_file_file_type_value == \"manuscript\" %}{{value}}{% endif %}",
+        "root.jpcoar:relation[]": {
+            ".@type": "PropertyValue",
+            "jpcoar:relationType": "isSupplementedBy",
+            "jpcoar:relatedIdentifier": {
+                ".@type": "PropertyValue",
+                "identifierType": "DOI",
+                "value": "https://doi.org/{{value}}"
+            }
+        }
+    },
+    "grdm-file:creators": {
+        "@type": "array",
+        "@createIf": "{% if grdm_file_file_type_value != \"manuscript\" %}true{% endif %}",
+        "root.jpcoar:creator[]": {
+            ".@type": "Person",
+            "jpcoar:nameIdentifier[]": {
+                "@createIf": "{{object_number}}",
+                ".@type": "Person",
+                "value": "{{object_number}}",
+                "nameIdentifierScheme": "e-Rad_Researcher"
+            },
+            "jpcoar:creatorName[CREATOR_NAME_JA]": {
+                "@createIf": "{{object_name_ja_last}}{{object_name_ja_middle}}{{object_name_ja_first}}",
+                ".@type": "Person",
+                "value": "{{object_name_ja_last}}{% if object_name_ja_first %}, {{object_name_ja_middle}}{% if object_name_ja_middle %} {% endif %}{{object_name_ja_first}}{% endif %}",
+                "language": "ja"
+            },
+            "jpcoar:creatorName[CREATOR_NAME_EN]": {
+                "@createIf": "{{object_name_en_last}}{{object_name_en_middle}}{{object_name_en_first}}",
+                ".@type": "Person",
+                "value": "{{object_name_en_last}}{% if object_name_en_first %}, {{object_name_en_middle}}{% if object_name_en_middle %} {% endif %}{{object_name_en_first}}{% endif %}",
+                "language": "en"
+            },
+            "jpcoar:familyName[FAMILY_NAME_JA]": {
+                "@createIf": "{% if object_name_ja_last and object_name_ja_first %}true{% endif %}",
+                ".@type": "Person",
+                "value": "{{object_name_ja_last}}",
+                "language": "ja"
+            },
+            "jpcoar:familyName[FAMILY_NAME_EN]": {
+                "@createIf": "{% if object_name_en_last and object_name_en_first %}true{% endif %}",
+                ".@type": "Person",
+                "value": "{{object_name_en_last}}",
+                "language": "en"
+            },
+            "jpcoar:givenName[GIVEN_NAME_JA]": {
+                "@createIf": "{{object_name_ja_middle}}{{object_name_ja_first}}",
+                ".@type": "Person",
+                "value": "{{object_name_ja_middle}}{% if object_name_ja_middle %} {% endif %}{{object_name_ja_first}}",
+                "language": "ja"
+            },
+            "jpcoar:givenName[GIVEN_NAME_EN]": {
+                "@createIf": "{{object_name_en_middle}}{{object_name_en_first}}",
+                ".@type": "Person",
+                "value": "{{object_name_en_middle}}{% if object_name_en_middle %} {% endif %}{{object_name_en_first}}",
+                "language": "en"
+            },
+            "jpcoar:affiliation[]": {
+                "@createIf": "{{object_affiliation_name_ja}}{{object_affiliation_name_en}}",
+                "jpcoar:affiliationName[AFFILIATION_JA]": {
+                    "@createIf": "{{object_affiliation_name_ja}}",
+                    "value": "{{object_affiliation_name_ja}}",
+                    "language": "ja"
+                },
+                "jpcoar:affiliationName[AFFILIATION_EN]": {
+                    "@createIf": "{{object_affiliation_name_en}}",
+                    "value": "{{object_affiliation_name_en}}",
+                    "language": "en"
+                }
+            }
         }
     },
     "grdm-file:hosting-inst-ja": {
         "@type": "string",
-        "@createIf": "{{value}}",
-        "root.contributor[HOSTING_INSTITUTION]": {
+        "@createIf": "{% if grdm_file_file_type_value != \"manuscript\" %}{{value}}{% endif %}",
+        "root.jpcoar:contributor[HOSTING_INSTITUTION]": {
             ".@type": "Organization",
             "additionalType": {
                 ".@id": "https://github.com/JPCOAR/schema/blob/master/2.0/#HostingInstitution"
             },
-            "name": "{% if grdm_file_hosting_inst_en_value %}{{grdm_file_hosting_inst_en_value}}{% else %}{{value}}{% endif %}",
-            "rdm:name[]": [
-                {
-                    ".@type": "PropertyValue",
-                    "value": "{{value}}",
-                    "language": "ja"
-                }
-            ]
+            "jpcoar:contributorType": "HostingInstitution",
+            "jpcoar:contributorName[HOSTING_INSTITUTION_JA]": {
+                "@createIf": "{{value}}",
+                ".@type": "Organization",
+                "value": "{{value}}",
+                "language": "ja",
+                "nameType": "Organizational"
+            }
         }
     },
     "grdm-file:hosting-inst-en": {
         "@type": "string",
-        "@createIf": "{{value}}",
-        "root.contributor[HOSTING_INSTITUTION]": {
+        "@createIf": "{% if grdm_file_file_type_value != \"manuscript\" %}{{value}}{% endif %}",
+        "root.jpcoar:contributor[HOSTING_INSTITUTION]": {
             ".@type": "Organization",
             "additionalType": {
                 ".@id": "https://github.com/JPCOAR/schema/blob/master/2.0/#HostingInstitution"
             },
-            "name": "{{value}}",
-            "rdm:name[]": [
-                {
-                    ".@type": "PropertyValue",
-                    "value": "{{value}}",
-                    "language": "en"
-                }
-            ]
+            "jpcoar:contributorType": "HostingInstitution",
+            "jpcoar:contributorName[HOSTING_INSTITUTION_EN]": {
+                "@createIf": "{{value}}",
+                ".@type": "Organization",
+                "value": "{{value}}",
+                "language": "en",
+                "nameType": "Organizational"
+            }
         }
     },
     "grdm-file:hosting-inst-id": {
         "@type": "string",
-        "@createIf": "{{value}}",
-        "root.contributor[HOSTING_INSTITUTION]": {
+        "@createIf": "{% if grdm_file_file_type_value != \"manuscript\" %}{{value}}{% endif %}",
+        "root.jpcoar:contributor[HOSTING_INSTITUTION]": {
             ".@type": "Organization",
             "additionalType": {
                 ".@id": "https://github.com/JPCOAR/schema/blob/master/2.0/#HostingInstitution"
             },
-            "identifier": {
-                ".@type": "jpcoar:nameIdentifierType",
-                "jpcoar:nameIdentifierScheme": "ROR",
-                "value": "{{value}}"
+            "jpcoar:contributorType": "HostingInstitution",
+            "jpcoar:nameIdentifier[]": {
+                ".@type": "Organization",
+                "value": "{{value}}",
+                "nameIdentifierScheme": "ROR"
             }
         }
     },
     "grdm-file:data-man-type": null,
     "grdm-file:data-man-number": {
         "@type": "string",
-        "@createIf": "{% if grdm_file_data_man_type_value == \"individual\" %}{{value}}{% endif %}",
-        "root.contributor[DATA_MANAGER]": {
+        "@createIf": "{% if grdm_file_data_man_type_value == \"individual\" and grdm_file_file_type_value != \"manuscript\" %}{{value}}{% endif %}",
+        "root.jpcoar:contributor[DATA_MANAGER]": {
             ".@type": "Person",
             "additionalType": {
                 ".@id": "https://github.com/JPCOAR/schema/blob/master/2.0/#DataManager"
             },
-            "identifier[]": {
-                "@createIf": "{{object_number}}",
-                ".@type": "jpcoar:nameIdentifierType",
-                "value": "{{object_number}}",
-                "jpcoar:nameIdentifierScheme": "e-Rad_Researcher"
+            "jpcoar:contributorType": "DataManager",
+            "jpcoar:nameIdentifier[]": {
+                ".@type": "Person",
+                "value": "{{value}}",
+                "nameIdentifierScheme": "e-Rad_Researcher"
             }
         }
     },
     "grdm-file:data-man-name-ja": {
-        "@type": "string",
-        "@createIf": "{% if grdm_file_data_man_type_value == \"individual\" %}{{value}}{% endif %}",
-        "root.contributor[DATA_MANAGER]": {
+        "@type": "object",
+        "@createIf": "{% if grdm_file_data_man_type_value == \"individual\" and grdm_file_file_type_value != \"manuscript\" %}{{object_last}}{% endif %}",
+        "root.jpcoar:contributor[DATA_MANAGER]": {
             ".@type": "Person",
             "additionalType": {
                 ".@id": "https://github.com/JPCOAR/schema/blob/master/2.0/#DataManager"
             },
-            "name": "{% if grdm_file_data_man_name_en_value %}{{grdm_file_data_man_name_en_value}}{% else %}{{value}}{% endif %}",
-            "rdm:name[]": [
-                {
+            "jpcoar:contributorType": "DataManager",
+            "jpcoar:contributorName[DATA_MANAGER_JA]": {
+                "@createIf": "{{object_last}}",
+                ".@type": "Person",
+                "value": "{{object_last}}{% if object_first %}, {{object_middle}}{% if object_middle %} {% endif %}{{object_first}}{% endif %}",
+                "language": "ja"
+            },
+            "jpcoar:familyName[DATA_MANAGER_FAMILY_NAME_JA]": {
+                "@createIf": "{% if object_last and object_first %}true{% endif %}",
+                ".@type": "Person",
+                "value": "{{object_last}}",
+                "language": "ja"
+            },
+            "jpcoar:givenName[DATA_MANAGER_GIVEN_NAME_JA]": {
+                "@createIf": "{{object_middle}}{{object_first}}",
+                ".@type": "Person",
+                "value": "{{object_middle}}{% if object_middle %} {% endif %}{{object_first}}",
+                "language": "ja"
+            },
+            "jpcoar:affiliation[DATA_MANAGER_AFFILIATION]": {
+                "@createIf": "{{grdm_file_data_man_org_ja_value}}",
+                ".@type": "Organization",
+                "jpcoar:affiliationName[DATA_MANAGER_AFFILIATION_NAME_JA]": {
+                    "@createIf": "{{grdm_file_data_man_org_ja_value}}",
                     ".@type": "PropertyValue",
-                    "value": "{{value}}",
+                    "value": "{{grdm_file_data_man_org_ja_value}}",
                     "language": "ja"
                 }
-            ]
+            }
         }
     },
     "grdm-file:data-man-name-en": {
-        "@type": "string",
-        "@createIf": "{% if grdm_file_data_man_type_value == \"individual\" %}{{value}}{% endif %}",
-        "root.contributor[DATA_MANAGER]": {
+        "@type": "object",
+        "@createIf": "{% if grdm_file_data_man_type_value == \"individual\" and grdm_file_file_type_value != \"manuscript\" %}{{object_last}}{% endif %}",
+        "root.jpcoar:contributor[DATA_MANAGER]": {
             ".@type": "Person",
             "additionalType": {
                 ".@id": "https://github.com/JPCOAR/schema/blob/master/2.0/#DataManager"
             },
-            "name": "{{value}}",
-            "rdm:name[]": [
-                {
+            "jpcoar:contributorType": "DataManager",
+            "jpcoar:contributorName[DATA_MANAGER_EN]": {
+                "@createIf": "{{object_last}}",
+                ".@type": "Person",
+                "value": "{{object_last}}{% if object_first %}, {{object_middle}}{% if object_middle %} {% endif %}{{object_first}}{% endif %}",
+                "language": "en"
+            },
+            "jpcoar:familyName[DATA_MANAGER_FAMILY_NAME_EN]": {
+                "@createIf": "{% if object_last and object_first %}true{% endif %}",
+                ".@type": "Person",
+                "value": "{{object_last}}",
+                "language": "en"
+            },
+            "jpcoar:givenName[DATA_MANAGER_GIVEN_NAME_EN]": {
+                "@createIf": "{{object_middle}}{{object_first}}",
+                ".@type": "Person",
+                "value": "{{object_middle}}{% if object_middle %} {% endif %}{{object_first}}",
+                "language": "en"
+            },
+            "jpcoar:affiliation[DATA_MANAGER_AFFILIATION]": {
+                "@createIf": "{{grdm_file_data_man_org_en_value}}",
+                ".@type": "Organization",
+                "jpcoar:affiliationName[DATA_MANAGER_AFFILIATION_NAME_EN]": {
+                    "@createIf": "{{grdm_file_data_man_org_en_value}}",
                     ".@type": "PropertyValue",
-                    "value": "{{value}}",
+                    "value": "{{grdm_file_data_man_org_en_value}}",
                     "language": "en"
                 }
-            ]
+            }
         }
     },
     "grdm-file:data-man-org-ja": {
         "@type": "string",
-        "@createIf": "{% if grdm_file_data_man_type_value == \"organization\" %}{{value}}{% endif %}",
-        "root.contributor[DATA_MANAGER]": {
+        "@createIf": "{% if grdm_file_data_man_type_value == \"organization\" and grdm_file_file_type_value != \"manuscript\" %}{{value}}{% endif %}",
+        "root.jpcoar:contributor[DATA_MANAGER]": {
             ".@type": "Organization",
             "additionalType": {
                 ".@id": "https://github.com/JPCOAR/schema/blob/master/2.0/#DataManager"
             },
-            "name": "{% if grdm_file_data_man_org_en_value %}{{grdm_file_data_man_org_en_value}}{% else %}{{value}}{% endif %}",
-            "rdm:name[]": [
-                {
-                    ".@type": "PropertyValue",
-                    "value": "{{value}}",
-                    "language": "ja"
-                }
-            ]
+            "jpcoar:contributorType": "DataManager",
+            "jpcoar:contributorName[DATA_MANAGER_ORG_JA]": {
+                "@createIf": "{{value}}",
+                ".@type": "Organization",
+                "value": "{{value}}",
+                "language": "ja",
+                "nameType": "Organizational"
+            }
         }
     },
     "grdm-file:data-man-org-en": {
         "@type": "string",
-        "@createIf": "{% if grdm_file_data_man_type_value == \"organization\" %}{{value}}{% endif %}",
-        "root.contributor[DATA_MANAGER]": {
+        "@createIf": "{% if grdm_file_file_type_value != \"manuscript\" and grdm_file_data_man_type_value == \"organization\" %}{{value}}{% endif %}",
+        "root.jpcoar:contributor[DATA_MANAGER]": {
             ".@type": "Organization",
             "additionalType": {
                 ".@id": "https://github.com/JPCOAR/schema/blob/master/2.0/#DataManager"
             },
-            "name": "{{value}}",
-            "rdm:name[]": [
-                {
-                    ".@type": "PropertyValue",
-                    "value": "{{value}}",
-                    "language": "en"
-                }
-            ]
+            "jpcoar:contributorType": "DataManager",
+            "jpcoar:contributorName[DATA_MANAGER_ORG_EN]": {
+                "@createIf": "{{value}}",
+                ".@type": "Organization",
+                "value": "{{value}}",
+                "language": "en",
+                "nameType": "Organizational"
+            }
         }
     },
     "grdm-file:data-man-address-ja grdm-file:data-man-tel grdm-file:data-man-email": {
         "@type": "string",
-        "@createIf": "{{value}}",
-        "root.contributor[CONTACT_PERSON]": {
+        "@createIf": "{% if grdm_file_file_type_value != \"manuscript\" %}{{value}}{% endif %}",
+        "root.jpcoar:contributor[CONTACT_PERSON]": {
             ".@type": "Organization",
             "additionalType": {
                 ".@id": "https://github.com/JPCOAR/schema/blob/master/2.0/#ContactPerson"
             },
-            "name": "{% if grdm_file_data_man_org_en_value %}{{grdm_file_data_man_org_en_value}}{% else %}{{grdm_file_data_man_org_ja_value}}{% endif %} {% if grdm_file_man_address_en_value %}{{grdm_file_man_address_en_value}}{% else %}{{grdm_file_man_address_ja_value}}{% endif %}{% if grdm_file_data_man_tel_value %}TEL: {{grdm_file_data_man_tel_value}} {% endif %}{% if grdm_file_data_man_email_value %}E-Mail: {{grdm_file_data_man_email_value}}{% endif %}",
-            "rdm:name[CONTACT_PERSON_JA]": {
-                ".@type": "PropertyValue",
+            "jpcoar:contributorType": "ContactPerson",
+            "jpcoar:contributorName[CONTACT_PERSON_JA]": {
+                "@createIf": "{{value}}",
+                ".@type": "Organization",
                 "value": "{{grdm_file_data_man_org_ja_value}} {{grdm_file_data_man_address_ja_value}} {% if grdm_file_data_man_tel_value %}TEL: {{grdm_file_data_man_tel_value}} {% endif %}{% if grdm_file_data_man_email_value %}E-Mail: {{grdm_file_data_man_email_value}}{% endif %}",
-                "language": "ja"
+                "language": "ja",
+                "nameType": "Organizational"
             }
         }
     },
     "grdm-file:data-man-address-en grdm-file:data-man-tel grdm-file:data-man-email": {
         "@type": "string",
-        "@createIf": "{{value}}",
-        "root.contributor[CONTACT_PERSON]": {
+        "@createIf": "{% if grdm_file_file_type_value != \"manuscript\" %}{{value}}{% endif %}",
+        "root.jpcoar:contributor[CONTACT_PERSON]": {
             ".@type": "Organization",
             "additionalType": {
                 ".@id": "https://github.com/JPCOAR/schema/blob/master/2.0/#ContactPerson"
             },
-            "name": "{% if grdm_file_data_man_org_en_value %}{{grdm_file_data_man_org_en_value}}{% else %}{{grdm_file_data_man_org_ja_value}}{% endif %} {% if grdm_file_man_address_en_value %}{{grdm_file_man_address_en_value}}{% else %}{{grdm_file_man_address_ja_value}}{% endif %}{% if grdm_file_data_man_tel_value %}TEL: {{grdm_file_data_man_tel_value}} {% endif %}{% if grdm_file_data_man_email_value %}E-Mail: {{grdm_file_data_man_email_value}}{% endif %}",
-            "rdm:name[CONTACT_PERSON_EN]": {
-                ".@type": "PropertyValue",
+            "jpcoar:contributorType": "ContactPerson",
+            "jpcoar:contributorName[CONTACT_PERSON_EN]": {
+                "@createIf": "{{value}}",
+                ".@type": "Organization",
                 "value": "{{grdm_file_data_man_org_en_value}} {{grdm_file_data_man_address_en_value}} {% if grdm_file_data_man_tel_value %}TEL: {{grdm_file_data_man_tel_value}} {% endif %}{% if grdm_file_data_man_email_value %}E-Mail: {{grdm_file_data_man_email_value}}{% endif %}",
-                "language": "en"
+                "language": "en",
+                "nameType": "Organizational"
             }
         }
     },
     "grdm-file:remarks-ja": null,
     "grdm-file:remarks-en": null,
-    "grdm-file:metadata-access-rights": null,
     "@agent": {
         "@type": "object",
         "root.wk:feedbackMail[]": "{{ object_username }}"
@@ -467,13 +759,13 @@
     "_": {
         "root": {
             ".@id": "./",
-            ".@type[]": ["Dataset", "rdm:Dataset"],
+            ".@type": "Dataset",
             "name": "{% if grdm_file_title_en_value %}{{ grdm_file_title_en_value }}{% elif grdm_file_title_ja_value %}{{ grdm_file_title_ja_value }}{% endif %}",
             "description": "{% if grdm_file_data_description_en_value %}{{ grdm_file_data_description_en_value }}{% elif grdm_file_data_description_ja_value %}{{ grdm_file_data_description_ja_value }}{% endif %}",
             "conformsTo": {
                 ".@id": "https://w3id.org/ro/crate/1.1"
             },
-            "wk:publishStatus": "private",
+            "wk:publishStatus": "public",
             "wk:index": "{{ index_id }}",
             "datePublished": "{{ nowdate }}"
         },

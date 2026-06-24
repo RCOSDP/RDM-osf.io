@@ -201,6 +201,7 @@ class RegistrationSchemaBlock(ObjectIDMixin, BaseModel):
     message_required_if = models.TextField(null=True)
     enabled_if = models.TextField(null=True)
     suggestion = models.TextField(null=True)
+    display_template = models.TextField(null=True)
     auto_value = models.BooleanField(default=False)
     auto_date = models.BooleanField(default=False)
     auto_title = models.BooleanField(default=False)
@@ -214,6 +215,7 @@ class RegistrationSchemaBlock(ObjectIDMixin, BaseModel):
     readonly = models.BooleanField(default=False)
     sentence = models.BooleanField(default=False)
     row_addition_caption = models.TextField(null=True)
+    ui = DateTimeAwareJSONField(null=True, blank=True)
 
     @property
     def absolute_api_v2_url(self):

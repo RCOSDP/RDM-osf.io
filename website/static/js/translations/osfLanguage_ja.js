@@ -124,6 +124,11 @@ module.exports = {
             userSettingsError: '設定を取得できませんでした。 ページを更新するか、' +
                 '問題が解決しない場合は' + $osf.osfSupportLink() + 'へお問い合わせください。',
         },
+        s3compatsigv4: {
+            authError: '現在、S3互換ストレージ（SigV4）に接続できませんでした。 後でもう一度やり直してください。',
+            userSettingsError: '設定を取得できませんでした。 ページを更新するか、' +
+                '問題が解決しない場合は' + $osf.osfSupportLink() + 'へお問い合わせください。',
+        },
         nextcloud: {
             authError: '無効なNextcloudサーバー',
             authInvalid: '無効な資格情報。 有効なユーザー名とパスワードを入力してください。',

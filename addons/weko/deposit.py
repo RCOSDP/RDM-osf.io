@@ -45,24 +45,42 @@ class ROCrateFactory(BaseROCrateFactory):
         return crate, files
 
 
-def _download(node, file, tmp_dir, total_size):
+def _download_file(node, file, tmp_dir, total_size, relative_path=''):
+    _check_file_size(total_size + int(file.size))
+    download_file_name = os.path.join(relative_path, file.name) if relative_path else file.name
+    download_file_path = os.path.join(tmp_dir, download_file_name)
+    os.makedirs(os.path.dirname(download_file_path), exist_ok=True)
+    with open(download_file_path, 'wb') as f:
+        file.download_to(f)
+    if ROCRATE_FILENAME_PATTERN.match(file.name):
+        mtype = ROCRATE_PROJECT_MIME_TYPE
+    else:
+        mtype, _ = mimetypes.guess_type(download_file_path)
+    filesize = os.path.getsize(download_file_path)
+    if filesize != int(file.size):
+        raise IOError(f'File size mismatch: {filesize} != {file.size}')
+    return download_file_path, mtype
+
+def _download(node, file, tmp_dir, total_size, relative_path=''):
     if file.kind == 'file':
-        _check_file_size(total_size + int(file.size))
-        download_file_path = os.path.join(tmp_dir, file.name)
-        with open(os.path.join(download_file_path), 'wb') as f:
-            file.download_to(f)
-        if ROCRATE_FILENAME_PATTERN.match(file.name):
-            mtype = ROCRATE_PROJECT_MIME_TYPE
+        download_file_path, mtype = _download_file(node, file, tmp_dir, total_size, relative_path)
+        return [(download_file_path, mtype)]
+
+    files = file.get_files()
+    downloaded = []
+    current_size = total_size
+    for child_file in files:
+        if child_file.kind == 'folder':
+            child_relative_path = os.path.join(relative_path, child_file.name) if relative_path else child_file.name
+            subdir_files = _download(node, child_file, tmp_dir, current_size, child_relative_path)
+            for child_path, child_type in subdir_files:
+                current_size += os.path.getsize(child_path)
+            downloaded.extend(subdir_files)
         else:
-            mtype, _ = mimetypes.guess_type(download_file_path)
-        filesize = os.path.getsize(download_file_path)
-        if filesize != int(file.size):
-            raise IOError(f'File size mismatch: {filesize} != {file.size}')
-        return download_file_path, mtype
-    rocrate = ROCrateFactory(node, tmp_dir, file)
-    download_file_path = os.path.join(tmp_dir, 'rocrate.zip')
-    rocrate.download_to(download_file_path)
-    return download_file_path, ROCRATE_DATASET_MIME_TYPE
+            child_path, child_type = _download_file(node, child_file, tmp_dir, current_size, relative_path)
+            current_size += os.path.getsize(child_path)
+            downloaded.append((child_path, child_type))
+    return downloaded
 
 
 def _check_file_size(total_size):
@@ -87,6 +105,95 @@ def deposit_metadata(
         update_task_state=update_task_state,
     )
 
+def _build_payload_zip(
+    user,
+    target_index,
+    schema_id,
+    file_metadatas,
+    project_metadatas,
+    download_file_names,
+    additional_download_file_names,
+    tmp_dir,
+    node_id,
+    flatten_ro_crate=True,
+    skip_csv_generation=False,
+    skip_ro_crate_generation=False,
+    base_host=None,
+):
+
+    from .models import RegistrationMetadataMapping
+
+    bagit_dir = tempfile.mkdtemp()
+
+    bagit_metadata = {
+        'Contact-Name': user.fullname,
+        'Contact-Email': user.username,
+    }
+    if user.affiliated_institutions and user.affiliated_institutions.first():
+        bagit_metadata['Source-Organization'] = user.affiliated_institutions.first().name
+    bag = bagit.make_bag(bagit_dir, bagit_metadata)
+
+    all_files_from_metadata = [file for files in download_file_names for file in files]
+    staged_files = all_files_from_metadata + additional_download_file_names
+
+    for download_file_name, _ in staged_files:
+        file_in_bagit_path = os.path.join(bagit_dir, 'data', 'files', download_file_name)
+        os.makedirs(os.path.dirname(file_in_bagit_path), exist_ok=True)
+        shutil.copyfile(os.path.join(tmp_dir, download_file_name), file_in_bagit_path)
+
+    mapping_def_csv = None
+    if not skip_csv_generation:
+        mapping_def_csv = RegistrationMetadataMapping.objects.filter(
+            registration_schema_id=schema_id,
+            filename__in=['index.csv', None],
+        ).first()
+        if mapping_def_csv is not None:
+            with open(os.path.join(bagit_dir, 'data', 'index.csv'), 'w', encoding='utf8') as f:
+                schema.write_csv(
+                    user,
+                    f,
+                    target_index,
+                    download_file_names,
+                    schema_id,
+                    file_metadatas,
+                    project_metadatas,
+                )
+
+    mapping_def_ro_crate_json = None
+    if not skip_ro_crate_generation:
+        mapping_def_ro_crate_json = RegistrationMetadataMapping.objects.filter(
+            registration_schema_id=schema_id,
+            filename='ro-crate-metadata.json',
+        ).first()
+    ro_crate_schemaname = None
+    if mapping_def_ro_crate_json is not None:
+        with open(os.path.join(bagit_dir, 'data', 'ro-crate-metadata.json'), 'w', encoding='utf8') as f:
+            schema.write_ro_crate_json(
+                user,
+                f,
+                target_index,
+                download_file_names,
+                schema_id,
+                file_metadatas,
+                project_metadatas,
+                node_id,
+                flatten=flatten_ro_crate,
+                base_host=base_host,
+            )
+        ro_crate_schemaname = mapping_def_ro_crate_json.rules['@metadata'].get('schemaname')
+    if mapping_def_csv is None and mapping_def_ro_crate_json is None:
+        logger.warning('No metadata mapping found')
+    bag.save(manifests=True)
+
+    zip_path = os.path.join(tmp_dir, 'payload.zip')
+    with ZipFile(zip_path, 'w') as zipf:
+        for root, dirs, files in os.walk(bagit_dir):
+            for file in files:
+                file_path = os.path.join(root, file)
+                zipf.write(file_path, os.path.relpath(file_path, bagit_dir))
+
+    return zip_path, bagit_dir, ro_crate_schemaname
+
 
 def _deposit_metadata(
     user_id, index_id, node_id, metadata_node_id,
@@ -95,8 +202,6 @@ def _deposit_metadata(
     task_request_id=None, update_task_state=None,
 ):
 
-    from .models import RegistrationMetadataMapping
-    from .schema.constants_mebyo import MEBYO_SCHEMA_NAME
     user = OSFUser.load(user_id)
     logger.info(f'Deposit: {metadata_paths}, {status_path} {task_request_id}')
     node = AbstractNode.load(node_id)
@@ -127,16 +232,19 @@ def _deposit_metadata(
                 })
             materialized_path = path[path.index('/'):]
             file = wb.get_file_by_materialized_path(path)
-            logger.debug(f'File: {file}, size={file.size}')
+            logger.debug(f'File: {file}, size={file.size if file.kind == "file" else "folder"}')
             if file is None:
                 raise KeyError(f'File not found: {materialized_path}')
-            download_file_path, download_file_type = _download(node, file, tmp_dir, total_size)
-            filesize = os.path.getsize(download_file_path)
-            total_size += filesize
-            _, download_file_name = os.path.split(download_file_path)
-            download_file_names.append((download_file_name, download_file_type))
+            downloaded_files = _download(node, file, tmp_dir, total_size)
+            files_for_metadata = []
+            for download_file_path, download_file_type in downloaded_files:
+                filesize = os.path.getsize(download_file_path)
+                total_size += filesize
+                download_file_name = os.path.relpath(download_file_path, tmp_dir)
+                files_for_metadata.append((download_file_name, download_file_type))
+                logger.info(f'Downloaded: {download_file_path} {filesize}')
+            download_file_names.append(files_for_metadata)
             download_files.append(file)
-            logger.info(f'Downloaded: {download_file_path} {filesize}')
         if update_task_state:
             update_task_state(state='packaging', meta={
                 'progress': 50,
@@ -165,19 +273,20 @@ def _deposit_metadata(
                 })
             materialized_path = path[path.index('/'):]
             file = wb.get_file_by_materialized_path(path)
-            logger.debug(f'File: {file}, size={file.size}')
+            logger.debug(f'File: {file}, size={file.size if file.kind == "file" else "folder"}')
             if file is None:
                 raise KeyError(f'File not found: {materialized_path}')
-            download_file_path, download_file_type = _download(node, file, tmp_dir, ad_metadata_total_size)
-            filesize = os.path.getsize(download_file_path)
-            ad_metadata_total_size += filesize
-            _, download_file_name = os.path.split(download_file_path)
-            ad_metadata_download_file_names.append((download_file_name, download_file_type))
+            downloaded_files = _download(node, file, tmp_dir, ad_metadata_total_size)
+            for download_file_path, download_file_type in downloaded_files:
+                filesize = os.path.getsize(download_file_path)
+                ad_metadata_total_size += filesize
+                download_file_name = os.path.relpath(download_file_path, tmp_dir)
+                ad_metadata_download_file_names.append((download_file_name, download_file_type))
             ad_metadata_download_files.append(file)
         if update_task_state:
             update_task_state(state='packaging', meta={
                 'progress': 50,
-                'paths': path,
+                'paths': ad_metadata_paths,
             })
 
         c = weko_addon.create_client()
@@ -185,72 +294,23 @@ def _deposit_metadata(
         # target_index = ''
 
         # Packaging the files as BagIt
-        bagit_dir = tempfile.mkdtemp()
-        bagit_metadata = {
-            'Contact-Name': user.fullname,
-            'Contact-Email': user.username,
-        }
-        if user.affiliated_institutions and user.affiliated_institutions.first():
-            bagit_metadata['Source-Organization'] = user.affiliated_institutions.first().name
-        bag = bagit.make_bag(bagit_dir, bagit_metadata)
-
-        for download_file_name, _ in download_file_names:
-            file_in_bagit_path = os.path.join(bagit_dir, 'data', 'files', download_file_name)
-            os.makedirs(os.path.dirname(file_in_bagit_path), exist_ok=True)
-            shutil.copyfile(os.path.join(tmp_dir, download_file_name), file_in_bagit_path)
-
-        for download_file_name, _ in ad_metadata_download_file_names:
-            file_in_bagit_path = os.path.join(bagit_dir, 'data', 'files', download_file_name)
-            os.makedirs(os.path.dirname(file_in_bagit_path), exist_ok=True)
-            shutil.copyfile(os.path.join(tmp_dir, download_file_name), file_in_bagit_path)
-
-        # Metadata as CSV
-        mapping_def_csv = RegistrationMetadataMapping.objects.filter(
-            registration_schema_id=schema_id,
-            filename__in=['index.csv', None],
-        ).first()
-        if mapping_def_csv is not None:
-            with open(os.path.join(bagit_dir, 'data', 'index.csv'), 'w', encoding='utf8') as f:
-                schema.write_csv(
-                    user,
-                    f,
-                    target_index,
-                    download_file_names,
-                    schema_id,
-                    file_metadatas,
-                    project_metadatas,
-                )
-        # Metadata as RO-Crate
-        mapping_def_ro_crate_json = RegistrationMetadataMapping.objects.filter(
-            registration_schema_id=schema_id,
-            filename='ro-crate-metadata.json',
-        ).first()
-        ro_crate_schemaname = None
-
-        if mapping_def_ro_crate_json is not None:
-            with open(os.path.join(bagit_dir, 'data', 'ro-crate-metadata.json'), 'w', encoding='utf8') as f:
-                schema.write_ro_crate_json(
-                    user,
-                    f,
-                    target_index,
-                    download_file_names,
-                    schema_id,
-                    file_metadatas,
-                    project_metadatas,
-                    node_id,
-                    base_host=c._base_host
-                )
-            ro_crate_schemaname = mapping_def_ro_crate_json.rules['@metadata'].get('schemaname')
-        if mapping_def_csv is None and mapping_def_ro_crate_json is None:
-            logger.warning('No metadata mapping found')
-        bag.save(manifests=True)
-
-        zip_path = os.path.join(tmp_dir, 'payload.zip')
-        with ZipFile(zip_path, 'w') as zipf:
-            for root, dirs, files in os.walk(bagit_dir):
-                for file in files:
-                    file_path = os.path.join(root, file)
-                    zipf.write(file_path, os.path.relpath(file_path, bagit_dir))
+        skip_csv = len(file_metadatas) > 1 or not settings.ENABLE_CSV_GENERATION
+        skip_ro_crate = not settings.ENABLE_RO_CRATE_GENERATION
+        zip_path, bagit_dir, ro_crate_schemaname = _build_payload_zip(
+            user,
+            target_index,
+            schema_id,
+            file_metadatas,
+            project_metadatas,
+            download_file_names,
+            ad_metadata_download_file_names,
+            tmp_dir,
+            node_id,
+            flatten_ro_crate=True,
+            skip_csv_generation=skip_csv,
+            skip_ro_crate_generation=skip_ro_crate,
+            base_host=c._base_host,
+        )
 
         headers = {
             'Packaging': 'http://purl.org/net/sword/3.0/package/SimpleZip',
@@ -267,8 +327,9 @@ def _deposit_metadata(
         logger.info(f'Uploading... {file_metadatas}')
 
         # 未病スキーマですでに WEKO 上にアイテムがある場合はバージョンアップ、それ以外の場合は新規作成
-        if ro_crate_schemaname == MEBYO_SCHEMA_NAME and schema.get_weko_item_id(project_metadatas):
-            respbody = c.version_upgrade_item(schema.get_weko_item_id(project_metadatas), files, headers=headers)
+        weko_item_id = schema.get_weko_item_id(project_metadatas) if len(project_metadatas) == 1 else None
+        if weko_item_id:
+            respbody = c.version_upgrade_item(weko_item_id, files, headers=headers)
         else:
             respbody = c.deposit(files, headers=headers)
         logger.info(f'Uploaded: {respbody}')
@@ -304,14 +365,14 @@ def _deposit_metadata(
                 },
             )
 
-        if len(links) > 0 and ro_crate_schemaname == MEBYO_SCHEMA_NAME:
+        is_ingested = any(
+            s['@id'].endswith('/ingested')
+            for s in respbody.get('state', [])
+            if '@id' in s
+        )
+        if is_ingested and len(project_metadatas) == 1:
             project_metadata = DraftRegistration.objects.filter(_id=metadata_node_id).first()
-
-            weko_id = None
-            try:
-                weko_id = respbody['@id'].split('/')[-1]
-            except (KeyError, IndexError, TypeError):
-                pass
+            weko_id = respbody['@id'].split('/')[-1]
 
             if project_metadata and weko_id:
                 update_data = {
@@ -329,6 +390,7 @@ def _deposit_metadata(
         return {
             'result': links[0]['@id'] if len(links) > 0 else None,
             'paths': metadata_paths,
+            'response': respbody,
         }
     finally:
         if delete_temp_dir_immediately and tmp_dir and os.path.exists(tmp_dir):
