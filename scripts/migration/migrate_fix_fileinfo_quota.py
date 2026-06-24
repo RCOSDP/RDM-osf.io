@@ -20,13 +20,23 @@ This script:
 4. Calls update_user_used_quota(user) for each affected user to re-sync
    UserQuota.used from the actual FileInfo totals.
    Storage type is determined per-project (NII_STORAGE or CUSTOM_STORAGE).
-5. Exports a CSV report of all processed records, including skipped files.
+5. Exports a CSV report of all processed records.
 
-Database Transactions:
-    All database updates (FileInfo insertions/updates and UserQuota recalculations)
-    are wrapped in a single database transaction (transaction.atomic). If the script
-    crashes or encounters an unhandled exception during the fix process, all changes
-    are rolled back to ensure database consistency.
+Error Handling (fail-fast):
+    The script fails fast. As soon as it hits a record that cannot be fully fixed —
+    its size cannot be determined, or its project creator / storage_type cannot be
+    resolved — or any unexpected error, it logs THAT single record and raises
+    immediately, so an administrator can fix that record and re-run. It does NOT
+    scan the whole dataset to collect and print a list of every problem. This
+    behaviour is identical in dry-run and in a real run.
+
+    All DB updates run inside a single transaction (transaction.atomic). If an error
+    is raised part-way through a real run, every change is rolled back and the
+    database is left untouched (no partially-applied fixes).
+
+    Note on file size: size is read from the latest FileVersion. A genuine
+    file_size == 0 is a valid size and a FileInfo record with file_size=0 is
+    created/updated; only an indeterminable size (None) is treated as an error.
 
 Usage:
     # Fix and export results to CSV
@@ -38,7 +48,6 @@ Usage:
     python -m scripts.migration.migrate_fix_fileinfo_quota --dry --output preview.csv
 """
 
-import sys
 import os
 import csv
 import logging
@@ -55,11 +64,10 @@ from django.db import transaction
 from django.db.models import Q
 
 from addons.osfstorage.models import OsfStorageFile
-from osf.models import FileInfo, OSFUser, UserQuota, ProjectStorageType
+from osf.models import FileInfo, OSFUser
 from website.util.quota import update_user_used_quota, get_project_storage_type
 from scripts import utils as script_utils
 from django.contrib.contenttypes.models import ContentType
-from osf.models import Guid
 
 logger = logging.getLogger(__name__)
 
@@ -69,7 +77,7 @@ RESULT_FIELDNAMES = [
     # fileinfo__id    : _id (hex string) of the FileInfo record inserted/updated (empty in dry_run)
     # fileinfo_file_id: integer PK of BaseFileNode — the value stored as file_id (FK) in the FileInfo table
     # fileinfo_created: True = new FileInfo row INSERT-ed, False = existing row UPDATE-d (empty in dry_run)
-    # action          : would_update | created | updated | updated_no_quota | skipped
+    # action          : would_update (dry-run) | created | updated
     # quota_recalculated: True if quota was recalculated for this file's creator
     'osf_file_id', 'file_name',
     'fileinfo_id', 'fileinfo__id', 'fileinfo_file_id',
@@ -145,8 +153,10 @@ def _bulk_get_latest_version_sizes(osf_file_ids):
 def scan_broken_files():
     """Scan for OsfStorageFile nodes with missing or zero-size FileInfo.
 
-    Returns a list of dicts with scan results (no DB writes).
-    Skipped files are also included with action='skipped' for full audit visibility.
+    Fails fast: the moment a record is found that cannot be fully fixed (size cannot
+    be determined, or its project creator / storage_type cannot be resolved), this
+    raises so the administrator can fix that one record and re-run. No DB writes.
+    Returns a list of fully-fixable row dicts when every record is OK.
     """
     broken_files = list(get_broken_file_nodes())
     total = len(broken_files)
@@ -158,30 +168,18 @@ def scan_broken_files():
     size_map = _bulk_get_latest_version_sizes(file_ids)
 
     rows = []
-    for idx, osf_file in enumerate(broken_files, 1):
+    for osf_file in broken_files:
         size = size_map.get(osf_file.id)
 
-        if size is None or size <= 0:
-            logger.warning(
-                '[{}/{}] Skipping {} (_id={}) — could not determine size from FileVersion.'.format(
-                    idx, total, osf_file.name, osf_file._id
-                )
+        # Fail fast: the size must be determinable. (A genuine file_size == 0 is a
+        # valid size and is NOT an error — only an indeterminable size is.)
+        if size is None:
+            raise RuntimeError(
+                'File {} (_id={}) — could not determine size from any FileVersion. '
+                'Fix this record and re-run.'.format(osf_file.name, osf_file._id)
             )
-            # Include skipped files in CSV for full audit trail
-            rows.append({
-                'osf_file_id': osf_file._id,
-                'fileinfo_file_id': osf_file.id,
-                'file_name': osf_file.name,
-                'file_size_bytes': size if size is not None else '',
-                'project_guid': '',
-                'creator_id': '',
-                'storage_type': None,
-                'action': 'skipped',
-                'quota_recalculated': False,
-                'osf_file': osf_file,
-            })
-            continue
 
+        # Resolve the project target, then its creator / guid / storage_type.
         project_guid = ''
         creator_id = ''
         storage_type_value = None
@@ -202,30 +200,33 @@ def scan_broken_files():
                 creator = getattr(target, 'creator', None)
                 if creator:
                     creator_id = creator._id
-                # Determine storage type for this project
                 storage_type_value = get_project_storage_type(target)
-            else:
-                # Target object not found — try Guid table as last resort
-                if osf_file.target_content_type_id and osf_file.target_object_id:
-                    ct = ContentType.objects.get_for_id(osf_file.target_content_type_id)
-                    guid_obj = Guid.objects.filter(
-                        content_type=ct,
-                        object_id=osf_file.target_object_id
-                    ).first()
-                    if guid_obj:
-                        project_guid = guid_obj._id
-                logger.warning(
-                    'File {} target not found (target_content_type_id={}, target_object_id={}). '
-                    'Resolved project_guid={}'.format(
-                        osf_file._id, osf_file.target_content_type_id, osf_file.target_object_id, project_guid
-                    )
-                )
         except Exception as e:
-            logger.warning('Could not resolve creator/guid for file {}: {}'.format(osf_file._id, e))
+            # Fail fast: do not swallow unexpected errors.
+            logger.error('Could not resolve target/creator for file {}: {} — aborting (fail fast).'.format(
+                osf_file._id, e
+            ))
+            raise
+
+        # Fail fast: creator and storage_type must be resolvable to recalculate quota.
+        if not creator_id:
+            raise RuntimeError(
+                'File {} (_id={}, project_guid={}) — creator could not be resolved '
+                '(target missing or has no creator). Fix this record and re-run.'.format(
+                    osf_file.name, osf_file._id, project_guid
+                )
+            )
+        if storage_type_value is None:
+            raise RuntimeError(
+                'File {} (_id={}, project_guid={}) — project storage_type could not be '
+                'determined. Fix this record and re-run.'.format(
+                    osf_file.name, osf_file._id, project_guid
+                )
+            )
 
         rows.append({
             'osf_file_id': osf_file._id,       # hex _id string of OsfStorageFile
-            'fileinfo_file_id': osf_file.id,     # integer PK stored as file_id FK in FileInfo table
+            'fileinfo_file_id': osf_file.id,   # integer PK stored as file_id FK in FileInfo table
             'file_name': osf_file.name,
             'file_size_bytes': size,
             'project_guid': project_guid,
@@ -234,46 +235,37 @@ def scan_broken_files():
             'osf_file': osf_file,
         })
 
-    eligible = sum(1 for r in rows if r.get('action') != 'skipped')
-    logger.info('Scan complete. {} record(s) eligible for fix, {} skipped.'.format(
-        eligible, total - eligible
-    ))
+    logger.info('Scan complete. {} record(s) ready to fix.'.format(len(rows)))
     return rows
 
 
 def print_results(rows):
     """Display scanned records in a formatted summary table."""
-    eligible = [r for r in rows if r.get('action') != 'skipped']
-    skipped = [r for r in rows if r.get('action') == 'skipped']
-
-    if not eligible and not skipped:
+    if not rows:
         print('   No broken FileInfo records found.')
         return
 
-    if eligible:
-        print('\n' + '-' * 160)
-        print(' {:<26} {:<16} {:<22} {:<18} {:<16} {:<14} {:<18}'.format(
-            'OSF_FILE_ID (_id)', 'FILEINFO_FILE_ID', 'FILE_NAME', 'PROJECT_GUID', 'CREATOR_ID', 'STORAGE_TYPE', 'SIZE (bytes)'
-        ))
-        print('-' * 160)
-        for r in eligible:
-            print(' {:<26} {:<16} {:<22} {:<18} {:<16} {:<14} {:<18}'.format(
-                r['osf_file_id'],
-                r['fileinfo_file_id'],
-                (r['file_name'] or '')[:20],
-                r['project_guid'],
-                r['creator_id'],
-                str(r.get('storage_type') if r.get('storage_type') is not None else ''),
-                r['file_size_bytes'],
-            ))
-        print('-' * 160)
-        print(' Total: {} record(s) would be updated.\n'.format(len(eligible)))
+    def _disp(value):
+        # Display helper: never let None (or any value) break str formatting.
+        return '' if value is None else str(value)
 
-    if skipped:
-        print(' Skipped {} record(s) (no valid FileVersion size):'.format(len(skipped)))
-        for r in skipped:
-            print('   - {} ({})'.format(r['osf_file_id'], r['file_name']))
-        print()
+    print('\n' + '-' * 160)
+    print(' {:<26} {:<16} {:<22} {:<18} {:<16} {:<14} {:<18}'.format(
+        'OSF_FILE_ID (_id)', 'FILEINFO_FILE_ID', 'FILE_NAME', 'PROJECT_GUID', 'CREATOR_ID', 'STORAGE_TYPE', 'SIZE (bytes)'
+    ))
+    print('-' * 160)
+    for r in rows:
+        print(' {:<26} {:<16} {:<22} {:<18} {:<16} {:<14} {:<18}'.format(
+            _disp(r.get('osf_file_id')),
+            _disp(r.get('fileinfo_file_id')),
+            _disp(r.get('file_name'))[:20],
+            _disp(r.get('project_guid')),
+            _disp(r.get('creator_id')),
+            _disp(r.get('storage_type')),
+            _disp(r.get('file_size_bytes')),
+        ))
+    print('-' * 160)
+    print(' Total: {} record(s) would be updated.\n'.format(len(rows)))
 
 
 # --- Updating Operations ---
@@ -298,56 +290,23 @@ def apply_fixes(rows, dry_run=False):
 
 
 def _apply_fixes_internal(rows, dry_run=False):
-    """Internal helper to apply fixes, called inside/outside transaction."""
+    """Internal helper to apply fixes, called inside/outside transaction.
+
+    Every row here is already fully fixable (scan_broken_files fails fast otherwise),
+    so each row gets a FileInfo update and contributes to a UserQuota recalculation.
+    """
     result_rows = []
     affected_user_storage = set()  # set of (creator_id, storage_type)
     fixed = 0
-    skipped = 0
 
     for row in rows:
-        if row.get('action') == 'skipped':
-            result_rows.append({
-                'osf_file_id': row['osf_file_id'],
-                'fileinfo_file_id': row['fileinfo_file_id'],
-                'file_name': row['file_name'],
-                'file_size_bytes': row['file_size_bytes'],
-                'project_guid': row['project_guid'],
-                'creator_id': row['creator_id'],
-                'storage_type': row['storage_type'],
-                'fileinfo_id': '',
-                'fileinfo__id': '',
-                'fileinfo_created': '',
-                'action': 'skipped',
-                'quota_recalculated': False,
-                'dry_run': dry_run,
-            })
-            skipped += 1
-            continue
-
-        # Optimize: reuse osf_file object from scan, avoiding re-querying
+        # scan stores the osf_file object on the row; fall back to a lookup just in case.
         osf_file = row.get('osf_file')
         if osf_file is None:
             osf_file = OsfStorageFile.objects.filter(_id=row['osf_file_id']).first()
-
         if osf_file is None:
-            logger.warning('File {} not found, skipping.'.format(row['osf_file_id']))
-            result_rows.append({
-                'osf_file_id': row['osf_file_id'],
-                'fileinfo_file_id': row['fileinfo_file_id'],
-                'file_name': row['file_name'],
-                'file_size_bytes': row['file_size_bytes'],
-                'project_guid': row['project_guid'],
-                'creator_id': row['creator_id'],
-                'storage_type': row['storage_type'],
-                'fileinfo_id': '',
-                'fileinfo__id': '',
-                'fileinfo_created': '',
-                'action': 'skipped',
-                'quota_recalculated': False,
-                'dry_run': dry_run,
-            })
-            skipped += 1
-            continue
+            # Fail fast: a scanned row must resolve to a file.
+            raise RuntimeError('File {} not found when applying fix.'.format(row['osf_file_id']))
 
         fileinfo_id = ''
         fileinfo__id = ''
@@ -361,23 +320,11 @@ def _apply_fixes_internal(rows, dry_run=False):
             fileinfo__id = fileinfo_obj._id      # hex _id string of FileInfo
             fileinfo_created = created           # True = INSERT, False = UPDATE
 
-        # Determine whether quota will actually be recalculated
-        creator_id = row.get('creator_id', '')
-        storage_type = row.get('storage_type', None)
-        quota_will_recalculate = bool(creator_id and storage_type is not None)
+        creator_id = row['creator_id']
+        storage_type = row['storage_type']
+        affected_user_storage.add((creator_id, storage_type))
 
-        if quota_will_recalculate:
-            # Track (creator_id, storage_type) pair
-            affected_user_storage.add((creator_id, storage_type))
-
-        # Use distinct action when creator_id is missing
-        if dry_run:
-            action = 'would_update'
-        elif not quota_will_recalculate:
-            # FileInfo was fixed but quota cannot be recalculated (no creator resolved)
-            action = 'updated_no_quota'
-        else:
-            action = 'created' if fileinfo_created else 'updated'
+        action = 'would_update' if dry_run else ('created' if fileinfo_created else 'updated')
 
         logger.info('{} {} (osf_file_id={}, fileinfo_id={}, fileinfo__id={}, fileinfo_file_id={}, created={}) file_size={} bytes storage_type={}'.format(
             '[DRY RUN]' if dry_run else 'Fixed:',
@@ -385,14 +332,6 @@ def _apply_fixes_internal(rows, dry_run=False):
             fileinfo_id, fileinfo__id, row['fileinfo_file_id'],
             fileinfo_created, row['file_size_bytes'], storage_type,
         ))
-
-        if action == 'updated_no_quota':
-            logger.warning(
-                'File {} FileInfo fixed but creator_id is empty — UserQuota NOT recalculated. '
-                'Manual review required. project_guid={}'.format(
-                    row['osf_file_id'], row.get('project_guid', '')
-                )
-            )
 
         result_rows.append({
             'osf_file_id': row['osf_file_id'],
@@ -411,9 +350,7 @@ def _apply_fixes_internal(rows, dry_run=False):
         })
         fixed += 1
 
-    logger.info('FileInfo backfill complete. fixed={}, skipped={} (dry={})'.format(
-        fixed, skipped, dry_run
-    ))
+    logger.info('FileInfo backfill complete. fixed={} (dry={})'.format(fixed, dry_run))
 
     # --- Recalculate UserQuota.used for all affected (user, storage_type) pairs ---
     logger.info('Recalculating UserQuota.used for {} unique (user, storage_type) pair(s).'.format(
@@ -421,19 +358,20 @@ def _apply_fixes_internal(rows, dry_run=False):
     ))
 
     quota_updated = 0
-    quota_errors = 0
-    # Track which creator_ids had successful quota recalculation
     recalculated_user_storage = set()
 
     for user_id, storage_type in sorted(affected_user_storage):
         try:
             user = OSFUser.load(user_id)
             if user is None:
-                logger.warning('User {} not found, skipping quota recalc.'.format(user_id))
-                continue
+                # Fail fast: a creator_id resolved during scan must load here.
+                raise RuntimeError(
+                    'User {} (storage_type={}) could not be loaded for quota recalc.'.format(
+                        user_id, storage_type
+                    )
+                )
 
             if not dry_run:
-                # Update quota for the actual storage_type of the project
                 update_user_used_quota(user, storage_type=storage_type, is_recalculating_quota=True)
 
             logger.info('{} Recalculated quota for user {} (storage_type={})'.format(
@@ -442,23 +380,18 @@ def _apply_fixes_internal(rows, dry_run=False):
             quota_updated += 1
             recalculated_user_storage.add((user_id, storage_type))
         except Exception as e:
-            logger.error('Failed to recalculate quota for user {} (storage_type={}): {}'.format(
-                user_id, storage_type, e
-            ))
-            quota_errors += 1
+            # Fail fast: re-raise so transaction.atomic() rolls back ALL FileInfo updates.
+            logger.error('Failed to recalculate quota for user {} (storage_type={}): {} — '
+                         'rolling back transaction (fail fast).'.format(user_id, storage_type, e))
+            raise
 
-    logger.info('Quota recalculation complete. updated={}, errors={} (dry={})'.format(
-        quota_updated, quota_errors, dry_run
-    ))
+    logger.info('Quota recalculation complete. updated={} (dry={})'.format(quota_updated, dry_run))
 
     # Update quota_recalculated flag in result rows
     for row in result_rows:
-        creator_id = row.get('creator_id', '')
-        storage_type = row.get('storage_type', None)
-        if dry_run and creator_id and storage_type is not None:
-            # In dry-run mode, mark as "would recalculate"
+        if dry_run:
             row['quota_recalculated'] = 'would_recalculate'
-        elif (creator_id, storage_type) in recalculated_user_storage:
+        elif (row['creator_id'], row['storage_type']) in recalculated_user_storage:
             row['quota_recalculated'] = True
 
     return result_rows
@@ -473,13 +406,7 @@ def save_result_csv(result_rows, output_path):
         writer.writeheader()
         writer.writerows(result_rows)
     total = len(result_rows)
-    skipped = sum(1 for r in result_rows if r.get('action') == 'skipped')
-    no_quota = sum(1 for r in result_rows if r.get('action') == 'updated_no_quota')
     print('\n Exported {} result(s) to: {}'.format(total, output_path))
-    if skipped:
-        print('   - {} skipped (no valid FileVersion size)'.format(skipped))
-    if no_quota:
-        print('   - {} updated_no_quota (FileInfo fixed but quota NOT recalculated — manual review needed)'.format(no_quota))
 
 
 # --- Main ---
@@ -522,7 +449,8 @@ def main():
     # 2. Print summary table
     print_results(rows)
 
-    # 3. Apply fixes (or simulate in dry-run mode)
+    # 3. Apply fixes (or simulate in dry-run mode). scan_broken_files() has already
+    #    failed fast on any unfixable record, so every row here is fully fixable.
     result_rows = apply_fixes(rows, dry_run=args.dry)
 
     # 4. Export results to CSV
