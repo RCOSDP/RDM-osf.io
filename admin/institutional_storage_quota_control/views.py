@@ -1,7 +1,10 @@
+import logging
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.db import connection, transaction, IntegrityError
 from django.db.models import Subquery, OuterRef
 from django.http import Http404
+
+logger = logging.getLogger(__name__)
 
 from admin.institutions.views import QuotaUserList
 from osf.models import Institution, OSFUser, UserQuota, InstitutionDefaultMaxQuota
@@ -194,7 +197,8 @@ class UpdateQuotaUserListByInstitutionStorageID(RdmPermissionMixin, UserPassesTe
                                 storage_type=UserQuota.CUSTOM_STORAGE,
                                 defaults={'max_quota': max_quota}
                             )
-                    except IntegrityError:
+                    except IntegrityError as e:
+                        logger.warning(u'IntegrityError while updating UserQuota: user={}, storage_type={}, max_quota={}: {}.'.format(user.id, UserQuota.CUSTOM_STORAGE, max_quota, str(e)))
                         UserQuota.objects.filter(user=user, storage_type=UserQuota.CUSTOM_STORAGE).update(max_quota=max_quota)
         return redirect(
             'institutional_storage_quota_control:institution_user_list',

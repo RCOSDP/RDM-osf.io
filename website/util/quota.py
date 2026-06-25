@@ -96,7 +96,8 @@ def update_user_used_quota(user, storage_type=UserQuota.NII_STORAGE, is_recalcul
                     max_quota=max_quota,
                     used=used,
                 )
-        except IntegrityError:
+        except IntegrityError as e:
+            logger.warning(u'IntegrityError while creating UserQuota: user={}, storage_type={}: {}'.format(user.id, storage_type, str(e)))
             if is_recalculating_quota and storage_type == UserQuota.CUSTOM_STORAGE:
                 used_quota_for_nii_default_storage = used_quota(user._id, UserQuota.NII_STORAGE)
                 used_quota_for_nii_custom_storage = used_quota(user._id, UserQuota.CUSTOM_STORAGE)
@@ -249,7 +250,8 @@ def file_added(target, payload, file_node, storage_type):
                     max_quota=max_quota,
                     used=file_size
                 )
-        except IntegrityError:
+        except IntegrityError as e:
+            logger.warning(u'IntegrityError while creating UserQuota in file_added: user={}, storage_type={}: {}'.format(target.creator.id, storage_type, str(e)))
             if check_select_for_update():
                 user_quota = UserQuota.objects.filter(
                     user=target.creator,
@@ -317,7 +319,8 @@ def file_modified(target, payload, file_node, storage_type):
                     storage_type=storage_type,
                     defaults={'max_quota': max_quota}
                 )
-    except IntegrityError:
+    except IntegrityError as e:
+        logger.warning(u'IntegrityError while creating UserQuota in file_modified: user={}, storage_type={}: {}'.format(target.creator.id, storage_type, str(e)))
         if check_select_for_update():
             user_quota = UserQuota.objects.filter(user=target.creator, storage_type=storage_type).select_for_update().get()
         else:

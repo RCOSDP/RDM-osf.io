@@ -1,3 +1,4 @@
+import logging
 from django.http import JsonResponse
 from django.db import transaction, IntegrityError
 
@@ -6,6 +7,8 @@ from osf.models import OSFUser, UserQuota, Node
 from osf.models.node import set_project_storage_type
 from osf.utils.requests import check_select_for_update
 from website.util.quota import get_default_max_quota, used_quota
+
+logger = logging.getLogger(__name__)
 
 
 def calculate_quota(user):
@@ -45,7 +48,8 @@ def calculate_quota(user):
                             max_quota=max_quota,
                             used=used,
                         )
-                except IntegrityError:
+                except IntegrityError as e:
+                    logger.warning(u'IntegrityError while creating UserQuota in calculate_quota: user={}, storage_type={}: {}.'.format(user.id, storage_type, str(e)))
                     used = used_quota(user._id, storage_type)
                     if check_select_for_update():
                         user_quota = UserQuota.objects.filter(
