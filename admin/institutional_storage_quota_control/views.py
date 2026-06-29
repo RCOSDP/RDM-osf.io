@@ -3,9 +3,6 @@ from django.contrib.auth.mixins import UserPassesTestMixin
 from django.db import connection, transaction, IntegrityError
 from django.db.models import Subquery, OuterRef
 from django.http import Http404
-
-logger = logging.getLogger(__name__)
-
 from admin.institutions.views import QuotaUserList
 from osf.models import Institution, OSFUser, UserQuota, InstitutionDefaultMaxQuota
 from admin.base import settings
@@ -15,6 +12,8 @@ from django.shortcuts import redirect
 from admin.rdm.utils import RdmPermissionMixin
 from django.core.urlresolvers import reverse
 from api.base import settings as api_settings
+
+logger = logging.getLogger(__name__)
 
 
 class InstitutionStorageList(RdmPermissionMixin, UserPassesTestMixin, ListView):
