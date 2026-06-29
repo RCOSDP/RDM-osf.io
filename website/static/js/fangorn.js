@@ -170,12 +170,23 @@ var PROVIDER_SETTINGS = {
                 }
                 var next = queuedFiles[0];
                 var nextSize = (typeof next.size === 'number') ? next.size : (next.upload && next.upload.total ? next.upload.total : 0);
-                // start the next file
-                this.processFile(queuedFiles.shift());
 
-                // If the started file is "large", attach a one-time resume when it completes,
-                // then stop starting further parallel uploads until resume.
+                // Enforce single-thread upload for large files: check the threshold
+                // BEFORE starting the file. A large file may only start when nothing
+                // else is uploading and nothing has been started earlier in this
+                // processQueue() pass (uploadIndex === 0, since uploadIndex is seeded
+                // with the count of already-uploading files). Otherwise defer it so it
+                // never runs in parallel with another upload.
                 if (threshold && nextSize > threshold) {
+                    if (uploadIndex > 0) {
+                        // Other upload(s) already active/started in this pass — do not
+                        // start the large file now; it will be retried once the current
+                        // uploads complete and processQueue() runs again.
+                        return;
+                    }
+                    // Nothing else active: start the large file on its own thread, then
+                    // resume the queue only after it completes.
+                    this.processFile(queuedFiles.shift());
                     var onComplete = function(file) {
                         if (file !== next) return;
                         // detach listener (support once()/off() APIs)
@@ -196,6 +207,9 @@ var PROVIDER_SETTINGS = {
                     }
                     return;
                 }
+
+                // Small file: start it and keep filling the remaining parallel slots.
+                this.processFile(queuedFiles.shift());
                 uploadIndex++;
             }
         }
