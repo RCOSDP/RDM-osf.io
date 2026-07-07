@@ -546,7 +546,7 @@ def test_travis_website(ctx, numprocesses=None, coverage=False, testmon=False):
 @task
 def test_travis_api1_and_js(ctx, numprocesses=None, coverage=False, testmon=False):
     # TODO: Uncomment when https://github.com/travis-ci/travis-ci/issues/8836 is resolved
-    # karma(ctx)
+    karma(ctx)
     travis_setup(ctx)
     test_api1(ctx, numprocesses=numprocesses, coverage=coverage, testmon=testmon)
 
