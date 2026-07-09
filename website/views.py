@@ -71,6 +71,38 @@ def serialize_contributors_for_summary(node, max_count=3):
         'others_count': others_count,
     }
 
+
+def serialize_mapcore_group_for_summary(node, max_count=3):
+    # # TODO: Use .filter(visible=True) when chaining is fixed in django-include
+    node_mapcore_groups = node.mapcore_node_groups.filter(is_deleted=False, visible=True).select_related('mapcore_group')
+    mapcore_groups = []
+    n_node_mapcore_groups = node_mapcore_groups.count()
+    others_count = ''
+
+    for index, node_mapcore_group in enumerate(node_mapcore_groups[:max_count]):
+
+        if index == max_count - 1 and n_node_mapcore_groups > max_count:
+            separator = ' &'
+            others_count = str(n_node_mapcore_groups - 3)
+        elif index == n_node_mapcore_groups - 1:
+            separator = ''
+        elif index == n_node_mapcore_groups - 2:
+            separator = ' &'
+        else:
+            separator = ','
+
+        mapcore_group_summary = {
+            'name': node_mapcore_group.mapcore_group._id,
+            'url': node_mapcore_group.mapcore_group.absolute_url,
+        }
+        mapcore_group_summary['separator'] = separator
+
+        mapcore_groups.append(mapcore_group_summary)
+    return {
+        'mapcore_groups': mapcore_groups,
+        'mapcore_groups_others_count': others_count,
+    }
+
 def serialize_groups_for_summary(node):
     groups = node.osf_groups
     n_groups = len(groups)
@@ -108,6 +140,10 @@ def serialize_node_summary(node, auth, primary=True, show_path=False):
     user = auth.user
     if node.can_view(auth):
         contributor_data = serialize_contributors_for_summary(node)
+        mapcore_group_data = serialize_mapcore_group_for_summary(node)
+        enabled_mapcore_groups = False
+        if hasattr(node, 'mapcore_groups_addon_enabled'):
+            enabled_mapcore_groups = node.mapcore_groups_addon_enabled()
         summary.update({
             'can_view': True,
             'can_edit': node.can_edit(auth),
@@ -143,6 +179,9 @@ def serialize_node_summary(node, auth, primary=True, show_path=False):
             'contributors': contributor_data['contributors'],
             'others_count': contributor_data['others_count'],
             'groups': serialize_groups_for_summary(node),
+            'mapcore_groups': mapcore_group_data['mapcore_groups'],
+            'mapcore_groups_others_count': mapcore_group_data['mapcore_groups_others_count'],
+            'enabled_mapcore_groups': enabled_mapcore_groups,
             'description': node.description if len(node.description) <= 150 else node.description[0:150] + '...',
         })
     else:
