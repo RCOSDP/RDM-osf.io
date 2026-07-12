@@ -12,7 +12,7 @@ from api.base import settings as api_settings
 from django.test import RequestFactory
 from django.core.urlresolvers import reverse
 from nose import tools as nt
-from osf.models import RdmUserKey, RdmFileTimestamptokenVerifyResult, Guid, BaseFileNode
+from osf.models import RdmUserKey, RdmFileTimestamptokenVerifyResult, Guid, BaseFileNode, MapCoreGroup
 from osf_tests.factories import UserFactory, AuthUserFactory, InstitutionFactory, ProjectFactory
 from tests.base import AdminTestCase
 from tests.test_timestamp import create_test_file, create_rdmfiletimestamptokenverifyresult
@@ -337,6 +337,7 @@ def mock_node():
     node.embargo = None
     node.created = datetime(2023, 1, 1)
     node.contributor_names = 'user1, user2'
+    node.mapcore_groups = [MapCoreGroup(_id='group1'), MapCoreGroup(_id='group2')]
     return node
 
 
@@ -433,7 +434,7 @@ class TestInstitutionNodeListExportCsv:
                 # Check header row
                 assert rows[0] == ['Node id', 'GUID', 'Title', 'Parent', 'Root',
                                    'Date created', 'Public', 'Withdrawn', 'Embargo',
-                                   'Contributors']
+                                   'Contributors', 'Groups']
 
                 # Check data row
                 assert rows[1][0] == '1'  # Node id
@@ -442,6 +443,7 @@ class TestInstitutionNodeListExportCsv:
                 assert rows[1][3] == 'Parent Node'  # Parent
                 assert rows[1][4] == 'Root Node'  # Root
                 assert rows[1][5] == '2023-01-01'  # Date created
+                assert rows[1][10] == 'group1, group2'  # Groups
 
         def test_csv_generation_with_minimal_data(self, view_instance, mock_request):
             """Test CSV generation with minimal node data"""
@@ -456,6 +458,7 @@ class TestInstitutionNodeListExportCsv:
             minimal_node.embargo = None
             minimal_node.created = None
             minimal_node.contributor_names = None
+            minimal_node.mapcore_groups = []
 
             with mock.patch.object(view_instance, 'get_queryset') as mock_get_queryset:
                 mock_get_queryset.return_value.all.return_value = [minimal_node]
@@ -500,7 +503,7 @@ class TestInstitutionNodeListExportCsv:
                 assert len(rows) == 1
                 assert rows[0] == ['Node id', 'GUID', 'Title', 'Parent', 'Root',
                                    'Date created', 'Public', 'Withdrawn', 'Embargo',
-                                   'Contributors']
+                                   'Contributors', 'Groups']
 
         def test_filename_format(self, view_instance, mock_request, mock_node):
             """Test generated filename format"""
@@ -522,7 +525,8 @@ class TestInstitutionNodeListExportCsv:
             ('retraction', False),
             ('embargo', None),
             ('created', datetime(2023, 1, 1)),
-            ('contributor_names', 'user1, user2')
+            ('contributor_names', 'user1, user2'),
+            ('mapcore_groups', [MapCoreGroup(_id='group1'), MapCoreGroup(_id='group2')]),
         ])
         def test_specific_node_attributes(self, view_instance, mock_request, mock_node,
                                           node_attribute, expected_value):
@@ -542,3 +546,5 @@ class TestInstitutionNodeListExportCsv:
                     assert rows[1][5] == '2023-01-01'
                 elif node_attribute == 'contributor_names':
                     assert rows[1][9] == expected_value
+                elif node_attribute == 'mapcore_groups':
+                    assert rows[1][10] == ', '.join([group.display_name for group in expected_value])

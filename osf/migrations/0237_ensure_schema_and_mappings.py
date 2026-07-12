@@ -29,7 +29,7 @@ def ensure_registration_mappings(*args):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('addons_weko', '0005_registrationmetadatamapping'),
+        ('addons_weko', '0006_registrationmetadatamapping_filename'),
         ('osf', '0236_add_columns_to_registration_schema_block'),
     ]
 

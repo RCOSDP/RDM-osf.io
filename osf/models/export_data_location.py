@@ -78,6 +78,12 @@ class ExportDataLocation(base.BaseModel):
                 'secret_key': storage_credentials['secret_key'],
                 'host': storage_credentials['host'],
             }
+        elif provider_name == 's3compatsigv4':
+            result = {
+                'access_key': storage_credentials['access_key'],
+                'secret_key': storage_credentials['secret_key'],
+                'host': storage_credentials['host'],
+            }
         elif provider_name == 'nextcloudinstitutions':
             """
                 /storage
@@ -113,6 +119,11 @@ class ExportDataLocation(base.BaseModel):
                 'encrypt_uploads': storage_settings['folder']['encrypt_uploads'],
             }
         elif provider_name == 's3compat':
+            result = {
+                'bucket': storage_settings['bucket'],
+                'encrypt_uploads': storage_settings['folder']['encrypt_uploads'],
+            }
+        elif provider_name == 's3compatsigv4':
             result = {
                 'bucket': storage_settings['bucket'],
                 'encrypt_uploads': storage_settings['folder']['encrypt_uploads'],

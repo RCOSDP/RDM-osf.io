@@ -3109,9 +3109,11 @@ msgstr ""
 
 #: website/templates/profile/settings.mako:47
 msgid ""
+"The following fields are required: "
 "\"Full name\", \"Family name\", \"Given name\", \"Family name (EN)\", "
 "\"Given name (EN)\" on the Name tab, and \"Affiliation\" and "
-"\"Affiliation (English)\" on the Employment tab is required."
+"\"Affiliation (English)\" on the Employment tab. "
+"(For students: Please add your university and faculty/graduate school information in the Employment tab.)"
 msgstr ""
 
 #: website/templates/profile/settings.mako:50
@@ -4355,4 +4357,103 @@ msgstr ""
 
 #: website/templates/profile.mako:80
 msgid "Log in again using multi-factor authentication"
+msgstr ""
+
+#: website/templates/util/render_addon_widget.mako
+msgid "Available workflows"
+msgstr ""
+
+#: website/templates/util/render_addon_widget.mako
+msgid "Dismiss"
+msgstr ""
+
+msgid "Groups"
+msgstr ""
+
+msgid "Group name"
+msgstr ""
+
+msgid "Registered by"
+msgstr ""
+
+msgid "Add Groups"
+msgstr ""
+
+msgid "Search by group name"
+msgstr ""
+
+msgid "Remove Group"
+msgstr ""
+
+msgid ""
+"<span>Do you want to remove <b %(removedGroup)s></b> from"
+"                                <b %(textTitle)s></b>, or from <b "
+"%(textTitle)s></b> and every component in it?</span>"
+msgstr ""
+
+msgid ""
+"Remove <b %(removedGroup)s></b> from"
+"                                    <span %(textTitle)s></span>."
+msgstr ""
+
+msgid ""
+"Remove <b %(removedGroup)s></b> from"
+"                                    <span %(textTitle)s></span> and every"
+" component in it."
+msgstr ""
+
+msgid "Remove <b %(removedGroup)s></b> from <span %(textTitle)s></span>?"
+msgstr ""
+
+msgid ""
+"<b %(removedGroup)s>                                        </b> "
+"will be removed from the following projects and/or components."
+msgstr ""
+
+msgid ""
+"<b %(removedGroup)s>                                        </b> "
+"cannot be removed from the following projects and/or components."
+msgstr ""
+
+msgid "Searching groups..."
+msgstr ""
+
+msgid "Adding group(s)"
+msgstr ""
+
+msgid "Remove <b %(removedGroup)s></b> from <span %(textTitle)s></span>?"
+msgstr ""
+
+msgid ""
+"You can also add the group(s) to any components on which you are an"
+" admin."
+msgstr ""
+
+msgid "No groups found"
+msgstr ""
+
+msgid ""
+"Please save or discard your existing changes before removing a "
+"groups."
+msgstr ""
+
+msgid "Drag and drop groups to change listing order."
+msgstr ""
+
+msgid "Bibliographic Group"
+msgstr ""
+
+msgid "Bibliographic Group Information"
+msgstr ""
+
+msgid "※ This feature is intended for use in the Moonshot Goal 2 Database (Mebyo DB). Group member editing is performed through {baseUrl}."
+msgstr ""
+
+msgid "the GakuNin Cloud Gateway Service group function"
+msgstr ""
+
+msgid "If you register or remove a group member while they are logged into GakuNin RDM, the changes will not be reflected in the project until the user logs out and logs back in."
+msgstr ""
+
+msgid "%(groupOthersCount)s more"
 msgstr ""

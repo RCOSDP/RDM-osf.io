@@ -2055,6 +2055,9 @@ MAPCORE_REFRESH_PATH = '/oauth/token.php'
 MAPCORE_AUTHCODE_MAGIC = 'GRDM_mAP_AuthCode'
 MAPCORE_CLIENTID = None
 MAPCORE_SECRET = None
+MAPCORE_GROUP_HOSTNAME = 'https://sptest.cg.gakunin.jp'
+MAPCORE_GROUP_API_PATH = '/map/rd/'
+MAPCORE_GROUP_VIEW_PATH = '/map/mygroups/view'
 
 # allow logged-in-user to search private projects
 ENABLE_PRIVATE_SEARCH = False
@@ -2104,3 +2107,5 @@ OSF_AAL2_STR = 'https://www\.gakunin\.jp/profile/AAL2'
 OSF_IAL2_VAR = 'https://www.gakunin.jp/profile/IAL2'
 OSF_AAL1_VAR = 'https://www.gakunin.jp/profile/AAL1'
 OSF_AAL2_VAR = 'https://www.gakunin.jp/profile/AAL2'
+# Prefix of isMemberOf attribute for groups.
+MAP_GATEWAY_ISMEMBEROF_PREFIX = 'https://sptest.cg.gakunin.jp/gr/'

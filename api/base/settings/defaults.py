@@ -128,6 +128,7 @@ INSTALLED_APPS = (
     'addons.metadata',
     'addons.workflow',
     'addons.onlyoffice',
+    'addons.groups',
 )
 
 # local development using https
@@ -371,6 +372,9 @@ CLOUD_GATEWAY_ISMEMBEROF_PREFIX = osf_settings.CLOUD_GATEWAY_ISMEMBEROF_PREFIX
 INSTALLED_APPS += ('addons.s3compat',)
 ADDONS_FOLDER_CONFIGURABLE.append('s3compat')
 ADDONS_OAUTH.append('s3compat')
+INSTALLED_APPS += ('addons.s3compatsigv4',)
+ADDONS_FOLDER_CONFIGURABLE.append('s3compatsigv4')
+ADDONS_OAUTH.append('s3compatsigv4')
 INSTALLED_APPS += ('addons.s3compatb3',)
 ADDONS_FOLDER_CONFIGURABLE.append('s3compatb3')
 ADDONS_OAUTH.append('s3compatb3')
@@ -502,3 +506,5 @@ WARNING_THRESHOLD = 0.9
 BASE_FOR_METRIC_PREFIX = 1000
 SIZE_UNIT_GB = BASE_FOR_METRIC_PREFIX ** 3
 NII_STORAGE_REGION_ID = 1
+
+MAP_GATEWAY_ISMEMBEROF_PREFIX = osf_settings.MAP_GATEWAY_ISMEMBEROF_PREFIX

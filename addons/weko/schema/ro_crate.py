@@ -275,6 +275,8 @@ def _flatten_json_ld_root(object, counts=None):
                             clone[i]['name'] = final_values[i]
                             i += 1
 
+                # keywords 特殊対応: 公的の Person, 未病の PropertyValue で利用
+                if '@id' in item and item.get('@type') in ('Person', 'PropertyValue'):
                     if 'keywords' in item:
                         parent_raw_id = item['@id']
                         parent_base_id = normalize_base_id(parent_raw_id)
@@ -314,33 +316,35 @@ def _flatten_json_ld_root(object, counts=None):
                                 final_values.append(new_entry)
                         root_data['rdm:keywords'] = final_values
 
-                    if 'subitem_filename' in item:
-                        try:
-                            subitems = json.loads(item['subitem_filename'])
-                        except (TypeError, ValueError) as exc:
-                            logger.warning('Could not parse subitem_filename: %s', exc)
-                        else:
-                            if isinstance(subitems, list) and subitems:
-                                new_entries = []
-                                for i, sub in enumerate(subitems, start=1):
-                                    new_entry = {
-                                        '@id': f'{root_base_id}{i}',
-                                        '@type': item.get('@type', 'PropertyValue'),
-                                        'value': sub.get('filename', '')
-                                    }
-                                    new_entries.append(new_entry)
-                                root_data[key] = new_entries
+                # subitem 特殊対応: 公的の Person, 未病の externalMetadataFiles で利用
+                if 'subitem_filename' in item:
+                    raw_id = item.get('@id', '')
+                    root_base_id = normalize_base_id(raw_id)
+                    try:
+                        subitems = json.loads(item['subitem_filename'])
+                    except (TypeError, ValueError) as exc:
+                        logger.warning('Could not parse subitem_filename: %s', exc)
+                    else:
+                        if isinstance(subitems, list) and subitems:
+                            new_entries = []
+                            for i, sub in enumerate(subitems, start=1):
+                                new_entry = {
+                                    '@id': f'{root_base_id}{i}',
+                                    '@type': item.get('@type', 'PropertyValue'),
+                                    'value': sub.get('filename', '')
+                                }
+                                new_entries.append(new_entry)
+                            root_data[key] = new_entries
 
                 # analysisType 特殊対応
                 if key == 'ams:analysisType' and len(values) == 1:
                     parent_raw_id = values[0]['@id']
                     parent_base_id = normalize_base_id(parent_raw_id)
                     final_values = []
-                    iCnt = 0
 
-                    for iCnt, value_str in enumerate(values[0]['value'], start=1):
+                    for i, value_str in enumerate(values[0]['value'], start=1):
                         new_entry = {
-                            '@id': f'{parent_base_id}{iCnt}',
+                            '@id': f'{parent_base_id}{i}',
                             '@type': values[0].get('@type', 'PropertyValue'),
                             'value': value_str
                         }
@@ -528,17 +532,19 @@ def _build_hierarchical_object(user, target_index, file_metadata, download_file_
                 continue
             if weko_mapping['@type'] in ['object', 'jsonobject']:
                 value = source_data.get('value', '')
+                if value is None:
+                    logger.warn(f'Unexpected value: {value}, {key}')
+                    continue
                 if 'choose-additional-metadata' in value:
                     url = value['choose-additional-metadata']
                     value_data = json.loads(url.get('value') or '[]')
-                    if not value_data:
-                        continue
-                    file_path = value_data[0]['path']
-                    file_name = file_path.split('/')[-1]
-                    for item in value_data:
-                        item['path'] = item['path'].replace('osfstorage/', '')
-                    url['value'] = file_name
-                    value['choose-additional-metadata'] = url
+                    if value_data:
+                        file_path = value_data[0]['path']
+                        file_name = file_path.split('/')[-1]
+                        for item in value_data:
+                            item['path'] = item['path'].replace('osfstorage/', '')
+                        url['value'] = file_name
+                        value['choose-additional-metadata'] = url
                 if 'absolute_url' in value:
                     url = value['absolute_url']
                     parsed_url = urlparse(url)
@@ -593,6 +599,7 @@ def _prepare_file_metadata_entries(file_metadatas, download_file_names, schema_i
             'file_type': file_type,
         })
     return entries
+
 
 def write_ro_crate_json(user, f, target_index, download_file_names, schema_id, file_metadatas, project_metadatas, node_id, flatten=True, base_host=None):
     from ..models import RegistrationMetadataMapping
@@ -846,16 +853,17 @@ def write_ro_crate_json(user, f, target_index, download_file_names, schema_id, f
         match = next((d for d in json_ld['@graph'] if d.get('@id') == './'), None)
         match.update(properties)
 
-        # 未病スキーマ アイテムの更新用プロパティ追加
-        weko_item_id = get_weko_item_id(project_metadatas)
-        if weko_item_id and base_host:
-            match.update(
-                {
-                    'wk:editMode': 'Upgrade',
-                    'uri': f'{base_host}records/{weko_item_id}',
-                    'identifier': f'{weko_item_id}'
-                }
-            )
+    # アイテムの更新用プロパティ追加
+    weko_item_id = get_weko_item_id(project_metadatas) if len(project_metadatas) == 1 else None
+    if weko_item_id and base_host:
+        match = next((d for d in json_ld['@graph'] if d.get('@id') == './'), None)
+        match.update(
+            {
+                'wk:editMode': 'Upgrade',
+                'uri': f'{base_host}records/{weko_item_id}',
+                'identifier': f'{weko_item_id}'
+            }
+        )
 
     logger.debug(f'Generated RO-Crate: {json.dumps(json_ld, ensure_ascii=False)}')
     json.dump(json_ld, f, indent=2, ensure_ascii=False)

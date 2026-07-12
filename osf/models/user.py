@@ -702,7 +702,8 @@ class OSFUser(DirtyFieldsMixin, GuidMixin, BaseModel, AbstractBaseUser, Permissi
         Nodes that user has perms to through contributorship or group membership
         """
         from osf.models import Node
-        return Node.objects.get_nodes_for_user(self)
+        include_mapcore = getattr(self, 'include_mapcore_groups', False)
+        return Node.objects.get_nodes_for_user(self, include_mapcore_groups=include_mapcore)
 
     def set_unusable_username(self):
         """Sets username to an unusable value. Used for, e.g. for invited contributors
