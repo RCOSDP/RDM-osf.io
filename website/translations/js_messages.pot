@@ -2925,7 +2925,7 @@ msgid "Storage location"
 msgstr ""
 
 #: website/static/js/addProjectPlugin.js:251
-msgid " Add contributors from "
+msgid " Add contributors and groups from "
 msgstr ""
 
 #: website/static/js/addProjectPlugin.js:253
@@ -9240,4 +9240,74 @@ msgid "The new project cannot be created due to the created project number is gr
 msgstr ""
 
 msgid "The Integrated Admin added ${contributors} as contributor(s) to ${node}"
+msgstr ""
+
+msgid "${user} added group ${mapcore_groups} to ${node}"
+msgstr ""
+
+msgid "${user} removed group ${mapcore_groups} from ${node}"
+msgstr ""
+
+msgid "${user} updated group permissions on ${node}"
+msgstr ""
+
+msgid "Add Groups"
+msgstr ""
+
+msgid "Remove Group"
+msgstr ""
+
+msgid "Your group list has unsaved changes. Please "
+msgstr ""
+
+msgid "save or cancel your changes before adding groups."
+msgstr ""
+
+msgid "Unable to delete Group"
+msgstr ""
+
+msgid "Could not DELETE Group."
+msgstr ""
+
+msgid "There was a problem trying to add groups%1$s."
+msgstr ""
+
+msgid "There was a problem trying to add the group."
+msgstr ""
+
+msgid "Could not add groups"
+msgstr ""
+
+msgid "Could not add group"
+msgstr ""
+
+msgid "Error adding groups"
+msgstr ""
+
+msgid ""
+"Only bibliographic groups will be displayed in the Groups "
+"list and in project citations. Non-bibliographic groups can read "
+"and modify the project as normal."
+msgstr ""
+
+msgid "A user reordered groups for a project"
+msgstr ""
+
+msgid "A user made group(s) visible on a project"
+msgstr ""
+
+msgid "A user made group(s) invisible on a project"
+msgstr ""
+
+msgid "${user} reordered groups for ${node}"
+msgstr ""
+
+msgid ""
+"${user} made non-bibliographic group ${mapcore_groups} a "
+"bibliographic group on ${node}"
+msgstr ""
+
+msgid ""
+"${user} made bibliographic group ${mapcore_groups} a "
+"non-bibliographic group on ${node}"
 msgstr ""
