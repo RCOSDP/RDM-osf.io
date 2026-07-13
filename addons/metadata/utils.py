@@ -151,7 +151,7 @@ def transform_name_fields_item(data):
     if creators is not None:
         rows = creators['value']
         if isinstance(rows, str):
-            rows = json.loads(rows)
+            rows = json.loads(rows) if rows.strip() else []
             creators['value'] = rows
         if isinstance(rows, list) and _transform_creators_rows(rows):
             dirty = True
