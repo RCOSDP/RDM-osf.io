@@ -133,6 +133,8 @@
                         <i class='fa fa-link'></i><span> {% trans "Login Availability Control" %}</span>
                     </a>
                 </li>
+            {% endif %}
+            {% if user.is_superuser %}
                 <li>
                     <a href="{% url 'loa:list' %}">
                         <i class='fa fa-link'></i><span> {% trans "Level of Assurance" %}</span>
