@@ -84,8 +84,6 @@ def bucket_exists(access_key, secret_key, bucket_name):
     """
     if not bucket_name:
         return False
-    # bucket names are dns-compliant, therefore must be lowercase
-    bucket_name = bucket_name.lower()
 
     try:
         # Will raise an exception if bucket_name doesn't exist
@@ -140,9 +138,6 @@ def get_user_info(access_key: str, secret_key: str) -> Optional[Owner]:
 def get_bucket_location_or_error(access_key, secret_key, bucket_name):
     """Returns the location of a bucket or raises AddonError
     """
-    # bucket names are dns-compliant, therefore must be lowercase
-    bucket_name = bucket_name.lower()
-
     try:
         # Will raise an exception if bucket_name doesn't exist
         return connect_s3(access_key, secret_key).get_bucket_location(Bucket=bucket_name)['LocationConstraint']
