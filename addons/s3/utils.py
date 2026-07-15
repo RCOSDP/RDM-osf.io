@@ -121,7 +121,8 @@ class Owner:
 
     @classmethod
     def from_dict(cls, data):
-        return cls(data['DisplayName'], data['ID'])
+        owner_id = data['ID']
+        return cls(data.get('DisplayName') or owner_id, owner_id)
 
 
 def get_user_info(access_key: str, secret_key: str) -> Optional[Owner]:
