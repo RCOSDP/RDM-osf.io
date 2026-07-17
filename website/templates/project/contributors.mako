@@ -182,6 +182,9 @@
                 data-bind="css: {sortable: ($data === 'contrib' && $root.isSortable())}" style="min-width: 100px;white-space: nowrap;">${_("Name")}
             </th>
             <th style="min-width: 140px;width: 200px;white-space: nowrap;"></th>
+            <th style="min-width: 180px;width: 220px;white-space: nowrap;">${_("E-mail")}</th>
+            <th style="min-width: 180px;width: 220px;white-space: nowrap;">${_("Affiliation")}</th>
+            <th style="min-width: 90px;width: 100px;white-space: nowrap;">${_("Invite Date")}</th>
             <th style="min-width: 150px;width: 160px;white-space: nowrap;">
                 ${_("Permissions")}
                 <i class="fa fa-question-circle permission-info"
@@ -192,8 +195,8 @@
                     data-html="true"
                 ></i>
             </th>
-            <th class="biblio-contrib" style="min-width:144px;white-space: nowrap;">
-                ${_("Bibliographic Contributor")}
+            <th class="biblio-contrib" style="min-width:100px;width:110px;white-space: nowrap;">
+                ${_("Bibliographic Title")}
                 <i class="fa fa-question-circle visibility-info"
                     data-toggle="popover"
                     data-title="${_('Bibliographic Contributor Information')}"
@@ -240,7 +243,7 @@
                 ></i>
             </th>
             <th class="biblio-contrib">
-                ${_("Bibliographic Contributor")}
+                ${_("Bibliographic Title")}
                 <i class="fa fa-question-circle visibility-info"
                     data-toggle="popover"
                     data-title="${_('Bibliographic Contributor Information')}"
@@ -290,6 +293,9 @@
                 <a class="name-search" data-bind="text: contributor.shortname, attr:{href: profileUrl}"></a>
             </span>
         </td>
+        <td class="table-only" data-bind="text: contributor.email || '-'"></td>
+        <td class="table-only" data-bind="text: contributor.affiliation || '-'"></td>
+        <td class="table-only" data-bind="text: contributor.invite_date || '-'"></td>
         <td class="permissions">
             <div class="header" data-bind="visible: contributor.expanded() && $root.collapsed()"></div>
             <div class="td-content" data-bind="visible: !$root.collapsed() || contributor.expanded()">

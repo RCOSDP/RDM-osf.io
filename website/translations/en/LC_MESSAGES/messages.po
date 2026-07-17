@@ -2867,6 +2867,10 @@ msgstr ""
 msgid "Bibliographic"
 msgstr ""
 
+#: website/templates/project/contributors.mako
+msgid "Bibliographic Title"
+msgstr "Bibliographic"
+
 #: website/templates/project/contributors.mako:46
 msgid "Non-Bibliographic"
 msgstr ""

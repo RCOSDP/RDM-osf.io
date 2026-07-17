@@ -3308,6 +3308,10 @@ msgstr "目録表示メンバーの情報"
 msgid "Bibliographic"
 msgstr "目録で表示"
 
+#: website/templates/project/contributors.mako
+msgid "Bibliographic Title"
+msgstr "目録表示"
+
 #: website/templates/project/contributors.mako:46
 msgid "Non-Bibliographic"
 msgstr "目録で非表示"
