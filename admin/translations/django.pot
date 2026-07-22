@@ -3960,5 +3960,11 @@ msgstr ""
 msgid "Level of Assurance"
 msgstr ""
 
+msgid "Required IAL level"
+msgstr ""
+
+msgid "Required AAL level"
+msgstr ""
+
 msgid "Display MFA link button"
 msgstr ""

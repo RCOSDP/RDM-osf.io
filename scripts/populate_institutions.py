@@ -1874,6 +1874,7 @@ INSTITUTIONS_LOA = {
                     'is_mfa':True,
                 },
             ],
+        'test': [],
     }
 
 if __name__ == '__main__':
