@@ -4565,6 +4565,89 @@ msgstr "メンバー管理"
 #~ "will keep the registration private until"
 #~ " the embargo period ends."
 #~ msgstr "この%(nodeType)sは現在登録を保留しており、プロジェクト管理者からの承認を待っています。この登録は最終的なものであり、すべてのプロジェクト管理者が登録を承認するか、48時間のパスのいずれか早いほうを承認した時点で禁止期間に入ります。禁止措置は、禁止期間が終了するまで登録を非公開にします。"
+
+msgid "Groups"
+msgstr "グループ"
+
+msgid "Group name"
+msgstr "グループ名"
+
+msgid "Registered by"
+msgstr "登録者"
+
+msgid "Add Groups"
+msgstr "グループを追加"
+
+msgid "Search by group name"
+msgstr "グループ名で検索する"
+
+msgid "Remove Group"
+msgstr "グループを削除"
+
+msgid ""
+"<span>Do you want to remove <b %(removedGroup)s></b> from"
+"                                <b %(textTitle)s></b>, or from <b "
+"%(textTitle)s></b> and every component in it?</span>"
+msgstr ""
+"<b %(removedGroup)s></b>を<b %(textTitle)s></b>から、または<b "
+"%(textTitle)s></b>とその中のすべてのコンポーネントから削除しますか？</span>"
+
+msgid ""
+"Remove <b %(removedGroup)s></b> from"
+"                                    <span %(textTitle)s></span>."
+msgstr "<span %(textTitle)s></span>から<b %(removedGroup)s></b>を削除します。"
+
+msgid ""
+"Remove <b %(removedGroup)s></b> from"
+"                                    <span %(textTitle)s></span> and every"
+" component in it."
+msgstr ""
+"<b %(removedGroup)s></b>を<span "
+"%(textTitle)s></span>およびその中のすべてのコンポーネントから削除します。"
+
+msgid "Remove <b %(removedGroup)s></b> from <span %(textTitle)s></span>?"
+msgstr "<span %(textTitle)s></span>から<b %(removedGroup)s></b>を削除しますか？"
+
+msgid ""
+"<b %(removedGroup)s>                                        </b> "
+"will be removed from the following projects and/or components."
+msgstr "<b %(removedGroup)s></b>は、以下のプロジェクトおよび/またはコンポーネントから削除されます。"
+
+msgid ""
+"<b %(removedGroup)s>                                        </b> "
+"cannot be removed from the following projects and/or components."
+msgstr "<b %(removedGroup)s></b>は、以下のプロジェクトやコンポーネントから削除できません。"
+
+msgid "Searching groups..."
+msgstr "グループを検索しています..."
+
+msgid "Adding group(s)"
+msgstr "メンバーを追加中"
+
+msgid "Remove <b %(removedGroup)s></b> from <span %(textTitle)s></span>?"
+msgstr "<span %(textTitle)s></span>から<b %(removedGroup)s></b>を削除しますか？"
+
+msgid ""
+"You can also add the group(s) to any components on which you are an"
+" admin."
+msgstr "管理者であるコンポーネントにグループを追加することもできます。"
+
+msgid "No groups found"
+msgstr "グループが見つかりません"
+
+msgid ""
+"Please save or discard your existing changes before removing a "
+"groups."
+msgstr "グループを削除する前に、既存の変更を保存または破棄してください。"
+
+msgid "Drag and drop groups to change listing order."
+msgstr "グループをドラッグ&ドロップして、リストの順序を変更します。"
+
+msgid "Bibliographic Group"
+msgstr "目録表示グループ"
+
+msgid "Bibliographic Group Information"
+msgstr "目録表示グループの情報"
 #: addons/workflow/templates/workflow_node_settings.mako:380
 #: addons/workflow/templates/workflow_node_settings.mako:415
 #: addons/workflow/templates/workflow_node_settings.mako:450
@@ -5079,3 +5162,15 @@ msgstr "利用可能なワークフロー"
 #: website/templates/util/render_addon_widget.mako
 msgid "Dismiss"
 msgstr "非表示にする"
+
+msgid "※ This feature is intended for use in the Moonshot Goal 2 Database (Mebyo DB). Group member editing is performed through {baseUrl}."
+msgstr "※本機能はムーンショット目標2（未病DB）関連プロジェクトでの利用を対象としています。グループのメンバー編集は、{baseUrl} で実施します。"
+
+msgid "the GakuNin Cloud Gateway Service group function"
+msgstr "学認クラウドゲートウェイサービスグループ機能"
+
+msgid "If you register or remove a group member while they are logged into GakuNin RDM, the changes will not be reflected in the project until the user logs out and logs back in."
+msgstr "GakuNin RDMログイン中のグループメンバーを登録・削除する場合、当該ユーザがログアウト・再ログインするまでプロジェクトからは登録・削除されません。"
+
+msgid "%(groupOthersCount)s more"
+msgstr "あと%(groupOthersCount)sグループ"
