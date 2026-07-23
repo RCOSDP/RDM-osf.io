@@ -1927,6 +1927,84 @@ class TestUpdateUserUsedQuotaWithInstitutionDefaultMaxQuota(OsfTestCase):
         assert_equal(user_quota.used, 200)
 
 
+class TestGetDefaultMaxQuota(OsfTestCase):
+    """Unit tests for get_default_max_quota()"""
+
+    def setUp(self):
+        super(TestGetDefaultMaxQuota, self).setUp()
+        self.user = AuthUserFactory()
+        self.institution = InstitutionFactory(name='Test Institution')
+        self.user.affiliated_institutions.add(self.institution)
+
+    def _make_non_nii_region(self):
+        region = RegionFactory(_id=self.institution._id)
+        region.waterbutler_settings['storage']['type'] = Region.INSTITUTIONS
+        region.save()
+        return region
+
+    def _make_nii_region(self):
+        region = RegionFactory(_id=self.institution._id)
+        region.waterbutler_settings['storage']['type'] = Region.NII_STORAGE
+        region.save()
+        return region
+
+    def test_nii_storage_returns_default(self):
+        """NII_STORAGE always returns DEFAULT_MAX_QUOTA regardless of institution quota"""
+        from osf.models.institution_default_max_quota import InstitutionDefaultMaxQuota
+        self._make_non_nii_region()
+        InstitutionDefaultMaxQuota.objects.update_or_create(
+            institution_id=self.institution.id,
+            defaults={'default_max_quota': 500}
+        )
+
+        result = quota.get_default_max_quota(self.user, UserQuota.NII_STORAGE)
+
+        assert_equal(result, api_settings.DEFAULT_MAX_QUOTA)
+
+    def test_custom_storage_no_institution_returns_default(self):
+        """CUSTOM_STORAGE returns DEFAULT_MAX_QUOTA when user has no affiliated institution"""
+        user_no_inst = AuthUserFactory()
+
+        result = quota.get_default_max_quota(user_no_inst, UserQuota.CUSTOM_STORAGE)
+
+        assert_equal(result, api_settings.DEFAULT_MAX_QUOTA)
+
+    def test_custom_storage_institution_uses_nii_storage_returns_default(self):
+        """CUSTOM_STORAGE returns DEFAULT_MAX_QUOTA when institution's region is NII_STORAGE"""
+        from osf.models.institution_default_max_quota import InstitutionDefaultMaxQuota
+        self._make_nii_region()
+        InstitutionDefaultMaxQuota.objects.update_or_create(
+            institution_id=self.institution.id,
+            defaults={'default_max_quota': 500}
+        )
+
+        result = quota.get_default_max_quota(self.user, UserQuota.CUSTOM_STORAGE)
+
+        assert_equal(result, api_settings.DEFAULT_MAX_QUOTA)
+
+    def test_custom_storage_no_institution_quota_returns_default(self):
+        """CUSTOM_STORAGE returns DEFAULT_MAX_QUOTA when no InstitutionDefaultMaxQuota is set"""
+        self._make_non_nii_region()
+        # No InstitutionDefaultMaxQuota created
+
+        result = quota.get_default_max_quota(self.user, UserQuota.CUSTOM_STORAGE)
+
+        assert_equal(result, api_settings.DEFAULT_MAX_QUOTA)
+
+    def test_custom_storage_with_institution_quota_returns_institution_value(self):
+        """CUSTOM_STORAGE returns institution quota when region is non-NII and quota is set"""
+        from osf.models.institution_default_max_quota import InstitutionDefaultMaxQuota
+        self._make_non_nii_region()
+        InstitutionDefaultMaxQuota.objects.update_or_create(
+            institution_id=self.institution.id,
+            defaults={'default_max_quota': 350}
+        )
+
+        result = quota.get_default_max_quota(self.user, UserQuota.CUSTOM_STORAGE)
+
+        assert_equal(result, 350)
+
+
 @pytest.mark.enable_implicit_clean
 class TestFileAddedWithoutSelectForUpdate(OsfTestCase):
     """Test file_added() without select_for_update branch"""
