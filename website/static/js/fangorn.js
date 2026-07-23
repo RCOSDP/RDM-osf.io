@@ -2374,13 +2374,17 @@ var FGInput = {
         var id = args.id || '';
         var helpTextId = args.helpTextId || '';
         var oninput = args.oninput || noop;
-        var onkeypress = args.onkeypress || noop;
+        var onkeydown = args.onkeydown || noop;
+        var oncompositionstart = args.oncompositionstart || noop;
+        var oncompositionend = args.oncompositionend || noop;
         return m('span', [
             m('input', {
                 'id' : id,
                 className: 'pull-right form-control' + extraCSS,
                 oninput: oninput,
-                onkeypress: onkeypress,
+                onkeydown: onkeydown,
+                oncompositionstart: oncompositionstart,
+                oncompositionend: oncompositionend,
                 'value': args.value || '',
                 'data-toggle': tooltipText ? 'tooltip' : '',
                 'title': tooltipText,
@@ -2586,6 +2590,8 @@ var dismissToolbar = function(helpText){
 var FGToolbar = {
     controller : function(args) {
         var self = this;
+        self.isComposingAddFolder = false;
+        self.isComposingRenameFolder = false;
         self.tb = args.treebeard;
         self.tb.toolbarMode = m.prop(toolbarModes.DEFAULT);
         self.items = args.treebeard.multiselected;
@@ -2638,9 +2644,18 @@ var FGToolbar = {
             templates[toolbarModes.ADDFOLDER] = [
                 m('.col-xs-9', [
                     m.component(FGInput, {
+                        oncompositionstart: function () {
+                            ctrl.isComposingAddFolder = true;
+                        },
+                        oncompositionend: function () {
+                            ctrl.isComposingAddFolder = false;
+                        },
                         oninput: m.withAttr('value', ctrl.nameData),
-                        onkeypress: function (event) {
-                            if (ctrl.tb.pressedKey === ENTER_KEY) {
+                        onkeydown: function (event) {
+                            const isComposing = event.isComposing || ctrl.isComposingAddFolder || event.keyCode === 229;
+                            if (event.key === 'Enter' && !isComposing) {
+                                event.preventDefault();
+                                event.stopPropagation();
                                 ctrl.createFolder.call(ctrl.tb, event, ctrl.dismissToolbar);
                             }
                         },
@@ -2666,9 +2681,18 @@ var FGToolbar = {
             templates[toolbarModes.RENAME] = [
                 m('.col-xs-9',
                     m.component(FGInput, {
+                        oncompositionstart: function () {
+                           ctrl.isComposingRenameFolder = true;
+                        },
+                        oncompositionend: function () {
+                            ctrl.isComposingRenameFolder = false;
+                        },
                         oninput: m.withAttr('value', ctrl.renameData),
-                        onkeypress: function (event) {
-                            if (ctrl.tb.pressedKey === ENTER_KEY) {
+                        onkeydown: function (event) {
+                            var isComposing = event.isComposing || ctrl.isComposingRenameFolder || event.keyCode === 229;
+                            if (event.key === 'Enter' && !isComposing) {
+                                event.preventDefault();
+                                event.stopPropagation();
                                 _renameEvent.call(ctrl.tb);
                             }
                         },
