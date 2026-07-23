@@ -55,9 +55,21 @@ class TestContributorUtils(OsfTestCase):
         serialized = utils.serialize_user(self.project.creator, self.project)
         assert serialized['invite_date'] is None
 
-    def test_serialize_user_email_field_present(self):
-        serialized = utils.serialize_user(self.project.creator, self.project)
+    def test_serialize_user_email_field_present_when_have_email(self):
+        user = self.project.creator
+        user.have_email = True
+        user.save()
+        serialized = utils.serialize_user(user, self.project)
         assert_in('email', serialized)
+        assert_equal(serialized['email'], user.username)
+
+    def test_serialize_user_email_field_empty_when_no_email(self):
+        user = self.project.creator
+        user.have_email = False
+        user.save()
+        serialized = utils.serialize_user(user, self.project)
+        assert_in('email', serialized)
+        assert_equal(serialized['email'], '')
 
     def test_serialize_user_affiliation_no_institution(self):
         serialized = utils.serialize_user(self.project.creator, self.project)
@@ -66,8 +78,23 @@ class TestContributorUtils(OsfTestCase):
     def test_serialize_user_affiliation_with_institution(self):
         institution = InstitutionFactory()
         self.project.creator.affiliated_institutions.add(institution)
+        from django.db.models import prefetch_related_objects
+        prefetch_related_objects([self.project.creator], 'affiliated_institutions')
         serialized = utils.serialize_user(self.project.creator, self.project)
         assert_equal(serialized['affiliation'], institution.name)
+
+    def test_serialize_user_affiliation_selects_lowest_pk_institution(self):
+        # With multiple institutions, the one with the lowest pk must be selected
+        # (sorted ascending by pk, matching representative_affiliated_institution behaviour).
+        inst1 = InstitutionFactory()
+        inst2 = InstitutionFactory()
+        low_pk_inst, high_pk_inst = (inst1, inst2) if inst1.pk < inst2.pk else (inst2, inst1)
+        user = self.project.creator
+        user.affiliated_institutions.add(low_pk_inst, high_pk_inst)
+        from django.db.models import prefetch_related_objects
+        prefetch_related_objects([user], 'affiliated_institutions')
+        serialized = utils.serialize_user(user, self.project)
+        assert_equal(serialized['affiliation'], low_pk_inst.name)
 
     def test_serialize_contributors_passes_invite_dates(self):
         contribs = list(self.project.contributor_set.all())
@@ -263,7 +290,7 @@ class TestGetContributorInviteDates(OsfTestCase):
 
         dates = self._get_dates()
         assert_in(new_user._id, dates)
-        assert_not_equal(dates[new_user._id], self.project.created.strftime('%Y-%m-%d'))
+        assert_equal(dates[new_user._id], log_date.strftime('%Y-%m-%d'))
 
     def test_contributor_with_no_log_gets_node_created_date(self):
         new_user = AuthUserFactory()
@@ -291,21 +318,27 @@ class TestGetContributorInviteDates(OsfTestCase):
         dates = self._get_dates()
         assert_equal(dates[new_user._id], later_date.strftime('%Y-%m-%d'))
 
-    def test_creator_readded_gets_readd_date(self):
-        # Creator removed then re-added — should show re-add date, not node_created
-        self.project.remove_contributor(self.user, auth=self.auth)
+    def test_contributor_readded_gets_readd_date(self):
+        # Contributor removed then re-added — should show re-add date, not original add date.
+        # Use a non-creator user so remove_contributor succeeds (creator cannot be removed
+        # when they are the only visible admin contributor).
+        other_user = AuthUserFactory()
+        self.project.add_contributor(other_user, auth=self.auth, save=True)
+        self.project.remove_contributor(other_user, auth=self.auth)
+        assert not self.project.is_contributor(other_user)
+
         later_date = self.project.created + datetime.timedelta(days=10)
         NodeLog.objects.create(
             node=self.project,
             action=NodeLog.CONTRIB_ADDED,
-            params={'contributors': [self.user._id]},
+            params={'contributors': [other_user._id]},
             user=self.user,
             date=later_date,
         )
-        self.project.add_contributor(self.user, auth=self.auth, log=False, save=True)
+        self.project.add_contributor(other_user, auth=self.auth, log=False, save=True)
 
         dates = self._get_dates()
-        assert_equal(dates[self.user._id], later_date.strftime('%Y-%m-%d'))
+        assert_equal(dates[other_user._id], later_date.strftime('%Y-%m-%d'))
 
     def test_all_current_contributors_have_dates(self):
         # _get_dates() passes only current-contributor guids; every one of them
@@ -418,24 +451,95 @@ class TestNodeContributorsView(OsfTestCase):
 
     def test_admin_contributor_invite_date_equals_node_created(self):
         # Admin contributors (from parent) always get node_created as invite_date.
+        # Use a separate parent_admin user who is NOT a contributor of the component,
+        # so that parent_admin_contributors returns a non-empty list.
         parent = ProjectFactory(creator=self.user)
+        parent_admin = AuthUserFactory()
+        parent.add_contributor(parent_admin, permissions=permissions.ADMIN, auth=self.auth, save=True)
         component = NodeFactory(parent=parent, creator=self.user)
 
         ret = node_contributors(auth=self.auth, node=component)
 
+        assert len(ret['adminContributors']) >= 1, 'adminContributors must be non-empty for this test to be meaningful'
         node_created = component.created.strftime('%Y-%m-%d')
         for admin_contrib in ret['adminContributors']:
             assert_equal(admin_contrib['invite_date'], node_created)
 
     def test_admin_contributor_has_email_and_affiliation_fields(self):
+        # Use a separate parent_admin user who is NOT a contributor of the component,
+        # so that parent_admin_contributors returns a non-empty list.
         parent = ProjectFactory(creator=self.user)
+        parent_admin = AuthUserFactory()
+        parent.add_contributor(parent_admin, permissions=permissions.ADMIN, auth=self.auth, save=True)
         component = NodeFactory(parent=parent, creator=self.user)
 
         ret = node_contributors(auth=self.auth, node=component)
 
+        assert len(ret['adminContributors']) >= 1, 'adminContributors must be non-empty for this test to be meaningful'
         for admin_contrib in ret['adminContributors']:
             assert_in('email', admin_contrib)
             assert_in('affiliation', admin_contrib)
+
+    def test_admin_contributor_email_value_when_have_email(self):
+        # Verify email value (not just key presence) for admin contributors.
+        parent = ProjectFactory(creator=self.user)
+        parent_admin = AuthUserFactory()
+        parent_admin.have_email = True
+        parent_admin.save()
+        parent.add_contributor(parent_admin, permissions=permissions.ADMIN, auth=self.auth, save=True)
+        component = NodeFactory(parent=parent, creator=self.user)
+
+        ret = node_contributors(auth=self.auth, node=component)
+
+        assert len(ret['adminContributors']) >= 1, 'adminContributors must be non-empty for this test to be meaningful'
+        admin_serialized = next(c for c in ret['adminContributors'] if c['id'] == parent_admin._id)
+        assert_equal(admin_serialized['email'], parent_admin.username)
+
+    def test_admin_contributor_email_empty_when_no_email(self):
+        parent = ProjectFactory(creator=self.user)
+        parent_admin = AuthUserFactory()
+        parent_admin.have_email = False
+        parent_admin.save()
+        parent.add_contributor(parent_admin, permissions=permissions.ADMIN, auth=self.auth, save=True)
+        component = NodeFactory(parent=parent, creator=self.user)
+
+        ret = node_contributors(auth=self.auth, node=component)
+
+        assert len(ret['adminContributors']) >= 1, 'adminContributors must be non-empty for this test to be meaningful'
+        admin_serialized = next(c for c in ret['adminContributors'] if c['id'] == parent_admin._id)
+        assert_equal(admin_serialized['email'], '')
+
+    def test_admin_contributor_affiliation_with_institution(self):
+        parent = ProjectFactory(creator=self.user)
+        parent_admin = AuthUserFactory()
+        institution = InstitutionFactory()
+        parent_admin.affiliated_institutions.add(institution)
+        parent.add_contributor(parent_admin, permissions=permissions.ADMIN, auth=self.auth, save=True)
+        component = NodeFactory(parent=parent, creator=self.user)
+
+        ret = node_contributors(auth=self.auth, node=component)
+
+        assert len(ret['adminContributors']) >= 1, 'adminContributors must be non-empty for this test to be meaningful'
+        admin_serialized = next(c for c in ret['adminContributors'] if c['id'] == parent_admin._id)
+        assert_equal(admin_serialized['affiliation'], institution.name)
+
+    def test_admin_contrib_added_log_invite_date_via_view(self):
+        # Integration: ADMIN_CONTRIB_ADDED log (代理登録) must surface as invite_date
+        # when the contributors list is fetched through the node_contributors view.
+        new_user = AuthUserFactory()
+        self.project.add_contributor(new_user, auth=self.auth, log=False, save=True)
+        log_date = self.project.created + datetime.timedelta(days=2)
+        NodeLog.objects.create(
+            node=self.project,
+            action=NodeLog.ADMIN_CONTRIB_ADDED,
+            params={'contributors': [new_user._id]},
+            user=self.user,
+            date=log_date,
+        )
+
+        ret = self._call_view()
+        new_serialized = next(c for c in ret['contributors'] if c['id'] == new_user._id)
+        assert_equal(new_serialized['invite_date'], log_date.strftime('%Y-%m-%d'))
 
     def test_contributor_count_matches_project_contributors(self):
         new_user = AuthUserFactory()

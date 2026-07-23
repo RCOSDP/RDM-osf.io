@@ -31,8 +31,11 @@ def serialize_user(user, node=None, admin=False, full=False, is_profile=False, i
         user = contrib.user
     fullname = user.display_full_name(node=node)
     idp_attrs = user.get_idp_attr()
-    affiliated = list(user.affiliated_institutions.all())
-    institution = affiliated[0] if affiliated else None
+    institution = None
+    prefetch_cache = getattr(user, '_prefetched_objects_cache', {})
+    if 'affiliated_institutions' in prefetch_cache:
+        affiliated = list(user.affiliated_institutions.all())
+        institution = sorted(affiliated, key=lambda i: i.pk)[0] if affiliated else None
     ret = {
         'id': str(user._id),
         'primary_key': user.id,
