@@ -405,6 +405,7 @@ def get_default_max_quota(user, storage_type):
     If the storage type is CUSTOM_STORAGE, retrieve the default quota
     configured for the user's affiliated institution. Otherwise, or if no
     institution-specific quota is configured, return the system default quota.
+    When the institution's region uses NII_STORAGE, always return the system default quota.
 
     Args:
         user (OSFUser): The user whose default quota is to be retrieved.
@@ -414,8 +415,13 @@ def get_default_max_quota(user, storage_type):
         int: The default maximum quota (in GB) applicable to the user.
     """
     if storage_type == UserQuota.CUSTOM_STORAGE:
-        default_max_quota = InstitutionDefaultMaxQuota.get_quota_by_user(user.id)
-        if default_max_quota is not None:
-            return default_max_quota
+        institution = user.representative_affiliated_institution
+        if institution and not Region.objects.filter(
+            _id=institution._id,
+            waterbutler_settings__storage__type=Region.NII_STORAGE
+        ).exists():
+            default_max_quota = InstitutionDefaultMaxQuota.get_quota_by_user(user.id)
+            if default_max_quota is not None:
+                return default_max_quota
 
     return api_settings.DEFAULT_MAX_QUOTA

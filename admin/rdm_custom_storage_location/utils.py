@@ -13,6 +13,7 @@ from swiftclient import exceptions as swift_exceptions
 import os
 import owncloud
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError, transaction
 
 from addons.dropboxbusiness.models import node_post_save as dropboxbusiness_post_save
 from addons.onedrivebusiness.models import node_post_save as onedrivebusiness_post_save
@@ -45,7 +46,8 @@ from addons.base.institutions_utils import (KEYNAME_BASE_FOLDER,
 from framework.exceptions import HTTPError
 from osf.models import AbstractNode
 from website import settings as osf_settings
-from osf.models import Node, OSFUser, ProjectStorageType, UserQuota
+from osf.models import Node, OSFUser, ProjectStorageType, UserQuota, InstitutionDefaultMaxQuota
+from api.base import settings as api_settings
 from osf.models.external import ExternalAccountTemporary, ExternalAccount
 from osf.utils import external_util
 import datetime
@@ -1387,3 +1389,51 @@ def add_node_settings_to_projects(institution, provider_name):
             onedrivebusiness_post_save(None, project, created=project_has_no_node_settings)
         else:
             node_post_save(None, project, created=project_has_no_node_settings)
+
+def is_institution_using_nii_storage(institution):
+    """Return True if the institution is currently using NII storage (or has no region configured)."""
+    old_region = Region.objects.filter(_id=institution._id).first()
+    return (
+        old_region is None or
+        old_region.waterbutler_settings.get('storage', {}).get('type') == Region.NII_STORAGE
+    )
+
+
+def upsert_user_quota_for_institution(institution, provider_short_name, old_is_nii, old_quota_type=None):
+    """Determine quota migration params and upsert UserQuota for all users affiliated with the institution."""
+    new_quota_type = institution.get_user_quota_type_for_nii_storage()
+    users = OSFUser.objects.filter(affiliated_institutions=institution.id)
+
+    if provider_short_name == 'osfstorage' and not old_is_nii:
+        # 機関ストレージ → NII Storage: reset all users to default quota
+        storage_type = new_quota_type
+        quota_map = {}
+    elif provider_short_name != 'osfstorage' and old_is_nii:
+        # NII Storage → 機関ストレージ: set all users to institution default quota
+        default_max_quota = InstitutionDefaultMaxQuota.objects.filter(institution=institution).values_list('default_max_quota', flat=True).first()
+        fixed_quota = default_max_quota if default_max_quota is not None else api_settings.DEFAULT_MAX_QUOTA
+        storage_type = UserQuota.CUSTOM_STORAGE
+        quota_map = {user.id: fixed_quota for user in users}
+    elif old_quota_type is not None and old_quota_type != new_quota_type and new_quota_type is not None:
+        # NII Storage quota type changed (e.g. no-region → has-region): preserve each user's existing quota
+        storage_type = new_quota_type
+        quota_map = {
+            q.user_id: q.max_quota
+            for q in UserQuota.objects.filter(user__in=users, storage_type=old_quota_type)
+        }
+    else:
+        return
+
+    with transaction.atomic():
+        for user in users:
+            max_quota = quota_map.get(user.id, api_settings.DEFAULT_MAX_QUOTA)
+            try:
+                with transaction.atomic():
+                    UserQuota.objects.update_or_create(
+                        user=user,
+                        storage_type=storage_type,
+                        defaults={'max_quota': max_quota}
+                    )
+            except IntegrityError as e:
+                logger.warning(u'IntegrityError while updating UserQuota: user={}, storage_type={}, max_quota={}: {}.'.format(user.id, storage_type, max_quota, str(e)))
+                UserQuota.objects.filter(user=user, storage_type=storage_type).update(max_quota=max_quota)
