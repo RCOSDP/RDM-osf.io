@@ -6,5 +6,7 @@
   "googledrive_folder_selected" : "${user} linked Google Drive folder ${googledrive_folder} to ${node}",
   "googledrive_node_authorized" : "${user} authorized the Google Drive addon for ${node}",
   "googledrive_node_deauthorized" : "${user} deauthorized the Google Drive addon for ${node}",
-  "googledrive_node_deauthorized_no_user" : "Google Drive addon for ${node} deauthorized"
+  "googledrive_node_deauthorized_no_user" : "Google Drive addon for ${node} deauthorized",
+  "googledrive_file_downloaded": "${user} downloaded file ${googledrive_path} from Google Drive in ${node}",
+  "googledrive_folder_downloaded_zip": "${user} downloaded folder ${googledrive_path} as a zip from Google Drive in ${node}"
 }

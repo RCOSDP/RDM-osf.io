@@ -9311,3 +9311,411 @@ msgid ""
 "${user} made bibliographic group ${mapcore_groups} a "
 "non-bibliographic group on ${node}"
 msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a file from a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a folder as a zip from a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a file from NII Storage in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a folder as a zip from NII Storage in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a file from Box in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a folder as a zip from Box in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a file from a Dataverse dataset in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a folder as a zip from a Dataverse dataset in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a file from Dropbox in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a folder as a zip from Dropbox in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a file from figshare in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a folder as a zip from figshare in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a file from a GitHub repo in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a folder as a zip from a GitHub repo in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a file from ownCloud in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a folder as a zip from ownCloud in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a file from Microsoft OneDrive in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a folder as a zip from Microsoft OneDrive in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a file from an Amazon S3 bucket in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a folder as a zip from an Amazon S3 bucket in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a file from Google Drive in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a folder as a zip from Google Drive in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a file from a Bitbucket repo in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a folder as a zip from a Bitbucket repo in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a file from a Swift container in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a folder as a zip from a Swift container in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a file from an Azure Blob Storage container in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a folder as a zip from an Azure Blob Storage container in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a draft file from a JAIRO Cloud index in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a folder as a zip from a JAIRO Cloud index in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a file from an S3 Compatible Storage bucket in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a folder as a zip from an S3 Compatible Storage bucket in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a file from an S3 Compatible Storage (SigV4) bucket in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a folder as a zip from an S3 Compatible Storage (SigV4) bucket in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a file from S3 Compatible Storage for Institutions in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a folder as a zip from S3 Compatible Storage for Institutions in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a file from an Oracle Cloud Infrastructure Object Storage bucket in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a folder as a zip from an Oracle Cloud Infrastructure Object Storage bucket in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a file from Oracle Cloud Infrastructure for Institutions in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a folder as a zip from Oracle Cloud Infrastructure for Institutions in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a file from Nextcloud in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a folder as a zip from Nextcloud in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a file from Nextcloud (for Institutions) in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a folder as a zip from Nextcloud (for Institutions) in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a file from IQB-RIMS in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a folder as a zip from IQB-RIMS in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a file from Dropbox Business in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a folder as a zip from Dropbox Business in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a file from an OneDrive team folder in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user downloaded a folder as a zip from an OneDrive team folder in a project"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded file ${path} from ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded folder ${path} as a zip from ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded file ${path} from ${storage_name} in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded folder ${path} as a zip from ${storage_name} in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded file ${path} from Box in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded folder ${path} as a zip from Box in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded file ${filename} from Dataverse dataset ${dataset} in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded folder ${filename} as a zip from Dataverse dataset ${dataset} in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded file ${path} from Dropbox in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded folder ${path} as a zip from Dropbox in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded file ${path} from figshare in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded folder ${path} as a zip from figshare in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded file ${path} from GitHub repo ${repo} in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded folder ${path} as a zip from GitHub repo ${repo} in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded file ${path} from GitLab repo ${gitlab_repo} in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded folder ${path} as a zip from GitLab repo ${gitlab_repo} in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded file ${path} from ownCloud in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded folder ${path} as a zip from ownCloud in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded file ${path} from Microsoft OneDrive in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded folder ${path} as a zip from Microsoft OneDrive in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded file ${path} from Amazon S3 bucket ${bucket} in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded folder ${path} as a zip from Amazon S3 bucket ${bucket} in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded file ${googledrive_path} from Google Drive in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded folder ${googledrive_path} as a zip from Google Drive in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded file ${path} from Bitbucket repo ${bitbucket_repo} in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded folder ${path} as a zip from Bitbucket repo ${bitbucket_repo} in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded file ${path} from Swift container ${bucket} in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded folder ${path} as a zip from Swift container ${bucket} in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded file ${path} from Azure Blob Storage container ${bucket} in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded folder ${path} as a zip from Azure Blob Storage container ${bucket} in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded draft file ${filename} from JAIRO Cloud index ${dataset} in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded folder ${filename} as a zip from JAIRO Cloud index ${dataset} in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded file ${path} from S3 Compatible Storage bucket ${bucket} in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded folder ${path} as a zip from S3 Compatible Storage bucket ${bucket} in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded file ${path} from S3 Compatible Storage (SigV4) bucket ${bucket} in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded folder ${path} as a zip from S3 Compatible Storage (SigV4) bucket ${bucket} in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded file ${path} from S3 Compatible Storage for Institutions in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded folder ${path} as a zip from S3 Compatible Storage for Institutions in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded file ${path} from Oracle Cloud Infrastructure Object Storage bucket ${bucket} in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded folder ${path} as a zip from Oracle Cloud Infrastructure Object Storage bucket ${bucket} in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded file ${path} from Oracle Cloud Infrastructure for Institutions in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded folder ${path} as a zip from Oracle Cloud Infrastructure for Institutions in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded file ${path} from Nextcloud in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded folder ${path} as a zip from Nextcloud in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded file ${path} from Nextcloud (for Institutions) in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded folder ${path} as a zip from Nextcloud (for Institutions) in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded file ${iqbrims_path} from IQB-RIMS in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded folder ${iqbrims_path} as a zip from IQB-RIMS in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded file ${path} from Dropbox Business in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded folder ${path} as a zip from Dropbox Business in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded file ${path} from the OneDrive team folder ${folder} in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} downloaded folder ${path} as a zip from the OneDrive team folder ${folder} in ${node}"
+msgstr ""

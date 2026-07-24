@@ -340,6 +340,12 @@ def get_auth(auth, **kwargs):
     # as default callback_log is True
     callback_log = False if isinstance(callback_log, str) and callback_log.lower() == 'false' else True
 
+    # Suppress download logging for MFR (Mfr File Renderer) initiated downloads.
+    # MFR downloads are system-initiated renders/views, not user-initiated actions,
+    # so they should not appear in the Recent Activity log.
+    if action == 'download' and download_is_from_mfr(request, payload=data):
+        callback_log = False
+
     is_node_process = True
     if node_id == ExportData.EXPORT_DATA_FAKE_NODE_ID:
         is_node_process = False
@@ -480,6 +486,8 @@ LOG_ACTION_MAP = {
     'update': NodeLog.FILE_UPDATED,
     'delete': NodeLog.FILE_REMOVED,
     'create_folder': NodeLog.FOLDER_CREATED,
+    'download_file': NodeLog.FILE_DOWNLOADED,
+    'download_zip': NodeLog.FOLDER_DOWNLOADED_ZIP,
 }
 
 DOWNLOAD_ACTIONS = set([
@@ -496,12 +504,6 @@ def create_waterbutler_log(payload, **kwargs):
     with transaction.atomic():
         try:
             auth = payload['auth']
-            # Don't log download actions
-            if payload['action'] in DOWNLOAD_ACTIONS:
-                guid = Guid.load(payload['metadata'].get('nid'))
-                if guid:
-                    node = guid.referent
-                return {'status': 'success'}
 
             user = OSFUser.load(auth['id'])
             if user is None:
@@ -598,6 +600,15 @@ def create_waterbutler_log(payload, **kwargs):
                 # Action failed but our function succeeded
                 # Bail out to avoid file_signals
                 return {'status': 'success'}
+
+        elif action in (NodeLog.FILE_DOWNLOADED, NodeLog.FOLDER_DOWNLOADED_ZIP):
+            # Reuse the same per-addon log path as file_added/updated/etc so the action
+            # gets addon-prefixed (box_file_downloaded, osf_storage_file_downloaded, ...)
+            # and params['urls'] gets built the same way as other file actions.
+            node.create_waterbutler_log(auth, action, payload)
+            # Bail out to avoid file_signals - downloads only need a Recent Activity
+            # log, not the notification/subscription pipeline used by file mutations.
+            return {'status': 'success'}
 
         else:
             node.create_waterbutler_log(auth, action, payload)

@@ -7,5 +7,7 @@
   "s3_folder_created" : "${user} created folder ${path} in Amazon S3 bucket ${bucket} in ${node}",
   "s3_node_authorized" : "${user} authorized the Amazon S3 addon for ${node}",
   "s3_node_deauthorized" : "${user} deauthorized the Amazon S3 addon for ${node}",
-  "s3_node_deauthorized_no_user" : "Amazon S3 addon for ${node} deauthorized"
+  "s3_node_deauthorized_no_user" : "Amazon S3 addon for ${node} deauthorized",
+  "s3_file_downloaded": "${user} downloaded file ${path} from Amazon S3 bucket ${bucket} in ${node}",
+  "s3_folder_downloaded_zip": "${user} downloaded folder ${path} as a zip from Amazon S3 bucket ${bucket} in ${node}"
 }

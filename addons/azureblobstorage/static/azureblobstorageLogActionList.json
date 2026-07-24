@@ -7,5 +7,7 @@
   "azureblobstorage_folder_created" : "${user} created folder ${path} in Azure Blob Storage container ${bucket} in ${node}",
   "azureblobstorage_node_authorized" : "${user} authorized the Azure Blob Storage addon for ${node}",
   "azureblobstorage_node_deauthorized" : "${user} deauthorized the Azure Blob Storage addon for ${node}",
-  "azureblobstorage_node_deauthorized_no_user" : "Azure Blob Storage addon for ${node} deauthorized"
+  "azureblobstorage_node_deauthorized_no_user" : "Azure Blob Storage addon for ${node} deauthorized",
+  "azureblobstorage_file_downloaded": "${user} downloaded file ${path} from Azure Blob Storage container ${bucket} in ${node}",
+  "azureblobstorage_folder_downloaded_zip": "${user} downloaded folder ${path} as a zip from Azure Blob Storage container ${bucket} in ${node}"
 }

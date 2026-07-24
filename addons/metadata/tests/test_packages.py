@@ -21,7 +21,7 @@ from osf_tests.factories import ProjectFactory, CommentFactory
 from addons.wiki.tests.factories import WikiFactory, WikiVersionFactory
 
 from .utils import remove_fields
-from ..packages import ROCrateFactory, ROCrateExtractor
+from ..packages import ROCrateFactory, ROCrateExtractor, WaterButlerObject
 
 
 logger = logging.getLogger(__name__)
@@ -1488,3 +1488,41 @@ class TestExportAndImport(OsfTestCase):
             new_wb, new_node_wb, new_wb_upload_file = _create_waterbutler_client_for_single_node(new_node, {})
             with assert_raises(Exception):
                 extractor.ensure_node(new_node)
+
+
+class TestWaterButlerObjectDownloadToCallbackLogSuppression:
+    """addons/metadata/packages.py: WaterButlerObject.download_to() is used by
+    RO-Crate export (an internal system operation) and must suppress Recent
+    Activity logging via callback_log=false.
+
+    Real behavioral test - despite this module's ~1490 lines of tests calling
+    `rocrate.download_to(zip_path)`, none of them exercise this method: `rocrate`
+    is a ROCrateFactory -> BaseROCrateFactory, whose own download_to (a totally
+    different method, same name) internally calls file.download_to(df) on
+    per-file objects - but the test helper `_create_waterbutler_object()` replaces
+    those with a bare MagicMock whose download_to is stubbed to just
+    `f.write(file['content'])`. The real WaterButlerObject.download_to, with the
+    callback_log-suppressing URL construction, was never invoked."""
+
+    def test_download_to_suppresses_callback_log(self):
+        wb = mock.MagicMock()
+        wb.cookie = 'test-cookie'
+        wb_object = WaterButlerObject({
+            'links': {
+                'download': 'http://waterbutler.example/v1/resources/abc12/providers/osfstorage/xyz',
+            },
+        }, wb)
+
+        mock_response = mock.MagicMock()
+        mock_response.iter_content = mock.MagicMock(return_value=[b'chunk1', b'chunk2'])
+
+        buf = io.BytesIO()
+        with mock.patch('addons.metadata.packages.requests.get', return_value=mock_response) as mock_get:
+            wb_object.download_to(buf)
+
+        assert_equals(buf.getvalue(), b'chunk1chunk2')
+        mock_response.raise_for_status.assert_called_once()
+        called_url = mock_get.call_args[0][0]
+        assert_true('callback_log=false' in called_url)
+        called_kwargs = mock_get.call_args[1]
+        assert_true(called_kwargs.get('stream') is True)
