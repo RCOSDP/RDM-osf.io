@@ -12,3 +12,19 @@
 .osf-nav-wrapper .dropdown-menu.auth-dropdown {
   width: unset !important;
 }
+
+.osf-nav-wrapper .dropdown-menu.service-dropdown {
+  width: unset !important;
+}
+
+@media (max-width: 767px) {
+  .osf-nav-wrapper .dropdown-menu.service-dropdown {
+    position: fixed !important;
+    top: 50px !important;
+    left: 15px !important;
+    right: auto !important;
+  }
+  .osf-nav-wrapper .dropdown-menu.service-dropdown ::after {
+    left: 60px !important;
+  }
+}

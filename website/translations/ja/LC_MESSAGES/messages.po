@@ -1910,6 +1910,10 @@ msgstr "ミーティング"
 msgid "INSTITUTIONS"
 msgstr "インスティチューション"
 
+#: website/templates/nav.mako:31
+msgid "JAIRO Cloud Publication Support"
+msgstr "JAIRO Cloud公開支援機能"
+
 #: website/templates/nav.mako:34
 msgid "Toggle navigation"
 msgstr "ナビゲーションを切り替える"
