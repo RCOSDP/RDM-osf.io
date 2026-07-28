@@ -1224,6 +1224,22 @@ msgstr "重要な情報、リンク、または画像をここに追加して、
 msgid "Close"
 msgstr "閉じる"
 
+#: addons/wiki/templates/edit.mako:277
+msgid "Unsaved Changes"
+msgstr "未保存の変更"
+
+#: addons/wiki/templates/edit.mako:280
+msgid "Your changes have not been saved. Do you want to save before closing?"
+msgstr "編集内容は保存されていません。閉じる前に保存しますか？"
+
+#: addons/wiki/templates/edit.mako:284
+msgid "Discard"
+msgstr "破棄"
+
+#: addons/wiki/templates/edit.mako:285
+msgid "Save and Close"
+msgstr "保存して閉じる"
+
 #: addons/wiki/templates/edit.mako:218 addons/wiki/templates/edit.mako:225
 msgid "Compare"
 msgstr "比較"
