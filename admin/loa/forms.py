@@ -4,18 +4,20 @@ from django.utils.translation import ugettext_lazy as _
 
 
 class LoAForm(forms.ModelForm):
-    CHOICES_AAL = [(0, _('NULL')), (1, _('AAL1')), (2, _('AAL2'))]
     CHOICES_IAL = [(0, _('NULL')), (1, _('IAL1')), (2, _('IAL2'))]
+    CHOICES_AAL = [(0, _('NULL')), (1, _('AAL1')), (2, _('AAL2'))]
     CHOICES_MFA = (
         (False, _('Hide')),
         (True, _('Show')),
     )
-    aal = forms.ChoiceField(
-        choices=CHOICES_AAL,
+    ial = forms.ChoiceField(
+        label=_('Required IAL level'),
+        choices=CHOICES_IAL,
         required=False,
     )
-    ial = forms.ChoiceField(
-        choices=CHOICES_IAL,
+    aal = forms.ChoiceField(
+        label=_('Required AAL level'),
+        choices=CHOICES_AAL,
         required=False,
     )
     is_mfa = forms.ChoiceField(
@@ -33,7 +35,7 @@ class LoAForm(forms.ModelForm):
     class Meta:
         model = LoA
         fields = (
-            'aal',
             'ial',
+            'aal',
             'is_mfa',
         )

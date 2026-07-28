@@ -3,7 +3,9 @@
 
 Covers:
   - IAL / AAL extraction from eduPersonAssurance
-  - LoA validation logic (AAL2 required → MFA redirect, AAL1 required → ValidationError, IAL checks)
+  - IAL1 is the baseline: ial falls back to OSF_IAL1_VAR when IAL2 is absent
+  - LoA validation logic (AAL2 required → MFA redirect, AAL1 required → ValidationError,
+    IAL2 required → ValidationError, IAL1 required → always satisfied)
   - MFA URL construction with urlencode()
   - user.context containing mfa_url in response
   - ValidationError raised when LoA requirements are not met
@@ -25,12 +27,9 @@ from osf_tests.factories import InstitutionFactory, UserFactory
 from website.settings import (
     OSF_AAL2_VAR,
     OSF_AAL1_VAR,
+    OSF_IAL1_VAR,
     OSF_IAL2_VAR,
 )
-
-def make_user(username, fullname):
-    return UserFactory(username=username, fullname=fullname)
-
 
 def make_payload(
         institution,
@@ -174,6 +173,37 @@ class TestInstitutionAuthLoA:
         assert res.status_code == 200
         user = OSFUser.objects.get(username=username)
         assert user.ial == OSF_IAL2_VAR
+
+    def test_ial1_is_assigned_when_edu_person_assurance_is_empty(
+        self, app, institution, url_auth_institution,
+    ):
+        """IAL1 is the baseline: ial falls back to OSF_IAL1_VAR when the IdP
+        sends no eduPersonAssurance at all.
+        """
+        username = 'user_ial1_default@inst.edu'
+        res = app.post(
+            url_auth_institution,
+            make_payload(institution, username),
+        )
+        assert res.status_code == 200
+        user = OSFUser.objects.get(username=username)
+        assert user.ial == OSF_IAL1_VAR
+
+    def test_ial1_is_assigned_when_edu_person_assurance_has_no_ial2(
+        self, app, institution, url_auth_institution,
+    ):
+        """eduPersonAssurance carrying only AAL values still yields IAL1."""
+        username = 'user_ial1_from_aal_only@inst.edu'
+        res = app.post(
+            url_auth_institution,
+            make_payload(
+                institution, username,
+                edu_person_assurance='https://www.gakunin.jp/profile/AAL2',
+            ),
+        )
+        assert res.status_code == 200
+        user = OSFUser.objects.get(username=username)
+        assert user.ial == OSF_IAL1_VAR
 
     def test_aal_falls_back_to_shib_authn_context_class(
         self, app, institution, url_auth_institution,
@@ -419,7 +449,10 @@ class TestInstitutionAuthLoA:
     def test_ial2_required_user_has_no_ial_raises_error(
         self, app, institution, url_auth_institution,
     ):
-        """IAL2 required but IAL2 not provided → ValidationError (400)."""
+        """IAL2 required but not provided → ValidationError (400).
+
+        The IAL1 fallback must NOT satisfy an IAL2 requirement.
+        """
         modifier = UserFactory()
         LoA.objects.create(
             institution=institution, aal=0, ial=2, modifier=modifier,
@@ -434,9 +467,13 @@ class TestInstitutionAuthLoA:
 
     # ---------------------------------------------------------------
     # LoA validation — IAL1 required
+    #
+    # IAL1 is the baseline assurance level: ial is always populated with
+    # either OSF_IAL2_VAR or OSF_IAL1_VAR, so an IAL1 requirement is
+    # satisfied by every authenticated user.
     # ---------------------------------------------------------------
 
-    def test_ial1_required_user_has_ial_passes(
+    def test_ial1_required_user_has_ial2_passes(
         self, app, institution, url_auth_institution,
     ):
         modifier = UserFactory()
@@ -453,20 +490,24 @@ class TestInstitutionAuthLoA:
         )
         assert res.status_code == 200
 
-    def test_ial1_required_user_has_no_ial_raises_error(
+    def test_ial1_required_user_without_ial2_passes(
         self, app, institution, url_auth_institution,
     ):
+        """A user with no IAL attribute still meets an IAL1 requirement,
+        because ial falls back to OSF_IAL1_VAR.
+        """
         modifier = UserFactory()
         LoA.objects.create(
             institution=institution, aal=0, ial=1, modifier=modifier,
         )
-        username = 'user_ial1_fail@inst.edu'
+        username = 'user_ial1_baseline@inst.edu'
         res = app.post(
             url_auth_institution,
             make_payload(institution, username),
-            expect_errors=True,
         )
-        assert res.status_code == 400
+        assert res.status_code == 200
+        user = OSFUser.objects.get(username=username)
+        assert user.ial == OSF_IAL1_VAR
 
     # ---------------------------------------------------------------
     # Combined AAL + IAL requirements

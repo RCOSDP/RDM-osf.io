@@ -37,6 +37,7 @@ from website.settings import (
     OSF_IAL2_STR,
     OSF_AAL1_STR,
     OSF_AAL2_STR,
+    OSF_IAL1_VAR,
     OSF_IAL2_VAR,
     OSF_AAL1_VAR,
     OSF_AAL2_VAR,
@@ -232,6 +233,8 @@ class InstitutionAuthentication(BaseAuthentication):
         eduPersonAssurance = p_user.get('eduPersonAssurance')
         if re.search(OSF_IAL2_STR, str(eduPersonAssurance)):
             ial = OSF_IAL2_VAR
+        else:
+            ial = OSF_IAL1_VAR
         if re.search(OSF_AAL2_STR, str(eduPersonAssurance)):
             aal = OSF_AAL2_VAR
         elif re.search(OSF_AAL1_STR, str(eduPersonAssurance)):
@@ -280,13 +283,6 @@ class InstitutionAuthentication(BaseAuthentication):
                     loa_flag = False
             if loa.ial == 2:
                 if not re.search(OSF_IAL2_STR, str(ial)):
-                    message = (
-                        'Institution login failed: Does not meet the required IAL.<br />Please check the IAL of your'
-                        ' institution.'
-                    )
-                    loa_flag = False
-            elif loa.ial == 1:
-                if not ial:
                     message = (
                         'Institution login failed: Does not meet the required IAL.<br />Please check the IAL of your'
                         ' institution.'

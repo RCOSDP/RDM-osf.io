@@ -4404,5 +4404,11 @@ msgstr "表示しない"
 msgid "Level of Assurance"
 msgstr "要求する保証レベルの設定"
 
+msgid "Required IAL level"
+msgstr "要求するIALのレベル"
+
+msgid "Required AAL level"
+msgstr "要求するAALのレベル"
+
 msgid "Display MFA link button"
 msgstr "多要素認証実行ボタンの表示"
