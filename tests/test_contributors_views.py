@@ -32,6 +32,14 @@ class TestContributorUtils(OsfTestCase):
         serialized = utils.serialize_user(self.project.creator, self.project, full=True)
         assert_not_in('emails', serialized)
 
+    def test_serialize_user_full_does_not_include_idp_email_without_is_profile(self):
+        serialized = utils.serialize_user(self.project.creator, self.project, full=True, is_profile=False)
+        assert_not_in('idp_email', serialized)
+
+    def test_serialize_user_full_includes_idp_email_when_is_profile(self):
+        serialized = utils.serialize_user(self.project.creator, self.project, full=True, is_profile=True)
+        assert_in('idp_email', serialized)
+
     def test_serialize_user_full_includes_email_if_is_profile(self):
         serialized = utils.serialize_user(
             self.project.creator,
@@ -55,19 +63,24 @@ class TestContributorUtils(OsfTestCase):
         serialized = utils.serialize_user(self.project.creator, self.project)
         assert serialized['invite_date'] is None
 
-    def test_serialize_user_email_field_present_when_have_email(self):
+    def test_serialize_user_email_not_included_by_default(self):
+        user = self.project.creator
+        serialized = utils.serialize_user(user, self.project)
+        assert_not_in('email', serialized)
+
+    def test_serialize_user_email_field_present_when_include_email_and_have_email(self):
         user = self.project.creator
         user.have_email = True
         user.save()
-        serialized = utils.serialize_user(user, self.project)
+        serialized = utils.serialize_user(user, self.project, include_email=True)
         assert_in('email', serialized)
         assert_equal(serialized['email'], user.username)
 
-    def test_serialize_user_email_field_empty_when_no_email(self):
+    def test_serialize_user_email_field_empty_when_include_email_and_no_email(self):
         user = self.project.creator
         user.have_email = False
         user.save()
-        serialized = utils.serialize_user(user, self.project)
+        serialized = utils.serialize_user(user, self.project, include_email=True)
         assert_in('email', serialized)
         assert_equal(serialized['email'], '')
 
@@ -548,3 +561,94 @@ class TestNodeContributorsView(OsfTestCase):
         ret = self._call_view()
         expected_count = self.project.contributor_set.count()
         assert_equal(len(ret['contributors']), expected_count)
+
+    def test_non_admin_contributor_has_no_email_field(self):
+        # A read-only contributor calls node_contributors; their response must
+        # NOT contain the 'email' key because include_email is False for
+        # non-admin callers.
+        read_user = AuthUserFactory()
+        self.project.add_contributor(read_user, permissions=permissions.READ, auth=self.auth, save=True)
+        read_auth = Auth(user=read_user)
+        self._current_user_patcher.stop()
+        patcher = mock.patch('framework.auth.core._get_current_user', return_value=read_user)
+        patcher.start()
+        try:
+            ret = node_contributors(auth=read_auth, node=self.project)
+        finally:
+            patcher.stop()
+            # Restart the original patcher so tearDown can stop it cleanly.
+            self._current_user_patcher = mock.patch(
+                'framework.auth.core._get_current_user',
+                return_value=self.user,
+            )
+            self._current_user_patcher.start()
+        for contrib in ret['contributors']:
+            assert_not_in('email', contrib)
+
+    def test_non_admin_contributor_invite_date_is_none(self):
+        # Non-admin path passes invite_dates=None, so every contributor's
+        # invite_date must be None (not a date string).
+        read_user = AuthUserFactory()
+        self.project.add_contributor(read_user, permissions=permissions.READ, auth=self.auth, save=True)
+        read_auth = Auth(user=read_user)
+        self._current_user_patcher.stop()
+        patcher = mock.patch('framework.auth.core._get_current_user', return_value=read_user)
+        patcher.start()
+        try:
+            ret = node_contributors(auth=read_auth, node=self.project)
+        finally:
+            patcher.stop()
+            self._current_user_patcher = mock.patch(
+                'framework.auth.core._get_current_user',
+                return_value=self.user,
+            )
+            self._current_user_patcher.start()
+        for contrib in ret['contributors']:
+            assert_in('invite_date', contrib)
+            assert_is_none(contrib['invite_date'])
+
+    def test_non_admin_contributor_affiliation_is_empty(self):
+        institution = InstitutionFactory()
+        self.user.affiliated_institutions.add(institution)
+        read_user = AuthUserFactory()
+        self.project.add_contributor(read_user, permissions=permissions.READ, auth=self.auth, save=True)
+        read_auth = Auth(user=read_user)
+        self._current_user_patcher.stop()
+        patcher = mock.patch('framework.auth.core._get_current_user', return_value=read_user)
+        patcher.start()
+        try:
+            ret = node_contributors(auth=read_auth, node=self.project)
+        finally:
+            patcher.stop()
+            self._current_user_patcher = mock.patch(
+                'framework.auth.core._get_current_user',
+                return_value=self.user,
+            )
+            self._current_user_patcher.start()
+        for contrib in ret['contributors']:
+            assert_equal(contrib['affiliation'], '')
+
+    def test_non_admin_contributor_admin_contributors_have_no_email(self):
+        parent = ProjectFactory(creator=self.user)
+        parent_admin = AuthUserFactory()
+        parent.add_contributor(parent_admin, permissions=permissions.ADMIN, auth=self.auth, save=True)
+        read_user = AuthUserFactory()
+        parent.add_contributor(read_user, permissions=permissions.READ, auth=self.auth, save=True)
+        component = NodeFactory(parent=parent, creator=self.user)
+        component.add_contributor(read_user, permissions=permissions.READ, auth=self.auth, save=True)
+        read_auth = Auth(user=read_user)
+        self._current_user_patcher.stop()
+        patcher = mock.patch('framework.auth.core._get_current_user', return_value=read_user)
+        patcher.start()
+        try:
+            ret = node_contributors(auth=read_auth, node=component)
+        finally:
+            patcher.stop()
+            self._current_user_patcher = mock.patch(
+                'framework.auth.core._get_current_user',
+                return_value=self.user,
+            )
+            self._current_user_patcher.start()
+        assert len(ret['adminContributors']) >= 1, 'adminContributors must be non-empty for this test to be meaningful'
+        for admin_contrib in ret['adminContributors']:
+            assert_not_in('email', admin_contrib)
