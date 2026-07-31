@@ -549,15 +549,35 @@ def _get_contributor_invite_dates(node, contributor_guids):
 @ember_flag_is_active(features.EMBER_PROJECT_CONTRIBUTORS)
 def node_contributors(auth, node, **kwargs):
     ret = _view_project(node, auth, primary=True)
-    contribs = list(node.contributor_set.include('user__groups', 'user__guids', 'user__ext', 'user__affiliated_institutions'))
-    contributor_guids = [c.user._id for c in contribs]
-    invite_dates = _get_contributor_invite_dates(node, contributor_guids)
-    ret['contributors'] = utils.serialize_contributors(contribs, node, invite_dates=invite_dates)
+    is_admin = node.has_permission(auth.user, ADMIN)
+
+    contrib_includes = ['user__groups', 'user__guids', 'user__ext']
+    admin_includes = ['groups', 'guids', 'ext']
+    if is_admin:
+        contrib_includes.append('user__affiliated_institutions')
+        admin_includes.append('affiliated_institutions')
+
+    contribs = node.contributor_set.include(*contrib_includes)
+    admin_contribs = node.parent_admin_contributors.include(*admin_includes)
+
+    invite_dates = None
+    admin_invite_dates = None
+    if is_admin:
+        contribs = list(contribs)
+        admin_contribs = list(admin_contribs)
+        invite_dates = _get_contributor_invite_dates(node, [c.user._id for c in contribs])
+        node_created = node.created.strftime('%Y-%m-%d')
+        admin_invite_dates = {u._id: node_created for u in admin_contribs}
+
+    ret['contributors'] = utils.serialize_contributors(
+        contribs, node, invite_dates=invite_dates, include_email=is_admin
+    )
     ret['access_requests'] = utils.serialize_access_requests(node)
-    admin_contribs = list(node.parent_admin_contributors.include('groups', 'guids', 'ext', 'affiliated_institutions'))
-    node_created = node.created.strftime('%Y-%m-%d')
-    admin_invite_dates = {u._id: node_created for u in admin_contribs}
-    ret['adminContributors'] = utils.serialize_contributors(admin_contribs, node, admin=True, invite_dates=admin_invite_dates)
+    ret['adminContributors'] = utils.serialize_contributors(
+        admin_contribs, node, admin=True,
+        invite_dates=admin_invite_dates, include_email=is_admin
+    )
+
     return ret
 
 

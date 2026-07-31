@@ -182,9 +182,11 @@
                 data-bind="css: {sortable: ($data === 'contrib' && $root.isSortable())}" style="min-width: 100px;white-space: nowrap;">${_("Name")}
             </th>
             <th style="min-width: 140px;width: 200px;white-space: nowrap;"></th>
+            % if permissions.ADMIN in user['permissions']:
             <th style="min-width: 180px;width: 220px;white-space: nowrap;">${_("E-mail")}</th>
             <th style="min-width: 180px;width: 220px;white-space: nowrap;">${_("Affiliation")}</th>
             <th style="min-width: 90px;width: 100px;white-space: nowrap;">${_("Invite Date")}</th>
+            % endif
             <th style="min-width: 150px;width: 160px;white-space: nowrap;">
                 ${_("Permissions")}
                 <i class="fa fa-question-circle permission-info"
@@ -293,9 +295,11 @@
                 <a class="name-search" data-bind="text: contributor.shortname, attr:{href: profileUrl}"></a>
             </span>
         </td>
+        % if permissions.ADMIN in user['permissions']:
         <td class="table-only" data-bind="text: contributor.email || '-'"></td>
         <td class="table-only" data-bind="text: contributor.affiliation || '-'"></td>
         <td class="table-only" data-bind="text: contributor.invite_date || '-'"></td>
+        % endif
         <td class="permissions">
             <div class="header" data-bind="visible: contributor.expanded() && $root.collapsed()"></div>
             <div class="td-content" data-bind="visible: !$root.collapsed() || contributor.expanded()">

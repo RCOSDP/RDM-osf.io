@@ -18,7 +18,7 @@ def get_profile_image_url(user, size=settings.PROFILE_IMAGE_MEDIUM):
                              use_ssl=True,
                              size=size)
 
-def serialize_user(user, node=None, admin=False, full=False, is_profile=False, include_node_counts=False, invite_date=None):
+def serialize_user(user, node=None, admin=False, full=False, is_profile=False, include_node_counts=False, invite_date=None, include_email=False):
     """
     Return a dictionary representation of a registered user.
 
@@ -30,7 +30,6 @@ def serialize_user(user, node=None, admin=False, full=False, is_profile=False, i
         contrib = user
         user = contrib.user
     fullname = user.display_full_name(node=node)
-    idp_attrs = user.get_idp_attr()
     institution = None
     prefetch_cache = getattr(user, '_prefetched_objects_cache', {})
     if 'affiliated_institutions' in prefetch_cache:
@@ -46,11 +45,11 @@ def serialize_user(user, node=None, admin=False, full=False, is_profile=False, i
         'profile_image_url': user.profile_image_url(size=settings.PROFILE_IMAGE_MEDIUM),
         'active': user.is_active,
         'have_email': user.have_email,
-        'idp_email': idp_attrs.get('email'),
-        'email': user.username if user.have_email else '',
         'affiliation': institution.name if institution else '',
         'invite_date': invite_date,
     }
+    if include_email:
+        ret['email'] = user.username if user.have_email else ''
     if node is not None:
         if admin:
             flags = {
@@ -80,6 +79,8 @@ def serialize_user(user, node=None, admin=False, full=False, is_profile=False, i
     if full:
         # Add emails
         if is_profile:
+            idp_attrs = user.get_idp_attr()
+            ret['idp_email'] = idp_attrs.get('email')
             ret['emails'] = [
                 {
                     'address': each,
