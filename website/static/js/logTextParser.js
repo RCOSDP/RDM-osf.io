@@ -578,6 +578,15 @@ var LogPieces = {
             };
         },
         view: function (ctrl, logObject) {
+            var action = logObject.attributes.action;
+            if (action.indexOf('folder_downloaded_zip') !== -1) {
+                // Downloading the whole repo/storage as a zip has no real path
+                // providers report this root case as either '' or '/'.
+                var rawPath = logObject.attributes.params.path;
+                if (!rawPath || rawPath === '/') {
+                    return m('span', '');
+                }
+            }
             var url = ctrl.returnLinkForPath(logObject);
             return returnTextParams('path', 'a file', logObject, url);
         }
