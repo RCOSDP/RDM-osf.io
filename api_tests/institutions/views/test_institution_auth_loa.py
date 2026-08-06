@@ -17,6 +17,7 @@ import jwe
 import jwt
 import mock
 import pytest
+from urllib.parse import parse_qs, urljoin, urlparse
 
 from api.base import settings
 from api.base.settings.defaults import API_BASE
@@ -105,6 +106,34 @@ def make_payload(
         ),
         settings.JWE_SECRET,
     )
+
+
+def _query_param(url, name):
+    """Return a single query parameter value from a URL."""
+    return parse_qs(urlparse(url).query)[name][0]
+
+
+def _unwrap_mfa_url(mfa_url):
+    """Peel the nested layers of the MFA URL built by InstitutionAuthentication.
+
+    Structure::
+
+        OSF_MFA_URL?entityID=<entity_id>&target=
+            CAS_SERVER_URL/login?service=<return_url>
+
+    Note this has one layer fewer than the MFA URL built by
+    ``website.profile.utils.serialize_user()``, which additionally wraps the
+    whole thing in a ``CAS_SERVER_URL/logout?service=`` redirect.
+
+    Returns a dict so tests can assert on each layer exactly rather than
+    substring-matching against a multiply-encoded string.
+    """
+    login_url = _query_param(mfa_url, 'target')
+    return {
+        'entity_id': _query_param(mfa_url, 'entityID'),
+        'login_url': login_url,
+        'return_url': _query_param(login_url, 'service'),
+    }
 
 
 @pytest.mark.django_db
@@ -580,7 +609,7 @@ class TestInstitutionAuthLoA:
     def test_mfa_url_structure(
         self, app, institution, url_auth_institution,
     ):
-        """Verify MFA URL is constructed correctly with urlencode."""
+        """Each nested layer of the MFA URL points at the expected endpoint."""
         modifier = UserFactory()
         LoA.objects.create(
             institution=institution, aal=2, ial=0, is_mfa=True, modifier=modifier,
@@ -596,10 +625,42 @@ class TestInstitutionAuthLoA:
         )
         assert res.status_code == 200
         mfa_url = res.json.get('mfa_url', '')
-        assert mfa_url != ''
-        # MFA URL should start with OSF_MFA_URL (after urlencode wrapping via CAS logout)
-        # The overall structure: OSF_MFA_URL?entityID=...&target=CAS/login?service=profile
-        assert 'mfa.example.com' in mfa_url or 'cas.example.com' in mfa_url
+        assert mfa_url.startswith('https://mfa.example.com/ds?')
+
+        parts = _unwrap_mfa_url(mfa_url)
+        assert parts['entity_id'] == 'https://idp.example.ac.jp'
+        assert parts['login_url'].startswith('https://cas.example.com/login?')
+
+    @mock.patch('api.institutions.authentication.OSF_MFA_URL', 'https://mfa.example.com/ds')
+    @mock.patch('api.institutions.authentication.CAS_SERVER_URL', 'https://cas.example.com')
+    @mock.patch('api.institutions.authentication.DOMAIN', 'https://osf.example.com/')
+    def test_mfa_url_returns_user_to_dashboard(
+        self, app, institution, url_auth_institution,
+    ):
+        """After MFA re-login CAS sends the user back to the dashboard.
+
+        This used to be '/profile/'; guard the current target so a change back
+        is not silently reintroduced.  It must also stay in step with
+        website.profile.utils.serialize_user(), which builds the same
+        redirect for the profile screen button.
+        """
+        modifier = UserFactory()
+        LoA.objects.create(
+            institution=institution, aal=2, ial=0, is_mfa=True, modifier=modifier,
+        )
+        username = 'user_mfa_dashboard@inst.edu'
+        res = app.post(
+            url_auth_institution,
+            make_payload(
+                institution, username,
+                edu_person_assurance='https://www.gakunin.jp/profile/AAL1',
+                idp='https://idp.example.ac.jp',
+            ),
+        )
+        assert res.status_code == 200
+        parts = _unwrap_mfa_url(res.json['mfa_url'])
+        assert parts['return_url'] == urljoin('https://osf.example.com/', '/dashboard/')
+        assert not parts['return_url'].endswith('/profile/')
 
     # ---------------------------------------------------------------
     # idp_attr stores institution.id

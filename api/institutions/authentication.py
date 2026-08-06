@@ -247,7 +247,7 @@ class InstitutionAuthentication(BaseAuthentication):
         mfa_url = ''
         mfa_url_tmp = ''
         if type(p_idp) is str:
-            profile_url = urljoin(DOMAIN, '/profile/')
+            profile_url = urljoin(DOMAIN, '/dashboard/')
 
             login_url = CAS_SERVER_URL + '/login?' + urlencode({
                 'service': profile_url,
