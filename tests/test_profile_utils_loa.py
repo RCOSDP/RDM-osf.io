@@ -9,6 +9,7 @@ Covers:
 """
 import mock
 import pytest
+from urllib.parse import parse_qs, urlparse
 
 from osf.models.loa import LoA
 from osf.models import UserExtendedData
@@ -16,6 +17,7 @@ from osf_tests.factories import AuthUserFactory, InstitutionFactory
 from tests.base import OsfTestCase
 from website import settings
 from website.profile.utils import serialize_user
+from website.util import web_url_for
 
 pytestmark = pytest.mark.django_db
 
@@ -42,6 +44,34 @@ def _make_user_with_idp_attr(institution=None, ial=None, aal=None, idp='https://
     })
 
     return user, institution
+
+
+def _query_param(url, name):
+    """Return a single query parameter value from a URL."""
+    return parse_qs(urlparse(url).query)[name][0]
+
+
+def _unwrap_mfa_url(mfa_url):
+    """Peel the nested layers of the MFA URL built by serialize_user().
+
+    Structure::
+
+        CAS_SERVER_URL/logout?service=
+            OSF_MFA_URL?entityID=<entity_id>&target=
+                CAS_SERVER_URL/login?service=<return_url>
+
+    Returns a dict with the ``ds_url``, ``entity_id``, ``login_url`` and
+    ``return_url`` parts, so tests can assert on each layer exactly rather
+    than relying on substring matching against a multiply-encoded string.
+    """
+    ds_url = _query_param(mfa_url, 'service')
+    login_url = _query_param(ds_url, 'target')
+    return {
+        'ds_url': ds_url,
+        'entity_id': _query_param(ds_url, 'entityID'),
+        'login_url': login_url,
+        'return_url': _query_param(login_url, 'service'),
+    }
 
 
 class TestSerializeUserAalBadge(OsfTestCase):
@@ -139,24 +169,32 @@ class TestSerializeUserMfaUrl(OsfTestCase):
         entity_id = 'https://idp.specific.ac.jp'
         user, institution = _make_user_with_idp_attr(idp=entity_id)
         result = serialize_user(user)
-        mfa_url = result['mfa_url']
-        # The entityID should be URL-encoded within the mfa_url
-        assert 'idp.specific.ac.jp' in mfa_url
+        parts = _unwrap_mfa_url(result['mfa_url'])
+        assert parts['entity_id'] == entity_id
 
     @mock.patch.object(settings, 'OSF_MFA_URL', 'https://mfa.example.com/ds')
     @mock.patch.object(settings, 'CAS_SERVER_URL', 'https://cas.example.com')
-    def test_mfa_url_contains_login_service_url(self):
+    def test_mfa_url_layers(self):
+        """Each nested layer of the MFA URL points at the expected endpoint."""
         user, institution = _make_user_with_idp_attr()
         result = serialize_user(user)
-        mfa_url = result['mfa_url']
-        # The CAS login URL is nested inside multiple urlencode layers,
-        # so slashes and colons are percent-encoded repeatedly.
-        # Fully decode the URL and then check for the expected substring.
-        from urllib.parse import unquote
-        decoded = mfa_url
-        for _ in range(5):
-            decoded = unquote(decoded)
-        assert 'cas.example.com/login' in decoded
+        parts = _unwrap_mfa_url(result['mfa_url'])
+        assert parts['ds_url'].startswith('https://mfa.example.com/ds?')
+        assert parts['login_url'].startswith('https://cas.example.com/login?')
+
+    @mock.patch.object(settings, 'OSF_MFA_URL', 'https://mfa.example.com/ds')
+    @mock.patch.object(settings, 'CAS_SERVER_URL', 'https://cas.example.com')
+    def test_mfa_url_returns_user_to_dashboard(self):
+        """After MFA re-login CAS sends the user back to the dashboard.
+
+        This used to be the profile/settings page ('user_profile'); guard the
+        current target so a change back is not silently reintroduced.
+        """
+        user, institution = _make_user_with_idp_attr()
+        result = serialize_user(user)
+        parts = _unwrap_mfa_url(result['mfa_url'])
+        assert parts['return_url'] == web_url_for('dashboard', _absolute=True)
+        assert parts['return_url'] != web_url_for('user_profile', _absolute=True)
 
     def test_mfa_url_empty_when_no_entity_id(self):
         """When idp_attr has no 'idp' key, mfa_url should be empty."""

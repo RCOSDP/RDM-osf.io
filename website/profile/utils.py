@@ -54,7 +54,7 @@ def serialize_user(user, node=None, admin=False, full=False, is_profile=False, i
     mfa_url = ''
     entity_id = idp_attrs.get('idp')
     if entity_id is not None:
-        profile_url = web_url_for('user_profile', _absolute=True)
+        profile_url = web_url_for('dashboard', _absolute=True)
 
         login_url = settings.CAS_SERVER_URL + '/login?' + urlencode({
             'service': profile_url,

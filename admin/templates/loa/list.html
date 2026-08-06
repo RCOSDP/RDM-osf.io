@@ -44,13 +44,6 @@
     <h2>{% trans "Level of Assurance" %}</h2>
 
     <div class="row">
-	      {% if messages %}
-	      {% for message in messages %}
-	      <div class="col-md-12 alert alert-dismissible{% if message.tags %} {{ message.tags }}{% endif %}">
-	        {{ message }}
-	      </div>
-	      {% endfor %}
-	      {% endif %}
         <div id="error_message" class="col-md-12">
             {% if request.session.message %}
                 <div class="alert alert-danger">
