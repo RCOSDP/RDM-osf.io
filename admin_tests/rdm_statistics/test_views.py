@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from nose import tools as nt
 from django.test import RequestFactory
+from django.contrib.auth.models import AnonymousUser
+from django.core.exceptions import PermissionDenied
 
 from tests.base import AdminTestCase
 from osf_tests.factories import (
@@ -427,7 +429,7 @@ class TestGatherView(AdminTestCase):
         nt.assert_equal(len(resp), 3)
 
     def test_send_stat_mail(self, *args, **kwargs):
-        nt.assert_equal(views.send_stat_mail(self.request).status_code, 200)
+        nt.assert_equal(views.send_stat_mail_core(self.request).status_code, 200)
 
     def test_send_error_mail(self, *args, **kwargs):
         ret = views.send_error_mail(Exception())
@@ -505,3 +507,78 @@ class TestGatherView(AdminTestCase):
             provider='osfstorage'
         )
         nt.assert_equal(result['content-type'], 'image/png')
+
+
+class TestSendStatMailPermission(AdminTestCase):
+    """send_stat_mail (No.86, /statistics/test/mail/) must be restricted to Integrated Admin (is_superuser)."""
+
+    def setUp(self):
+        super(TestSendStatMailPermission, self).setUp()
+        self.general_user = AuthUserFactory()
+        self.superuser = AuthUserFactory()
+        self.superuser.is_superuser = True
+        self.superuser.save()
+
+    def test_send_stat_mail_denied_for_general_user(self):
+        request = RequestFactory().get('/fake_path')
+        request.user = self.general_user
+        with nt.assert_raises(PermissionDenied):
+            views.send_stat_mail(request)
+
+    def test_send_stat_mail_denied_for_anonymous(self):
+        request = RequestFactory().get('/fake_path')
+        request.user = AnonymousUser()
+        with nt.assert_raises(PermissionDenied):
+            views.send_stat_mail(request)
+
+    def test_send_stat_mail_allowed_for_superuser(self):
+        request = RequestFactory().get('/fake_path')
+        request.user = self.superuser
+        response = views.send_stat_mail(request)
+        nt.assert_equal(response.status_code, 200)
+
+
+class TestIndexViewPermission(AdminTestCase):
+    """IndexView must be restricted to Integrated Admin or Institutional Admin."""
+
+    def setUp(self):
+        super(TestIndexViewPermission, self).setUp()
+        self.superuser = AuthUserFactory()
+        self.superuser.is_superuser = True
+        self.superuser.save()
+        self.institution_admin = AuthUserFactory()
+        self.institution_admin.is_staff = True
+        self.institution_admin.save()
+        self.general_user = AuthUserFactory()
+
+    def test_denied_for_general_user(self):
+        request = RequestFactory().get('/fake_path')
+        request.user = self.general_user
+        with nt.assert_raises(PermissionDenied):
+            views.IndexView.as_view()(request)
+
+    def test_denied_for_anonymous(self):
+        request = RequestFactory().get('/fake_path')
+        request.user = AnonymousUser()
+        with nt.assert_raises(PermissionDenied):
+            views.IndexView.as_view()(request)
+
+    def test_allowed_for_super_admin(self):
+        # Only test_func (permission check) is exercised here, not the full
+        # get() flow — IndexView.find_bookmark_collection is currently broken
+        # and fixing it is out of scope for this change.
+        request = RequestFactory().get('/fake_path')
+        request.user = self.superuser
+        view = views.IndexView()
+        view.request = request
+        nt.assert_true(view.test_func())
+
+    def test_allowed_for_institution_admin(self):
+        # Only test_func (permission check) is exercised here, not the full
+        # get() flow — IndexView.find_bookmark_collection is currently broken
+        # and fixing it is out of scope for this change.
+        request = RequestFactory().get('/fake_path')
+        request.user = self.institution_admin
+        view = views.IndexView()
+        view.request = request
+        nt.assert_true(view.test_func())

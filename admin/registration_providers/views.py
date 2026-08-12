@@ -6,7 +6,7 @@ from django.db.models import When, Case, Value, IntegerField, F
 from django.core.exceptions import ValidationError
 from django.core.management import call_command
 from django.urls import reverse_lazy
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
 from django.views.generic import View, CreateView, ListView, DetailView, UpdateView, DeleteView, TemplateView
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib import messages
@@ -204,12 +204,14 @@ class DeleteRegistrationProvider(PermissionRequiredMixin, DeleteView):
         return super(DeleteRegistrationProvider, self).get_context_data(*args, **kwargs)
 
 
-class CannotDeleteProvider(TemplateView):
+class CannotDeleteProvider(PermissionRequiredMixin, TemplateView):
+    permission_required = 'osf.delete_registrationprovider'
+    raise_exception = True
     template_name = 'registration_providers/cannot_delete.html'
 
     def get_context_data(self, **kwargs):
         context = super(CannotDeleteProvider, self).get_context_data(**kwargs)
-        context['provider'] = RegistrationProvider.objects.get(id=self.kwargs['registration_provider_id'])
+        context['provider'] = get_object_or_404(RegistrationProvider, id=self.kwargs['registration_provider_id'])
         return context
 
 
@@ -376,7 +378,7 @@ class ShareSourceRegistrationProvider(PermissionRequiredMixin, View):
         return redirect(reverse_lazy('registration_providers:detail', kwargs={'registration_provider_id': provider.id}))
 
 
-class ChangeSchema(TemplateView):
+class ChangeSchema(PermissionRequiredMixin, TemplateView):
     permission_required = 'osf.change_registrationprovider'
     template_name = 'registration_providers/change_schema.html'
 

@@ -14,7 +14,7 @@ from django.core.management import call_command
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.forms.models import model_to_dict
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
 
 from admin.base import settings
 from admin.base.forms import ImportFileForm
@@ -319,12 +319,14 @@ class DeletePreprintProvider(PermissionRequiredMixin, DeleteView):
         return PreprintProvider.objects.get(id=self.kwargs['preprint_provider_id'])
 
 
-class CannotDeleteProvider(TemplateView):
+class CannotDeleteProvider(PermissionRequiredMixin, TemplateView):
+    permission_required = 'osf.delete_preprintprovider'
+    raise_exception = True
     template_name = 'preprint_providers/cannot_delete.html'
 
     def get_context_data(self, **kwargs):
         context = super(CannotDeleteProvider, self).get_context_data(**kwargs)
-        context['provider'] = PreprintProvider.objects.get(id=self.kwargs['preprint_provider_id'])
+        context['provider'] = get_object_or_404(PreprintProvider, id=self.kwargs['preprint_provider_id'])
         return context
 
 

@@ -41,6 +41,7 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 import seaborn as sns
 import pdfkit
 from admin.base import settings
+from admin.base.utils import superuser_required
 from admin.rdm.utils import RdmPermissionMixin, get_dummy_institution
 from admin.rdm_addons import utils
 import logging
@@ -484,7 +485,7 @@ class GatherView(TemplateView):
             response_json = json.dumps(self.stat_list)
             response = HttpResponse(response_json, content_type='application/json')
             # statistics mail send
-            send_stat_mail(request)
+            send_stat_mail_core(request)
         except Exception as err:
             response_hash = {'state': 'fail', 'error': str(err)}
             response_json = json.dumps(response_hash)
@@ -596,8 +597,14 @@ def simple_auth(access_token):
     else:
         return False
 
-def send_stat_mail(request, **kwargs):
-    """send statistics information email"""
+def send_stat_mail_core(request, **kwargs):
+    """Send statistics information email.
+
+    No authorization check here by design - this is the shared logic called
+    both by the send_stat_mail view (protected below) and internally by
+    GatherView.get(), which runs unauthenticated over localhost from
+    cron and is authorized separately via its own access token.
+    """
     current_date = get_current_date()
     all_institutions = Institution.objects.order_by('id').all()
     all_staff_users = OSFUser.objects.filter(is_staff=True)
@@ -629,6 +636,11 @@ def send_stat_mail(request, **kwargs):
     response_json = json.dumps(response_hash)
     response = HttpResponse(response_json, content_type='application/json')
     return response
+
+@superuser_required
+def send_stat_mail(request, **kwargs):
+    """URL-exposed view for /statistics/test/mail/ - Integrated Admin only."""
+    return send_stat_mail_core(request, **kwargs)
 
 def send_error_mail(err):
     """send error email"""
@@ -776,10 +788,14 @@ def approximate_size(size, a_kilobyte_is_1024_bytes=True):
 ### views or funcs for development and test
 ############################################
 
-class IndexView(TemplateView):
+class IndexView(RdmPermissionMixin, UserPassesTestMixin, TemplateView):
     """index view of statistics module."""
     template_name = 'rdm_statistics/index.html'
     raise_exception = True
+
+    def test_func(self):
+        """check user permissions"""
+        return self.is_authenticated and (self.is_super_admin or self.is_admin)
 
     def find_bookmark_collection(self, user):
         collection = apps.get_model('osf.Collection')

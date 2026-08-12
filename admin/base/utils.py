@@ -1,6 +1,8 @@
 """
 Utility functions and classes
 """
+from functools import wraps
+
 from osf.models import Subject, NodeLicense, Brand
 
 from django.core.exceptions import ValidationError, PermissionDenied
@@ -33,6 +35,23 @@ def reverse_qs(view, urlconf=None, args=None, kwargs=None, current_app=None, que
 
 def osf_staff_check(user):
     return user.is_authenticated and user.is_staff
+
+
+def osf_superuser_check(user):
+    return user.is_authenticated and user.is_superuser
+
+
+def superuser_required(view_func):
+    """Function-view decorator that returns 403 (PermissionDenied) instead of
+    redirecting to login, unlike django.contrib.auth.decorators.user_passes_test."""
+
+    @wraps(view_func)
+    def wrapped_view(request, *args, **kwargs):
+        if not osf_superuser_check(request.user):
+            raise PermissionDenied
+        return view_func(request, *args, **kwargs)
+
+    return wrapped_view
 
 
 def get_subject_rules(subjects_selected):

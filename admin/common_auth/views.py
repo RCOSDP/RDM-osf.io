@@ -39,10 +39,12 @@ class LoginView(FormView):
         return super(LoginView, self).dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
-        user = authenticate(
-            username=form.cleaned_data.get('email').strip(),
-            password=form.cleaned_data.get('password').strip()
-        )
+        user = None
+        if ENABLE_LOGIN_FORM:
+            user = authenticate(
+                username=form.cleaned_data.get('email').strip(),
+                password=form.cleaned_data.get('password').strip()
+            )
         if user is not None:
             login(self.request, user)
         else:
