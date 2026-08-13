@@ -1550,6 +1550,20 @@ class TestQuotaApiWaterbutler(OsfTestCase):
         assert_equal(response.json['max'], api_settings.DEFAULT_MAX_QUOTA * api_settings.SIZE_UNIT_GB)
         assert_equal(response.json['used'], 0)
 
+    def test_user_guid_and_storage_type_present_and_consistent_with_creator(self):
+        response = self.app.get(
+            '{}?payload={payload}&signature={signature}'.format(
+                self.node.api_url_for('waterbutler_creator_quota'),
+                **signing.sign_data(signing.default_signer, {})
+            )
+        )
+        assert_equal(response.status_code, 200)
+        assert_in('user_guid', response.json)
+        assert_in('storage_type', response.json)
+        from website.util import quota as quota_util
+        assert_equal(response.json['user_guid'], self.node.creator._id)
+        assert_equal(response.json['storage_type'], quota_util.get_project_storage_type(self.node))
+
     def test_used_half_custom_quota(self):
         UserQuota.objects.create(
             storage_type=UserQuota.NII_STORAGE,
@@ -1615,6 +1629,15 @@ class TestQuotaApiBrowser(OsfTestCase):
         assert_equal(response.status_code, 200)
         assert_equal(response.json['max'], api_settings.DEFAULT_MAX_QUOTA * api_settings.SIZE_UNIT_GB)
         assert_equal(response.json['used'], 0)
+
+    def test_user_guid_and_storage_type_present_and_consistent_with_creator(self):
+        response = self.app.get(
+            self.node.api_url_for('get_creator_quota'),
+            auth=self.user.auth
+        )
+        assert_equal(response.status_code, 200)
+        assert_in('user_guid', response.json)
+        assert_in('storage_type', response.json)
 
     def test_used_half_custom_quota(self):
         UserQuota.objects.create(

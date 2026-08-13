@@ -625,6 +625,40 @@ function _rejectConflictItem(tb, from, to, notRenameOp, conflict) {
     }
 }
 
+function getReplacedSize(to, from) {
+    var existing = (to.children || []).filter(function(child) {
+        return child.data.name === from.data.name;
+    })[0];
+    if (!existing) {
+        return 0;
+    }
+    if (from.kind !== 'folder') {
+        return parseInt(existing.data.size, 10) || 0;
+    }
+    if (!existing.load) {
+        // Folder not lazy-loaded yet; size unknown, let the server-side check decide.
+        return null;
+    }
+    return getAllChildren(existing).reduce(function(total, child) {
+        return child.kind === 'file' ? total + (parseInt(child.data.size, 10) || 0) : total;
+    }, 0);
+}
+
+function isSameUserQuota(srcQuota, destQuota) {
+    return !!(srcQuota && destQuota &&
+        srcQuota.user_guid !== undefined && srcQuota.user_guid !== null &&
+        srcQuota.user_guid === destQuota.user_guid &&
+        srcQuota.storage_type === destQuota.storage_type);
+}
+
+function quotaCheckExceeds(operation, srcQuota, destQuota, totalSize, replacedSize) {
+    replacedSize = replacedSize || 0;
+    if (operation === 'move' && isSameUserQuota(srcQuota, destQuota)) {
+        return false;
+    }
+    return (destQuota.used + totalSize - replacedSize) > destQuota.max;
+}
+
 function doItemOp(operation, to, from, rename, conflict) {
     var tb = this;
     // dismiss old modal immediately to prevent button mashing
@@ -633,6 +667,7 @@ function doItemOp(operation, to, from, rename, conflict) {
     var filesRemaining;
     var inConflictsQueue = false;
     var syncMoves;
+    var showQuotaUsageAlert = false;
 
     var notRenameOp = typeof rename === 'undefined';
     if (notRenameOp) {
@@ -702,16 +737,27 @@ function doItemOp(operation, to, from, rename, conflict) {
             }
 
             if (totalMoveSize > 0) {
-                var quotaResp = $.ajax({
+                var replacedSize = getReplacedSize(to, from);
+                // Sequential async:false calls (kept in sync with doItemOp's control flow)
+                var destQuotaResp = $.ajax({
                     async: false,
                     method: 'GET',
                     url: to.data.nodeApiUrl + 'get_creator_quota/'
                 });
-                if (quotaResp.responseJSON) {
-                    var quotaData = quotaResp.responseJSON;
+                var srcQuotaResp = $.ajax({
+                    async: false,
+                    method: 'GET',
+                    url: from.data.nodeApiUrl + 'get_creator_quota/'
+                });
+                if (destQuotaResp.responseJSON && srcQuotaResp.responseJSON) {
+                    var destQuota = destQuotaResp.responseJSON;
+                    var srcQuota = srcQuotaResp.responseJSON;
                     var quotaMsgText = '';
 
-                    if (quotaData.used + totalMoveSize > quotaData.max) {
+                    // replacedSize === null: destination folder not yet loaded, so its size
+                    // is unknown — skip only this blocking check and let the move/copy proceed;
+                    // the server-side check is authoritative.
+                    if (replacedSize !== null && quotaCheckExceeds(operation.status, srcQuota, destQuota, totalMoveSize, replacedSize)) {
                         if (from.kind === 'file') {
                             quotaMsgText = sprintf(gettext('Not enough quota to move/copy the file.'));
                         } else {
@@ -722,16 +768,12 @@ function doItemOp(operation, to, from, rename, conflict) {
                         _rejectConflictItem(tb, from, to, notRenameOp, conflict);
                         return;
                     }
-                    if (quotaData.used + totalMoveSize > quotaData.max * window.contextVars.threshold) {
-                        $osf.growl(
-                            gettext('Quota usage alert'),
-                            sprintf(
-                                gettext('You have used more than %1$s%% of your quota.'),
-                                (window.contextVars.threshold * 100)
-                            ),
-                            'warning'
-                        );
-                    }
+                    // Same-pool move doesn't actually add usage, so its delta is 0 here too.
+                    // Unknown replacedSize is treated as 0 (worst case) so the alert can still fire.
+                    var quotaDelta = (operation.status === 'move' && isSameUserQuota(srcQuota, destQuota)) ?
+                        0 : (totalMoveSize - (replacedSize || 0));
+                    // Deferred to after a confirmed success below, not shown if the move/copy fails.
+                    showQuotaUsageAlert = (destQuota.used + quotaDelta > destQuota.max * window.contextVars.threshold);
                 }
             }
         }
@@ -805,6 +847,17 @@ function doItemOp(operation, to, from, rename, conflict) {
         from.data = tb.options.lazyLoadPreprocess.call(this, resp).data;
         from.data.status = undefined;
         from.notify.update(sprintf(gettext('Successfully %1$s.') , gettext(operation.passed)), 'success', null, 1000);
+
+        if (showQuotaUsageAlert) {
+            $osf.growl(
+                gettext('Quota usage alert'),
+                sprintf(
+                    gettext('You have used more than %1$s%% of your quota.'),
+                    (window.contextVars.threshold * 100)
+                ),
+                'warning'
+            );
+        }
 
         if (xhr.status === 200) {
             to.children.forEach(function(child) {
@@ -4294,5 +4347,7 @@ module.exports = {
     getCopyMode : getCopyMode,
     showDeleteMultiple : showDeleteMultiple,
     checkConflicts : checkConflicts,
-    getPersistentLinkFor: getPersistentLinkFor
+    getPersistentLinkFor: getPersistentLinkFor,
+    quotaCheckExceeds: quotaCheckExceeds,
+    getReplacedSize: getReplacedSize
 };
