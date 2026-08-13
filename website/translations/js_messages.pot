@@ -9242,7 +9242,7 @@ msgstr ""
 msgid "The Integrated Admin added ${contributors} as contributor(s) to ${node}"
 msgstr ""
 
-msgid "File「%1$s」 is too large (%2$s). Max file size is %3$s."
+msgid "File「%1$s」is too large (%2$s). Max file size is %3$s."
 msgstr ""
 
 msgid "You do not have enough available quota."
