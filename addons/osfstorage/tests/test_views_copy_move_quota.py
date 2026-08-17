@@ -474,7 +474,9 @@ class TestMoveHookQuota(StorageTestCase):
         Moving a FILE to a *different* target node must call update_quota
         on the source target with add=False.
         """
-        other_project = ProjectFactory(creator=self.user)
+        # Different creator: keeps this test on the "different UserQuota record"
+        # branch of osfstorage_move_hook, distinct from the same-creator tests below.
+        other_project = ProjectFactory()
         other_root = other_project.get_addon('osfstorage').get_root()
         dest_folder = other_root.append_folder('remote')
 
@@ -535,7 +537,9 @@ class TestMoveHookQuota(StorageTestCase):
         Moving a FOLDER must aggregate FileInfo sizes for all descendants
         (new_size) and pass that to update_quota on the source (add=False).
         """
-        other_project = ProjectFactory(creator=self.user)
+        # Different creator: keeps this test on the "different UserQuota record"
+        # branch of osfstorage_move_hook, distinct from the same-creator tests below.
+        other_project = ProjectFactory()
         other_root = other_project.get_addon('osfstorage').get_root()
         dest_folder = other_root.append_folder('folder_dest')
 
@@ -568,7 +572,9 @@ class TestMoveHookQuota(StorageTestCase):
         caller passes a non-zero replaced_size for a folder move the effective
         delta equals new_size, NOT new_size - replaced_size.
         """
-        other_project = ProjectFactory(creator=self.user)
+        # Different creator: keeps this test on the "different UserQuota record"
+        # branch of osfstorage_move_hook, distinct from the same-creator tests below.
+        other_project = ProjectFactory()
         other_root = other_project.get_addon('osfstorage').get_root()
         dest_folder = other_root.append_folder('folder_dest2')
 
@@ -586,6 +592,128 @@ class TestMoveHookQuota(StorageTestCase):
                      if c[1].get('add', c[0][-1]) is True]
         sizes_added = [c[0][1] for c in add_calls]
         assert 300 in sizes_added
+
+    # --- SAME-CREATOR CROSS-NODE MOVE (D.2 fix: branch by UserQuota record, not node) ---
+    # These exercise osfstorage_move_hook against a REAL UserQuota row (update_quota is
+    # not mocked) because the bug being fixed is a real arithmetic corruption of `used`,
+    # not just which mock gets called.
+
+    def test_move_file_to_other_node_same_creator_does_not_clamp_used_to_zero(self):
+        """
+        Move to a different node owned by the SAME creator: source and destination
+        share one UserQuota row. Before the fix, two opposing writes on that row
+        (-new_size then +(new_size-replaced_size)) would floor `used` at 0 in between
+        whenever used < new_size, corrupting the final value. With used=100 and a
+        500-byte file (replaced_size=0), the old code would leave used=500 instead of
+        the correct 100.
+        """
+        from osf.models import UserQuota
+
+        UserQuota.objects.get_or_create(
+            user=self.user, storage_type=UserQuota.NII_STORAGE,
+            defaults={'max_quota': 10000, 'used': 100},
+        )
+
+        other_project = ProjectFactory(creator=self.user)
+        other_root = other_project.get_addon('osfstorage').get_root()
+        dest_folder = other_root.append_folder('same_creator_dest')
+
+        version = factories.FileVersionFactory(size=500)
+        src = self.root_node.append_file('same_creator.txt')
+        src.add_version(version); src.save()
+
+        resp = self._move(src, dest_folder, dest_target=other_project, replaced_size=0)
+        assert resp.status_code == 200
+
+        used = UserQuota.objects.get(user=self.user, storage_type=UserQuota.NII_STORAGE).used
+        assert used == 100
+
+    def test_move_file_to_other_node_same_creator_with_replace_subtracts_only_replaced(self):
+        """Same as above, but the destination overwrites a 50-byte item: net delta is -50."""
+        from osf.models import UserQuota
+
+        UserQuota.objects.get_or_create(
+            user=self.user, storage_type=UserQuota.NII_STORAGE,
+            defaults={'max_quota': 10000, 'used': 100},
+        )
+
+        other_project = ProjectFactory(creator=self.user)
+        other_root = other_project.get_addon('osfstorage').get_root()
+        dest_folder = other_root.append_folder('same_creator_dest_replace')
+
+        version = factories.FileVersionFactory(size=500)
+        src = self.root_node.append_file('same_creator_replace.txt')
+        src.add_version(version); src.save()
+
+        resp = self._move(src, dest_folder, dest_target=other_project, replaced_size=50)
+        assert resp.status_code == 200
+
+        used = UserQuota.objects.get(user=self.user, storage_type=UserQuota.NII_STORAGE).used
+        assert used == 50
+
+    def test_move_file_to_other_node_different_creator_still_transfers_full_size(self):
+        """
+        Regression guard: a move between nodes with DIFFERENT creators must still hit
+        two distinct UserQuota rows and transfer the full size, unaffected by the
+        same-creator fix.
+        """
+        from osf.models import UserQuota
+
+        UserQuota.objects.get_or_create(
+            user=self.user, storage_type=UserQuota.NII_STORAGE,
+            defaults={'max_quota': 10000, 'used': 1000},
+        )
+        other_project = ProjectFactory()
+        UserQuota.objects.get_or_create(
+            user=other_project.creator, storage_type=UserQuota.NII_STORAGE,
+            defaults={'max_quota': 10000, 'used': 0},
+        )
+        other_root = other_project.get_addon('osfstorage').get_root()
+        dest_folder = other_root.append_folder('different_creator_dest')
+
+        version = factories.FileVersionFactory(size=500)
+        src = self.root_node.append_file('different_creator.txt')
+        src.add_version(version); src.save()
+
+        resp = self._move(src, dest_folder, dest_target=other_project, replaced_size=0)
+        assert resp.status_code == 200
+
+        src_used = UserQuota.objects.get(user=self.user, storage_type=UserQuota.NII_STORAGE).used
+        dest_used = UserQuota.objects.get(
+            user=other_project.creator, storage_type=UserQuota.NII_STORAGE
+        ).used
+        assert src_used == 500
+        assert dest_used == 500
+
+    def test_move_folder_to_other_node_same_creator_is_quota_neutral(self):
+        """
+        Folder move within the same UserQuota record: replaced_size is always reset to
+        0 for folders (osfstorage_delete already accounted for it), so same_user_quota
+        must result in no quota change at all -- and no UserQuota.save() call.
+        """
+        from osf.models import UserQuota
+
+        UserQuota.objects.get_or_create(
+            user=self.user, storage_type=UserQuota.NII_STORAGE,
+            defaults={'max_quota': 10000, 'used': 100},
+        )
+
+        other_project = ProjectFactory(creator=self.user)
+        other_root = other_project.get_addon('osfstorage').get_root()
+        dest_folder = other_root.append_folder('same_creator_folder_dest')
+
+        src_folder = self.root_node.append_folder('same_creator_move_folder')
+        v = factories.FileVersionFactory(size=500)
+        f = src_folder.append_file('d.txt'); f.add_version(v); f.save()
+        FileInfo.objects.update_or_create(file=f, defaults={'file_size': 500})
+
+        with mock.patch.object(UserQuota, 'save') as mock_save:
+            resp = self._move(src_folder, dest_folder, dest_target=other_project, replaced_size=999)
+            assert resp.status_code == 200
+            mock_save.assert_not_called()
+
+        used = UserQuota.objects.get(user=self.user, storage_type=UserQuota.NII_STORAGE).used
+        assert used == 100
 
 
 # ---------------------------------------------------------------------------

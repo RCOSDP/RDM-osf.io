@@ -625,7 +625,21 @@ function _rejectConflictItem(tb, from, to, notRenameOp, conflict) {
     }
 }
 
-function getReplacedSize(to, from) {
+/**
+ * Size freed up at the destination by an overwrite, in bytes.
+ *
+ * Mirrors WaterButler's get_replaced_size() (waterbutler/tasks/pre_checks.py):
+ * 'replace' is the only conflict mode that overwrites anything. 'keep' renames
+ * the incoming item instead, and an omitted conflict falls back to WaterButler's
+ * DEFAULT_CONFLICT ('warn'), which never overwrites either — both free 0 bytes.
+ *
+ * Returns null (size unknown) only when the destination folder has not been
+ * lazy-loaded yet; callers must skip the client-side check in that case.
+ */
+function getReplacedSize(to, from, conflict) {
+    if (conflict !== 'replace') {
+        return 0;
+    }
     var existing = (to.children || []).filter(function(child) {
         return child.data.name === from.data.name;
     })[0];
@@ -737,21 +751,23 @@ function doItemOp(operation, to, from, rename, conflict) {
             }
 
             if (totalMoveSize > 0) {
-                var replacedSize = getReplacedSize(to, from);
+                var replacedSize = getReplacedSize(to, from, conflict);
                 // Sequential async:false calls (kept in sync with doItemOp's control flow)
                 var destQuotaResp = $.ajax({
                     async: false,
                     method: 'GET',
                     url: to.data.nodeApiUrl + 'get_creator_quota/'
                 });
-                var srcQuotaResp = $.ajax({
+                // Only fetch src quota when source is osfstorage; non-osfstorage source has
+                // no meaningful quota record, and a falsy srcQuota below is treated as "adds usage".
+                var srcQuotaResp = (from.data.provider === 'osfstorage') ? $.ajax({
                     async: false,
                     method: 'GET',
                     url: from.data.nodeApiUrl + 'get_creator_quota/'
-                });
-                if (destQuotaResp.responseJSON && srcQuotaResp.responseJSON) {
+                }) : null;
+                if (destQuotaResp.responseJSON && (!srcQuotaResp || srcQuotaResp.responseJSON)) {
                     var destQuota = destQuotaResp.responseJSON;
-                    var srcQuota = srcQuotaResp.responseJSON;
+                    var srcQuota = srcQuotaResp ? srcQuotaResp.responseJSON : null;
                     var quotaMsgText = '';
 
                     // replacedSize === null: destination folder not yet loaded, so its size
@@ -768,10 +784,10 @@ function doItemOp(operation, to, from, rename, conflict) {
                         _rejectConflictItem(tb, from, to, notRenameOp, conflict);
                         return;
                     }
-                    // Same-pool move doesn't actually add usage, so its delta is 0 here too.
+                    // Same-pool move: own bytes already counted, only the replaced bytes free up.
                     // Unknown replacedSize is treated as 0 (worst case) so the alert can still fire.
                     var quotaDelta = (operation.status === 'move' && isSameUserQuota(srcQuota, destQuota)) ?
-                        0 : (totalMoveSize - (replacedSize || 0));
+                        -(replacedSize || 0) : (totalMoveSize - (replacedSize || 0));
                     // Deferred to after a confirmed success below, not shown if the move/copy fails.
                     showQuotaUsageAlert = (destQuota.used + quotaDelta > destQuota.max * window.contextVars.threshold);
                 }
@@ -4349,5 +4365,6 @@ module.exports = {
     checkConflicts : checkConflicts,
     getPersistentLinkFor: getPersistentLinkFor,
     quotaCheckExceeds: quotaCheckExceeds,
-    getReplacedSize: getReplacedSize
+    getReplacedSize: getReplacedSize,
+    isSameUserQuota: isSameUserQuota
 };

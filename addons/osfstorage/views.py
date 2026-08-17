@@ -243,16 +243,32 @@ def osfstorage_move_hook(source, destination, name=None, **kwargs):
             replaced_size = 0  # osfstorage_delete already subtracted this
 
         # UserQuota
-        if source_target != destination.target:
-            src_storage = get_project_storage_type(source_target)
-            dest_storage = get_project_storage_type(destination.target)
+        src_storage = get_project_storage_type(source_target)
+        dest_storage = get_project_storage_type(destination.target)
+
+        # "Same UserQuota record" = same (creator, storage_type), matching the criterion
+        # WaterButler's evaluate_quota() uses for the pre-check (user_guid + storage_type).
+        # Node identity is NOT the right test: a move to another component owned by the
+        # same creator lands on the very same UserQuota row, so subtracting from the
+        # source and adding to the destination would be two writes against one row --
+        # and update_quota() floors `used` at 0 between them, which permanently corrupts
+        # the row whenever used < new_size.
+        same_user_quota = (
+            source_target.creator_id == destination.target.creator_id and
+            src_storage == dest_storage
+        )
+
+        if same_user_quota:
+            # Net delta is -replaced_size: the moved bytes are already counted in this
+            # very row, only the overwritten bytes are freed. (For folders replaced_size
+            # was reset to 0 above -- osfstorage_delete already subtracted them.)
+            if replaced_size > 0:
+                update_quota(destination.target, replaced_size, dest_storage, add=False)
+        else:
             update_quota(source_target, new_size, src_storage, add=False)
             delta = new_size - replaced_size
             if delta != 0:
                 update_quota(destination.target, abs(delta), dest_storage, add=(delta > 0))
-        elif replaced_size > 0:
-            storage_type = get_project_storage_type(destination.target)
-            update_quota(destination.target, replaced_size, storage_type, add=False)
 
     # once the move is complete recalculate storage for both targets if it's a inter-target move.
     if is_check_permission and source_target != destination.target:
