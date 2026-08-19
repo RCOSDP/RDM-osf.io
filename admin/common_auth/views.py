@@ -109,7 +109,9 @@ class ShibLoginView(RedirectView):
                 return redirect('auth:login')
             else:
                 tmp_eppn = ('tmp_eppn_' + eppn).lower()
-                new_user, created = get_or_create_user(request.environ['HTTP_AUTH_DISPLAYNAME'] or 'NO NAME', tmp_eppn, reset_password=False)
+                raw_display_name = request.environ['HTTP_AUTH_DISPLAYNAME']
+                display_name = raw_display_name.encode('iso-8859-1').decode('utf-8') if raw_display_name else ''
+                new_user, created = get_or_create_user(display_name or 'NO NAME', tmp_eppn, reset_password=False)
                 USE_EPPN = login_by_eppn()
                 if USE_EPPN:
                     new_user.eppn = eppn

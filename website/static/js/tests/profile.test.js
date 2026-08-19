@@ -130,6 +130,76 @@ describe.skip('profile', () => {
             // TODO: Test citation computes
         });
 
+        describe('JobsViewModel - Japanese fields', () => {
+            var jobsURLs = {
+                crud: '/api/v1/settings/jobs/'
+            };
+            var jobServer;
+            var vm;
+
+            before(() => {
+                jobServer = utils.createServer(sinon, [
+                    {url: jobsURLs.crud, response: {editable: true, contents: [], idp_attr: {}}}
+                ]);
+            });
+
+            after(() => {
+                jobServer.restore();
+            });
+
+            beforeEach(() => {
+                vm = new profile._JobsViewModel(jobsURLs, ['view', 'edit'], false);
+            });
+
+            describe('unserialize', () => {
+                it('should store institution_ja and department_ja from idp_attr', () => {
+                    vm.unserialize({
+                        contents: [],
+                        idp_attr: {
+                            institution: 'Test University',
+                            department: 'CS Department',
+                            institution_ja: 'テスト大学',
+                            department_ja: '情報工学科'
+                        }
+                    });
+                    assert.equal(vm.idp_attr_institution_ja(), 'テスト大学');
+                    assert.equal(vm.idp_attr_department_ja(), '情報工学科');
+                });
+            });
+
+            describe('setContentFromIdP', () => {
+                var content;
+
+                beforeEach(() => {
+                    content = new profile._JobViewModel();
+                    vm.contents([content]);
+                });
+
+                it('should assign institution_ja and department_ja to content', () => {
+                    vm.idp_attr_institution_ja('テスト大学');
+                    vm.idp_attr_department_ja('情報工学科');
+                    vm.setContentFromIdP(content);
+                    assert.equal(content.institution_ja(), 'テスト大学');
+                    assert.equal(content.department_ja(), '情報工学科');
+                });
+
+                it('should not throw when content does not have institution_ja observable', () => {
+                    vm.idp_attr_institution_ja('テスト大学');
+                    vm.idp_attr_department_ja('情報工学科');
+                    var contentWithoutJa = {
+                        institution: function() {},
+                        department: function() {},
+                        isValid: function() { return true; },
+                        institutionObjectEmpty: function() { return false; }
+                    };
+                    vm.contents([contentWithoutJa]);
+                    assert.doesNotThrow(function() {
+                        vm.setContentFromIdP(contentWithoutJa);
+                    });
+                });
+            });
+        });
+
     // TODO: Test other profile ViewModels
     });
 });

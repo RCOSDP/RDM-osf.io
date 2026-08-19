@@ -1368,6 +1368,8 @@ def set_wiki_import_task_proces_end(node):
     qs_alive_task.update(process_end=process_end)
 
 @must_be_valid_project  # returns project
+@must_have_permission(WRITE)  # returns user, project
+@must_not_be_registration
 @must_have_addon('wiki', 'node')
 def project_update_wiki_page_sort(node, **kwargs):
     data = request.get_json()

@@ -875,6 +875,8 @@ var ListViewModel = function(ContentModel, urls, modes, preventUnsaved) {
 
     self.idp_attr_institution = ko.observable('').extend({trimmed: true});
     self.idp_attr_department = ko.observable('').extend({trimmed: true});
+    self.idp_attr_institution_ja = ko.observable('').extend({trimmed: true});
+    self.idp_attr_department_ja = ko.observable('').extend({trimmed: true});
 
     self.tracked = self.contents;
 
@@ -1026,6 +1028,14 @@ ListViewModel.prototype.setContentFromIdP = function(content) {
     if (!isEmptyStr(dep)) {
         content.department(dep);
     }
+    var inst_ja = self.idp_attr_institution_ja();
+    if (!isEmptyStr(inst_ja) && ko.isObservable(content.institution_ja)) {
+        content.institution_ja(inst_ja);
+    }
+    var dep_ja = self.idp_attr_department_ja();
+    if (!isEmptyStr(dep_ja) && ko.isObservable(content.department_ja)) {
+        content.department_ja(dep_ja);
+    }
 };
 
 ListViewModel.prototype.unserialize = function(data) {
@@ -1056,6 +1066,18 @@ ListViewModel.prototype.unserialize = function(data) {
             val = idp_attr.department;
             if (!isEmptyStr(val)) {
                 self.idp_attr_department($osf.decodeText(val).trim());
+            }
+        }
+        if ('institution_ja' in idp_attr) {
+            val = idp_attr.institution_ja;
+            if (!isEmptyStr(val)) {
+                self.idp_attr_institution_ja($osf.decodeText(val).trim());
+            }
+        }
+        if ('department_ja' in idp_attr) {
+            val = idp_attr.department_ja;
+            if (!isEmptyStr(val)) {
+                self.idp_attr_department_ja($osf.decodeText(val).trim());
             }
         }
     }
@@ -1385,5 +1407,7 @@ module.exports = {
     // Expose private viewmodels
     _NameViewModel: NameViewModel,
     SocialViewModel: SocialViewModel,
-    BaseViewModel: BaseViewModel
+    BaseViewModel: BaseViewModel,
+    _JobsViewModel: JobsViewModel,
+    _JobViewModel: JobViewModel
 };

@@ -14,7 +14,7 @@ django.setup()
 
 from website import settings
 from website.app import init_app
-from osf.models import Institution
+from osf.models import Institution, LoA, OSFUser
 from website.search.search import update_institution
 
 logger = logging.getLogger(__name__)
@@ -55,6 +55,31 @@ def update_or_create(inst_data):
         return inst, True
 
 
+def update_or_create_loa(loa_data):
+    inst = Institution.load(loa_data['_id'])
+    if inst:
+        loa = LoA.objects.get_or_none(institution_id=inst.id)
+        if loa:
+            # for key, val in loa_data.items():
+            #    setattr(loa, key, val)
+            # loa.save()
+            # print('Updated LoA {}'.format(inst.name))
+            print('LoA exists: {}'.format(inst.name))
+            return loa, False
+        else:
+            loa = LoA()
+            loa.institution = inst
+            loa.aal = loa_data['aal']
+            loa.ial = loa_data['ial']
+            loa.is_mfa = loa_data['is_mfa']
+            user = OSFUser.objects.filter(is_superuser='t').first()
+            if user:
+                loa.modifier = user
+                loa.save()
+                print('Added new institution LoA: {}'.format(inst.name))
+            return loa, True
+
+
 def main(default_args=False):
 
     if default_args:
@@ -70,6 +95,7 @@ def main(default_args=False):
         logger.error('A valid environment must be specified: {}'.format(ENVS))
         sys.exit(1)
     institutions = INSTITUTIONS[server_env]
+    institutions_loa = INSTITUTIONS_LOA[server_env]
 
     if not update_all and not update_ids:
         logger.error('Nothing to update or create. Please either specify a list of institutions '
@@ -77,8 +103,10 @@ def main(default_args=False):
         sys.exit(1)
     elif update_all:
         institutions_to_update = institutions
+        institutions_loa_to_update = institutions_loa
     else:
         institutions_to_update = [inst for inst in institutions if inst['_id'] in update_ids]
+        institutions_loa_to_update = [inst_loa for inst_loa in institutions_loa if inst_loa['_id'] in update_ids]
         diff_list = list(set(update_ids) - set([inst['_id'] for inst in institutions_to_update]))
         if diff_list:
             logger.error('One or more institution ID(s) provided via -i or --ids do not match any '
@@ -88,6 +116,8 @@ def main(default_args=False):
     with transaction.atomic():
         for inst_data in institutions_to_update:
             update_or_create(inst_data)
+        for loa_data in institutions_loa_to_update:
+            update_or_create_loa(loa_data)
         for extra_inst in Institution.objects.exclude(_id__in=[x['_id'] for x in institutions]):
             logger.warn('Extra Institution : {} - {}'.format(extra_inst._id, extra_inst.name))
 
@@ -1835,6 +1865,17 @@ INSTITUTIONS = {
         ],
 }
 
+INSTITUTIONS_LOA = {
+        'nii': [
+                {
+                    '_id': 'orthros-dev',
+                    'aal':2,
+                    'ial':2,
+                    'is_mfa':True,
+                },
+            ],
+        'test': [],
+    }
 
 if __name__ == '__main__':
 

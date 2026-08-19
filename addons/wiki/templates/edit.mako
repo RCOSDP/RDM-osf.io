@@ -269,6 +269,25 @@
       </div><!-- end row -->
     </div>
 
+    <div class="modal fade" id="closeConfirmModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h3 class="modal-title">${_("Unsaved Changes")}</h3>
+          </div>
+          <div class="modal-body">
+            <p>${_("Your changes have not been saved. Do you want to save before closing?")}</p>
+          </div>
+          <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">${_("Cancel")}</button>
+              <button type="button" class="btn btn-danger" data-bind="click: discardAndClose">${_("Discard")}</button>
+              <button type="button" class="btn btn-success" data-bind="click: saveAndClose">${_("Save and Close")}</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div><!-- end wiki -->
 

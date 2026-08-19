@@ -110,6 +110,7 @@ INSTALLED_APPS = (
     'admin.meetings',
     'admin.institutions',
     'admin.preprint_providers',
+    'admin.loa',
 
     # Additional addons
     'addons.bitbucket',
