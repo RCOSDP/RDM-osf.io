@@ -160,6 +160,7 @@ def get_globals():
         'status': status.pop_status_messages(),
         'prev_status': status.pop_previous_status_messages(),
         'domain': settings.DOMAIN,
+        'oasys_url': settings.OASYS_URL,
         'api_domain': settings.API_DOMAIN,
         'disk_saving_mode': settings.DISK_SAVING_MODE,
         'language': language,
