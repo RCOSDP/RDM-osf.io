@@ -436,7 +436,12 @@ def get_auth(auth, **kwargs):
         waterbutler_settings = node.serialize_waterbutler_settings(provider_name)
 
     if is_node_process and provider_settings:
-        waterbutler_settings['max_file_size'] = getattr(provider_settings.config, 'max_file_size', None)
+        # Same limit the file browser shows;
+        # Only osfstorage defines `high_max_file_size`.
+        max_size = getattr(provider_settings.config, 'max_file_size', None)
+        if auth.user and 'high_upload_limit' in auth.user.system_tags:
+            max_size = getattr(provider_settings.config, 'high_max_file_size', None) or max_size
+        waterbutler_settings['max_file_size'] = max_size
 
     if not is_node_process:
         # for only location_id value

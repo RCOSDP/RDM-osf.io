@@ -593,20 +593,14 @@ class TestMoveHookQuota(StorageTestCase):
         sizes_added = [c[0][1] for c in add_calls]
         assert 300 in sizes_added
 
-    # --- SAME-CREATOR CROSS-NODE MOVE (D.2 fix: branch by UserQuota record, not node) ---
+    # --- SAME-CREATOR CROSS-NODE MOVE (branch by UserQuota record, not node) ---
     # These exercise osfstorage_move_hook against a REAL UserQuota row (update_quota is
     # not mocked) because the bug being fixed is a real arithmetic corruption of `used`,
     # not just which mock gets called.
 
     def test_move_file_to_other_node_same_creator_does_not_clamp_used_to_zero(self):
-        """
-        Move to a different node owned by the SAME creator: source and destination
-        share one UserQuota row. Before the fix, two opposing writes on that row
-        (-new_size then +(new_size-replaced_size)) would floor `used` at 0 in between
-        whenever used < new_size, corrupting the final value. With used=100 and a
-        500-byte file (replaced_size=0), the old code would leave used=500 instead of
-        the correct 100.
-        """
+        """A move to a different node owned by the same creator shares one UserQuota row;
+        `used` must not clamp to 0 between the two opposing writes on that row."""
         from osf.models import UserQuota
 
         UserQuota.objects.get_or_create(
@@ -652,11 +646,8 @@ class TestMoveHookQuota(StorageTestCase):
         assert used == 50
 
     def test_move_file_to_other_node_different_creator_still_transfers_full_size(self):
-        """
-        Regression guard: a move between nodes with DIFFERENT creators must still hit
-        two distinct UserQuota rows and transfer the full size, unaffected by the
-        same-creator fix.
-        """
+        """A move between nodes with different creators still hits two distinct UserQuota
+        rows and transfers the full size."""
         from osf.models import UserQuota
 
         UserQuota.objects.get_or_create(
@@ -686,11 +677,8 @@ class TestMoveHookQuota(StorageTestCase):
         assert dest_used == 500
 
     def test_move_folder_to_other_node_same_creator_is_quota_neutral(self):
-        """
-        Folder move within the same UserQuota record: replaced_size is always reset to
-        0 for folders (osfstorage_delete already accounted for it), so same_user_quota
-        must result in no quota change at all -- and no UserQuota.save() call.
-        """
+        """A folder move within the same UserQuota record results in no quota change and
+        no UserQuota.save() call."""
         from osf.models import UserQuota
 
         UserQuota.objects.get_or_create(

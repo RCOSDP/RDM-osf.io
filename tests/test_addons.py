@@ -121,6 +121,25 @@ class TestAddonAuth(OsfTestCase):
         observed_url.port = expected_url.port
         assert_equal(expected_url, observed_url)
 
+    def test_auth_max_file_size_honors_high_upload_limit_tag(self):
+        """A user with the `high_upload_limit` system tag gets the high max_file_size
+        sent to WaterButler."""
+        self.user.add_system_tag('high_upload_limit')
+        self.user.save()
+        url = self.build_url()
+        with mock.patch.object(self.node_addon.config, 'high_max_file_size', 500, create=True):
+            res = self.app.get(url, auth=self.user.auth)
+        data = jwt.decode(jwe.decrypt(res.json['payload'].encode('utf-8'), self.JWE_KEY), settings.WATERBUTLER_JWT_SECRET, algorithm=settings.WATERBUTLER_JWT_ALGORITHM)['data']
+        assert_equal(data['settings']['max_file_size'], 500)
+
+    def test_auth_max_file_size_without_high_upload_limit_tag(self):
+        """An untagged user keeps the addon's ordinary limit even when a high limit exists."""
+        url = self.build_url()
+        with mock.patch.object(self.node_addon.config, 'high_max_file_size', 500, create=True):
+            res = self.app.get(url, auth=self.user.auth)
+        data = jwt.decode(jwe.decrypt(res.json['payload'].encode('utf-8'), self.JWE_KEY), settings.WATERBUTLER_JWT_SECRET, algorithm=settings.WATERBUTLER_JWT_ALGORITHM)['data']
+        assert_equal(data['settings']['max_file_size'], 100)
+
     def test_auth_render_action_returns_200(self):
         url = self.build_url(action='render')
         res = self.app.get(url, auth=self.user.auth)

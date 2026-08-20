@@ -247,7 +247,8 @@ def osfstorage_move_hook(source, destination, name=None, **kwargs):
         dest_storage = get_project_storage_type(destination.target)
 
         # "Same UserQuota record" = same (creator, storage_type), matching the criterion
-        # WaterButler's evaluate_quota() uses for the pre-check (user_guid + storage_type).
+        # WaterButler's resolve_quota_context() uses for the pre-check (user_guid +
+        # storage_type).
         # Node identity is NOT the right test: a move to another component owned by the
         # same creator lands on the very same UserQuota row, so subtracting from the
         # source and adding to the destination would be two writes against one row --

@@ -626,22 +626,37 @@ function _rejectConflictItem(tb, from, to, notRenameOp, conflict) {
 }
 
 /**
+ * True when `node` itself, or any folder anywhere beneath it, has not been
+ * lazy-loaded yet — meaning the subtree's total size cannot be known client-side.
+ *
+ * The file browser lazy-loads a single level at a time, so an expanded folder can
+ * still contain sub-folders whose own children have never been fetched. Summing
+ * only what happens to be loaded would under-count the freed size.
+ */
+function hasUnloadedFolder(node) {
+    if (node.kind === 'folder' && !node.load) {
+        return true;
+    }
+    return (node.children || []).some(hasUnloadedFolder);
+}
+
+/**
  * Size freed up at the destination by an overwrite, in bytes.
  *
- * Mirrors WaterButler's get_replaced_size() (waterbutler/tasks/pre_checks.py):
- * 'replace' is the only conflict mode that overwrites anything. 'keep' renames
- * the incoming item instead, and an omitted conflict falls back to WaterButler's
- * DEFAULT_CONFLICT ('warn'), which never overwrites either — both free 0 bytes.
+ * Mirrors WaterButler's get_replaced_size(): only conflict === 'replace' overwrites
+ * anything ('keep' renames the incoming item; omitted conflict defaults to 'warn' —
+ * both free 0 bytes), and only a same-kind destination item is replaced (osfstorage
+ * allows a file and folder to share a name).
  *
- * Returns null (size unknown) only when the destination folder has not been
- * lazy-loaded yet; callers must skip the client-side check in that case.
+ * Returns null if the destination folder's subtree isn't fully loaded (size unknown) —
+ * callers must skip the client-side check and defer to the server.
  */
 function getReplacedSize(to, from, conflict) {
     if (conflict !== 'replace') {
         return 0;
     }
     var existing = (to.children || []).filter(function(child) {
-        return child.data.name === from.data.name;
+        return child.data.name === from.data.name && child.kind === from.kind;
     })[0];
     if (!existing) {
         return 0;
@@ -649,8 +664,9 @@ function getReplacedSize(to, from, conflict) {
     if (from.kind !== 'folder') {
         return parseInt(existing.data.size, 10) || 0;
     }
-    if (!existing.load) {
-        // Folder not lazy-loaded yet; size unknown, let the server-side check decide.
+    if (hasUnloadedFolder(existing)) {
+        // Part of the subtree is not lazy-loaded yet; total size unknown, let the
+        // server-side check decide.
         return null;
     }
     return getAllChildren(existing).reduce(function(total, child) {
@@ -718,80 +734,109 @@ function doItemOp(operation, to, from, rename, conflict) {
     }
 
     if (operation !== OPERATIONS.RENAME) {
-        var destMaxSize = to.data && to.data.accept && to.data.accept.maxSize;
-        if (destMaxSize) {
-            var maxSizeBytes = destMaxSize * 1000000;
-            var oversizedFiles = _findOversizedFiles(from, maxSizeBytes);
-            if (oversizedFiles.length > 0) {
-                var maxSizeDisplay = $osf.humanFileSize(maxSizeBytes, true);
-                oversizedFiles.forEach(function(oversized) {
-                    var displaySize = $osf.humanFileSize(oversized.data.size, true);
-                    $osf.growl(sprintf(
-                        gettext('File「%1$s」is too large (%2$s). Max file size is %3$s.'),
-                        oversized.data.name, displaySize, maxSizeDisplay
-                    ));
-                });
-                _rejectConflictItem(tb, from, to, notRenameOp, conflict);
-                return;
-            }
+        var destProvider = to.data.provider;
+
+        // Sum size of all files in the item being moved/copied
+        var totalMoveSize = 0;
+        if (from.kind === 'file') {
+            totalMoveSize = parseInt(from.data.size, 10) || 0;
+        } else {
+            getAllChildren(from).forEach(function(child) {
+                if (child.kind === 'file') {
+                    totalMoveSize += parseInt(child.data.size, 10) || 0;
+                }
+            });
         }
 
-        var destProvider = to.data.provider;
-        if (destProvider === 'osfstorage') {
-            // Sum size of all files in the item being moved/copied
-            var totalMoveSize = 0;
-            if (from.kind === 'file') {
-                totalMoveSize = parseInt(from.data.size, 10) || 0;
-            } else {
-                getAllChildren(from).forEach(function(child) {
-                    if (child.kind === 'file') {
-                        totalMoveSize += parseInt(child.data.size, 10) || 0;
-                    }
-                });
-            }
+        // max_file_size skip narrows by provider only (browser can't know region/node);
+        // server gives the authoritative 413 if it turns out not to qualify.
+        var skipSizeCheck = (operation.status === 'move' &&
+            from.data.provider === destProvider);
 
-            if (totalMoveSize > 0) {
-                var replacedSize = getReplacedSize(to, from, conflict);
-                // Sequential async:false calls (kept in sync with doItemOp's control flow)
-                var destQuotaResp = $.ajax({
-                    async: false,
-                    method: 'GET',
-                    url: to.data.nodeApiUrl + 'get_creator_quota/'
-                });
-                // Only fetch src quota when source is osfstorage; non-osfstorage source has
-                // no meaningful quota record, and a falsy srcQuota below is treated as "adds usage".
-                var srcQuotaResp = (from.data.provider === 'osfstorage') ? $.ajax({
+        // The quota context is still resolved here, before the size check runs below:
+        // WaterButler always issues this same request first when the destination is
+        // osfstorage, regardless of whether either check ends up running.
+        var destQuota = null;
+        var srcQuota = null;
+        var skipQuotaCheck = false;
+        if (destProvider === 'osfstorage' && totalMoveSize > 0) {
+            // Sequential async:false calls (kept in sync with doItemOp's control flow)
+            var destQuotaResp = $.ajax({
+                async: false,
+                method: 'GET',
+                url: to.data.nodeApiUrl + 'get_creator_quota/'
+            });
+            // Only a MOVE from osfstorage needs src quota — it serves just to detect a
+            // same-record move. A falsy srcQuota means "adds usage".
+            var srcQuotaResp = null;
+            if (operation.status === 'move' && from.data.provider === 'osfstorage') {
+                // Same node ⇒ same UserQuota record: reuse the response already in hand
+                // instead of asking the very same endpoint twice.
+                srcQuotaResp = (from.data.nodeApiUrl === to.data.nodeApiUrl) ? destQuotaResp : $.ajax({
                     async: false,
                     method: 'GET',
                     url: from.data.nodeApiUrl + 'get_creator_quota/'
-                }) : null;
-                if (destQuotaResp.responseJSON && (!srcQuotaResp || srcQuotaResp.responseJSON)) {
-                    var destQuota = destQuotaResp.responseJSON;
-                    var srcQuota = srcQuotaResp ? srcQuotaResp.responseJSON : null;
-                    var quotaMsgText = '';
+                });
+            }
+            if (destQuotaResp.responseJSON && (!srcQuotaResp || srcQuotaResp.responseJSON)) {
+                destQuota = destQuotaResp.responseJSON;
+                srcQuota = srcQuotaResp ? srcQuotaResp.responseJSON : null;
+                skipQuotaCheck = (operation.status === 'move' &&
+                    isSameUserQuota(srcQuota, destQuota));
+            }
+            // A failed request leaves the quota check in place: the server re-runs it
+            // anyway, so keeping it is the cautious side to fall on.
+        }
 
-                    // replacedSize === null: destination folder not yet loaded, so its size
-                    // is unknown — skip only this blocking check and let the move/copy proceed;
-                    // the server-side check is authoritative.
-                    if (replacedSize !== null && quotaCheckExceeds(operation.status, srcQuota, destQuota, totalMoveSize, replacedSize)) {
-                        if (from.kind === 'file') {
-                            quotaMsgText = sprintf(gettext('Not enough quota to move/copy the file.'));
-                        } else {
-                            var folderSize = $osf.humanFileSize(totalMoveSize, true);
-                            quotaMsgText = sprintf(gettext('Not enough quota to move/copy. The total size of the folder %1$s.'), folderSize);
-                        }
-                        from.notify.update(quotaMsgText, 'warning', undefined, 3000);
-                        _rejectConflictItem(tb, from, to, notRenameOp, conflict);
-                        return;
-                    }
-                    // Same-pool move: own bytes already counted, only the replaced bytes free up.
-                    // Unknown replacedSize is treated as 0 (worst case) so the alert can still fire.
-                    var quotaDelta = (operation.status === 'move' && isSameUserQuota(srcQuota, destQuota)) ?
-                        -(replacedSize || 0) : (totalMoveSize - (replacedSize || 0));
-                    // Deferred to after a confirmed success below, not shown if the move/copy fails.
-                    showQuotaUsageAlert = (destQuota.used + quotaDelta > destQuota.max * window.contextVars.threshold);
+        if (!skipSizeCheck) {
+            var destMaxSize = to.data && to.data.accept && to.data.accept.maxSize;
+            if (destMaxSize) {
+                var maxSizeBytes = destMaxSize * 1000000;
+                var oversizedFiles = _findOversizedFiles(from, maxSizeBytes);
+                if (oversizedFiles.length > 0) {
+                    var maxSizeDisplay = $osf.humanFileSize(maxSizeBytes, true);
+                    oversizedFiles.forEach(function(oversized) {
+                        var displaySize = $osf.humanFileSize(oversized.data.size, true);
+                        $osf.growl(sprintf(
+                            gettext('File「%1$s」is too large (%2$s). Max file size is %3$s.'),
+                            oversized.data.name, displaySize, maxSizeDisplay
+                        ));
+                    });
+                    _rejectConflictItem(tb, from, to, notRenameOp, conflict);
+                    return;
                 }
             }
+        }
+
+        // destQuota is only set for an osfstorage destination with something to weigh.
+        if (destQuota && !skipQuotaCheck) {
+            var replacedSize = getReplacedSize(to, from, conflict);
+            var quotaMsgText = '';
+
+            // replacedSize === null: destination folder not yet loaded, so its size
+            // is unknown — skip only this blocking check and let the move/copy proceed;
+            // the server-side check is authoritative.
+            if (replacedSize !== null && quotaCheckExceeds(operation.status, srcQuota, destQuota, totalMoveSize, replacedSize)) {
+                if (from.kind === 'file') {
+                    quotaMsgText = sprintf(gettext('Not enough quota to move/copy the file.'));
+                } else {
+                    var folderSize = $osf.humanFileSize(totalMoveSize, true);
+                    quotaMsgText = sprintf(gettext('Not enough quota to move/copy. The total size of the folder %1$s.'), folderSize);
+                }
+                from.notify.update(quotaMsgText, 'warning', undefined, 3000);
+                _rejectConflictItem(tb, from, to, notRenameOp, conflict);
+                return;
+            }
+            // Same-pool move: own bytes already counted, only the replaced bytes free up.
+            // Unknown replacedSize is treated as 0 (worst case) so the alert can still fire.
+            // The same-record arm is unreachable while the skip above is in force; it stays so
+            // that the delta remains correct on its own terms.
+            var quotaDelta = (operation.status === 'move' && isSameUserQuota(srcQuota, destQuota)) ?
+                -(replacedSize || 0) : (totalMoveSize - (replacedSize || 0));
+            // Shown only after a confirmed success below. The alert announces *crossing*
+            // the threshold, so an operation that adds no usage must stay silent.
+            showQuotaUsageAlert = (quotaDelta > 0 &&
+                destQuota.used + quotaDelta > destQuota.max * window.contextVars.threshold);
         }
     }
 
