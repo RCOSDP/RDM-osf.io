@@ -1,0 +1,89 @@
+from framework.routing import Rule, json_renderer
+
+from addons.s3compatsigv4 import views
+
+
+api_routes = {
+    'rules': [
+        Rule(
+            [
+                '/settings/s3compatsigv4/accounts/',
+            ],
+            'post',
+            views.s3compatsigv4_add_user_account,
+            json_renderer,
+        ),
+        Rule(
+            [
+                '/settings/s3compatsigv4/accounts/',
+            ],
+            'get',
+            views.s3compatsigv4_account_list,
+            json_renderer,
+        ),
+        Rule(
+            [
+                '/project/<pid>/s3compatsigv4/settings/',
+                '/project/<pid>/node/<nid>/s3compatsigv4/settings/',
+            ],
+            'put',
+            views.s3compatsigv4_set_config,
+            json_renderer,
+        ),
+        Rule(
+            [
+                '/project/<pid>/s3compatsigv4/settings/',
+                '/project/<pid>/node/<nid>/s3compatsigv4/settings/',
+            ],
+            'get',
+            views.s3compatsigv4_get_config,
+            json_renderer,
+        ),
+        Rule(
+            [
+                '/project/<pid>/s3compatsigv4/user-auth/',
+                '/project/<pid>/node/<nid>/s3compatsigv4/user-auth/',
+            ],
+            'put',
+            views.s3compatsigv4_import_auth,
+            json_renderer,
+        ),
+        Rule(
+            [
+                '/project/<pid>/s3compatsigv4/user-auth/',
+                '/project/<pid>/node/<nid>/s3compatsigv4/user-auth/',
+            ],
+            'delete',
+            views.s3compatsigv4_deauthorize_node,
+            json_renderer,
+        ),
+        Rule(
+            [
+                '/project/<pid>/s3compatsigv4/buckets/',
+                '/project/<pid>/node/<nid>/s3compatsigv4/buckets/',
+            ],
+            'get',
+            views.s3compatsigv4_folder_list,
+            json_renderer,
+        ),
+        Rule(
+            [
+                '/project/<pid>/s3compatsigv4/attached/',
+                '/project/<pid>/node/<nid>/s3compatsigv4/attached/',
+            ],
+            'get',
+            views.s3compatsigv4_attached_service,
+            json_renderer,
+        ),
+        Rule(
+            [
+                '/project/<pid>/s3compatsigv4/newbucket/',
+                '/project/<pid>/node/<nid>/s3compatsigv4/newbucket/',
+            ],
+            'post',
+            views.s3compatsigv4_create_bucket,
+            json_renderer
+        ),
+    ],
+    'prefix': '/api/v1',
+}

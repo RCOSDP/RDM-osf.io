@@ -124,7 +124,7 @@ class TestWikiPageNodeManager(OsfTestCase, unittest.TestCase):
 
         # True?
         mock_create.assert_called_with(is_wiki_import=True, node=self.project, page_name='home child', parent=None, user=self.user)
-        wiki_page.update.assert_called_with(self.user, 'home child content', is_wiki_import=True)
+        wiki_page.update.assert_called_with(self.user, 'home child content', add_log=True, is_wiki_import=True)
 
     @mock.patch('addons.wiki.models.WikiPage.objects.create')
     def test_create_for_node_false(self, mock_create):
@@ -142,7 +142,7 @@ class TestWikiPageNodeManager(OsfTestCase, unittest.TestCase):
 
         # False
         mock_create.assert_called_with(is_wiki_import=False, node=self.project, page_name='home child', parent=None, user=self.user)
-        wiki_page.update.assert_called_with(self.user, 'home child content', is_wiki_import=False)
+        wiki_page.update.assert_called_with(self.user, 'home child content', add_log=True, is_wiki_import=False)
 
     def test_create(self):
         new_node = WikiPage.objects.create(
@@ -2746,7 +2746,7 @@ class TestWikiViews(OsfTestCase, unittest.TestCase):
                     }
                 ]
             },
-            auth=self.auth
+            auth=self.user.auth
         )
         page_names = ['importpagea1', 'importpageb2', 'wiki child page1', 'wiki child page2', 'wiki child page3']
         result_list = list(WikiPage.objects.filter(page_name__in=page_names).order_by('page_name').values_list('page_name', 'parent_id', 'sort_order'))

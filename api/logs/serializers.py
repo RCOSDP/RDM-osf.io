@@ -1,4 +1,5 @@
 from past.builtins import basestring
+from osf.models.mapcore_group import MapCoreGroup
 from rest_framework import serializers as ser
 
 from addons.osfstorage.models import Region
@@ -101,6 +102,9 @@ class NodeLogParamsSerializer(RestrictedDictSerializer):
     institution = NodeLogInstitutionSerializer(read_only=True)
     anonymous_link = ser.BooleanField(read_only=True)
     file_format = ser.CharField(read_only=True)
+    title = ser.CharField(read_only=True)
+    workflow_name = ser.CharField(read_only=True)
+    mapcore_groups = ser.SerializerMethodField(read_only=True)
 
     def get_view_url(self, obj):
         urls = obj.get('urls', None)
@@ -224,6 +228,29 @@ class NodeLogParamsSerializer(RestrictedDictSerializer):
                 logging.warning('Unable to retrieve storage name from institution ID {}'.format(institution.id))
                 return 'Institutional Storage'
         return None
+
+    def get_mapcore_groups(self, obj):
+        mapcore_group_info = []
+
+        if is_anonymized(self.context['request']):
+            return mapcore_group_info
+
+        mapcore_group_data = obj.get('mapcore_groups', None)
+
+        if mapcore_group_data:
+            mapcore_group_ids = [each for each in mapcore_group_data if isinstance(each, int)]
+            mapcore_groups = (
+                MapCoreGroup.objects.filter(id__in=mapcore_group_ids)
+                .only('id', '_id')
+                .order_by('_id')
+            )
+            for mapcore_group in mapcore_groups:
+                mapcore_group_info.append({
+                    'id': mapcore_group.id,
+                    'name': mapcore_group._id,
+                })
+        return mapcore_group_info
+
 
 class NodeLogSerializer(JSONAPISerializer):
 

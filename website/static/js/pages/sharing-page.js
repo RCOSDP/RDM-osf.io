@@ -2,6 +2,7 @@
 var $ = require('jquery');
 
 var ContribManager = require('js/contribManager');
+var GroupManager = require('js/groupsManager');
 var AccessRequestManager = require('js/accessRequestManager');
 
 var PrivateLinkManager = require('js/privateLinkManager');
@@ -18,10 +19,16 @@ var nodeApiUrl = ctx.node.urls.api;
 var isContribPage = $('#manageContributors').length;
 var hasAccessRequests = $('#manageAccessRequests').length;
 var cm;
+var gm;
 var arm;
-
+var isGroupPage = $('#manageGroups').length;
 if (isContribPage) {
     cm = new ContribManager('#manageContributors', ctx.contributors, ctx.adminContributors, ctx.currentUser, ctx.isRegistration, '#manageContributorsTable', '#adminContributorsTable');
+}
+
+if (isGroupPage) {
+    // cm = new ContribManager('#manageContributors', ctx.contributors, ctx.adminContributors, ctx.currentUser, ctx.isRegistration, '#manageContributorsTable', '#adminContributorsTable');
+    gm = new GroupManager('#manageGroups', ctx.groups, ctx.adminGroups, ctx.currentUser, ctx.isRegistration, '#manageGroupsTable', '#adminGroupsTable', ctx.baseUrl);
 }
 
 if (hasAccessRequests) {
@@ -31,10 +38,18 @@ if (hasAccessRequests) {
 if ($.inArray('admin', ctx.currentUser.permissions) !== -1) {
     // Controls the modal
     var configUrl = ctx.node.urls.api + 'get_editable_children/';
-    var privateLinkManager = new PrivateLinkManager('#addPrivateLink', configUrl);
+    var $addPrivateLink = $('#addPrivateLink');
+    var privateLinkManager;
+    if ($addPrivateLink.length) {
+        privateLinkManager = new PrivateLinkManager('#addPrivateLink', configUrl);
+    }
     var tableUrl = nodeApiUrl + 'private_link/';
     var linkTable = $('#privateLinkTable');
-    var privateLinkTable = new PrivateLinkTable('#linkScope', tableUrl, ctx.node.isPublic, linkTable);
+    var $linkScope = $('#linkScope');
+    var privateLinkTable;
+    if ($linkScope.length) {
+        privateLinkTable = new PrivateLinkTable('#linkScope', tableUrl, ctx.node.isPublic, linkTable);
+    }
 }
 
 $(function() {
@@ -49,6 +64,9 @@ $(window).on('load', function() {
     }
     if (typeof arm !== 'undefined') {
       arm.viewModel.onWindowResize();
+    }
+    if (typeof gm !== 'undefined') {
+      gm.viewModel.onWindowResize();
     }
     if (!!privateLinkTable){
         privateLinkTable.viewModel.onWindowResize();
@@ -69,5 +87,8 @@ $(window).resize(function() {
     }
     if (typeof arm !== 'undefined') {
       arm.viewModel.onWindowResize();
+    }
+    if (typeof gm !== 'undefined') {
+      gm.viewModel.onWindowResize();
     }
 });
