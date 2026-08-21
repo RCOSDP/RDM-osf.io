@@ -2871,6 +2871,14 @@ msgstr ""
 msgid "Non-Bibliographic"
 msgstr ""
 
+#: website/templates/project/contributors.mako:187
+msgid "Affiliated Institutions"
+msgstr ""
+
+#: website/templates/project/contributors.mako:188
+msgid "Invite Date"
+msgstr ""
+
 #: website/templates/project/contributors.mako:63
 msgid "Drag and drop contributors to change listing order."
 msgstr ""

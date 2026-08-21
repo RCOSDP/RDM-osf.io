@@ -3312,6 +3312,14 @@ msgstr "目録で表示"
 msgid "Non-Bibliographic"
 msgstr "目録で非表示"
 
+#: website/templates/project/contributors.mako:187
+msgid "Affiliated Institutions"
+msgstr "所属機関"
+
+#: website/templates/project/contributors.mako:188
+msgid "Invite Date"
+msgstr "招待日"
+
 #: website/templates/project/contributors.mako:63
 msgid "Drag and drop contributors to change listing order."
 msgstr "メンバーをドラッグ&ドロップして、リストの順序を変更します。"
