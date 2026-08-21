@@ -198,7 +198,7 @@
                 ></i>
             </th>
             <th class="biblio-contrib" style="min-width:100px;width:110px;white-space: nowrap;">
-                ${_("Bibliographic Title")}
+                ${_("Bibliographic Contributor")}
                 <i class="fa fa-question-circle visibility-info"
                     data-toggle="popover"
                     data-title="${_('Bibliographic Contributor Information')}"
@@ -245,7 +245,7 @@
                 ></i>
             </th>
             <th class="biblio-contrib">
-                ${_("Bibliographic Title")}
+                ${_("Bibliographic Contributor")}
                 <i class="fa fa-question-circle visibility-info"
                     data-toggle="popover"
                     data-title="${_('Bibliographic Contributor Information')}"

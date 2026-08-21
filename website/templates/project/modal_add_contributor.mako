@@ -215,7 +215,7 @@
                                     <th width="10%"></th>
                                     <th width="30%">${_("Name")}</th>
                                     <th>
-                                        ${_("Bibliographic Title")}
+                                        ${_("Bibliographic Contributor")}
                                         <i class="fa fa-question-circle visibility-info"
                                            data-toggle="popover"
                                            data-title="${_('Bibliographic Contributor Information')}"
