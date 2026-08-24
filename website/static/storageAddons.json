@@ -59,6 +59,10 @@
         "fullName": "S3 Compatible Storage",
         "externalView": false
     },
+    "s3compatsigv4": {
+        "fullName": "S3 Compatible Storage (SigV4)",
+        "externalView": false
+    },
     "s3compatb3": {
         "fullName": "S3 Compatible Storage",
         "externalView": false

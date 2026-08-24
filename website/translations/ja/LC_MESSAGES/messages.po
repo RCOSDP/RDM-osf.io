@@ -1224,6 +1224,22 @@ msgstr "重要な情報、リンク、または画像をここに追加して、
 msgid "Close"
 msgstr "閉じる"
 
+#: addons/wiki/templates/edit.mako:277
+msgid "Unsaved Changes"
+msgstr "未保存の変更"
+
+#: addons/wiki/templates/edit.mako:280
+msgid "Your changes have not been saved. Do you want to save before closing?"
+msgstr "編集内容は保存されていません。閉じる前に保存しますか？"
+
+#: addons/wiki/templates/edit.mako:284
+msgid "Discard"
+msgstr "破棄"
+
+#: addons/wiki/templates/edit.mako:285
+msgid "Save and Close"
+msgstr "保存して閉じる"
+
 #: addons/wiki/templates/edit.mako:218 addons/wiki/templates/edit.mako:225
 msgid "Compare"
 msgstr "比較"
@@ -3183,10 +3199,14 @@ msgstr "プロフィールを表示"
 
 #: website/templates/profile/settings.mako:47
 msgid ""
+"The following fields are required: "
 "\"Full name\", \"Family name\", \"Given name\", \"Family name (EN)\", "
 "\"Given name (EN)\" on the Name tab, and \"Affiliation\" and "
-"\"Affiliation (English)\" on the Employment tab is required."
-msgstr "名前タブの「氏名」「姓」「名前」「姓(英語)」「名前(英語)」、ならびに職歴タブの「所属」「所属(英語)」は必須入力(*)です。"
+"\"Affiliation (English)\" on the Employment tab. "
+"(For students: Please add your university and faculty/graduate school information in the Employment tab.)"
+msgstr ""
+"名前タブの「氏名」「姓」「名前」「姓(英語)」「名前(英語)」、ならびに職歴タブの「所属」「所属(英語)」は必須入力(*)です。"
+"（学生の方は、在籍する大学と学部/研究科情報を職歴タブへ入力してください）"
 
 #: website/templates/profile/settings.mako:50
 #: website/templates/project/contributors.mako:182
@@ -4447,6 +4467,18 @@ msgstr "%(summaryTitle)sのフォークを作成"
 msgid "Manage Contributors"
 msgstr "メンバー管理"
 
+#: website/templates/profile.mako:70
+msgid "IAL"
+msgstr ""
+
+#: website/templates/profile.mako:74
+msgid "AuthnContext-Class"
+msgstr ""
+
+#: website/templates/profile.mako:80
+msgid "Log in again using multi-factor authentication"
+msgstr "多要素認証で再ログインする"
+
 #~ msgid ""
 #~ "Because you have not configured the "
 #~ "{addon} add-on, your authentication will"
@@ -4569,12 +4601,95 @@ msgstr "メンバー管理"
 #~ "will keep the registration private until"
 #~ " the embargo period ends."
 #~ msgstr "この%(nodeType)sは現在登録を保留しており、プロジェクト管理者からの承認を待っています。この登録は最終的なものであり、すべてのプロジェクト管理者が登録を承認するか、48時間のパスのいずれか早いほうを承認した時点で禁止期間に入ります。禁止措置は、禁止期間が終了するまで登録を非公開にします。"
+
+msgid "Groups"
+msgstr "グループ"
+
+msgid "Group name"
+msgstr "グループ名"
+
+msgid "Registered by"
+msgstr "登録者"
+
+msgid "Add Groups"
+msgstr "グループを追加"
+
+msgid "Search by group name"
+msgstr "グループ名で検索する"
+
+msgid "Remove Group"
+msgstr "グループを削除"
+
+msgid ""
+"<span>Do you want to remove <b %(removedGroup)s></b> from"
+"                                <b %(textTitle)s></b>, or from <b "
+"%(textTitle)s></b> and every component in it?</span>"
+msgstr ""
+"<b %(removedGroup)s></b>を<b %(textTitle)s></b>から、または<b "
+"%(textTitle)s></b>とその中のすべてのコンポーネントから削除しますか？</span>"
+
+msgid ""
+"Remove <b %(removedGroup)s></b> from"
+"                                    <span %(textTitle)s></span>."
+msgstr "<span %(textTitle)s></span>から<b %(removedGroup)s></b>を削除します。"
+
+msgid ""
+"Remove <b %(removedGroup)s></b> from"
+"                                    <span %(textTitle)s></span> and every"
+" component in it."
+msgstr ""
+"<b %(removedGroup)s></b>を<span "
+"%(textTitle)s></span>およびその中のすべてのコンポーネントから削除します。"
+
+msgid "Remove <b %(removedGroup)s></b> from <span %(textTitle)s></span>?"
+msgstr "<span %(textTitle)s></span>から<b %(removedGroup)s></b>を削除しますか？"
+
+msgid ""
+"<b %(removedGroup)s>                                        </b> "
+"will be removed from the following projects and/or components."
+msgstr "<b %(removedGroup)s></b>は、以下のプロジェクトおよび/またはコンポーネントから削除されます。"
+
+msgid ""
+"<b %(removedGroup)s>                                        </b> "
+"cannot be removed from the following projects and/or components."
+msgstr "<b %(removedGroup)s></b>は、以下のプロジェクトやコンポーネントから削除できません。"
+
+msgid "Searching groups..."
+msgstr "グループを検索しています..."
+
+msgid "Adding group(s)"
+msgstr "メンバーを追加中"
+
+msgid "Remove <b %(removedGroup)s></b> from <span %(textTitle)s></span>?"
+msgstr "<span %(textTitle)s></span>から<b %(removedGroup)s></b>を削除しますか？"
+
+msgid ""
+"You can also add the group(s) to any components on which you are an"
+" admin."
+msgstr "管理者であるコンポーネントにグループを追加することもできます。"
+
+msgid "No groups found"
+msgstr "グループが見つかりません"
+
+msgid ""
+"Please save or discard your existing changes before removing a "
+"groups."
+msgstr "グループを削除する前に、既存の変更を保存または破棄してください。"
+
+msgid "Drag and drop groups to change listing order."
+msgstr "グループをドラッグ&ドロップして、リストの順序を変更します。"
+
+msgid "Bibliographic Group"
+msgstr "目録表示グループ"
+
+msgid "Bibliographic Group Information"
+msgstr "目録表示グループの情報"
 #: addons/workflow/templates/workflow_node_settings.mako:380
 #: addons/workflow/templates/workflow_node_settings.mako:415
 #: addons/workflow/templates/workflow_node_settings.mako:450
 #: addons/workflow/templates/workflow_node_settings.mako:485
-msgid "Access connected services (e.g., WEKO)"
-msgstr "接続済みサービス(例: WEKO)へアクセス"
+msgid "Access connected services (add-ons, etc.)"
+msgstr "接続済みサービス(各種アドオン等)へアクセス"
 
 
 #: addons/workflow/templates/workflow_node_settings.mako:45
@@ -5075,3 +5190,23 @@ msgstr "ワークフローテンプレートを更新しました。"
 #: addons/workflow/static/workflowNodeConfig.js:876
 msgid "Failed to update workflow template."
 msgstr "ワークフローテンプレートの更新に失敗しました。"
+
+#: website/templates/util/render_addon_widget.mako
+msgid "Available workflows"
+msgstr "利用可能なワークフロー"
+
+#: website/templates/util/render_addon_widget.mako
+msgid "Dismiss"
+msgstr "非表示にする"
+
+msgid "※ This feature is intended for use in the Moonshot Goal 2 Database (Mebyo DB). Group member editing is performed through {baseUrl}."
+msgstr "※本機能はムーンショット目標2（未病DB）関連プロジェクトでの利用を対象としています。グループのメンバー編集は、{baseUrl} で実施します。"
+
+msgid "the GakuNin Cloud Gateway Service group function"
+msgstr "学認クラウドゲートウェイサービスグループ機能"
+
+msgid "If you register or remove a group member while they are logged into GakuNin RDM, the changes will not be reflected in the project until the user logs out and logs back in."
+msgstr "GakuNin RDMログイン中のグループメンバーを登録・削除する場合、当該ユーザがログアウト・再ログインするまでプロジェクトからは登録・削除されません。"
+
+msgid "%(groupOthersCount)s more"
+msgstr "あと%(groupOthersCount)sグループ"

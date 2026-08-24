@@ -61,6 +61,7 @@ COPY ./addons/swift/requirements.txt ./addons/swift/
 COPY ./addons/azureblobstorage/requirements.txt ./addons/azureblobstorage/
 COPY ./addons/weko/requirements.txt ./addons/weko/
 COPY ./addons/s3compat/requirements.txt ./addons/s3compat/
+COPY ./addons/s3compatsigv4/requirements.txt ./addons/s3compatsigv4/
 COPY ./addons/s3compatinstitutions/requirements.txt ./addons/s3compatinstitutions/
 COPY ./addons/s3compatb3/requirements.txt ./addons/s3compatb3/
 COPY ./addons/ociinstitutions/requirements.txt ./addons/ociinstitutions/
@@ -167,6 +168,7 @@ COPY ./addons/azureblobstorage/static/ ./addons/azureblobstorage/static/
 COPY ./addons/weko/static/ ./addons/weko/static/
 COPY ./addons/jupyterhub/static/ ./addons/jupyterhub/static/
 COPY ./addons/s3compat/static/ ./addons/s3compat/static/
+COPY ./addons/s3compatsigv4/static/ ./addons/s3compatsigv4/static/
 COPY ./addons/s3compatinstitutions/static/ ./addons/s3compatinstitutions/static/
 COPY ./addons/s3compatb3/static/ ./addons/s3compatb3/static/
 COPY ./addons/ociinstitutions/requirements.txt ./addons/ociinstitutions/
@@ -178,6 +180,7 @@ COPY ./addons/binderhub/static/ ./addons/binderhub/static/
 COPY ./addons/metadata/static/ ./addons/metadata/static/
 COPY ./addons/onlyoffice/static/ ./addons/onlyoffice/static/
 COPY ./addons/workflow/static/ ./addons/workflow/static/
+COPY ./addons/groups/static/ ./addons/groups/static/
 RUN \
     # OSF
     yarn install --frozen-lockfile \

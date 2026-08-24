@@ -3,13 +3,17 @@ from framework import auth
 
 from api.base import settings as api_settings
 from website import settings
-from osf.models import Contributor, UserQuota
+from osf.models import Contributor, UserQuota, LoA
 from addons.osfstorage.models import Region
 from website.filters import profile_image_url
 from osf.utils.permissions import READ
 from osf.utils import workflows
 from api.waffle.utils import storage_i18n_flag_active
-from website.util import quota
+from website.util import quota, web_url_for
+
+# @R2022-48
+import re
+from urllib.parse import urlencode
 
 
 def get_profile_image_url(user, size=settings.PROFILE_IMAGE_MEDIUM):
@@ -35,6 +39,48 @@ def serialize_user(user, node=None, admin=False, full=False, is_profile=False, i
     if 'affiliated_institutions' in prefetch_cache:
         affiliated = list(user.affiliated_institutions.all())
         institution = sorted(affiliated, key=lambda i: i.pk)[0] if affiliated else None
+    idp_attrs = user.get_idp_attr()
+
+    # @R2022-48
+    if not user.aal:
+        _aal = 'NULL'
+    elif re.search(settings.OSF_AAL2_STR, str(user.aal)):
+        _aal = 'AAL2'
+    else:
+        _aal = 'AAL1'
+
+    # @R-2024-AUTH01 Values other than IAL2 are equivalent to IAL1.
+    if re.search(settings.OSF_IAL2_STR, str(user.ial)):
+        _ial = 'IAL2'
+    else:
+        _ial = 'IAL1'
+
+    # @R-2023-55
+    mfa_url = ''
+    entity_id = idp_attrs.get('idp')
+    if entity_id is not None:
+        profile_url = web_url_for('dashboard', _absolute=True)
+
+        login_url = settings.CAS_SERVER_URL + '/login?' + urlencode({
+            'service': profile_url,
+        })
+
+        mfa_url_q = settings.OSF_MFA_URL + '?' + urlencode({
+            'entityID': entity_id,
+            'target': login_url,
+        })
+
+        # CAS logout → MFA の redirect
+        mfa_url = settings.CAS_SERVER_URL + '/logout?' + urlencode({
+            'service': mfa_url_q,
+        })
+
+    loa = LoA.objects.get_or_none(institution_id=idp_attrs.get('id'))
+    if loa is not None:
+        is_mfa = loa.is_mfa
+    else:
+        is_mfa = False
+
     ret = {
         'id': str(user._id),
         'primary_key': user.id,
@@ -44,6 +90,12 @@ def serialize_user(user, node=None, admin=False, full=False, is_profile=False, i
         'shortname': fullname if len(fullname) < 50 else fullname[:23] + '...' + fullname[-23:],
         'profile_image_url': user.profile_image_url(size=settings.PROFILE_IMAGE_MEDIUM),
         'active': user.is_active,
+        'ial': user.ial,  # @R2022-48
+        'aal': user.aal,  # @R2022-48
+        '_ial': _ial,  # @R2022-48
+        '_aal': _aal,  # @R2022-48
+        'mfa_url': mfa_url,  # @R-2023-55
+        'is_mfa': is_mfa,  # @R-2023-55
         'have_email': user.have_email,
         'affiliation': institution.name if institution else '',
         'invite_date': invite_date,
@@ -79,7 +131,6 @@ def serialize_user(user, node=None, admin=False, full=False, is_profile=False, i
     if full:
         # Add emails
         if is_profile:
-            idp_attrs = user.get_idp_attr()
             ret['idp_email'] = idp_attrs.get('email')
             ret['emails'] = [
                 {
@@ -258,3 +309,62 @@ def serialize_access_requests(node):
             machine_state=workflows.DefaultStates.PENDING.value
         ).select_related('creator')
     ]
+
+def serialize_mapcore_node_groups(node, visible_only=False):
+    """Serialize MapCore groups associated with a node"""
+    mapcore_node_groups = node.mapcore_node_groups.select_related('mapcore_group', 'group', 'creator')
+    if visible_only:
+        mapcore_node_groups = mapcore_node_groups.filter(is_deleted=False, visible=True)
+    else:
+        mapcore_node_groups = mapcore_node_groups.filter(is_deleted=False)
+    return [
+        {
+            'id': str(mapcore_node_group.id),
+            'mapcore_group': {
+                'id': mapcore_node_group.mapcore_group.id,
+                'name': mapcore_node_group.mapcore_group._id,
+            },
+            'creator': mapcore_node_group.creator.fullname,
+            'is_deleted': mapcore_node_group.is_deleted,
+            'permission': mapcore_node_group.get_permission,
+            'url': mapcore_node_group.mapcore_group.absolute_url,
+            'visible': mapcore_node_group.visible,
+            'index': mapcore_node_group._order,
+        } for mapcore_node_group in mapcore_node_groups
+    ]
+
+def serialize_parent_admin_groups(node, current_group):
+    """Serialize MapCore groups associated with a node"""
+    result = []
+
+    for mapcore_node_group in _mapcore_node_group_parent(node, current_group):
+        result.append({
+            'id': str(mapcore_node_group.id),
+            'mapcore_group': {
+                'id': mapcore_node_group.mapcore_group.id,
+                'name': mapcore_node_group.mapcore_group._id,
+            },
+            'creator': mapcore_node_group.creator.fullname,
+            'is_deleted': mapcore_node_group.is_deleted,
+            'permission': 'read',
+            'url': mapcore_node_group.mapcore_group.absolute_url,
+            'visible': mapcore_node_group.visible,
+            'index': mapcore_node_group._order,
+        })
+    return result
+
+def _mapcore_node_group_parent(node, current_group):
+    """Get list of parent MapCore groups associated with a node"""
+    def get_admin_mapcore_node_groups(node):
+        result = []
+        for mapcore_node_group in node.mapcore_node_groups.select_related('mapcore_group', 'group', 'creator').filter(is_deleted=False):
+            if mapcore_node_group.get_permission == 'admin' and mapcore_node_group.mapcore_group.id not in current_group:
+                result.append(mapcore_node_group)
+        return result
+    result = set()
+    for parent in node.parents:
+        admins = get_admin_mapcore_node_groups(parent)
+        for admin in admins:
+            if admin not in result:
+                result.add(admin)
+    return result
