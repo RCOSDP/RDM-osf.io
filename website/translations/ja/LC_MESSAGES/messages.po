@@ -3322,7 +3322,7 @@ msgstr "目録表示"
 #: website/templates/project/contributors.mako:246
 #: website/templates/project/modal_add_contributor.mako:221
 msgid "Bibliographic Contributor Information"
-msgstr "目録表示メンバーの情報"
+msgstr "目録表示の情報"
 
 #: website/templates/project/contributors.mako:43
 msgid "Bibliographic"
