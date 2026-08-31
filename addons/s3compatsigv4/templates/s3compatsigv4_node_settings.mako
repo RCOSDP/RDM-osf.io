@@ -64,6 +64,18 @@
                     <div data-bind="visible: currentDisplay() === PICKER">
                         <div id="${addon_short_name}Grid" class="filebrowser ${addon_short_name}-folder-picker"></div>
                     </div>
+                    <!-- Bucket not listed above (e.g. shared from another account): name it directly -->
+                    <div class="${addon_short_name}-manual-bucket" data-bind="visible: currentDisplay() === PICKER">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" data-bind="checked: useManualBucketName" />
+                                ${_("Enter bucket name")}
+                            </label>
+                        </div>
+                        <div data-bind="visible: useManualBucketName">
+                            <input type="text" class="form-control" data-bind="textInput: manualBucketName" />
+                        </div>
+                    </div>
                     <!-- Queued selection -->
                     <div class="${addon_short_name}-confirm-selection" data-bind="visible: currentDisplay() == PICKER && selected()">
                         <form data-bind="submit: submitSettings">
