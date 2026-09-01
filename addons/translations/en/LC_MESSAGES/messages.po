@@ -548,6 +548,10 @@ msgstr ""
 msgid "Create bucket"
 msgstr ""
 
+#: s3compatsigv4/templates/s3compatsigv4_node_settings.mako:72
+msgid "Enter bucket name"
+msgstr ""
+
 #: s3/templates/s3_node_settings.mako:63
 msgid "Loading buckets..."
 msgstr ""
