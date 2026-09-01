@@ -16,6 +16,20 @@ ALLOWED_TOKEN_MODES = frozenset({'none', 'read', 'readwrite'})
 ALLOWED_TOKEN_ROLES = frozenset({'creator', 'manager', 'executor'})
 REQUIRED_DELEGATION_FIELDS = frozenset({'token_id', 'token_value', 'scope', 'token_owner'})
 
+MAX_TOKEN_NAME_LENGTH = 100
+
+
+def build_token_name(role: str, label: str = '') -> str:
+    token_name = f'Workflow delegation: {role}'
+    if label:
+        suffix = f' ({label})'
+        max_suffix = MAX_TOKEN_NAME_LENGTH - len(token_name)
+        if len(suffix) > max_suffix:
+            # ' (' = 2, '...)' = 4, total overhead = 6
+            suffix = f' ({label[:max_suffix - 6]}...)'
+        token_name += suffix
+    return token_name
+
 TOKEN_MODE_TO_SCOPE = {
     'read': ['osf.full_read', 'osf.users.email_read', 'osf.users.profile_read'],
     'readwrite': ['osf.full_read', 'osf.full_write', 'osf.users.email_read', 'osf.users.profile_read'],
@@ -175,9 +189,7 @@ def create_delegation_token(user, role: str, mode: str, label: str = '') -> Dict
             )
         scopes.append(scope)
 
-    token_name = f'Workflow delegation: {role}'
-    if label:
-        token_name += f' ({label})'
+    token_name = build_token_name(role, label)
 
     token = ApiOAuth2PersonalToken(
         owner=user,
