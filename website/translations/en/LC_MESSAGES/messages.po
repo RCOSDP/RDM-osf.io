@@ -1524,6 +1524,10 @@ msgstr ""
 msgid "INSTITUTIONS"
 msgstr ""
 
+#: website/templates/nav.mako:31
+msgid "JAIRO Cloud Publication Support"
+msgstr ""
+
 #: website/templates/nav.mako:34
 msgid "Toggle navigation"
 msgstr ""

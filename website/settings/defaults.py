@@ -149,6 +149,8 @@ NII_FORMAL_NAME_EN = 'National Institute of Informatics'
 RDM_URL = 'https://rdm.nii.ac.jp/'
 #nii url
 NII_HOMEPAGE_URL = 'https://www.nii.ac.jp/'
+#oasys url
+OASYS_URL = ''
 # support email
 OSF_SUPPORT_EMAIL = 'rdm_support@nii.ac.jp'
 # contact email
