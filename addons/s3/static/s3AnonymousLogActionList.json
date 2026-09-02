@@ -7,5 +7,7 @@
     "s3_folder_created" : "A user created a folder in an Amazon S3 in a project",
     "s3_node_authorized" : "A user authorized the Amazon S3 addon for a project",
     "s3_node_deauthorized" : "A user deauthorized the Amazon S3 addon for a project",
-    "s3_node_deauthorized_no_user" : "Amazon S3 addon for a project deauthorized"
+    "s3_node_deauthorized_no_user" : "Amazon S3 addon for a project deauthorized",
+    "s3_file_downloaded": "A user downloaded a file from an Amazon S3 bucket in a project",
+    "s3_folder_downloaded_zip": "A user downloaded a folder as a zip from an Amazon S3 bucket in a project"
 }

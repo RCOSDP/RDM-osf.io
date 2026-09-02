@@ -230,3 +230,91 @@ class TestCheckUserCanCreateProject:
                 # can create project
                 mock_filter.return_value.count.return_value = 4
                 assert api_utils.check_user_can_create_project(user)
+
+
+class TestWaterbutlerApiUrlForCallbackLog:
+    """waterbutler_api_url_for() auto-suppresses callback_log for internal requests
+    (download history feature) unless the caller already set meta/callback_log."""
+
+    def test_internal_request_adds_callback_log_false(self):
+        url = api_utils.waterbutler_api_url_for(
+            'abc12', 'osfstorage', path='/', _internal=True
+        )
+        assert 'callback_log=false' in url
+
+    def test_internal_request_with_meta_skips_callback_log(self):
+        url = api_utils.waterbutler_api_url_for(
+            'abc12', 'osfstorage', path='/', _internal=True, meta=''
+        )
+        assert 'callback_log=false' not in url
+
+    def test_internal_request_respects_explicit_callback_log(self):
+        url = api_utils.waterbutler_api_url_for(
+            'abc12', 'osfstorage', path='/', _internal=True, callback_log='true'
+        )
+        assert 'callback_log=true' in url
+
+    def test_external_request_does_not_add_callback_log(self):
+        url = api_utils.waterbutler_api_url_for(
+            'abc12', 'osfstorage', path='/', _internal=False
+        )
+        assert 'callback_log=false' not in url
+
+    def test_url_path_construction_with_callback_log(self):
+        url = api_utils.waterbutler_api_url_for(
+            'abc12', 'osfstorage', path='/folder/file.txt', _internal=True
+        )
+        assert 'v1/resources/abc12/providers/osfstorage/folder/file.txt' in url
+        assert 'callback_log=false' in url
+
+    def test_callback_log_query_param_format(self):
+        url = api_utils.waterbutler_api_url_for(
+            'test_node', 'osfstorage', path='/', _internal=True
+        )
+        assert '?' in url
+        assert 'callback_log=' in url
+
+    def test_multiple_query_params_with_callback_log(self):
+        url = api_utils.waterbutler_api_url_for(
+            'test_node', 'osfstorage', path='/', _internal=True,
+            version='2', revision='abc'
+        )
+        assert 'callback_log=false' in url
+        assert 'version=2' in url
+        assert 'revision=abc' in url
+
+    def test_callback_log_with_special_characters_in_path(self):
+        url = api_utils.waterbutler_api_url_for(
+            'test_node', 'osfstorage',
+            path='/folder%20with%20spaces/file.txt',
+            _internal=True
+        )
+        assert 'callback_log=false' in url
+        assert 'folder%20with%20spaces' in url
+
+    def test_callback_log_with_empty_meta(self):
+        # When meta is present (even as ''), callback_log should not be auto-added
+        url = api_utils.waterbutler_api_url_for(
+            'test_node', 'osfstorage', _internal=True, meta=''
+        )
+        assert 'callback_log=false' not in url
+
+    def test_callback_log_with_multiple_providers(self):
+        for provider in ['osfstorage', 'dropbox', 'box', 'googledrive']:
+            url = api_utils.waterbutler_api_url_for(
+                'test_node', provider, _internal=True
+            )
+            assert 'callback_log=false' in url
+
+    def test_callback_log_with_kind_kwarg_produces_single_query_string(self):
+        # Regression test: addons/onlyoffice/views.py used to build this URL as
+        # generate_waterbutler_url(..., callback_log='true') + '?kind=file', which
+        # produced a double '?' once furl already appended '?direct&callback_log=true'.
+        # kind must now be passed as a kwarg alongside callback_log.
+        url = api_utils.waterbutler_api_url_for(
+            'test_node', 'osfstorage', _internal=True,
+            callback_log='true', kind='file'
+        )
+        assert url.count('?') == 1
+        assert 'callback_log=true' in url
+        assert 'kind=file' in url

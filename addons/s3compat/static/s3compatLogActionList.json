@@ -7,5 +7,7 @@
   "s3compat_folder_created" : "${user} created folder ${path} in S3 Compatible Storage bucket ${bucket} in ${node}",
   "s3compat_node_authorized" : "${user} authorized the S3 Compatible Storage addon for ${node}",
   "s3compat_node_deauthorized" : "${user} deauthorized the S3 Compatible Storage addon for ${node}",
-  "s3compat_node_deauthorized_no_user" : "S3 Compatible Storage addon for ${node} deauthorized"
+  "s3compat_node_deauthorized_no_user" : "S3 Compatible Storage addon for ${node} deauthorized",
+  "s3compat_file_downloaded": "${user} downloaded file ${path} from S3 Compatible Storage bucket ${bucket} in ${node}",
+  "s3compat_folder_downloaded_zip": "${user} downloaded folder ${path} as a zip from S3 Compatible Storage bucket ${bucket} in ${node}"
 }

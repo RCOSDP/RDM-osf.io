@@ -338,16 +338,12 @@ class NodeLogDownloadSerializer(JSONAPISerializer):
 
     def to_representation(self, obj, envelope='data'):
         """ Overriding to_representation to return different representation for download node logs function. """
-        # Get params and embed's user based on JSONAPISerializer's to_representation
+        # Get params based on NodeLogDownloadParamsSerializer
         params = NodeLogDownloadParamsSerializer(obj.params, context=self.context, read_only=True).data
-        embeds = self.context.get('embed', {})
-        embed_user = {}
-        if embeds and 'user' in embeds:
-            embed_user = embeds.get('user')(obj)
         params_node = params.get('params_node', {})
         rep = {
             'date': obj.date,
-            'user': embed_user.get('data', {}).get('attributes', {}).get('full_name'),
+            'user': obj.user.fullname if obj.user else None,
             'project_id': params_node.get('id'),
             'project_title': params_node.get('title'),
             'action': obj.action,

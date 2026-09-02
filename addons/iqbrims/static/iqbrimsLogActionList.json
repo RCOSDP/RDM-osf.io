@@ -10,5 +10,7 @@
   "iqbrims_imagescan_workflow_start": "${user} started IQB-RIMS workflow for ${node}",
   "iqbrims_imagescan_workflow_finish": "Finished workflow of ${user} for ${node}",
   "iqbrims_paper_workflow_start": "${user} started IQB-RIMS workflow for ${node}",
-  "iqbrims_paper_workflow_finish": "Finished workflow of ${user} for ${node}"
+  "iqbrims_paper_workflow_finish": "Finished workflow of ${user} for ${node}",
+  "iqbrims_file_downloaded": "${user} downloaded file ${iqbrims_path} from IQB-RIMS in ${node}",
+  "iqbrims_folder_downloaded_zip": "${user} downloaded folder ${iqbrims_path} as a zip from IQB-RIMS in ${node}"
 }

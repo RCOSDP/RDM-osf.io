@@ -6,5 +6,7 @@
   "onedrive_folder_selected" : "${user} linked Microsoft OneDrive folder ${onedrive_folder} to ${node}",
   "onedrive_node_authorized" : "${user} authorized the Microsoft OneDrive addon for ${node}",
   "onedrive_node_deauthorized" : "${user} deauthorized the Microsoft OneDrive addon for ${node}",
-  "onedrive_node_deauthorized_no_user" : "Microsoft OneDrive addon for ${node} deauthorized"
+  "onedrive_node_deauthorized_no_user" : "Microsoft OneDrive addon for ${node} deauthorized",
+  "onedrive_file_downloaded": "${user} downloaded file ${path} from Microsoft OneDrive in ${node}",
+  "onedrive_folder_downloaded_zip": "${user} downloaded folder ${path} as a zip from Microsoft OneDrive in ${node}"
 }

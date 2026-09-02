@@ -187,7 +187,9 @@ def onlyoffice_file_content_view(**kwargs):
         logger.info('ONLYOFFICE: file saved: user id = {}, fullname = {}, file_name = {}'
                     .format(user_info['user_id'], user_info['full_name'], file_info['name']))
 
-        wburl = file_node.generate_waterbutler_url(direct=None, _internal=True) + '?kind=file'
+        # Explicit opt-out: keep the existing FILE_UPDATED log for ONLYOFFICE saves
+        # instead of letting the URL builder auto-suppress this internal request.
+        wburl = file_node.generate_waterbutler_url(direct=None, _internal=True, callback_log='true', kind='file')
         logger.debug('onlyoffice: wburl = {}'.format(wburl))
 
         content_length = request.headers.get('content-length')

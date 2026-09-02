@@ -6,5 +6,7 @@
     "s3compatinstitutions_folder_selected" : "${user} linked S3 Compatible Storage for Institutions folder ${folder} to ${node}",
     "s3compatinstitutions_node_authorized" : "${user} authorized the S3 Compatible Storage for Institutions addon for ${node}",
     "s3compatinstitutions_node_deauthorized" : "${user} deauthorized the S3 Compatible Storage for Institutions addon for ${node}",
-    "s3compatinstitutions_node_deauthorized_no_user" : "S3 Compatible Storage for Institutions addon for ${node} deauthorized"
+    "s3compatinstitutions_node_deauthorized_no_user" : "S3 Compatible Storage for Institutions addon for ${node} deauthorized",
+    "s3compatinstitutions_file_downloaded": "${user} downloaded file ${path} from S3 Compatible Storage for Institutions in ${node}",
+    "s3compatinstitutions_folder_downloaded_zip": "${user} downloaded folder ${path} as a zip from S3 Compatible Storage for Institutions in ${node}"
 }
