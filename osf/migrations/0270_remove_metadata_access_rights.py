@@ -22,9 +22,10 @@ def _transform_entry(entry):
     return False
 
 
-def remove_metadata_access_rights(*args):
+def remove_metadata_access_rights(apps, schema_editor):
     from addons.metadata.utils import FileMetadataMigrator
     migrator = FileMetadataMigrator(
+        apps,
         TARGET_SCHEMA_NAME,
         _transform_item,
         _transform_entry,
