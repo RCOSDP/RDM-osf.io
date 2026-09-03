@@ -106,10 +106,14 @@ class MetadataClient(object):
         return fileinfo.attributes[key]
 
 
-def get_timestamp(node_settings, path):
+def get_timestamp(node_settings, path, provider_name=SHORT_NAME):
     DEBUG(u'get_timestamp: path={}'.format(path))
-    provider = node_settings.provider
-    external_account = provider.account
+    if provider_name == 'nextcloud':
+        external_account = node_settings.external_account
+    else:
+        # This case for nextcloudinstitutions
+        provider = node_settings.provider
+        external_account = provider.account
     url, username = external_account.provider_id.rsplit(':', 1)
     password = external_account.oauth_key
     attributes = [
@@ -139,11 +143,15 @@ def get_timestamp(node_settings, path):
     return (None, None, None)
 
 
-def set_timestamp(node_settings, path, timestamp_data, timestamp_status, context=None):
+def set_timestamp(node_settings, path, timestamp_data, timestamp_status, context=None, provider_name=SHORT_NAME):
     DEBUG(u'set_timestamp: path={}'.format(path))
     if context is None:
-        provider = node_settings.provider
-        external_account = provider.account
+        if provider_name == 'nextcloud':
+            external_account = node_settings.external_account
+        else:
+            # This case for nextcloudinstitutions
+            provider = node_settings.provider
+            external_account = provider.account
         url, username = external_account.provider_id.rsplit(':', 1)
         password = external_account.oauth_key
     else:
@@ -153,7 +161,7 @@ def set_timestamp(node_settings, path, timestamp_data, timestamp_status, context
     encoded_timestamp = base64.b64encode(timestamp_data)
     # DEBUG(u'set timestamp: {}'.format(encoded_timestamp))
     attributes = {
-        settings.PROPERTY_KEY_TIMESTAMP: encoded_timestamp,
+        settings.PROPERTY_KEY_TIMESTAMP: encoded_timestamp.decode('utf-8'),
         settings.PROPERTY_KEY_TIMESTAMP_STATUS: str(timestamp_status)
     }
     cli = MetadataClient(url, username, password)

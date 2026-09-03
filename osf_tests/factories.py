@@ -1254,6 +1254,7 @@ class ContentTypeFactory(DjangoModelFactory):
 class OsfStorageFileFactory(DjangoModelFactory):
     class Meta:
         model = OsfStorageFile
+
     id = 1
     provider = 'osfstorage'
     target_content_type = factory.SubFactory(ContentTypeFactory)
