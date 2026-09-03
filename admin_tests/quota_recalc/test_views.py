@@ -16,9 +16,11 @@ class TestQuotaRecalcView(AdminTestCase):
     def get_request(view, **kwargs):
         return view(RequestFactory().get('/fake_path'), **kwargs)
 
+    @mock.patch('admin.quota_recalc.views.get_default_max_quota')
     @mock.patch('admin.quota_recalc.views.used_quota')
-    def test_user_create_userquota_record(self, mock_usedquota):
+    def test_user_create_userquota_record(self, mock_usedquota, mock_get_default_max_quota):
         mock_usedquota.return_value = 1500
+        mock_get_default_max_quota.return_value = api_settings.DEFAULT_MAX_QUOTA
 
         user = AuthUserFactory()
         UserQuota.objects.filter(user=user).delete()
@@ -31,9 +33,11 @@ class TestQuotaRecalcView(AdminTestCase):
         nt.assert_equal(user_quota.max_quota, api_settings.DEFAULT_MAX_QUOTA)
         nt.assert_equal(user_quota.used, 1500)
 
+    @mock.patch('admin.quota_recalc.views.get_default_max_quota')
     @mock.patch('admin.quota_recalc.views.used_quota')
-    def test_user_update_userquota_record(self, mock_usedquota):
+    def test_user_update_userquota_record(self, mock_usedquota, mock_get_default_max_quota):
         mock_usedquota.return_value = 7000
+        mock_get_default_max_quota.return_value = 200
 
         user = AuthUserFactory()
         UserQuota.objects.create(
@@ -51,9 +55,11 @@ class TestQuotaRecalcView(AdminTestCase):
         nt.assert_equal(user_quota.max_quota, 200)
         nt.assert_equal(user_quota.used, 7000)
 
+    @mock.patch('admin.quota_recalc.views.get_default_max_quota')
     @mock.patch('admin.quota_recalc.views.used_quota')
-    def test_user_invalid_guid(self, mock_usedquota):
+    def test_user_invalid_guid(self, mock_usedquota, mock_get_default_max_quota):
         mock_usedquota.return_value = 3000
+        mock_get_default_max_quota.return_value = api_settings.DEFAULT_MAX_QUOTA
 
         response = self.get_request(views.user, guid='cuzidontcare')
         res_json = json.loads(response.content)
@@ -61,9 +67,11 @@ class TestQuotaRecalcView(AdminTestCase):
         nt.assert_equal(res_json['status'], 'failed')
         nt.assert_equal(res_json['message'], 'User not found.')
 
+    @mock.patch('admin.quota_recalc.views.get_default_max_quota')
     @mock.patch('admin.quota_recalc.views.used_quota')
-    def test_users_create_userquota_record(self, mock_usedquota):
+    def test_users_create_userquota_record(self, mock_usedquota, mock_get_default_max_quota):
         mock_usedquota.return_value = 1500
+        mock_get_default_max_quota.return_value = api_settings.DEFAULT_MAX_QUOTA
         user = AuthUserFactory()
         user2 = AuthUserFactory()
         UserQuota.objects.filter(user=user).delete()
@@ -94,19 +102,24 @@ class TestCalculateQuota(AdminTestCase):
         super(TestCalculateQuota, self).setUp()
         self.user = AuthUserFactory()
 
+    @mock.patch('admin.quota_recalc.views.get_default_max_quota')
     @mock.patch('admin.quota_recalc.views.used_quota')
-    def test_user_without_institution(self, mock_usedquota):
+    def test_user_without_institution(self, mock_usedquota, mock_get_default_max_quota):
         mock_usedquota.return_value = 5000
+        mock_get_default_max_quota.return_value = 1000
 
         views.calculate_quota(self.user)
 
         user_quota = UserQuota.objects.filter(user=self.user).all()
         nt.assert_equal(len(user_quota), 1)
         nt.assert_equal(user_quota[0].used, 5000)
+        nt.assert_equal(user_quota[0].max_quota, 1000)
 
+    @mock.patch('admin.quota_recalc.views.get_default_max_quota')
     @mock.patch('admin.quota_recalc.views.used_quota')
-    def test_user_institution_without_custom_storage(self, mock_usedquota):
+    def test_user_institution_without_custom_storage(self, mock_usedquota, mock_get_default_max_quota):
         mock_usedquota.return_value = 6000
+        mock_get_default_max_quota.return_value = 2000
 
         institution = InstitutionFactory()
         self.user.affiliated_institutions.add(institution)
@@ -116,12 +129,17 @@ class TestCalculateQuota(AdminTestCase):
         user_quota = UserQuota.objects.filter(user=self.user).all()
         nt.assert_equal(len(user_quota), 1)
         nt.assert_equal(user_quota[0].used, 6000)
+        nt.assert_equal(user_quota[0].max_quota, 2000)
 
+    @mock.patch('admin.quota_recalc.views.get_default_max_quota')
     @mock.patch('admin.quota_recalc.views.used_quota')
-    def test_user_institution_with_custom_storage(self, mock_usedquota):
+    def test_user_institution_with_custom_storage(self, mock_usedquota, mock_get_default_max_quota):
+
         mock_usedquota.side_effect = \
             lambda uid, storage_type: 300 if storage_type == UserQuota.NII_STORAGE else 7000
 
+        mock_get_default_max_quota.side_effect = \
+            lambda _, storage_type: 1000 if storage_type == UserQuota.NII_STORAGE else 2000
         institution = InstitutionFactory()
         self.user.affiliated_institutions.add(institution)
         RegionFactory(_id=institution._id)
@@ -136,5 +154,11 @@ class TestCalculateQuota(AdminTestCase):
             UserQuota.CUSTOM_STORAGE: 7000,
         }
 
-        nt.assert_equal(user_quota[0].used, expected[user_quota[0].storage_type])
-        nt.assert_equal(user_quota[1].used, expected[user_quota[1].storage_type])
+        expected_max = {
+            UserQuota.NII_STORAGE: 1000,
+            UserQuota.CUSTOM_STORAGE: 2000,
+        }
+
+        for uq in user_quota:
+            nt.assert_equal(uq.used, expected[uq.storage_type])
+            nt.assert_equal(uq.max_quota, expected_max[uq.storage_type])

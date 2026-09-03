@@ -13,6 +13,7 @@ from osf.models import (
     ProjectStorageType
 )
 from django.utils import timezone
+from osf.models.institution_default_max_quota import InstitutionDefaultMaxQuota
 from osf.utils.requests import check_select_for_update
 
 
@@ -72,6 +73,7 @@ def update_user_used_quota(user, storage_type=UserQuota.NII_STORAGE, is_recalcul
         # Get total file size of projects with specified storage_type
         used = used_quota(user._id, storage_type)
 
+    max_quota = get_default_max_quota(user, storage_type)
     try:
         if check_select_for_update():
             user_quota = UserQuota.objects.filter(
@@ -91,10 +93,11 @@ def update_user_used_quota(user, storage_type=UserQuota.NII_STORAGE, is_recalcul
                 UserQuota.objects.create(
                     user=user,
                     storage_type=storage_type,
-                    max_quota=api_settings.DEFAULT_MAX_QUOTA,
+                    max_quota=max_quota,
                     used=used,
                 )
-        except IntegrityError:
+        except IntegrityError as e:
+            logger.warning(u'IntegrityError while creating UserQuota: user={}, storage_type={}: {}'.format(user.id, storage_type, str(e)))
             if is_recalculating_quota and storage_type == UserQuota.CUSTOM_STORAGE:
                 used_quota_for_nii_default_storage = used_quota(user._id, UserQuota.NII_STORAGE)
                 used_quota_for_nii_custom_storage = used_quota(user._id, UserQuota.CUSTOM_STORAGE)
@@ -128,11 +131,12 @@ def abbreviate_size(size):
     return (size, abbr_dict[power])
 
 def get_quota_info(user, storage_type=UserQuota.NII_STORAGE):
+    max_quota = get_default_max_quota(user, storage_type)
     try:
         user_quota = user.userquota_set.get(storage_type=storage_type)
         return (user_quota.max_quota, user_quota.used)
     except UserQuota.DoesNotExist:
-        return (api_settings.DEFAULT_MAX_QUOTA, used_quota(user._id, storage_type))
+        return (max_quota, used_quota(user._id, storage_type))
 
 def get_project_storage_type(node):
     try:
@@ -214,7 +218,7 @@ def update_used_quota(self, target, user, event_type, payload):
             else:
                 node_removed(target, user, payload, file_node, storage_type)
         elif event_type == FileLog.FILE_UPDATED:
-            file_modified(target, user, payload, file_node, storage_type)
+            file_modified(target, payload, file_node, storage_type)
     else:
         return
 
@@ -223,6 +227,7 @@ def file_added(target, payload, file_node, storage_type):
     file_size = int(payload['metadata']['size'])
     if file_size < 0:
         return
+    max_quota = get_default_max_quota(target.creator, storage_type)
     try:
         if check_select_for_update():
             user_quota = UserQuota.objects.filter(
@@ -242,10 +247,11 @@ def file_added(target, payload, file_node, storage_type):
                 UserQuota.objects.create(
                     user=target.creator,
                     storage_type=storage_type,
-                    max_quota=api_settings.DEFAULT_MAX_QUOTA,
+                    max_quota=max_quota,
                     used=file_size
                 )
-        except IntegrityError:
+        except IntegrityError as e:
+            logger.warning(u'IntegrityError while creating UserQuota in file_added: user={}, storage_type={}: {}'.format(target.creator.id, storage_type, str(e)))
             if check_select_for_update():
                 user_quota = UserQuota.objects.filter(
                     user=target.creator,
@@ -294,26 +300,27 @@ def node_removed(target, user, payload, file_node, storage_type):
             file_info.save()
         user_quota.save()
 
-def file_modified(target, user, payload, file_node, storage_type):
+def file_modified(target, payload, file_node, storage_type):
     file_size = int(payload['metadata']['size'])
     if file_size < 0:
         return
-
+    max_quota = get_default_max_quota(target.creator, storage_type)
     try:
         with transaction.atomic():
             if check_select_for_update():
                 user_quota, _ = UserQuota.objects.select_for_update().get_or_create(
                     user=target.creator,
                     storage_type=storage_type,
-                    defaults={'max_quota': api_settings.DEFAULT_MAX_QUOTA}
+                    defaults={'max_quota': max_quota}
                 )
             else:
                 user_quota, _ = UserQuota.objects.get_or_create(
                     user=target.creator,
                     storage_type=storage_type,
-                    defaults={'max_quota': api_settings.DEFAULT_MAX_QUOTA}
+                    defaults={'max_quota': max_quota}
                 )
-    except IntegrityError:
+    except IntegrityError as e:
+        logger.warning(u'IntegrityError while creating UserQuota in file_modified: user={}, storage_type={}: {}'.format(target.creator.id, storage_type, str(e)))
         if check_select_for_update():
             user_quota = UserQuota.objects.filter(user=target.creator, storage_type=storage_type).select_for_update().get()
         else:
@@ -390,3 +397,31 @@ def get_node_file_list(file_node):
                 file_list.append(child_file_node)
 
     return file_list
+
+def get_default_max_quota(user, storage_type):
+    """
+    Get default max quota for a user based on their affiliated institution.
+
+    If the storage type is CUSTOM_STORAGE, retrieve the default quota
+    configured for the user's affiliated institution. Otherwise, or if no
+    institution-specific quota is configured, return the system default quota.
+    When the institution's region uses NII_STORAGE, always return the system default quota.
+
+    Args:
+        user (OSFUser): The user whose default quota is to be retrieved.
+        storage_type (str): The storage type associated with the user's quota.
+
+    Returns:
+        int: The default maximum quota (in GB) applicable to the user.
+    """
+    if storage_type == UserQuota.CUSTOM_STORAGE:
+        institution = user.representative_affiliated_institution
+        if institution and not Region.objects.filter(
+            _id=institution._id,
+            waterbutler_settings__storage__type=Region.NII_STORAGE
+        ).exists():
+            default_max_quota = InstitutionDefaultMaxQuota.get_quota_by_user(user.id)
+            if default_max_quota is not None:
+                return default_max_quota
+
+    return api_settings.DEFAULT_MAX_QUOTA
