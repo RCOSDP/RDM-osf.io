@@ -540,9 +540,9 @@ class TestSaveUsedQuota(OsfTestCase):
             user=self.user,
             event_type=FileLog.FILE_ADDED,
             payload={
-                'provider': 'osfstorage',
+                'provider': 's3compatinstitutions',
                 'metadata': {
-                    'provider': 'osfstorage',
+                    'provider': 's3compatinstitutions',
                     'name': 'testfile',
                     'materialized': '/filename',
                     'path': self.file._id,
@@ -588,6 +588,51 @@ class TestSaveUsedQuota(OsfTestCase):
             }
         )
 
+        user_quota = UserQuota.objects.get(
+            storage_type=UserQuota.NII_STORAGE,
+            user=self.project_creator
+        )
+        assert_equal(user_quota.used, 4500)
+
+    @mock.patch('website.util.quota.check_select_for_update')
+    def test_delete_file_without_select_for_update(self, mock_check_select_for_update):
+        # Forces node_removed() into the `else` branch (FileInfo.objects.get
+        # without select_for_update), instead of relying on whether the test
+        # happens to run inside an atomic transaction.
+        mock_check_select_for_update.return_value = False
+
+        UserQuota.objects.create(
+            user=self.project_creator,
+            storage_type=UserQuota.NII_STORAGE,
+            max_quota=api_settings.DEFAULT_MAX_QUOTA,
+            used=5500
+        )
+        FileInfo.objects.create(file=self.file, file_size=1000)
+
+        self.file.deleted_on = datetime.datetime.now()
+        self.file.deleted_by = self.user
+        self.file.type = 'osf.trashedfile'
+        self.file.save()
+
+        quota.update_used_quota(
+            self=None,
+            target=self.node,
+            user=self.user,
+            event_type=FileLog.FILE_REMOVED,
+            payload={
+                'provider': 'osfstorage',
+                'metadata': {
+                    'provider': 'osfstorage',
+                    'name': 'testfile',
+                    'materialized': '/filename',
+                    'path': self.file._id,
+                    'kind': 'file',
+                    'extra': {}
+                }
+            }
+        )
+
+        mock_check_select_for_update.assert_called()
         user_quota = UserQuota.objects.get(
             storage_type=UserQuota.NII_STORAGE,
             user=self.project_creator
@@ -982,9 +1027,9 @@ class TestSaveUsedQuota(OsfTestCase):
             user=self.user,
             event_type=FileLog.FILE_UPDATED,
             payload={
-                'provider': 'osfstorage',
+                'provider': 's3compatinstitutions',
                 'metadata': {
-                    'provider': 'osfstorage',
+                    'provider': 's3compatinstitutions',
                     'name': 'testfile',
                     'materialized': '/filename',
                     'path': self.file._id,
