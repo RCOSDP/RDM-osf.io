@@ -674,6 +674,12 @@ function getReplacedSize(to, from, conflict) {
     }, 0);
 }
 
+// max_file_size skip narrows by provider only (browser can't know region/node);
+// server gives the authoritative 413 if it turns out not to qualify.
+function shouldSkipSizeCheck(operation, fromProvider, destProvider) {
+    return operation.status === 'move' && fromProvider === destProvider;
+}
+
 function isSameUserQuota(srcQuota, destQuota) {
     return !!(srcQuota && destQuota &&
         srcQuota.user_guid !== undefined && srcQuota.user_guid !== null &&
@@ -681,11 +687,8 @@ function isSameUserQuota(srcQuota, destQuota) {
         srcQuota.storage_type === destQuota.storage_type);
 }
 
-function quotaCheckExceeds(operation, srcQuota, destQuota, totalSize, replacedSize) {
+function quotaCheckExceeds(destQuota, totalSize, replacedSize) {
     replacedSize = replacedSize || 0;
-    if (operation === 'move' && isSameUserQuota(srcQuota, destQuota)) {
-        return false;
-    }
     return (destQuota.used + totalSize - replacedSize) > destQuota.max;
 }
 
@@ -748,14 +751,31 @@ function doItemOp(operation, to, from, rename, conflict) {
             });
         }
 
-        // max_file_size skip narrows by provider only (browser can't know region/node);
-        // server gives the authoritative 413 if it turns out not to qualify.
-        var skipSizeCheck = (operation.status === 'move' &&
-            from.data.provider === destProvider);
+        var skipSizeCheck = shouldSkipSizeCheck(operation, from.data.provider, destProvider);
 
-        // The quota context is still resolved here, before the size check runs below:
-        // WaterButler always issues this same request first when the destination is
-        // osfstorage, regardless of whether either check ends up running.
+        if (!skipSizeCheck) {
+            var destMaxSize = to.data && to.data.accept && to.data.accept.maxSize;
+            if (destMaxSize) {
+                var maxSizeBytes = destMaxSize * 1000000;
+                var oversizedFiles = _findOversizedFiles(from, maxSizeBytes);
+                if (oversizedFiles.length > 0) {
+                    var maxSizeDisplay = $osf.humanFileSize(maxSizeBytes, true);
+                    oversizedFiles.forEach(function(oversized) {
+                        var displaySize = $osf.humanFileSize(oversized.data.size, true);
+                        $osf.growl(sprintf(
+                            gettext('File「%1$s」is too large (%2$s). Max file size is %3$s.'),
+                            oversized.data.name, displaySize, maxSizeDisplay
+                        ));
+                    });
+                    _rejectConflictItem(tb, from, to, notRenameOp, conflict);
+                    return;
+                }
+            }
+        }
+
+        // Quota context is resolved only after the size check above has run, mirroring
+        // the server's run_pre_checks order: an oversized file is rejected with 413
+        // before creator_quota is ever fetched.
         var destQuota = null;
         var srcQuota = null;
         var skipQuotaCheck = false;
@@ -784,31 +804,14 @@ function doItemOp(operation, to, from, rename, conflict) {
                 skipQuotaCheck = (operation.status === 'move' &&
                     isSameUserQuota(srcQuota, destQuota));
             }
-            // A failed request leaves the quota check in place: the server re-runs it
-            // anyway, so keeping it is the cautious side to fall on.
-        }
-
-        if (!skipSizeCheck) {
-            var destMaxSize = to.data && to.data.accept && to.data.accept.maxSize;
-            if (destMaxSize) {
-                var maxSizeBytes = destMaxSize * 1000000;
-                var oversizedFiles = _findOversizedFiles(from, maxSizeBytes);
-                if (oversizedFiles.length > 0) {
-                    var maxSizeDisplay = $osf.humanFileSize(maxSizeBytes, true);
-                    oversizedFiles.forEach(function(oversized) {
-                        var displaySize = $osf.humanFileSize(oversized.data.size, true);
-                        $osf.growl(sprintf(
-                            gettext('File「%1$s」is too large (%2$s). Max file size is %3$s.'),
-                            oversized.data.name, displaySize, maxSizeDisplay
-                        ));
-                    });
-                    _rejectConflictItem(tb, from, to, notRenameOp, conflict);
-                    return;
-                }
-            }
+            // A failed request leaves destQuota null: the browser evaluates nothing here —
+            // neither the quota check nor the threshold warning runs below — and defers
+            // entirely to the server-side check.
         }
 
         // destQuota is only set for an osfstorage destination with something to weigh.
+        // skipQuotaCheck is the single source of truth for same-UserQuota-record moves:
+        // by this point that case is already excluded, so nothing below needs to re-check it.
         if (destQuota && !skipQuotaCheck) {
             var replacedSize = getReplacedSize(to, from, conflict);
             var quotaMsgText = '';
@@ -816,7 +819,7 @@ function doItemOp(operation, to, from, rename, conflict) {
             // replacedSize === null: destination folder not yet loaded, so its size
             // is unknown — skip only this blocking check and let the move/copy proceed;
             // the server-side check is authoritative.
-            if (replacedSize !== null && quotaCheckExceeds(operation.status, srcQuota, destQuota, totalMoveSize, replacedSize)) {
+            if (replacedSize !== null && quotaCheckExceeds(destQuota, totalMoveSize, replacedSize)) {
                 if (from.kind === 'file') {
                     quotaMsgText = sprintf(gettext('Not enough quota to move/copy the file.'));
                 } else {
@@ -827,12 +830,8 @@ function doItemOp(operation, to, from, rename, conflict) {
                 _rejectConflictItem(tb, from, to, notRenameOp, conflict);
                 return;
             }
-            // Same-pool move: own bytes already counted, only the replaced bytes free up.
             // Unknown replacedSize is treated as 0 (worst case) so the alert can still fire.
-            // The same-record arm is unreachable while the skip above is in force; it stays so
-            // that the delta remains correct on its own terms.
-            var quotaDelta = (operation.status === 'move' && isSameUserQuota(srcQuota, destQuota)) ?
-                -(replacedSize || 0) : (totalMoveSize - (replacedSize || 0));
+            var quotaDelta = totalMoveSize - (replacedSize || 0);
             // Shown only after a confirmed success below. The alert announces *crossing*
             // the threshold, so an operation that adds no usage must stay silent.
             showQuotaUsageAlert = (quotaDelta > 0 &&
@@ -4411,5 +4410,8 @@ module.exports = {
     getPersistentLinkFor: getPersistentLinkFor,
     quotaCheckExceeds: quotaCheckExceeds,
     getReplacedSize: getReplacedSize,
-    isSameUserQuota: isSameUserQuota
+    isSameUserQuota: isSameUserQuota,
+    shouldSkipSizeCheck: shouldSkipSizeCheck,
+    doItemOp: doItemOp,
+    OPERATIONS: OPERATIONS
 };
