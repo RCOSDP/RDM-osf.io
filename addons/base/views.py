@@ -449,6 +449,19 @@ def get_auth(auth, **kwargs):
         'callback_url': '',
     }
 
+    # GakuNin RDM: ファイルの実体転送は WaterButler を経由するため、
+    # アクセスログの操作者識別フィールドを認可レスポンスに同梱し、
+    # WB 側で同じ 3 フィールドを出力させる。
+    # WB は payload の 'auth' / 'credentials' / 'settings' / 'callback_url'
+    # のみを参照するので、キーの追加は非破壊。
+    try:
+        from osf.utils import rdm_access_log
+        payload_data['rdm_log'] = rdm_access_log.fields_for_waterbutler(
+            auth.user, cas_resp, cookie, request.args.get('view_only'),
+        )
+    except Exception:
+        pass
+
     if callback_log and is_node_process:
         payload_data['callback_url'] = node.api_url_for(
             ('create_waterbutler_log' if not getattr(node, 'is_registration', False) else 'registration_callbacks'),

@@ -182,4 +182,16 @@ def before_request():
 def after_request(response):
     # Disallow embedding in frames
     response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+
+    # GakuNin RDM: アクセスログへ操作者識別フィールドを追記する。
+    # NOTE: `session` プロキシは get_session() 経由でセッションを新規作成
+    #       してしまうため使わず、sessions マップを直接引く。
+    try:
+        from osf.utils import rdm_access_log
+        user_session = sessions.get(request._get_current_object())
+        auth, user, cred = rdm_access_log.fields_for_flask(request, user_session)
+        rdm_access_log.emit(auth, user=user, cred=cred)
+    except Exception:
+        pass
+
     return response

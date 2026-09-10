@@ -249,6 +249,10 @@ MIDDLEWARE = (
     'django.middleware.security.SecurityMiddleware',
     # 'waffle.middleware.WaffleMiddleware',
     'api.base.middleware.SloanOverrideWaffleMiddleware',  # Delete this and uncomment WaffleMiddleware to revert Sloan
+    # GakuNin RDM: アクセスログへ操作者識別フィールドを追記する。
+    # process_response は登録順の逆順で実行されるため、認証結果が
+    # 確定した状態で読めるよう最後に置く。
+    'api.base.middleware.RdmAccessLogMiddleware',
 )
 
 TEMPLATES = [

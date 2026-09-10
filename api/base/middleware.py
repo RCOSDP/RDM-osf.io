@@ -410,3 +410,25 @@ class SloanOverrideWaffleMiddleware(WaffleMiddleware):
         # Browsers won't allow use to use these cookie attributes unless you're sending the data over https.
         resp.cookies[name]['secure'] = True
         resp.cookies[name]['samesite'] = 'None'
+
+
+class RdmAccessLogMiddleware(MiddlewareMixin):
+    """GakuNin RDM: API アクセスログへ操作者識別フィールドを追記する。
+
+    rest_framework 3.8.2 の Request.user / Request.auth setter は
+    self._request (django の HttpRequest) にも値を伝搬させるため、
+    ミドルウェアの process_response から参照できる。
+    api/base/settings/defaults.py では django の AuthenticationMiddleware
+    が無効化されているので、request.user は DRF が設定したものだけである。
+
+    JSONAPIBaseView を継承しないビューも含め全リクエストを対象とする。
+    """
+
+    def process_response(self, request, response):
+        try:
+            from osf.utils import rdm_access_log
+            auth, user, cred = rdm_access_log.fields_for_drf(request)
+            rdm_access_log.emit(auth, user=user, cred=cred)
+        except Exception:
+            pass
+        return response
