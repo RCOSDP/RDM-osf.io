@@ -16,6 +16,7 @@ from admin_tests.rdm_statistics import factories as rdm_statistics_factories
 from osf.models.user import Institution
 
 from admin.rdm_statistics import views
+from framework.auth import cron_signed_url
 from mock import patch
 
 import datetime
@@ -181,7 +182,6 @@ class TestclassStatisticsView(AdminTestCase):
         nt.assert_true('current_date' in ctx)
         nt.assert_true('user' in ctx)
         nt.assert_true('provider_data_array' in ctx)
-        nt.assert_true('token' in ctx)
 
 class TestImageView(AdminTestCase):
     """test ImageView"""
@@ -352,9 +352,6 @@ class TestCreateCSV(AdminTestCase):
         self.user.delete()
         self.institution1.delete()
 
-def test_simple_auth():
-    access_key_hexa = '2a85563b2b0f7d3168199f475365f57da1d56e4bb2ce2b7044eb058ae5e287637e7c636a772682d92c8d6b1830b9a97c5a5dc3de7016c60bde4baa7cc3b38aeb'
-    nt.assert_true(views.simple_auth(access_key_hexa))
 
 def test_get_start_date():
     end_date = datetime.datetime.now()
@@ -410,7 +407,8 @@ class TestGatherView(AdminTestCase):
         self.request = RequestFactory().get('/fake_path')
         self.view = views.GatherView()
         self.view = setup_user_view(self.view, self.request, user=self.user)
-        self.view.kwargs = {'institution_id': self.institution1.id, 'access_token': '2A85563B2B0F7D3168199F475365F57DA1D56E4BB2CE2B7044EB058AE5E287637E7C636A772682D92C8D6B1830B9A97C5A5DC3DE7016C60BDE4BAA7CC3B38AEB'.lower()}
+        ts, signature = cron_signed_url.generate_signed_params()
+        self.view.kwargs = {'institution_id': self.institution1.id, 'ts': ts, 'signature': signature}
 
     def tearDown(self):
         super(TestGatherView, self).tearDown()
@@ -427,6 +425,11 @@ class TestGatherView(AdminTestCase):
         resp = json.loads(self.view.get(self, self.request, self.view.args, self.view.kwargs).content)
         # metadata addon is now enabled by default, so we have 3 providers
         nt.assert_equal(len(resp), 3)
+
+    def test_get_forbidden_with_invalid_signature(self):
+        self.view.kwargs = {'institution_id': self.institution1.id, 'ts': self.view.kwargs['ts'], 'signature': 'deadbeef'}
+        resp = json.loads(self.view.get(self, self.request, self.view.args, self.view.kwargs).content)
+        nt.assert_equal(resp['state'], 'fail')
 
     def test_send_stat_mail(self, *args, **kwargs):
         nt.assert_equal(views.send_stat_mail_core(self.request).status_code, 200)

@@ -12,7 +12,6 @@ from urllib.parse import quote
 import csv
 import pandas as pd
 import numpy as np
-import hashlib
 
 from django.apps import apps
 from django.views.generic import TemplateView, View
@@ -44,6 +43,7 @@ from admin.base import settings
 from admin.base.utils import superuser_required
 from admin.rdm.utils import RdmPermissionMixin, get_dummy_institution
 from admin.rdm_addons import utils
+from framework.auth import cron_signed_url
 import logging
 logger = logging.getLogger(__name__)
 
@@ -52,7 +52,6 @@ STATISTICS_IMAGE_WIDTH = 8
 STATISTICS_IMAGE_HEIGHT = 4
 RECURSIVE_LIMIT = 10000
 WB_MAX_RETRY = 3
-SITE_KEY = 'rdm_statistics'
 
 class InstitutionListViewStat(RdmPermissionMixin, UserPassesTestMixin, TemplateView):
     """institlutions list view for statistics"""
@@ -114,8 +113,6 @@ class StatisticsView(RdmPermissionMixin, UserPassesTestMixin, TemplateView):
         ctx['current_date'] = current_date
         ctx['user'] = user
         ctx['provider_data_array'] = provider_data_array
-        digest = hashlib.sha512(SITE_KEY.encode('utf-8')).hexdigest()
-        ctx['token'] = digest.upper()
         return ctx
 
 
@@ -448,9 +445,10 @@ class GatherView(TemplateView):
     raise_exception = True
 
     def get(self, request, *args, **kwargs):
-        # simple authentication
-        access_token = self.kwargs.get('access_token')
-        if not simple_auth(access_token):
+        # signed-URL authentication
+        ts = self.kwargs.get('ts')
+        signature = self.kwargs.get('signature')
+        if not cron_signed_url.verify_signed_params(ts, signature):
             response_hash = {'state': 'fail', 'error': 'access forbidden'}
             response_json = json.dumps(response_hash)
             response = HttpResponse(response_json, content_type='application/json')
@@ -590,12 +588,6 @@ class GatherView(TemplateView):
                         pass
                     self.count_project_files(provider=provider, node_id=node_id, path='/' + path, cookies=cookies)
 
-def simple_auth(access_token):
-    digest = hashlib.sha512(SITE_KEY.encode('utf-8')).hexdigest()
-    if digest == access_token.lower():
-        return True
-    else:
-        return False
 
 def send_stat_mail_core(request, **kwargs):
     """Send statistics information email.

@@ -8,7 +8,7 @@ urlpatterns = [
     url(r'^index$', views.IndexView.as_view(), name='index'),
     url(r'^(?P<institution_id>-?[0-9]+)/graph/(?P<graph_type>\w+)_(?P<provider>\w+)\.(\w+)$',
         views.ImageView.as_view(), name='graph'),
-    url(r'^gather/(?P<access_token>-?\w+)/$', views.GatherView.as_view(), name='gather'),
+    url(r'^gather/(?P<ts>\d+)/(?P<signature>[0-9a-fA-F]+)/$', views.GatherView.as_view(), name='gather'),
     url(r'^report/(?P<institution_id>-?[0-9]+)/$', views.create_pdf, name='report'),
     url(r'^csv/(?P<institution_id>-?[0-9]+)/$', views.create_csv, name='csv'),
     url(r'^mail/(?P<institution_id>-?[0-9]+)/$', views.SendView.as_view(), name='mail'),
