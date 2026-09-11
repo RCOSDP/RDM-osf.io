@@ -3,7 +3,7 @@ from . import views
 
 
 urlpatterns = [
-    url(r'^external_acc_update/(?P<access_token>-?\w+)/$', views.external_acc_update, name='external_acc_update'),
+    url(r'^external_acc_update/(?P<ts>\d+)/(?P<signature>[0-9a-fA-F]+)/$', views.external_acc_update, name='external_acc_update'),
     url(r'^institutional_storage/$', views.InstitutionalStorageView.as_view(), name='institutional_storage'),
     url(r'^institutional_storage/institutions/$', views.InstitutionalStorageListView.as_view(), name='institutional_storage_institutions'),
     url(r'^institutional_storage/institutions/(?P<institution_id>[0-9]+)/$', views.InstitutionalStorageView.as_view(), name='institutional_storage_list'),
