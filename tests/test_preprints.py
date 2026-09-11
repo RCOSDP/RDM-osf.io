@@ -28,6 +28,8 @@ from framework.exceptions import PermissionsError, HTTPError
 from framework.auth.core import Auth
 from addons.osfstorage.models import OsfStorageFile
 from addons.base import views
+from waffle.testutils import override_switch
+from osf import features
 from osf.models import Tag, Preprint, PreprintLog, PreprintContributor, Subject, Session
 from osf.exceptions import PreprintStateError, ValidationError, ValidationValueError
 
@@ -2313,8 +2315,9 @@ class TestPreprintOsfStorage(OsfTestCase):
         return self.preprint.api_url_for('get_auth', **options)
 
     def test_auth_download(self):
-        url = self.build_url(cookie=self.cookie)
-        res = self.app.get(url, auth=Auth(user=self.user))
+        with override_switch(features.ENABLE_DOWNLOAD_HISTORY_LOG, active=True):
+            url = self.build_url(cookie=self.cookie)
+            res = self.app.get(url, auth=Auth(user=self.user))
         data = jwt.decode(jwe.decrypt(res.json['payload'].encode('utf-8'), self.JWE_KEY), settings.WATERBUTLER_JWT_SECRET, algorithm=settings.WATERBUTLER_JWT_ALGORITHM)['data']
         assert_equal(data['credentials'], self.preprint.serialize_waterbutler_credentials())
         assert_equal(data['settings'], self.preprint.serialize_waterbutler_settings())
@@ -2539,12 +2542,13 @@ class TestPreprintOsfStorageLogs(OsfTestCase):
                 action=action,
             )
             nlogs = self.preprint.logs.count()
-            res = self.app.put_json(
-                url,
-                payload,
-                headers={'Content-Type': 'application/json'},
-                expect_errors=False,
-            )
+            with override_switch(features.ENABLE_DOWNLOAD_HISTORY_LOG, active=True):
+                res = self.app.put_json(
+                    url,
+                    payload,
+                    headers={'Content-Type': 'application/json'},
+                    expect_errors=False,
+                )
             assert_equal(res.status_code, 200)
 
             self.preprint.reload()

@@ -45,6 +45,8 @@ from osf.models import (
 from osf.models import files as file_models
 from osf.models.files import BaseFileNode, TrashedFileNode
 from osf.utils.permissions import WRITE, READ
+from waffle.testutils import override_switch
+from osf import features
 from website.project import new_private_link
 from website.project.views.node import _view_project as serialize_node
 from website.project.views.node import serialize_addons, collect_node_config_js
@@ -108,8 +110,9 @@ class TestAddonAuth(OsfTestCase):
         return api_url_for('get_auth', **options)
 
     def test_auth_download(self):
-        url = self.build_url()
-        res = self.app.get(url, auth=self.user.auth)
+        with override_switch(features.ENABLE_DOWNLOAD_HISTORY_LOG, active=True):
+            url = self.build_url()
+            res = self.app.get(url, auth=self.user.auth)
         data = jwt.decode(jwe.decrypt(res.json['payload'].encode('utf-8'), self.JWE_KEY), settings.WATERBUTLER_JWT_SECRET, algorithm=settings.WATERBUTLER_JWT_ALGORITHM)['data']
         assert_equal(data['auth'], views.make_auth(self.user))
         assert_equal(data['credentials'], self.node_addon.serialize_waterbutler_credentials())
@@ -147,8 +150,9 @@ class TestAddonAuth(OsfTestCase):
         assert_equal(res.status_code, 401)
 
     def test_auth_bad_cookie(self):
-        url = self.build_url(cookie=self.cookie)
-        res = self.app.get(url, expect_errors=True)
+        with override_switch(features.ENABLE_DOWNLOAD_HISTORY_LOG, active=True):
+            url = self.build_url(cookie=self.cookie)
+            res = self.app.get(url, expect_errors=True)
         assert_equal(res.status_code, 200)
         data = jwt.decode(jwe.decrypt(res.json['payload'].encode('utf-8'), self.JWE_KEY), settings.WATERBUTLER_JWT_SECRET, algorithm=settings.WATERBUTLER_JWT_ALGORITHM)['data']
         assert_equal(data['auth'], views.make_auth(self.user))
@@ -311,32 +315,54 @@ class TestDownloadMfrCallbackLog(TestAddonAuth):
     helper itself (pre-existing since 2018, never tested before this feature), and
     its new integration point inside get_auth() (addons/base/views.py)."""
 
+    def get_callback_url(self, res):
+        """Decode a get_auth response and return the callback_url waterbutler
+        would be told to call back to. Empty string means 'do not call back'."""
+        data = jwt.decode(
+            jwe.decrypt(res.json['payload'].encode('utf-8'), self.JWE_KEY),
+            settings.WATERBUTLER_JWT_SECRET,
+            algorithm=settings.WATERBUTLER_JWT_ALGORITHM
+        )['data']
+        return data['callback_url']
+
     def test_auth_download_from_mfr_suppresses_callback_url(self):
         """A download action whose metrics.uri carries mode=render (i.e. MFR
         fetching content for its own renderer) should get an empty callback_url,
         so waterbutler never calls back to create_waterbutler_log."""
-        url = self.build_url(metrics={'uri': settings.MFR_SERVER_URL + '?mode=render'})
-        res = self.app.get(url, auth=self.user.auth)
+        with override_switch(features.ENABLE_DOWNLOAD_HISTORY_LOG, active=True):
+            url = self.build_url(metrics={'uri': settings.MFR_SERVER_URL + '?mode=render'})
+            res = self.app.get(url, auth=self.user.auth)
         assert_equal(res.status_code, 200)
-        data = jwt.decode(
-            jwe.decrypt(res.json['payload'].encode('utf-8'), self.JWE_KEY),
-            settings.WATERBUTLER_JWT_SECRET,
-            algorithm=settings.WATERBUTLER_JWT_ALGORITHM
-        )['data']
-        assert_equal(data['callback_url'], '')
+        assert_equal(self.get_callback_url(res), '')
 
     def test_auth_download_not_from_mfr_keeps_callback_url(self):
-        """A regular (non-MFR) download keeps its real callback_url, same as
-        test_auth_download - this is the control case for the test above."""
-        url = self.build_url()
-        res = self.app.get(url, auth=self.user.auth)
+        """A regular (non-MFR) download keeps its real callback_url when the
+        download-history switch is on - this is the control case for the test
+        above."""
+        with override_switch(features.ENABLE_DOWNLOAD_HISTORY_LOG, active=True):
+            url = self.build_url()
+            res = self.app.get(url, auth=self.user.auth)
         assert_equal(res.status_code, 200)
-        data = jwt.decode(
-            jwe.decrypt(res.json['payload'].encode('utf-8'), self.JWE_KEY),
-            settings.WATERBUTLER_JWT_SECRET,
-            algorithm=settings.WATERBUTLER_JWT_ALGORITHM
-        )['data']
-        assert_not_equal(data['callback_url'], '')
+        assert_not_equal(self.get_callback_url(res), '')
+
+    def test_auth_download_switch_off_suppresses_callback_url(self):
+        """With the switch off (the production default) waterbutler is given an
+        empty callback_url, so it never sends the log callback at all and no
+        extra DB write is incurred."""
+        with override_switch(features.ENABLE_DOWNLOAD_HISTORY_LOG, active=False):
+            url = self.build_url()
+            res = self.app.get(url, auth=self.user.auth)
+        assert_equal(res.status_code, 200)
+        assert_equal(self.get_callback_url(res), '')
+
+    def test_auth_upload_switch_off_keeps_callback_url(self):
+        """The switch must only gate downloads. Upload callbacks are unrelated to
+        download history and must keep working when the switch is off."""
+        with override_switch(features.ENABLE_DOWNLOAD_HISTORY_LOG, active=False):
+            url = self.build_url(action='upload')
+            res = self.app.get(url, auth=self.user.auth)
+        assert_equal(res.status_code, 200)
+        assert_not_equal(self.get_callback_url(res), '')
 
     def test_download_is_from_mfr_with_render_header(self):
         """MFR downloads should be detected by the X-Cos-Mfr-Render-Request header."""
@@ -1039,17 +1065,77 @@ class TestAddonLogs(OsfTestCase):
                                          request_meta={'url': wb_url},
                                          action=action)
             nlogs = self.node.logs.count()
-            res = self.app.put_json(
-                url,
-                payload,
-                headers={'Content-Type': 'application/json'},
-                expect_errors=False,
-            )
+            with override_switch(features.ENABLE_DOWNLOAD_HISTORY_LOG, active=True):
+                res = self.app.put_json(
+                    url,
+                    payload,
+                    headers={'Content-Type': 'application/json'},
+                    expect_errors=False,
+                )
             assert_equal(res.status_code, 200)
 
             self.node.reload()
             assert_equal(self.node.logs.count(), nlogs + 1)
             assert_equal(self.node.logs.latest().action, expected_log_action)
+
+    def test_action_downloads_switch_off_creates_no_log(self):
+        """With the switch off, a download callback that still reaches the web pod
+        (e.g. from a JWT issued before an admin turned the switch off) must be
+        dropped without any DB write."""
+        url = self.node.api_url_for('create_waterbutler_log')
+        base_url = self.node.osfstorage_region.waterbutler_url
+        wb_url = base_url + '?version=1'
+        for action in ('download_file', 'download_zip'):
+            payload = self.build_payload(metadata={'path': '/testfile',
+                                                   'nid': self.node._id},
+                                         action_meta={'is_mfr_render': False},
+                                         request_meta={'url': wb_url},
+                                         action=action)
+            nlogs = self.node.logs.count()
+            with override_switch(features.ENABLE_DOWNLOAD_HISTORY_LOG, active=False):
+                res = self.app.put_json(
+                    url,
+                    payload,
+                    headers={'Content-Type': 'application/json'},
+                    expect_errors=False,
+                )
+            assert_equal(res.status_code, 200)
+            self.node.reload()
+            assert_equal(self.node.logs.count(), nlogs)
+
+    @mock.patch('addons.base.views.timestamp')
+    @mock.patch('website.notifications.events.files.FileAdded.perform')
+    def test_action_file_added_switch_off_still_creates_log(self, mock_perform, mock_timestamp):
+        """The switch must only gate downloads. Non-download callbacks keep
+        logging normally when it is off.
+
+        Mocks mirror test_add_log: a real file_added callback runs the timestamp
+        pipeline (which calls out to waterbutler) and the notification pipeline,
+        neither of which this test is about."""
+        url = self.node.api_url_for('create_waterbutler_log')
+        payload = self.build_payload(
+            metadata={
+                'provider': 'osfstorage',
+                'name': 'testfile',
+                'materialized': '/testfile',
+                'path': '/testfile',
+                'kind': 'file',
+                'size': 2345,
+                'created_utc': '',
+                'modified_utc': '',
+                'extra': {
+                    'version': '1'
+                }
+            },
+            action='create',
+            provider='osfstorage',
+        )
+        nlogs = self.node.logs.count()
+        with override_switch(features.ENABLE_DOWNLOAD_HISTORY_LOG, active=False):
+            res = self.app.put_json(url, payload, headers={'Content-Type': 'application/json'})
+        assert_equal(res.status_code, 200)
+        self.node.reload()
+        assert_equal(self.node.logs.count(), nlogs + 1)
 
     def test_log_action_map_download_mappings(self):
         """download_file/download_zip map to two distinct NodeLog actions so
@@ -1072,7 +1158,8 @@ class TestAddonLogs(OsfTestCase):
             action='download_file',
         )
         nlogs = self.node.logs.count()
-        res = self.app.put_json(url, payload, headers={'Content-Type': 'application/json'})
+        with override_switch(features.ENABLE_DOWNLOAD_HISTORY_LOG, active=True):
+            res = self.app.put_json(url, payload, headers={'Content-Type': 'application/json'})
         assert_equal(res.status_code, 200)
         self.node.reload()
         assert_equal(self.node.logs.count(), nlogs + 1)
@@ -1096,7 +1183,8 @@ class TestAddonLogs(OsfTestCase):
             action='download_zip',
         )
         nlogs = self.node.logs.count()
-        res = self.app.put_json(url, payload, headers={'Content-Type': 'application/json'})
+        with override_switch(features.ENABLE_DOWNLOAD_HISTORY_LOG, active=True):
+            res = self.app.put_json(url, payload, headers={'Content-Type': 'application/json'})
         assert_equal(res.status_code, 200)
         self.node.reload()
         assert_equal(self.node.logs.count(), nlogs + 1)

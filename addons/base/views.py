@@ -343,7 +343,13 @@ def get_auth(auth, **kwargs):
     # Suppress download logging for MFR (Mfr File Renderer) initiated downloads.
     # MFR downloads are system-initiated renders/views, not user-initiated actions,
     # so they should not appear in the Recent Activity log.
-    if action == 'download' and download_is_from_mfr(request, payload=data):
+    # Suppress it as well while the download-history switch is off (the default):
+    # an empty callback_url means waterbutler never sends the log callback, so the
+    # feature costs the web pod nothing until an admin turns it on.
+    if action == 'download' and (
+        download_is_from_mfr(request, payload=data)
+        or not waffle.switch_is_active(features.ENABLE_DOWNLOAD_HISTORY_LOG)
+    ):
         callback_log = False
 
     is_node_process = True
@@ -602,6 +608,12 @@ def create_waterbutler_log(payload, **kwargs):
                 return {'status': 'success'}
 
         elif action in (NodeLog.FILE_DOWNLOADED, NodeLog.FOLDER_DOWNLOADED_ZIP):
+            # get_auth already withholds the callback_url while the switch is off, so
+            # this is the second line of defence: a callback issued from a JWT minted
+            # before an admin flipped the switch off still reaches us, and must not
+            # write anything. Behaviour then matches the pre-feature code exactly.
+            if not waffle.switch_is_active(features.ENABLE_DOWNLOAD_HISTORY_LOG):
+                return {'status': 'success'}
             # Reuse the same per-addon log path as file_added/updated/etc so the action
             # gets addon-prefixed (box_file_downloaded, osf_storage_file_downloaded, ...)
             # and params['urls'] gets built the same way as other file actions.
