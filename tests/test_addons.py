@@ -1103,19 +1103,32 @@ class TestAddonLogs(OsfTestCase):
             self.node.reload()
             assert_equal(self.node.logs.count(), nlogs)
 
-    def test_action_file_added_switch_off_still_creates_log(self):
+    @mock.patch('addons.base.views.timestamp')
+    @mock.patch('website.notifications.events.files.FileAdded.perform')
+    def test_action_file_added_switch_off_still_creates_log(self, mock_perform, mock_timestamp):
         """The switch must only gate downloads. Non-download callbacks keep
-        logging normally when it is off."""
-        self.configure_osf_addon()
+        logging normally when it is off.
+
+        Mocks mirror test_add_log: a real file_added callback runs the timestamp
+        pipeline (which calls out to waterbutler) and the notification pipeline,
+        neither of which this test is about."""
         url = self.node.api_url_for('create_waterbutler_log')
         payload = self.build_payload(
             metadata={
                 'provider': 'osfstorage',
+                'name': 'testfile',
                 'materialized': '/testfile',
                 'path': '/testfile',
                 'kind': 'file',
+                'size': 2345,
+                'created_utc': '',
+                'modified_utc': '',
+                'extra': {
+                    'version': '1'
+                }
             },
             action='create',
+            provider='osfstorage',
         )
         nlogs = self.node.logs.count()
         with override_switch(features.ENABLE_DOWNLOAD_HISTORY_LOG, active=False):
