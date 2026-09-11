@@ -263,7 +263,7 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
             sha = None
             urls = {}
         else:
-            sha = metadata['extra']['fileSha']
+            sha = metadata['extra']['commitSha']
             urls = {
                 'view': '{0}?branch={1}'.format(url, sha),
                 'download': '{0}?action=download&branch={1}'.format(url, sha)

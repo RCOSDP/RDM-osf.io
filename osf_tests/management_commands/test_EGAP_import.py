@@ -214,4 +214,12 @@ class TestEGAPImport:
         # __MACOSX is a hidden file created by the os when zipping
         assert set(directory_list) == set(['20110307AA', '__MACOSX', '20110302AA', 'egap_assets.zip', '20120117AA'])
 
+        # Download history feature: EGAP import is an internal system operation and
+        # must suppress Recent Activity logging. `responses` matches URLs ignoring
+        # the query string by default, so this previously passed even without
+        # callback_log=false actually being on the requested URL - assert on the
+        # real request instead of relying on the mock match succeeding.
+        assert len(responses.calls) == 1
+        assert 'callback_log=false' in responses.calls[0].request.url
+
         shutil.rmtree(asset_path)

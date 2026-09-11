@@ -509,6 +509,17 @@ class TestNodeLogDownload(TestNodeLogList):
         assert res.json['data'][API_LATEST]['project_title'] == public_project.title
         assert res.json['data'][API_LATEST]['action'] == public_project.logs.first().action
 
+    def test_download__user_field_populated_without_embed_param(self, app, user, public_project, download_url):
+        """api/logs/serializers.py: NodeLogDownloadSerializer.to_representation()
+        now reads `user` directly from obj.user.fullname, not from
+        context['embed']['user'] like before - the old code required ?embed=user
+        to populate this field at all. Prove the field still resolves when embed
+        is omitted entirely, since nothing previously called this endpoint without
+        embed=user to confirm removing the embed-based lookup didn't regress it."""
+        res = app.get(download_url, auth=user.auth)
+        assert res.status_code == 200
+        assert res.json['data'][API_LATEST]['user'] == user.fullname
+
     def test_download__limited_by_page_size(self, app, user, user_auth, private_project):
         private_project.add_tag('tag', auth=user_auth)
         download_url = '/{}nodes/{}/logs/?page[size]=1&action=download'.format(

@@ -6,5 +6,7 @@
     "owncloud_folder_selected" : "A user linked a ownCloud folder in a project",
     "owncloud_node_authorized" : "A user authorized the ownCloud addon for a project",
     "owncloud_node_deauthorized" : "A user deauthorized the ownCloud addon for a project",
-    "owncloud_node_deauthorized_no_user" : "ownCloud addon for a project deauthorized"
+    "owncloud_node_deauthorized_no_user" : "ownCloud addon for a project deauthorized",
+    "owncloud_file_downloaded": "A user downloaded a file from ownCloud in a project",
+    "owncloud_folder_downloaded_zip": "A user downloaded a folder as a zip from ownCloud in a project"
 }

@@ -7,5 +7,7 @@
     "s3compatb3_folder_created" : "A user created a folder in an Oracle Cloud Infrastructure Object Storage in a project",
     "s3compatb3_node_authorized" : "A user authorized the Oracle Cloud Infrastructure Object Storage addon for a project",
     "s3compatb3_node_deauthorized" : "A user deauthorized the Oracle Cloud Infrastructure Object Storage addon for a project",
-    "s3compatb3_node_deauthorized_no_user" : "Oracle Cloud Infrastructure Object Storage addon for a project deauthorized"
+    "s3compatb3_node_deauthorized_no_user" : "Oracle Cloud Infrastructure Object Storage addon for a project deauthorized",
+    "s3compatb3_file_downloaded": "A user downloaded a file from an Oracle Cloud Infrastructure Object Storage bucket in a project",
+    "s3compatb3_folder_downloaded_zip": "A user downloaded a folder as a zip from an Oracle Cloud Infrastructure Object Storage bucket in a project"
 }

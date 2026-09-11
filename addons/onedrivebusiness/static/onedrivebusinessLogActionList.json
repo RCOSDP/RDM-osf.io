@@ -5,5 +5,7 @@
   "onedrivebusiness_folder_created" : "${user} created folder ${path} in the OneDrive team folder ${folder} in ${node}",
   "onedrivebusiness_node_authorized" : "${user} authorized the OneDrive for Office365 addon for ${node}",
   "onedrivebusiness_node_deauthorized" : "${user} deauthorized the OneDrive for Office365 addon for ${node}",
-  "onedrivebusiness_node_deauthorized_no_user" : "OneDrive for Office365 addon for ${node} deauthorized"
+  "onedrivebusiness_node_deauthorized_no_user" : "OneDrive for Office365 addon for ${node} deauthorized",
+  "onedrivebusiness_file_downloaded": "${user} downloaded file ${path} from the OneDrive team folder ${folder} in ${node}",
+  "onedrivebusiness_folder_downloaded_zip": "${user} downloaded folder ${path} as a zip from the OneDrive team folder ${folder} in ${node}"
 }

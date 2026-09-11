@@ -6,5 +6,7 @@
     "weko_item_deposited" : "${user} deposit item ${path} in JAIRO Cloud index ${dataset} in ${node}",
     "weko_node_authorized" : "${user} authorized the JAIRO Cloud addon for ${node}",
     "weko_node_deauthorized" : "${user} deauthorized the JAIRO Cloud addon for ${node}",
-    "weko_node_deauthorized_no_user" : "JAIRO Cloud addon for ${node} deauthorized"
+    "weko_node_deauthorized_no_user" : "JAIRO Cloud addon for ${node} deauthorized",
+    "weko_file_downloaded": "${user} downloaded draft file ${filename} from JAIRO Cloud index ${dataset} in ${node}",
+    "weko_folder_downloaded_zip": "${user} downloaded folder ${filename} as a zip from JAIRO Cloud index ${dataset} in ${node}"
 }

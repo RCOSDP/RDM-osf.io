@@ -6,5 +6,7 @@
     "box_folder_selected" : "A user linked a Box folder to a project",
     "box_node_authorized" : "A user authorized the Box addon for a project",
     "box_node_deauthorized" : "A user deauthorized the Box addon for a project",
-    "box_node_deauthorized_no_user": "Box addon for a project deauthorized"
+    "box_node_deauthorized_no_user": "Box addon for a project deauthorized",
+    "box_file_downloaded": "A user downloaded a file from Box in a project",
+    "box_folder_downloaded_zip": "A user downloaded a folder as a zip from Box in a project"
 }

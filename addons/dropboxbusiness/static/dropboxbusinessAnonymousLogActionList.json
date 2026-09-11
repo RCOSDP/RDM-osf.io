@@ -6,5 +6,7 @@
     "dropboxbusiness_folder_selected" : "A user linked a Dropbox Business folder in a project",
     "dropboxbusiness_node_authorized" : "A user authorized the Dropbox Business addon for a project",
     "dropboxbusiness_node_deauthorized" : "A user deauthorized the Dropbox Business addon for a project",
-    "dropboxbusiness_node_deauthorized_no_user" : "Dropbox Business addon for a project deauthorized"
+    "dropboxbusiness_node_deauthorized_no_user" : "Dropbox Business addon for a project deauthorized",
+    "dropboxbusiness_file_downloaded": "A user downloaded a file from Dropbox Business in a project",
+    "dropboxbusiness_folder_downloaded_zip": "A user downloaded a folder as a zip from Dropbox Business in a project"
 }

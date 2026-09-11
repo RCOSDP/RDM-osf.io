@@ -213,6 +213,13 @@ def waterbutler_api_url_for(node_id, provider, path='/', _internal=False, base_u
     # furl auto encoding, so urlquote is not necessary as `[urlquote(x) for x in segments]`
     # try to convert segment items to string for furl check
     url.path.segments.extend([str(x) for x in segments])
+
+    # For internal requests, automatically suppress callback logging unless explicitly set.
+    # This prevents internal system operations (metadata sync, exports, etc.) from being
+    # recorded as user downloads in the Recent Activity log.
+    if _internal and 'meta' not in kwargs and 'callback_log' not in kwargs:
+        kwargs['callback_log'] = 'false'
+
     url.args.update(kwargs)
     return url.url
 

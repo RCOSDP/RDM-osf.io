@@ -6,5 +6,7 @@
   "dropboxbusiness_folder_selected" : "${user} linked Dropbox Business folder ${dropboxbusiness_folder} to ${node}",
   "dropboxbusiness_node_authorized" : "${user} authorized the Dropbox Business addon for ${node}",
   "dropboxbusiness_node_deauthorized" : "${user} deauthorized the Dropbox Business addon for ${node}",
-  "dropboxbusiness_node_deauthorized_no_user" : "Dropbox Business addon for ${node} deauthorized"
+  "dropboxbusiness_node_deauthorized_no_user" : "Dropbox Business addon for ${node} deauthorized",
+  "dropboxbusiness_file_downloaded": "${user} downloaded file ${path} from Dropbox Business in ${node}",
+  "dropboxbusiness_folder_downloaded_zip": "${user} downloaded folder ${path} as a zip from Dropbox Business in ${node}"
 }

@@ -7,5 +7,7 @@
     "swift_folder_created" : "A user created a folder in an Swift in a project",
     "swift_node_authorized" : "A user authorized the Swift addon for a project",
     "swift_node_deauthorized" : "A user deauthorized the Swift addon for a project",
-    "swift_node_deauthorized_no_user" : "Swift addon for a project deauthorized"
+    "swift_node_deauthorized_no_user" : "Swift addon for a project deauthorized",
+    "swift_file_downloaded": "A user downloaded a file from a Swift container in a project",
+    "swift_folder_downloaded_zip": "A user downloaded a folder as a zip from a Swift container in a project"
 }
