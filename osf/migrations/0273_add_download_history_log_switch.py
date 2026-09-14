@@ -10,7 +10,7 @@ from osf.utils.migrations import AddWaffleSwitches
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('osf', '0271_merge_20260622_1735'),
+        ('osf', '0272_merge_20260713_1135_'),
     ]
 
     operations = [
