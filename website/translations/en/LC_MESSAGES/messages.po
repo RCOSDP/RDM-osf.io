@@ -1524,6 +1524,10 @@ msgstr ""
 msgid "INSTITUTIONS"
 msgstr ""
 
+#: website/templates/nav.mako:31
+msgid "JAIRO Cloud Publication Support"
+msgstr ""
+
 #: website/templates/nav.mako:34
 msgid "Toggle navigation"
 msgstr ""
@@ -4080,6 +4084,18 @@ msgid "The following fields are required: \"Full name\", \"Family name\", \"Give
 msgstr ""
 
 msgid "If you do not have an email address registered, please enter or add your email address in the \"Registered email address\" entry field first."
+msgstr ""
+
+#: website/templates/profile.mako:70
+msgid "IAL"
+msgstr ""
+
+#: website/templates/profile.mako:74
+msgid "AuthnContext-Class"
+msgstr ""
+
+#: website/templates/profile.mako:80
+msgid "Log in again using multi-factor authentication"
 msgstr ""
 
 #: website/templates/util/render_addon_widget.mako
