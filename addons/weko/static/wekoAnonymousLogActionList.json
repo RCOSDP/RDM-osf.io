@@ -6,5 +6,7 @@
     "weko_item_deposited" : "A user deposit item in a JAIRO Cloud index in a project",
     "weko_node_authorized" : "A user authorized the JAIRO Cloud addon for a project",
     "weko_node_deauthorized" : "A user deauthorized the JAIRO Cloud addon for a project",
-    "weko_node_deauthorized_no_user" : "JAIRO Cloud addon for a project deauthorized"
+    "weko_node_deauthorized_no_user" : "JAIRO Cloud addon for a project deauthorized",
+    "weko_file_downloaded": "A user downloaded a draft file from a JAIRO Cloud index in a project",
+    "weko_folder_downloaded_zip": "A user downloaded a folder as a zip from a JAIRO Cloud index in a project"
 }

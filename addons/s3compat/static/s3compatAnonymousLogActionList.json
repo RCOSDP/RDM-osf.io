@@ -7,5 +7,7 @@
     "s3compat_folder_created" : "A user created a folder in an S3 Compatible Storage in a project",
     "s3compat_node_authorized" : "A user authorized the S3 Compatible Storage addon for a project",
     "s3compat_node_deauthorized" : "A user deauthorized the S3 Compatible Storage addon for a project",
-    "s3compat_node_deauthorized_no_user" : "S3 Compatible Storage addon for a project deauthorized"
+    "s3compat_node_deauthorized_no_user" : "S3 Compatible Storage addon for a project deauthorized",
+    "s3compat_file_downloaded": "A user downloaded a file from an S3 Compatible Storage bucket in a project",
+    "s3compat_folder_downloaded_zip": "A user downloaded a folder as a zip from an S3 Compatible Storage bucket in a project"
 }

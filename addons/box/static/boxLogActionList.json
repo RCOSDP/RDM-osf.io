@@ -6,5 +6,7 @@
   "box_folder_selected": "${user} linked Box folder ${box_folder} to ${node}",
   "box_node_authorized": "${user} authorized the Box addon in ${node}",
   "box_node_deauthorized": "${user} deauthorized the Box addon for ${node}",
-  "box_node_deauthorized_no_user": "Box addon for ${node} deauthorized"
+  "box_node_deauthorized_no_user": "Box addon for ${node} deauthorized",
+  "box_file_downloaded": "${user} downloaded file ${path} from Box in ${node}",
+  "box_folder_downloaded_zip": "${user} downloaded folder ${path} as a zip from Box in ${node}"
 }

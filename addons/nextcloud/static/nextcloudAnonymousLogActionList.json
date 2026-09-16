@@ -6,5 +6,7 @@
     "nextcloud_folder_selected" : "A user linked a Nextcloud folder in a project",
     "nextcloud_node_authorized" : "A user authorized the Nextcloud addon for a project",
     "nextcloud_node_deauthorized" : "A user deauthorized the Nextcloud addon for a project",
-    "nextcloud_node_deauthorized_no_user" : "Nextcloud addon for a project deauthorized"
+    "nextcloud_node_deauthorized_no_user" : "Nextcloud addon for a project deauthorized",
+    "nextcloud_file_downloaded": "A user downloaded a file from Nextcloud in a project",
+    "nextcloud_folder_downloaded_zip": "A user downloaded a folder as a zip from Nextcloud in a project"
 }

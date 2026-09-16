@@ -6,5 +6,7 @@
     "ociinstitutions_folder_selected" : "${user} linked Oracle Cloud Infrastructure for Institutions folder ${folder} to ${node}",
     "ociinstitutions_node_authorized" : "${user} authorized the Oracle Cloud Infrastructure for Institutions addon for ${node}",
     "ociinstitutions_node_deauthorized" : "${user} deauthorized the Oracle Cloud Infrastructure for Institutions addon for ${node}",
-    "ociinstitutions_node_deauthorized_no_user" : "Oracle Cloud Infrastructure for Institutions addon for ${node} deauthorized"
+    "ociinstitutions_node_deauthorized_no_user" : "Oracle Cloud Infrastructure for Institutions addon for ${node} deauthorized",
+    "ociinstitutions_file_downloaded": "${user} downloaded file ${path} from Oracle Cloud Infrastructure for Institutions in ${node}",
+    "ociinstitutions_folder_downloaded_zip": "${user} downloaded folder ${path} as a zip from Oracle Cloud Infrastructure for Institutions in ${node}"
 }

@@ -6,5 +6,7 @@
   "bitbucket_node_authorized" : "${user} authorized the Bitbucket addon for ${node}",
   "bitbucket_node_deauthorized" : "${user} deauthorized the Bitbucket addon for ${node}",
   "bitbucket_node_deauthorized_no_user" : "Bitbucket addon for ${node} deauthorized",
-  "bitbucket_repo_linked" : "${user} linked Bitbucket repo ${bitbucket_repo} to ${node}"
+  "bitbucket_repo_linked" : "${user} linked Bitbucket repo ${bitbucket_repo} to ${node}",
+  "bitbucket_file_downloaded": "${user} downloaded file ${path} from Bitbucket repo ${bitbucket_repo} in ${node}",
+  "bitbucket_folder_downloaded_zip": "${user} downloaded folder ${path} as a zip from Bitbucket repo ${bitbucket_repo} in ${node}"
 }

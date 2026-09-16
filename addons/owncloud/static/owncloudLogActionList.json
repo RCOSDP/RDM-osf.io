@@ -6,6 +6,7 @@
     "owncloud_folder_selected" : "${user} linked ownCloud folder ${folder} to ${node}",
     "owncloud_node_authorized" : "${user} authorized the ownCloud addon for ${node}",
     "owncloud_node_deauthorized" : "${user} deauthorized the ownCloud addon for ${node}",
-    "owncloud_node_deauthorized_no_user" : "ownCloud addon for ${node} deauthorized"
-
+    "owncloud_node_deauthorized_no_user" : "ownCloud addon for ${node} deauthorized",
+    "owncloud_file_downloaded": "${user} downloaded file ${path} from ownCloud in ${node}",
+    "owncloud_folder_downloaded_zip": "${user} downloaded folder ${path} as a zip from ownCloud in ${node}"
 }

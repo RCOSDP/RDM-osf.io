@@ -7,5 +7,7 @@
   "swift_folder_created" : "${user} created folder ${path} in Swift container ${bucket} in ${node}",
   "swift_node_authorized" : "${user} authorized the Swift addon for ${node}",
   "swift_node_deauthorized" : "${user} deauthorized the Swift addon for ${node}",
-  "swift_node_deauthorized_no_user" : "Swift addon for ${node} deauthorized"
+  "swift_node_deauthorized_no_user" : "Swift addon for ${node} deauthorized",
+  "swift_file_downloaded": "${user} downloaded file ${path} from Swift container ${bucket} in ${node}",
+  "swift_folder_downloaded_zip": "${user} downloaded folder ${path} as a zip from Swift container ${bucket} in ${node}"
 }

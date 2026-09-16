@@ -28,6 +28,8 @@ from framework.exceptions import PermissionsError, HTTPError
 from framework.auth.core import Auth
 from addons.osfstorage.models import OsfStorageFile
 from addons.base import views
+from waffle.testutils import override_switch
+from osf import features
 from osf.models import Tag, Preprint, PreprintLog, PreprintContributor, Subject, Session
 from osf.exceptions import PreprintStateError, ValidationError, ValidationValueError
 
@@ -2302,14 +2304,20 @@ class TestPreprintOsfStorage(OsfTestCase):
         options = {'payload': jwe.encrypt(jwt.encode({'data': dict(dict(
             action='download',
             nid=self.preprint._id,
-            provider='osfstorage'), **kwargs),
+            provider='osfstorage',
+            # Real waterbutler requests always include metrics (see
+            # RDM-waterbutler's OsfAuthHandler.get()) - download_is_from_mfr()
+            # (called unconditionally by get_auth() for any download action)
+            # reads metrics['uri'], so it must be present here too.
+            metrics={'uri': ''}), **kwargs),
             'exp': timezone.now() + datetime.timedelta(seconds=500),
         }, settings.WATERBUTLER_JWT_SECRET, algorithm=settings.WATERBUTLER_JWT_ALGORITHM), self.JWE_KEY)}
         return self.preprint.api_url_for('get_auth', **options)
 
     def test_auth_download(self):
-        url = self.build_url(cookie=self.cookie)
-        res = self.app.get(url, auth=Auth(user=self.user))
+        with override_switch(features.ENABLE_DOWNLOAD_HISTORY_LOG, active=True):
+            url = self.build_url(cookie=self.cookie)
+            res = self.app.get(url, auth=Auth(user=self.user))
         data = jwt.decode(jwe.decrypt(res.json['payload'].encode('utf-8'), self.JWE_KEY), settings.WATERBUTLER_JWT_SECRET, algorithm=settings.WATERBUTLER_JWT_ALGORITHM)['data']
         assert_equal(data['credentials'], self.preprint.serialize_waterbutler_credentials())
         assert_equal(data['settings'], self.preprint.serialize_waterbutler_settings())
@@ -2509,26 +2517,43 @@ class TestPreprintOsfStorageLogs(OsfTestCase):
         )
 
     def test_action_downloads_contrib(self):
+        """Real downloads now create a Recent Activity log via Preprint.create_waterbutler_log,
+        the same as any other file action - previously download actions were skipped entirely,
+        so this test's payload/assertions predate that change. A real waterbutler download
+        callback always includes materialized/kind in metadata (see RDM-waterbutler's
+        LogPayload.serialize(), which documents these as always-present keys)."""
         url = self.preprint.api_url_for('create_waterbutler_log')
-        download_actions=('download_file', 'download_zip')
         wb_url = settings.WATERBUTLER_URL + '?version=1'
-        for action in download_actions:
-            payload = self.build_payload(metadata={'path': '/testfile',
-                                                   'nid': self.preprint._id},
-                                         action_meta={'is_mfr_render': False},
-                                         request_meta={'url': wb_url},
-                                         action=action)
-            nlogs = self.preprint.logs.count()
-            res = self.app.put_json(
-                url,
-                payload,
-                headers={'Content-Type': 'application/json'},
-                expect_errors=False,
+        download_action_to_expected_log = {
+            'download_file': (
+                'osf_storage_file_downloaded',
+                {'path': '/testfile', 'materialized': '/testfile', 'kind': 'file'},
+            ),
+            'download_zip': (
+                'osf_storage_folder_downloaded_zip',
+                {'path': '/testfolder/', 'materialized': '/testfolder/', 'kind': 'folder'},
+            ),
+        }
+        for action, (expected_log_action, metadata) in download_action_to_expected_log.items():
+            payload = self.build_payload(
+                metadata=dict(metadata, nid=self.preprint._id),
+                action_meta={'is_mfr_render': False},
+                request_meta={'url': wb_url},
+                action=action,
             )
+            nlogs = self.preprint.logs.count()
+            with override_switch(features.ENABLE_DOWNLOAD_HISTORY_LOG, active=True):
+                res = self.app.put_json(
+                    url,
+                    payload,
+                    headers={'Content-Type': 'application/json'},
+                    expect_errors=False,
+                )
             assert_equal(res.status_code, 200)
 
-        self.preprint.reload()
-        assert_equal(self.preprint.logs.count(), nlogs)
+            self.preprint.reload()
+            assert_equal(self.preprint.logs.count(), nlogs + 1)
+            assert_equal(self.preprint.logs.latest().action, expected_log_action)
 
     def test_add_file_osfstorage_log(self):
         path = 'pizza'

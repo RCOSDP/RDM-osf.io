@@ -140,7 +140,8 @@ def get_egap_assets(guid, creator_auth):
     zip_file = node.files.first()
     temp_path = tempfile.mkdtemp()
 
-    url = '{}/v1/resources/{}/providers/osfstorage/{}'.format(WATERBUTLER_INTERNAL_URL, guid, zip_file._id)
+    # Suppress logging for EGAP import downloads (internal system operation)
+    url = '{}/v1/resources/{}/providers/osfstorage/{}?callback_log=false'.format(WATERBUTLER_INTERNAL_URL, guid, zip_file._id)
     zip_file = requests.get(url, headers=creator_auth).content
 
     egap_assets_path = os.path.join(temp_path, 'egap_assets.zip')

@@ -5,5 +5,7 @@
     "onedrivebusiness_folder_created" : "A user created a folder in an OneDrive team folder in a project",
     "onedrivebusiness_node_authorized" : "A user authorized the OneDrive for Office365 addon for a project",
     "onedrivebusiness_node_deauthorized" : "A user deauthorized the OneDrive for Office365 addon for a project",
-    "onedrivebusiness_node_deauthorized_no_user" : "OneDrive for Office365 addon for a project deauthorized"
+    "onedrivebusiness_node_deauthorized_no_user" : "OneDrive for Office365 addon for a project deauthorized",
+    "onedrivebusiness_file_downloaded": "A user downloaded a file from an OneDrive team folder in a project",
+    "onedrivebusiness_folder_downloaded_zip": "A user downloaded a folder as a zip from an OneDrive team folder in a project"
 }

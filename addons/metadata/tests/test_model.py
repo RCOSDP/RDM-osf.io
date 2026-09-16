@@ -10,7 +10,7 @@ from tests.base import get_default_metaschema
 from osf_tests.factories import ProjectFactory, OsfStorageFileFactory
 
 from framework.auth import Auth
-from ..models import NodeSettings, FileMetadata
+from ..models import NodeSettings, FileMetadata, WaterButlerObject
 from .factories import NodeSettingsFactory
 from .utils import remove_fields
 
@@ -855,3 +855,36 @@ class TestFileMetadata(unittest.TestCase):
                 folder=False,
                 project=self.node_settings,
             )
+
+
+class TestMetadataAssetSyncCallbackLogSuppression(unittest.TestCase):
+    """addons/metadata/models.py: WaterButlerObject.download() is used by
+    safe_download_metadata_asset_pool() (metadata asset sync, an internal system
+    operation) and must suppress Recent Activity logging via callback_log=false.
+
+    Real behavioral test - previously this method had zero coverage anywhere:
+    the class name coincidentally shows up all over addons/metadata/tests/test_packages.py
+    via `rocrate.download_to(...)`, but that's a different class entirely
+    (BaseROCrateFactory.download_to), and the test helpers there replace
+    WaterButlerObject with a bare MagicMock whose download_to is stubbed - the
+    real HTTP-building code was never exercised."""
+
+    def test_download_suppresses_callback_log(self):
+        wb = mock.MagicMock()
+        wb.cookie = 'test-cookie'
+        wb_object = WaterButlerObject({
+            'links': {
+                'download': 'http://waterbutler.example/v1/resources/abc12/providers/osfstorage/xyz',
+            },
+        }, wb)
+
+        mock_response = mock.MagicMock()
+        mock_response.text = 'file content'
+
+        with mock.patch('addons.metadata.models.requests.get', return_value=mock_response) as mock_get:
+            content = wb_object.download()
+
+        assert_equal(content, 'file content')
+        mock_response.raise_for_status.assert_called_once()
+        called_url = mock_get.call_args[0][0]
+        assert_true('callback_log=false' in called_url)
