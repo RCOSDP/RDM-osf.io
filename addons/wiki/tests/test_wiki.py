@@ -3415,7 +3415,8 @@ class TestYWebsocketToken(OsfTestCase):
         assert_true(sharejs_uuid)
         assert_in(sharejs_uuid, body)
 
-        token_match = re.search(r'"yWebsocketToken":\s*"([^"]+)"', body)
+        # edit.mako renders `yWebsocketToken: "..."`, not JSON `"yWebsocketToken": "..."`.
+        token_match = re.search(r'yWebsocketToken:\s*"([^"]+)"', body)
         assert_true(token_match)
         token = token_match.group(1)
         assert_true(token)
@@ -3443,7 +3444,7 @@ class TestYWebsocketToken(OsfTestCase):
         assert_equal(res.status_code, 200)
         body = res.body.decode()
         assert_not_in(sharejs_uuid, body)
-        token_match = re.search(r'"yWebsocketToken":\s*"([^"]+)"', body)
+        token_match = re.search(r'yWebsocketToken:\s*"([^"]+)"', body)
         assert_false(token_match)
 
     def test_generate_y_websocket_token_without_secret(self):
