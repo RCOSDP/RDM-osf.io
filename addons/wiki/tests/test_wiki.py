@@ -3400,8 +3400,10 @@ class TestYWebsocketToken(OsfTestCase):
         res = self.app.get(url, auth=self.user.auth)
         assert_equal(res.status_code, 200)
 
+        self.project.reload()
         body = res.body.decode()
         sharejs_uuid = get_sharejs_uuid(self.project, self.wname)
+        assert_true(sharejs_uuid)
         assert_in(sharejs_uuid, body)
 
         token_match = re.search(r'"yWebsocketToken":\s*"([^"]+)"', body)
@@ -3420,12 +3422,20 @@ class TestYWebsocketToken(OsfTestCase):
         WikiPage.objects.create_for_node(self.project, self.wname, 'some content', Auth(self.user))
 
         url = self.project.web_url_for('project_wiki_view', wname=self.wname)
+        # Generate sharejs uuid / token path as an editor first (same pattern as TestWikiUuid).
+        res = self.app.get(url, auth=self.user.auth)
+        assert_equal(res.status_code, 200)
+        self.project.reload()
+        sharejs_uuid = get_sharejs_uuid(self.project, self.wname)
+        assert_true(sharejs_uuid)
+
+        # Users without write permission should not receive uuid or a non-empty token.
         res = self.app.get(url)
         assert_equal(res.status_code, 200)
-
         body = res.body.decode()
-        assert_not_in(get_sharejs_uuid(self.project, self.wname), body)
-        assert_not_in('"yWebsocketToken":', body)
+        assert_not_in(sharejs_uuid, body)
+        token_match = re.search(r'"yWebsocketToken":\s*"([^"]+)"', body)
+        assert_false(token_match)
 
     def test_generate_y_websocket_token_without_secret(self):
         with mock.patch('addons.wiki.settings.Y_WEBSOCKET_SECRET', ''):
