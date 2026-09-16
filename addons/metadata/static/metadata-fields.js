@@ -11,9 +11,12 @@
  ******************************************************************************************/
 
 const $ = require('jquery');
+require('./metadata.css');
 
 // Style definitions
 const AUTOFILLED_BG_COLOR = '#fffbf0';
+const INPUT_BG_COLOR = '#f9fbfd';
+const INPUT_BORDER_COLOR = '#cad9e6';
 const $osf = require('js/osfHelpers');
 const fangorn = require('js/fangorn');
 const rdmGettext = require('js/rdmGettext');
@@ -28,8 +31,175 @@ const util = require('./util');
 const sizeofFormat = require("./util").sizeofFormat;
 const getLocalizedText = util.getLocalizedText;
 const normalizeText = util.normalizeText;
+const template = require('./template');
+
+var tagDefs = {};  // id -> { info: "..." }
+
+function appendTagBadges(container, tags) {
+  tags.forEach(function(tag) {
+    var id, info;
+    if (typeof tag === 'object') {
+      id = tag.id;
+      tagDefs[id] = { info: tag.info };
+      info = tag.info;
+    } else {
+      id = tag;
+      if (!tagDefs[id]) {
+        throw new Error('Tag definition not found: ' + id);
+      }
+      info = tagDefs[id].info;
+    }
+    var badge = $('<span></span>')
+      .addClass('label label-default metadata-group-tag')
+      .css('margin-left', '6px')
+      .text(getLocalizedText(id));
+    if (info) {
+      badge.css('cursor', 'pointer')
+        .popover({
+          content: getLocalizedText(info),
+          html: true,
+          trigger: 'focus',
+          placement: 'right',
+          container: 'body'
+        }).attr('tabindex', '-1');
+    }
+    container.append(badge);
+  });
+}
 
 var filteredPages = [];
+
+function resolveUI(ui, questionFields) {
+  if (!Array.isArray(ui)) {
+    return ui;
+  }
+  var fallback = null;
+  for (var i = 0; i < ui.length; i++) {
+    var entry = ui[i];
+    if (!entry.condition) {
+      fallback = entry;
+      continue;
+    }
+    if (evaluateCond(entry.condition, questionFields)) return entry;
+  }
+  return fallback;
+}
+
+function PageHeader(ui) {
+  this.ui = ui;
+  this.element = $('<div></div>')
+    .addClass('metadata-page-header')
+    .css('margin-bottom', '12px');
+}
+
+PageHeader.prototype.refresh = function(questionFields) {
+  var resolved = resolveUI(this.ui, questionFields);
+  if (resolved && resolved.header) {
+    this.element.html(getLocalizedText(resolved.header));
+    this.element.find('ul').css('padding-left', '18px');
+    this.element.show();
+  } else {
+    this.element.hide();
+  }
+};
+
+function GroupContainer(def, isChild) {
+  this.id = def.id;
+  this.parent = def.parent || null;
+  this.isChild = isChild;
+  this.enabledIf = def.enabled_if || null;
+  this.children = [];
+  this.checkMark = isChild ? null : $('<i></i>')
+    .addClass('fa fa-check')
+    .css({ color: '#5cb85c', 'margin-left': '8px' })
+    .hide();
+  this.element = $('<div></div>').addClass('metadata-group');
+  this._heading = $('<div></div>')
+    .addClass('metadata-group-heading')
+    .css('margin-bottom', '6px')
+    .css('margin-top', '18px');
+  this.element.append(this._heading);
+  this.content = $('<div></div>');
+  if (def.bar) {
+    this.content.addClass('metadata-group-bar');
+  }
+  this.element.append(this.content);
+  this._renderHeading(def);
+}
+
+GroupContainer.prototype._renderHeading = function(def) {
+  this._heading.empty();
+  if (def.marker === 'circle') {
+    this._heading.append($('<span></span>').text('◯').css('margin-right', '6px'));
+  }
+  var title = $('<strong></strong>').text(getLocalizedText(def.title));
+  if (this.isChild) {
+    title.css('font-size', '13px');
+  }
+  this._heading.append(title);
+  if (def.tags) {
+    appendTagBadges(this._heading, def.tags);
+  }
+  if (def.info) {
+    var infoMark = $('<span></span>')
+      .addClass('fa fa-info-circle metadata-info-mark');
+    infoMark.popover({
+      content: getLocalizedText(def.info),
+      html: true,
+      trigger: 'focus',
+      placement: 'right',
+      container: 'body'
+    }).attr('tabindex', '-1');
+    this._heading.append(infoMark);
+  }
+  if (this.checkMark) this._heading.append(this.checkMark);
+  if (def.help) {
+    this._heading.append($('<p></p>')
+      .addClass('text-muted')
+      .css('margin', '4px 0 0')
+      .css('font-size', '12px')
+      .html(getLocalizedText(def.help)));
+  }
+};
+
+GroupContainer.prototype.refresh = function(questionFields) {
+  // Update conditional heading
+  if (this._sourceUI) {
+    var resolved = resolveUI(this._sourceUI, questionFields);
+    if (resolved && resolved.group) {
+      var groupRef = resolved.group;
+      var def = typeof groupRef === 'object' ? groupRef : null;
+      if (def) {
+        this._renderHeading(def);
+      }
+    }
+  }
+  // Update enabled state (dim heading and bar when disabled)
+  if (this.enabledIf) {
+    var isEnabled = evaluateCond(this.enabledIf, questionFields);
+    this.element.toggleClass('metadata-group-disabled', !isEnabled);
+  }
+  // Update visibility
+  var hasVisibleChild = this.content.children().toArray().some(function(child) {
+    return $(child).css('display') !== 'none';
+  });
+  if (hasVisibleChild) {
+    this.element.show();
+  } else {
+    this.element.hide();
+  }
+  // Update check mark (top-level groups only)
+  if (this.checkMark) {
+    var hasValidChild = this.children.some(function(field) {
+      return field.hasValidValue();
+    });
+    if (hasValidChild) {
+      this.checkMark.show();
+    } else {
+      this.checkMark.hide();
+    }
+  }
+};
 
 const logPrefix = '[metadata] ';
 
@@ -68,7 +238,9 @@ const QuestionPage = oop.defclass({
         if (!self.questionFilter(question)) {
           return;
         }
-        const value = (fileItemData[question.qid] || {}).value;
+        const value = self.options.multiple
+          ? self.options.commonValues[question.qid]
+          : (fileItemData[question.qid] || {}).value;
         const field = createQuestionField(
           question,
           value,
@@ -86,7 +258,87 @@ const QuestionPage = oop.defclass({
         self.fields.push(field);
       });
     });
+    self._buildContainer();
     return self.fields;
+  },
+
+  _buildContainer: function() {
+    const self = this;
+    self.container = $('<div></div>').addClass('metadata-form');
+
+    // Page-level header note (A-7)
+    self.headers = [];
+    (self.schema.pages || []).forEach(function(page) {
+      if (!page.ui) return;
+      var header = new PageHeader(page.ui);
+      self.container.append(header.element);
+      self.headers.push(header);
+    });
+
+    const groupDefs = {};       // groupId -> groupDef
+    self.groupContainers = {}; // groupId -> GroupContainer
+
+    var variantQid = self.schema.ui && self.schema.ui.variant;
+    var variantContainer = self.options.variantContainer;
+    if (variantContainer) variantContainer.empty();
+
+    function ensureGroup(groupId) {
+      if (self.groupContainers[groupId]) return;
+      var def = groupDefs[groupId];
+      if (def.parent && !self.groupContainers[def.parent]) {
+        ensureGroup(def.parent);
+      }
+      var group = new GroupContainer(def, !!def.parent);
+      self.groupContainers[groupId] = group;
+      if (def.parent) {
+        self.groupContainers[def.parent].content.append(group.element);
+      } else {
+        self.container.append(group.element);
+      }
+    }
+
+    self.fields.forEach(function(field) {
+      if (variantContainer && field.question.qid === variantQid) {
+        var label = $('<label>').text(getLocalizedText(field.question.title) + ':')
+          .css({ 'margin-right': '8px', 'margin-bottom': 0, 'white-space': 'nowrap', 'min-width': '8em', 'text-align': 'right' });
+        variantContainer.append(
+          $('<div>').addClass('form-group')
+            .css({ 'margin-bottom': 0, 'margin-top': '8px', display: 'flex', 'align-items': 'center' })
+            .append(label).append(field.formField.container)
+        );
+        return;
+      }
+      var ui = resolveUI(field.question.ui, []);
+      if (!ui || !ui.group) {
+        self.container.append(field.element);
+        return;
+      }
+      var groupRef = ui.group;
+      var groupDef = typeof groupRef === 'object' ? groupRef : null;
+      var groupId = groupDef ? groupDef.id : groupRef;
+
+      if (groupDef && !groupDefs[groupId]) {
+        var parentRef = groupDef.parent;
+        if (parentRef && typeof parentRef === 'object') {
+          groupDefs[parentRef.id] = parentRef;
+          parentRef = parentRef.id;
+        }
+        groupDefs[groupId] = Object.assign({}, groupDef, { parent: parentRef });
+      }
+
+      ensureGroup(groupId);
+      if (groupDef && Array.isArray(field.question.ui)) {
+        self.groupContainers[groupId]._sourceUI = field.question.ui;
+      }
+      self.groupContainers[groupId].content.append(field.element);
+      // Register as child of this group and all ancestor groups
+      var gid = groupId;
+      while (gid) {
+        self.groupContainers[gid].children.push(field);
+        gid = self.groupContainers[gid].parent;
+      }
+      field.inGroup = true;
+    });
   },
 
   suggestionAutofill: function(suggestion, tree) {
@@ -97,7 +349,11 @@ const QuestionPage = oop.defclass({
       if (!field) {
         throw new Error('No field for path: ' + path);
       }
-      const value = suggestion.value[autofillMap[path]];
+      const sourceKey = autofillMap[path];
+      if (!(sourceKey in suggestion.value)) {
+        console.warn(logPrefix + 'autofill: source key not found in suggestion: ' + sourceKey);
+      }
+      const value = suggestion.value[sourceKey];
       if (value != null) {
         field.setValue(value, true); // Mark as autofilled
       }
@@ -126,6 +382,17 @@ const QuestionPage = oop.defclass({
       }
       field.showError();
       self._updateEnabledQuestionField(field, self.fields);
+      field.refresh(self.fields);
+    });
+    // Refresh groups: leaf groups first, then parents (for visibility propagation)
+    var ids = Object.keys(self.groupContainers);
+    var leaves = ids.filter(function(id) { return !ids.some(function(other) { return self.groupContainers[other].parent === id; }); });
+    var roots = ids.filter(function(id) { return leaves.indexOf(id) === -1; });
+    leaves.concat(roots).forEach(function(groupId) {
+      self.groupContainers[groupId].refresh(self.fields);
+    });
+    self.headers.forEach(function(header) {
+      header.refresh(self.fields);
     });
   },
 
@@ -165,7 +432,18 @@ const QuestionPage = oop.defclass({
     const cond = questionField.question.enabled_if;
     const commonValues = self.options.commonValues;
     const defaultValues = self.options.defaultValues;
-    questionField.updateEnabled(!cond || evaluateCond(cond, questionFields, commonValues, defaultValues));
+    var enabled = !cond || evaluateCond(cond, questionFields, commonValues, defaultValues);
+    var mode = 'hidden';
+    if (!enabled) {
+      var uiEnabledIf = questionField.resolvedUI && questionField.resolvedUI.item && questionField.resolvedUI.item.enabled_if;
+      if (uiEnabledIf && uiEnabledIf.disabled) {
+        var disabledCond = uiEnabledIf.disabled;
+        if (disabledCond === true || evaluateCond(disabledCond, questionFields, commonValues, defaultValues)) {
+          mode = 'disabled';
+        }
+      }
+    }
+    questionField.updateEnabled(enabled, mode);
   },
 });
 
@@ -193,6 +471,7 @@ const QuestionField = oop.extend(Emitter, {
     self.isDisplayedHelp = false;
     self.lastError = null;
     self.enabled = true;
+    self.resolvedUI = resolveUI(self.question.ui, []);
   },
 
   create: function() {
@@ -230,12 +509,21 @@ const QuestionField = oop.extend(Emitter, {
     }
 
     // construct header
-    const header = $('<div></div>');
+    var header = $('<div></div>');
     self.element.append(header);
+    self._circle = $('<span></span>').text('◯').css('margin-right', '6px').hide();
+    header.prepend(self._circle);
 
     // construct label
-    const label = $('<label></label>')
-      .text(self.question.title ? getLocalizedText(self.question.title) : self.question.label);
+    self._labelElement = $('<label></label>');
+    self._resolveLabel(null);
+    const label = self._labelElement;
+
+    // construct check mark (next to label)
+    self.checkMark = $('<i></i>')
+      .addClass('fa fa-check')
+      .css({ color: '#5cb85c', 'margin-left': '8px' })
+      .hide();
     if (self.question.required) {
       label.append($('<span></span>')
         .css('color', 'red')
@@ -243,6 +531,28 @@ const QuestionField = oop.extend(Emitter, {
         .text('*'));
     }
     header.append(label);
+
+    // item tags
+    var uiItem = self.resolvedUI && self.resolvedUI.item;
+    if (uiItem && uiItem.tags) {
+      appendTagBadges(header, uiItem.tags);
+    }
+
+    // info mark
+    var infoText = uiItem && uiItem.info;
+    if (infoText) {
+      var infoMark = $('<span></span>')
+        .addClass('fa fa-info-circle metadata-info-mark');
+      infoMark.popover({
+        content: getLocalizedText(infoText),
+        html: true,
+        trigger: 'focus',
+        placement: 'right',
+        container: 'body'
+      }).attr('tabindex', '-1');
+      header.append(infoMark);
+    }
+    header.append(self.checkMark);
 
     if(self.question.hasOwnProperty('concealment_page') && self.question.concealment_page == "buttonHide"){
       const p = $('<p></p>');
@@ -283,13 +593,28 @@ const QuestionField = oop.extend(Emitter, {
       self.clearField.on('change', function() {
         if (self.clearField.prop('checked')) {
           self.formField.reset();
-          self.formField.disable(true);
-        } else {
-          self.formField.disable(false);
         }
         self.emit('change');
       });
       header.append(clearFormBlock);
+    }
+
+    // construct description
+    var description = uiItem && uiItem.description;
+    if (description) {
+      self.element.append($('<p></p>')
+        .addClass('help-block')
+        .css('margin-top', '0')
+        .text(getLocalizedText(description)));
+    }
+
+    // apply field width
+    var width = uiItem && uiItem.width;
+    if (width) {
+      var widthStyle = { narrow: { 'max-width': '200px' }, half: { 'max-width': '50%', 'min-width': '300px' }, wide: { 'max-width': '100%' } }[width];
+      if (widthStyle) {
+        self.formField.container.css(widthStyle);
+      }
     }
 
     // construct help
@@ -301,7 +626,7 @@ const QuestionField = oop.extend(Emitter, {
       const helpLinkBlock = $('<p></p>').append(helpLink);
       const help = $('<p></p>')
         .addClass('help-block')
-        .text(getLocalizedText(self.question.help))
+        .html(getLocalizedText(self.question.help))
         .hide();
       helpLink.on('click', function (e) {
         e.preventDefault();
@@ -319,7 +644,7 @@ const QuestionField = oop.extend(Emitter, {
     }
 
     // construct form field
-    self.element.append(self.formField.container)
+    self.element.append(self.formField.container);
     self.formField.on('change', function(value) {
       self.emit('change', value);
     });
@@ -359,13 +684,59 @@ const QuestionField = oop.extend(Emitter, {
     }
   },
 
-  updateEnabled: function(enabled) {
+  hasValidValue: function() {
+    var value = this.formField.getValue();
+    return value != null && value !== '' && !this.lastError;
+  },
+
+  _setEnabled: function(enabled) {
     const self = this;
     self.enabled = enabled;
-    if (self.enabled) {
+    var disabled = !self.enabled || self.checkedClear();
+    self.formField.disable(disabled);
+    self.element.css('opacity', disabled ? 0.5 : 1);
+  },
+
+  updateEnabled: function(enabled, mode) {
+    const self = this;
+    if (enabled) {
       self.element.show();
+      self._setEnabled(true);
+    } else if (mode === 'disabled') {
+      self.element.show();
+      self._setEnabled(false);
     } else {
       self.element.hide();
+    }
+  },
+
+  _resolveLabel: function(questionFields) {
+    const self = this;
+    var ui = resolveUI(self.question.ui, questionFields || []);
+    var itemLabel = ui && ui.item && ui.item.label;
+    var subLabel = ui && ui.sub_label;
+    var text = itemLabel
+      ? getLocalizedText(itemLabel)
+      : subLabel
+        ? getLocalizedText(subLabel)
+        : (self.question.title ? getLocalizedText(self.question.title) : self.question.label);
+    self._labelElement.text(text);
+    self._labelElement.css('font-weight', subLabel ? 'normal' : '');
+  },
+
+  refresh: function(questionFields) {
+    this.resolvedUI = resolveUI(this.question.ui, questionFields);
+    this._resolveLabel(questionFields);
+    var marker = this.resolvedUI && this.resolvedUI.item && this.resolvedUI.item.marker;
+    if (marker === 'circle') {
+      this._circle.show();
+    } else {
+      this._circle.hide();
+    }
+    if (!this.inGroup && this.hasValidValue()) {
+      this.checkMark.show();
+    } else {
+      this.checkMark.hide();
     }
   },
 });
@@ -383,18 +754,22 @@ function createFormField(question, options, value) {
   } else if (question.format === 'date') {
     formField = new DatePickerFormField(question, options);
   } else if (question.format === 'singleselect') {
-    formField = new SingleSelectFormField(question, options);
+    var resolvedQUI = resolveUI(question.ui, []);
+    var widget = resolvedQUI && resolvedQUI.item && resolvedQUI.item.widget;
+    if (widget === 'radio') {
+      formField = new RadioFormField(question, options);
+    } else {
+      formField = new SingleSelectFormField(question, options);
+    }
   } else {
     console.warn(logPrefix + 'Unknown format: ' + question.format);
     formField = new TextFormField(question, options);
   }
   formField.create();
-  if (value != null && value !== '' || (question.hasOwnProperty('initial_row_addition') && question.initial_row_addition)) {
-    try {
-      formField.setValue(value);
-    } catch (error) {
-      console.error('Cannot set default value for question ' + question.qid + ': ' + error.message, value);
-    }
+  try {
+    formField.setValue(value);
+  } catch (error) {
+    console.error('Cannot set default value for question ' + question.qid + ': ' + error.message, value);
   }
   return formField;
 }
@@ -429,14 +804,18 @@ const TextFormField = oop.extend(FormFieldInterface, {
 
   create: function() {
     const self = this;
+    var ui = resolveUI(self.question.ui, []);
+    var ph = ui && ui.item && ui.item.placeholder;
     self.input = $('<input/>')
-      .addClass('form-control');
+      .addClass('form-control')
+      .css({ 'background-color': INPUT_BG_COLOR, 'border-color': INPUT_BORDER_COLOR });
+    if (ph) self.input.attr('placeholder', getLocalizedText(ph));
     if (self.options.readonly) {
       self.input.attr('readonly', true);
     }
     self.input.on('input', function() {
       // Reset background color when user edits the field
-      self.input.css('background-color', '');
+      self.input.css('background-color', INPUT_BG_COLOR);
     });
     self.input.change(function(event) {
       const value = event.target.value;
@@ -470,6 +849,7 @@ const TextFormField = oop.extend(FormFieldInterface, {
           // Otherwise, just set the value on the current field (but not if undefined)
           self.setValue(value);
         }
+        self.emit('change');
       }
       function getFieldValue() {
         return self.getValue();
@@ -568,14 +948,18 @@ const TextareaFormField = oop.extend(FormFieldInterface, {
 
   create: function() {
     const self = this;
+    var ui = resolveUI(self.question.ui, []);
+    var ph = ui && ui.item && ui.item.placeholder;
     self.input = $('<textarea></textarea>')
-      .addClass('form-control');
+      .addClass('form-control')
+      .css({ 'background-color': INPUT_BG_COLOR, 'border-color': INPUT_BORDER_COLOR });
+    if (ph) self.input.attr('placeholder', getLocalizedText(ph));
     if (self.options.readonly) {
       self.input.attr('readonly', true);
     }
     self.input.on('input', function() {
       // Reset background color when user edits the field
-      self.input.css('background-color', '');
+      self.input.css('background-color', INPUT_BG_COLOR);
     });
     self.input.change(function(event) {
       const value = event.target.value;
@@ -626,16 +1010,20 @@ const DatePickerFormField = oop.extend(FormFieldInterface, {
 
   create: function() {
     const self = this;
+    var ui = resolveUI(self.question.ui, []);
+    var ph = ui && ui.item && ui.item.placeholder;
     self.input = $('<input></input>')
       .addClass('datepicker')
-      .addClass('form-control');
+      .addClass('form-control')
+      .css({ 'background-color': INPUT_BG_COLOR, 'border-color': INPUT_BORDER_COLOR });
+    if (ph) self.input.attr('placeholder', getLocalizedText(ph));
     datepicker.mount(self.input, null);
     if (self.options.readonly) {
       self.input.attr('readonly', true);
     }
     self.input.on('input', function() {
       // Reset background color when user edits the field
-      self.input.css('background-color', '');
+      self.input.css('background-color', INPUT_BG_COLOR);
     });
     self.input.change(function(event) {
       self.emit('change', event.target.value);
@@ -679,7 +1067,8 @@ const SingleSelectFormField = oop.extend(FormFieldInterface, {
   create: function() {
     const self = this;
     self.select = $('<select></select>')
-      .addClass('form-control');
+      .addClass('form-control')
+      .css({ 'background-color': INPUT_BG_COLOR, 'border-color': INPUT_BORDER_COLOR });
     if (self.options.readonly) {
       self.select.attr('readonly', true);
     }
@@ -714,7 +1103,7 @@ const SingleSelectFormField = oop.extend(FormFieldInterface, {
     });
     self.select.on('input change', function() {
       // Reset background color when user edits the field
-      self.select.css('background-color', '');
+      self.select.css('background-color', INPUT_BG_COLOR);
     });
     self.select.change(function(event) {
       self.emit('change', event.target.value);
@@ -760,6 +1149,101 @@ const SingleSelectFormField = oop.extend(FormFieldInterface, {
   disable: function(disabled) {
     const self = this;
     self.select.attr('disabled', disabled);
+  },
+});
+
+const RadioFormField = oop.extend(FormFieldInterface, {
+  constructor: function(question, options) {
+    const self = this;
+    self.question = question;
+    self.options = options || {};
+    self.container = null;
+    self.inputs = [];
+  },
+
+  create: function() {
+    const self = this;
+    self.container = $('<div></div>').css('margin-left', '16px');
+    (self.question.options || []).forEach(function(opt) {
+      if (opt.text && opt.text.startsWith('group:')) {
+        return;
+      }
+      const value = opt.text === undefined ? opt : opt.text;
+      const label = opt.text === undefined ? opt : getLocalizedText(opt.tooltip);
+      const name = 'radio-' + self.question.qid.replace(/:/g, '-');
+      const input = $('<input>')
+        .attr('type', 'radio')
+        .attr('name', name)
+        .attr('value', value)
+        .addClass('metadata-radio-input')
+        .css('accent-color', '#3779b3');
+      if (self.options.readonly) {
+        input.attr('disabled', true);
+      }
+      if (opt.default) {
+        input.prop('checked', true);
+      }
+      const labelElem = $('<label></label>')
+        .addClass('metadata-radio-label')
+        .css({ 'margin-right': '1.5em', 'margin-bottom': 0 })
+        .append(input)
+        .append(' ' + label);
+      self.container.append(labelElem);
+      self.inputs.push(input);
+      input.on('change', function() {
+        self.emit('change', value);
+      });
+    });
+  },
+
+  getValue: function() {
+    const self = this;
+    var value = '';
+    self.inputs.forEach(function(input) {
+      if (input.prop('checked')) {
+        value = input.val();
+      }
+    });
+    return value;
+  },
+
+  getDefaultValue: function() {
+    const self = this;
+    var defaultValue = null;
+    (self.question.options || []).forEach(function(opt) {
+      if (opt.default) {
+        defaultValue = opt.text === undefined ? opt : opt.text;
+      }
+    });
+    return defaultValue;
+  },
+
+  setValue: function(value, isAutofilled) {
+    const self = this;
+    const defaultValue = self.getDefaultValue();
+    if (!value && defaultValue) {
+      value = defaultValue;
+    }
+    self.inputs.forEach(function(input) {
+      input.prop('checked', input.val() === value);
+      if (isAutofilled && input.val() === value) {
+        input.closest('label').css('background-color', AUTOFILLED_BG_COLOR);
+      }
+    });
+  },
+
+  reset: function() {
+    const self = this;
+    self.inputs.forEach(function(input) {
+      input.prop('checked', false);
+    });
+  },
+
+  disable: function(disabled) {
+    const self = this;
+    self.inputs.forEach(function(input) {
+      input.attr('disabled', disabled);
+    });
   },
 });
 
@@ -812,17 +1296,38 @@ const ArrayFormField = oop.extend(FormFieldInterface, {
   _createVerticalEditCell: function(subFormFields) {
     const self = this;
     // Calculate colspan from display_template
-    const columnCount = self.question.display_template.split('|').length + 1; // +1 for button column
+    const columnCount = template.splitCells(self.question.display_template).length + 1; // +1 for button column
     const editCell = $('<td>').attr('colspan', columnCount);
-    const fieldsContainer = $('<div>').css('padding', '10px');
+    const fieldsContainer = $('<div>').css({ padding: '8px', border: '1px solid #eee', 'border-radius': '8px' });
 
     // Add each field with its label in vertical layout
+    var groupContainers = {};
     self.question.properties.forEach(function(prop, index) {
       const fieldWrapper = $('<div>').addClass('form-group');
+      var ui = resolveUI(prop.ui, []);
+      var groupRef = ui && ui.group;
+      var groupDef = groupRef && typeof groupRef === 'object' ? groupRef : null;
+      var groupId = groupDef ? groupDef.id : groupRef;
 
-      // Create label
-      const fieldLabel = $('<label>')
-        .text(prop.title ? getLocalizedText(prop.title) : prop.label);
+      if (groupDef) {
+        var heading = $('<div>')
+          .css('margin-bottom', '4px')
+          .css('margin-top', '10px')
+          .append($('<strong>').css('font-size', '13px').text(getLocalizedText(groupDef.title)));
+        fieldsContainer.append(heading);
+        var content = $('<div>');
+        fieldsContainer.append(content);
+        groupContainers[groupId] = content;
+      }
+
+      // Create label — use sub_label if grouped, otherwise property title
+      var labelText = (ui && ui.sub_label)
+        ? getLocalizedText(ui.sub_label)
+        : (prop.title ? getLocalizedText(prop.title) : prop.label);
+      const fieldLabel = $('<label>').text(labelText);
+      if (ui && ui.sub_label) {
+        fieldLabel.css('font-weight', 'normal');
+      }
       if (prop.required) {
         fieldLabel.append($('<span>')
           .css('color', 'red')
@@ -831,12 +1336,19 @@ const ArrayFormField = oop.extend(FormFieldInterface, {
       }
 
       fieldWrapper.append(fieldLabel);
+      var propWidth = ui && ui.item && ui.item.width;
+      if (propWidth) {
+        var propWidthStyle = { narrow: { 'max-width': '200px' }, half: { 'max-width': '50%', 'min-width': '300px' } }[propWidth];
+        if (propWidthStyle) { subFormFields[index].container.css(propWidthStyle); }
+      }
       fieldWrapper.append(subFormFields[index].container);
-      fieldsContainer.append(fieldWrapper);
+
+      var target = groupId ? groupContainers[groupId] : fieldsContainer;
+      target.append(fieldWrapper);
     });
 
     editCell.append(fieldsContainer);
-    return editCell;
+    return { editCell: editCell, fieldsContainer: fieldsContainer };
   },
 
   addRow: function(value, isAutofilled) {
@@ -873,9 +1385,12 @@ const ArrayFormField = oop.extend(FormFieldInterface, {
     const editTr = $('<tr class="metadata-edit-mode">');
     let editCell = null;
 
+    var fieldsContainer = null;
     if (self.question.display_template) {
       // For display_template mode: use vertical layout
-      editCell = self._createVerticalEditCell(subFormFields);
+      var vertical = self._createVerticalEditCell(subFormFields);
+      editCell = vertical.editCell;
+      fieldsContainer = vertical.fieldsContainer;
       editTr.append(editCell);
     } else {
       // Standard mode: horizontal layout with one field per column
@@ -956,12 +1471,12 @@ const ArrayFormField = oop.extend(FormFieldInterface, {
         displayButtonCell.append(moveButtonsDisplay).append(' ').append(showEditButton).append(' ').append(removeButtonDisplay);
         displayTr.append(displayButtonCell);
 
-        // Add buttons to the edit cell's button container
+        // Add close button inside the fields container
         const editButtonContainer = $('<div>')
           .css('text-align', 'right')
           .css('margin-top', '10px');
         editButtonContainer.append(hideEditButton);
-        editCell.append(editButtonContainer);
+        fieldsContainer.append(editButtonContainer);
 
         // Initialize display row and show appropriate mode
         if (value && Object.keys(value).some(function(key) { return value[key]; })) {
@@ -1144,7 +1659,7 @@ const ArrayFormField = oop.extend(FormFieldInterface, {
     displayTr.find('td:not(:last)').remove();
 
     // Split template by pipe and create cells
-    const templates = self.question.display_template.split('|');
+    const templates = template.splitCells(self.question.display_template);
     templates.forEach(function(template) {
       const displayText = self.evaluateTemplate(template.trim(), subFormFields);
       const td = $('<td>').text(displayText);
@@ -1153,32 +1668,19 @@ const ArrayFormField = oop.extend(FormFieldInterface, {
     });
   },
 
-  evaluateTemplate: function(template, subFormFields) {
-    const self = this;
-    let result = template;
-
-    // Helper function to recursively process fields
-    function processField(field, prefix) {
-      const fieldId = prefix ? prefix + '.' + field.question.id : field.question.id;
-      const value = field.getValue();
-
-      // Replace simple property
-      const regex = new RegExp('{{' + fieldId + '}}', 'g');
-      result = result.replace(regex, value || '');
-
-      // Recursively handle nested fields using getChildFields
-      const childFields = field.getChildFields();
-      childFields.forEach(function(childField) {
-        processField(childField, fieldId);
+  evaluateTemplate: function(tmpl, subFormFields) {
+    var context = {};
+    function collectFields(field, prefix) {
+      var fieldId = prefix ? prefix + '.' + field.question.id : field.question.id;
+      context[fieldId] = field.getValue();
+      field.getChildFields().forEach(function(childField) {
+        collectFields(childField, fieldId);
       });
     }
-
-    // Process all fields
     subFormFields.forEach(function(field) {
-      processField(field, '');
+      collectFields(field, '');
     });
-
-    return result;
+    return template.render(tmpl, context);
   },
 
   getValue: function() {
@@ -1224,11 +1726,20 @@ const ArrayFormField = oop.extend(FormFieldInterface, {
     if(self.question.hasOwnProperty('initial_row_addition') && self.question.initial_row_addition ){
       self.addRow();
     }
+    var resolvedQUI = resolveUI(self.question.ui, []);
+    var initialRows = resolvedQUI && resolvedQUI.item && resolvedQUI.item.initial_rows;
+    if (initialRows) {
+      for (var i = rows.length; i < initialRows; i++) {
+        self.addRow();
+      }
+    }
   },
 
   reset: function() {
     const self = this;
     self.tbody.empty();
+    self.tbody.append(self.emptyLine);
+    self.emptyLine.show();
     self.fields = [];
   },
 
@@ -1361,7 +1872,9 @@ function validateField(question, value, questionFields, options) {
 
 function validatePattern(question, value) {
   if (question.pattern && value && !(new RegExp(question.pattern).test(value))) {
-    throw new Error(_("Please enter the correct value. ") + getLocalizedText(question.help));
+    var resolved = resolveUI(question.ui, []);
+    var hint = question.help || (resolved && resolved.item && resolved.item.placeholder) || '';
+    throw new Error(_("Please enter the correct value. ") + getLocalizedText(hint));
   }
 }
 

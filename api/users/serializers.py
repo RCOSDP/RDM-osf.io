@@ -1,6 +1,7 @@
 import jsonschema
 from django.utils import timezone
 
+from osf.models.mapcore_node_group import MapCoreNodeGroup
 from rest_framework import serializers as ser
 from rest_framework import exceptions
 
@@ -669,3 +670,13 @@ class UserEmailsSerializer(JSONAPISerializer):
 
 class UserNodeSerializer(NodeSerializer):
     filterable_fields = NodeSerializer.filterable_fields | {'current_user_permissions'}
+    mapcore_groups = ser.SerializerMethodField()
+
+    def get_mapcore_groups(self, obj):
+        if isinstance(obj, Node):
+            enabled_mapcore_groups = obj.mapcore_groups_addon_enabled()
+            if not enabled_mapcore_groups:
+                return []
+            node_groups = MapCoreNodeGroup.objects.filter(node=obj, is_deleted=False).select_related('mapcore_group')
+            return [group.mapcore_group._id for group in node_groups]
+        return []

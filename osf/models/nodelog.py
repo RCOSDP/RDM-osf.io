@@ -53,6 +53,13 @@ class NodeLog(ObjectIDMixin, BaseModel):
     CONTRIB_REJECTED = 'contributor_rejected'
     CONTRIB_REORDERED = 'contributors_reordered'
 
+    MAPCORE_GROUP_ADDED = 'mapcore_group_added'
+    MAPCORE_GROUP_REMOVED = 'mapcore_group_removed'
+    MAPCORE_GROUP_PERMISSION_UPDATED = 'mapcore_group_permission_updated'
+    MAPCORE_GROUP_REORDERED = 'mapcore_group_reordered'
+    MADE_MAPCORE_GROUP_VISIBLE = 'made_mapcore_group_visible'
+    MADE_MAPCORE_GROUP_INVISIBLE = 'made_mapcore_group_invisible'
+
     CHECKED_IN = 'checked_in'
     CHECKED_OUT = 'checked_out'
 

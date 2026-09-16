@@ -5,6 +5,9 @@ import logging
 import re
 from future.moves.urllib.parse import urljoin
 import warnings
+from osf.models.mapcore_group import MapCoreGroup
+from osf.models.mapcore_node_group import MapCoreNodeGroup
+from osf.models.mapcore_user_group import MapCoreUserGroup
 from rest_framework import status as http_status
 
 import bson
@@ -145,7 +148,7 @@ class AbstractNodeQuerySet(GuidMixinQuerySet):
                     row.append(root.pk)
                 return AbstractNode.objects.filter(id__in=row)
 
-    def can_view(self, user=None, private_link=None):
+    def can_view(self, user=None, private_link=None, include_mapcore_groups=False):
         qs = self.filter(is_public=True)
 
         if private_link is not None:
@@ -178,6 +181,30 @@ class AbstractNodeQuerySet(GuidMixinQuerySet):
                     ) SELECT * FROM implicit_read
                 )
             """], params=(user.id, ))
+            # Mapcore group permissions
+            if include_mapcore_groups:
+                qs |= self.extra(where=["""
+                    "osf_abstractnode".id in (
+                        WITH RECURSIVE implicit_read AS (
+                            SELECT distinct  N.id as node_id
+                            FROM osf_abstractnode as N, auth_permission as P, osf_nodegroupobjectpermission as G, osf_mapcore_user_group as OMUG, osf_mapcore_group as OMG, osf_mapcore_node_group as OMNG
+                            WHERE P.codename = 'admin_node'
+                            AND G.permission_id = P.id
+                            AND OMUG.user_id  = %s
+                            AND OMNG.mapcore_group_id = OMUG.mapcore_group_id
+                            AND G.group_id = OMNG.group_id
+                            AND G.content_object_id = N.id
+                            AND N.type = 'osf.node'
+                            AND OMNG.is_deleted = false
+                        UNION ALL
+                            SELECT "osf_noderelation"."child_id"
+                            FROM "implicit_read"
+                            LEFT JOIN "osf_noderelation" ON "osf_noderelation"."parent_id" = "implicit_read"."node_id"
+                            WHERE "osf_noderelation"."is_node_link" IS FALSE
+                        ) SELECT * FROM implicit_read
+                    )
+                """], params=(user.id, ))
+
         return qs.filter(is_deleted=False)
 
 
@@ -199,7 +226,7 @@ class AbstractNodeManager(TypedModelManager, IncludeManager):
     def can_view(self, user=None, private_link=None):
         return self.get_queryset().can_view(user=user, private_link=private_link)
 
-    def get_nodes_for_user(self, user, permission=READ_NODE, base_queryset=None, include_public=False):
+    def get_nodes_for_user(self, user, permission=READ_NODE, base_queryset=None, include_public=False, include_mapcore_groups=False):
         """
         Return all AbstractNodes that the user has permissions to - either through contributorship or group membership.
         - similar to guardian.get_objects_for_user(self, READ_NODE, AbstractNode, with_superuser=False).  If include_public is True,
@@ -223,6 +250,11 @@ class AbstractNodeManager(TypedModelManager, IncludeManager):
         user_groups = OSFUserGroup.objects.filter(osfuser_id=user.id if user else None).values_list('group_id', flat=True)
         node_groups = NodeGroupObjectPermission.objects.filter(group_id__in=user_groups, permission_id=permission_object_id).values_list('content_object_id', flat=True)
         query = Q(id__in=node_groups)
+        if include_mapcore_groups and user and not isinstance(user, AnonymousUser):
+            mapcore_user_groups = MapCoreUserGroup.objects.filter(user=user, is_deleted=False).values_list('mapcore_group_id', flat=True)
+            node_mapcore_groups = MapCoreNodeGroup.objects.filter(mapcore_group_id__in=mapcore_user_groups, is_deleted=False,
+                                                                   node__addons_groups_node_settings__is_deleted=False).values_list('node_id', flat=True)
+            query = Q(id__in=node_groups) | Q(id__in=node_mapcore_groups)
         if include_public:
             query |= Q(is_public=True)
         return nodes.filter(query)
@@ -2520,6 +2552,12 @@ class Node(AbstractNode):
         """Return node's GUID if it exists, otherwise return None."""
         guid = self.guids.first()
         return guid._id if guid else guid
+
+    @property
+    def mapcore_groups(self):
+        if not self.has_addon('groups'):
+            return MapCoreGroup.objects.none()
+        return MapCoreGroup.objects.filter(mapcore_group_nodes__node=self, mapcore_group_nodes__is_deleted=False)
 
 def remove_addons(auth, resource_object_list):
     for config in AbstractNode.ADDONS_AVAILABLE:

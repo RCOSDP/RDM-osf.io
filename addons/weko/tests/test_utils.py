@@ -301,7 +301,6 @@ class TestWEKOUtils(OsfTestCase):
     },
     "grdm-file:remarks-ja": null,
     "grdm-file:remarks-en": null,
-    "grdm-file:metadata-access-rights": null,
     "_": {
         "metadata.pubdate": "{{nowdate}}"
     }

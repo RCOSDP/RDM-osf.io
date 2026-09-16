@@ -1,0 +1,11 @@
+{% load i18n %}
+<!-- Authorization -->
+<div class="addon-settings addon-generic scripted"
+     data-addon-short-name="{{ addon.addon_short_name }}"
+     data-addon-name="{{ addon.addon_full_name }}"
+     data-institution-id="{{ institution.id }}">
+    <h4 class="addon-title">
+      <img class="addon-icon" src="{{ addon.addon_icon_url }}">
+      <span>{{ addon.addon_full_name }}</span>
+    </h4>
+</div>

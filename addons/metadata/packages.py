@@ -19,6 +19,7 @@ from rocrate.model.data_entity import DataEntity
 from rest_framework import status as http_status
 import requests
 import zipfly
+from celery import states
 
 from api.nodes.serializers import NodeSerializer
 from api.base.utils import waterbutler_api_url_for
@@ -1283,11 +1284,26 @@ def to_creators_metadata(users):
     ]
 
 def _to_user_metadata(user):
-    middle_names_en = '' if not user.middle_names else f'{user.middle_names} '
+    affiliation_ja = ''
+    affiliation_en = ''
+    current_jobs = [job for job in user.jobs if job.get('ongoing')]
+    if current_jobs:
+        affiliation_ja = current_jobs[0].get('institution_ja') or ''
+        affiliation_en = current_jobs[0].get('institution') or ''
     return {
         'number': user.erad,
-        'name_ja': f'{user.family_name_ja}{user.middle_names_ja}{user.given_name_ja}',
-        'name_en': f'{user.given_name} {middle_names_en}{user.family_name}',
+        'name-ja': {
+            'last': user.family_name_ja,
+            'middle': user.middle_names_ja,
+            'first': user.given_name_ja,
+        },
+        'name-en': {
+            'last': user.family_name,
+            'middle': user.middle_names,
+            'first': user.given_name,
+        },
+        'affiliation-name-ja': affiliation_ja,
+        'affiliation-name-en': affiliation_en,
     }
 
 def _snake_to_camel(name):
@@ -1509,29 +1525,33 @@ def import_project(self, url, user_id, node_title):
 
 def get_task_result(auth, task_id):
     result = celery_app.AsyncResult(task_id)
+    # AsyncResult.state/infoは参照のたびにバックエンドへ問い合わせるため、
+    # タスクが進行中の間は参照ごとに内容が変わる。判定と取り出しで同じ値を使う。
+    state = result.state
+    task_info = result.info
     error = None
     info = {}
-    if result.failed():
-        logger.info(f'Failed: {result.info}: {type(result.info)}')
-        error = str(result.info)
-    elif result.info is not None and auth.user._id != result.info['user']:
+    if state == states.FAILURE:
+        logger.info(f'Failed: {task_info}: {type(task_info)}')
+        error = str(task_info)
+    elif task_info is not None and auth.user._id != task_info['user']:
         raise HTTPError(http_status.HTTP_403_FORBIDDEN)
-    elif result.info is not None:
-        info.update(result.info)
-        if 'node' in result.info:
-            node = AbstractNode.load(result.info['node'])
+    elif task_info is not None:
+        info.update(task_info)
+        if 'node' in task_info:
+            node = AbstractNode.load(task_info['node'])
             info['node_url'] = node.web_url_for('view_project')
-            if 'file' in result.info:
-                file = result.info['file']['data']
+            if 'file' in task_info:
+                file = task_info['file']['data']
                 path = file['path'].lstrip('/')
                 provider = file['provider']
                 file_url = node.web_url_for('addon_view_or_download_file',
                                             path=path, provider=provider)
                 info['file_url'] = file_url
-            elif 'json' in result.info:
-                info['json'] = result.info['json']
+            elif 'json' in task_info:
+                info['json'] = task_info['json']
     return {
-        'state': result.state,
+        'state': state,
         'info': info,
         'error': error,
     }

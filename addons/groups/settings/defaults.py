@@ -1,0 +1,3 @@
+"""
+Groups addon default settings
+"""

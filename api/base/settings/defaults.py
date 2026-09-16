@@ -128,6 +128,7 @@ INSTALLED_APPS = (
     'addons.metadata',
     'addons.workflow',
     'addons.onlyoffice',
+    'addons.groups',
 )
 
 # local development using https
@@ -505,3 +506,5 @@ WARNING_THRESHOLD = 0.9
 BASE_FOR_METRIC_PREFIX = 1000
 SIZE_UNIT_GB = BASE_FOR_METRIC_PREFIX ** 3
 NII_STORAGE_REGION_ID = 1
+
+MAP_GATEWAY_ISMEMBEROF_PREFIX = osf_settings.MAP_GATEWAY_ISMEMBEROF_PREFIX

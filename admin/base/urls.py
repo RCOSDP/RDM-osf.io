@@ -55,6 +55,7 @@ urlpatterns = [
                 include('admin.user_identification_information_admin.urls', namespace='user_identification_information_admin')),
             url(r'^project_limit_number/', include('admin.project_limit_number.urls', namespace='project_limit_number')),
             url(r'^rdm_workflow/', include('admin.rdm_workflow.urls', namespace='rdm_workflow')),
+            url(r'^loa/', include('admin.loa.urls', namespace='loa')),
         ]),
     ),
 ]
