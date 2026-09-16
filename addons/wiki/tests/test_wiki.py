@@ -3382,11 +3382,20 @@ class TestWikiPageSort(OsfTestCase):
         self.assertEqual(result_wiki_child_page3, {'parent_id': wiki_child_page2_id, 'sort_order': 1})
 
 @pytest.mark.enable_bookmark_creation
-@mock.patch('addons.wiki.settings.Y_WEBSOCKET_SECRET', 'test-y-websocket-secret')
 class TestYWebsocketToken(OsfTestCase):
 
     def setUp(self):
         super(TestYWebsocketToken, self).setUp()
+        # Class-level @mock.patch is unreliable under pytest here; patch in setUp
+        # so generate_y_websocket_token sees a non-empty secret during the request.
+        self._y_websocket_secret = 'test-y-websocket-secret'
+        self._secret_patcher = mock.patch(
+            'addons.wiki.settings.Y_WEBSOCKET_SECRET',
+            self._y_websocket_secret,
+        )
+        self._secret_patcher.start()
+        self.addCleanup(self._secret_patcher.stop)
+
         self.user = AuthUserFactory()
         self.project = ProjectFactory(is_public=True, creator=self.user)
         self.wname = 'foo.bar'
@@ -3413,7 +3422,7 @@ class TestYWebsocketToken(OsfTestCase):
 
         payload = jwt.decode(
             token,
-            wiki_settings.Y_WEBSOCKET_SECRET,
+            self._y_websocket_secret,
             algorithms=[wiki_settings.Y_WEBSOCKET_JWT_ALGORITHM],
         )
         assert_equal(payload['doc_id'], sharejs_uuid)
