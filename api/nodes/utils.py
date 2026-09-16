@@ -12,6 +12,7 @@ from addons.osfstorage.models import OsfStorageFile, OsfStorageFolder, NodeSetti
 from addons.wiki.models import NodeSettings as WikiNodeSettings
 from osf.models import AbstractNode, Preprint, Guid, NodeRelation, Contributor
 from osf.models.node import NodeGroupObjectPermission
+from osf.models.mapcore_node_group import MapCoreNodeGroup
 from osf.utils import permissions
 
 from api.base.exceptions import ServiceUnavailableError
@@ -98,7 +99,23 @@ class NodeOptimizationMixin(object):
         read_permission = Permission.objects.get(codename=permissions.READ_NODE)
         contrib = Contributor.objects.filter(user=auth.user, node=OuterRef('pk'))
         user_group = OSFUserGroup.objects.filter(osfuser_id=auth.user.id if auth.user else None, group_id=OuterRef('group_id'))
-        node_group = NodeGroupObjectPermission.objects.annotate(user_group=Subquery(user_group.values_list('group_id')[:1])).filter(user_group__isnull=False, content_object_id=OuterRef('pk'))
+        # mAP core group membership grants node permissions through the node's
+        # permission auth groups without an osfuser_groups row, so it needs its
+        # own membership path here (mirrors AbstractNode.get_permissions).
+        mapcore_node_group = MapCoreNodeGroup.objects.filter(
+            is_deleted=False,
+            group_id=OuterRef('group_id'),
+            mapcore_group__mapcore_user_groups__user_id=auth.user.id if auth.user else None,
+            mapcore_group__mapcore_user_groups__is_deleted=False,
+            node__addons_groups_node_settings__is_deleted=False,
+        )
+        node_group = NodeGroupObjectPermission.objects.annotate(
+            user_group=Subquery(user_group.values_list('group_id')[:1]),
+            mapcore_member=Exists(mapcore_node_group),
+        ).filter(
+            Q(user_group__isnull=False) | Q(mapcore_member=True),
+            content_object_id=OuterRef('pk'),
+        )
         # user_is_contrib means user is a traditional contributor, while has_read/write/admin are permissions the user has either through group membership or contributorship
         return queryset.prefetch_related('root').prefetch_related('subjects').annotate(
             user_is_contrib=Exists(contrib),

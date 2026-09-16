@@ -317,6 +317,8 @@ def get_full_list(uid, pid, node):
     return provider_list
 
 def check_file_timestamp(uid, node, data, verify_external_only=False):
+    if not settings.ENABLE_TIMESTAMP:
+        return None
     user = OSFUser.objects.get(id=uid)
     file_node = BaseFileNode.objects.get(_id=data['file_id'])
     if not userkey_generation_check(user._id):
@@ -525,6 +527,8 @@ def cancel_celery_task(node):
     return result
 
 def add_token(uid, node, data):
+    if not settings.ENABLE_TIMESTAMP:
+        return None
     try:
         user = OSFUser.objects.get(id=uid)
         file_node = BaseFileNode.objects.get(_id=data['file_id'])
