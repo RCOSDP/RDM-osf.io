@@ -160,6 +160,7 @@ def get_globals():
         'status': status.pop_status_messages(),
         'prev_status': status.pop_previous_status_messages(),
         'domain': settings.DOMAIN,
+        'oasys_url': settings.OASYS_URL,
         'api_domain': settings.API_DOMAIN,
         'disk_saving_mode': settings.DISK_SAVING_MODE,
         'language': language,
@@ -175,9 +176,11 @@ def get_globals():
         'webpack_asset': paths.webpack_asset,
         'osf_url': settings.INTERNAL_DOMAIN,
         'waterbutler_url': settings.WATERBUTLER_URL,
+        'cas_server_url': settings.CAS_SERVER_URL,  # R-2022-48
         'login_url': cas.get_login_url(request_login_url),
         'sign_up_url': util.web_url_for('auth_register', _absolute=True, next=request_login_url),
         'reauth_url': util.web_url_for('auth_logout', redirect_url=request.url, reauth=True),
+        'mfa_url': settings.CAS_SERVER_URL + '/logout?service=' + settings.OSF_MFA_URL,  # R-2023-55
         'profile_url': cas.get_profile_url(),
         'enable_institutions': settings.ENABLE_INSTITUTIONS,
         'keen': {

@@ -14,6 +14,10 @@ logger = logging.getLogger(__name__)
 class FileMetadataMigrator:
     """Migrate file metadata across FileMetadata, Registration, and DraftRegistration.
 
+    Runs inside data migrations: models are resolved through the historical
+    ``apps`` registry and saved without custom save()/signals, so later schema
+    changes and search indexing cannot break the migration.
+
     transform_item: fn(item_data: dict) -> bool
         Mutates item_data in-place. Returns True if changed.
     transform_filemetadata_entry: fn(entry: dict) -> bool
@@ -21,7 +25,8 @@ class FileMetadataMigrator:
         Used for Registration/DraftRegistration where filemetadata is nested.
     """
 
-    def __init__(self, schema_name, transform_item, transform_filemetadata_entry=None):
+    def __init__(self, apps, schema_name, transform_item, transform_filemetadata_entry=None):
+        self.apps = apps
         self.schema_name = schema_name
         self.transform_item = transform_item
         self.transform_filemetadata_entry = transform_filemetadata_entry or self._default_transform_entry
@@ -31,6 +36,7 @@ class FileMetadataMigrator:
         return False
 
     def _get_schema_ids(self):
+        RegistrationSchema = self.apps.get_model('osf', 'RegistrationSchema')
         schemas = list(RegistrationSchema.objects.filter(name=self.schema_name))
         if not schemas:
             logger.warning(f'Skipped: No schema found for "{self.schema_name}"')
@@ -46,12 +52,12 @@ class FileMetadataMigrator:
         self._migrate_draft_registration(schema_ids)
 
     def _migrate_filemetadata(self, schema_ids):
-        from addons.metadata.models import FileMetadata
+        FileMetadata = self.apps.get_model('addons_metadata', 'FileMetadata')
         for fm in FileMetadata.objects.filter(metadata__isnull=False, deleted__isnull=True):
             try:
                 metadata = json.loads(fm.metadata)
             except json.JSONDecodeError:
-                logger.warning(f'Skipped: bad JSON for FileMetadata {fm._id}', exc_info=True)
+                logger.warning(f'Skipped: bad JSON for FileMetadata {fm.id}', exc_info=True)
                 continue
             dirty = False
             for item in metadata.get('items', []):
@@ -62,10 +68,10 @@ class FileMetadataMigrator:
             if dirty:
                 fm.metadata = json.dumps(metadata, ensure_ascii=False)
                 fm.save()
-                logger.info(f'Migrated FileMetadata {fm._id} path="{fm.path}"')
+                logger.info(f'Migrated FileMetadata {fm.id} path="{fm.path}"')
 
     def _migrate_registration(self, schema_ids):
-        from osf.models import Registration
+        Registration = self.apps.get_model('osf', 'Registration')
         registrations = Registration.objects.filter(
             registered_meta__isnull=False,
             registered_schema__name=self.schema_name,
@@ -76,7 +82,7 @@ class FileMetadataMigrator:
                 try:
                     filemetadatas = json.loads(meta_value.get('grdm-files', {}).get('value', '[]'))
                 except json.JSONDecodeError:
-                    logger.warning(f'Skipped: bad JSON for Registration {reg._id}', exc_info=True)
+                    logger.warning(f'Skipped: bad JSON for Registration {reg.id}', exc_info=True)
                     continue
                 entry_dirty = False
                 for entry in filemetadatas:
@@ -88,10 +94,10 @@ class FileMetadataMigrator:
                     dirty = True
             if dirty:
                 reg.save()
-                logger.info(f'Migrated Registration {reg._id}')
+                logger.info(f'Migrated Registration {reg.id}')
 
     def _migrate_draft_registration(self, schema_ids):
-        from osf.models import DraftRegistration
+        DraftRegistration = self.apps.get_model('osf', 'DraftRegistration')
         drafts = DraftRegistration.objects.filter(
             registration_metadata__isnull=False,
             registration_schema__name=self.schema_name,

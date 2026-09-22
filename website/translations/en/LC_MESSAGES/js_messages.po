@@ -9289,6 +9289,9 @@ msgstr ""
 msgid "The Integrated Admin added ${contributors} as contributor(s) to ${node}"
 msgstr ""
 
+msgid "Not enough quota to upload. The total size of all files is %1$s."
+msgstr ""
+
 msgid "${user} added group ${mapcore_groups} to ${node}"
 msgstr ""
 

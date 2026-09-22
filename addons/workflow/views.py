@@ -246,15 +246,14 @@ def _get_engine_or_404(engine_id: str, user) -> WorkflowEngine:
 
     has_institution_access = _user_has_engine_admin_access(user, engine)
     if not has_institution_access:
-        accessible_nodes = AbstractNode.objects.filter(_contributors=user, is_deleted=False)
+        accessible_nodes = AbstractNode.objects.get_nodes_for_user(user, include_mapcore_groups=True)
         has_template_access = WorkflowTemplate.objects.filter(
             node__in=accessible_nodes,
             definition__engine=engine,
         ).exists()
         if not has_template_access:
             has_template_access = WorkflowActivation.objects.filter(
-                node___contributors=user,
-                node__is_deleted=False,
+                node__in=accessible_nodes,
                 template__definition__engine=engine,
             ).exists()
 
@@ -293,12 +292,11 @@ def _get_template_or_404(template_id: str, user) -> WorkflowTemplate:
             data={'message': 'Workflow template not found.'},
         )
 
-    has_direct_access = template.node.contributors.filter(id=user.id).exists()
+    has_direct_access = template.node.is_contributor_or_group_member(user)
     if not has_direct_access:
         has_activation_access = WorkflowActivation.objects.filter(
             template=template,
-            node___contributors=user,
-            node__is_deleted=False,
+            node__in=AbstractNode.objects.get_nodes_for_user(user, include_mapcore_groups=True),
         ).exists()
         if not has_activation_access and not _user_can_access_template_via_visibility(user, template):
             raise HTTPError(

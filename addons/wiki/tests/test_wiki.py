@@ -3340,6 +3340,31 @@ class TestWikiPageSort(OsfTestCase):
         self.assertEqual(result_wiki_child_page2, {'parent_id': wiki_page2_id, 'sort_order': 1})
         self.assertEqual(result_wiki_child_page3, {'parent_id': wiki_child_page2_id, 'sort_order': 1})
 
+    def _wiki_sort_payload(self):
+        return {
+            'sortedData': [
+                {'name': 'wiki page1', 'id': self.guid1, 'sortOrder': 1, 'children': [], 'fold': False},
+                {'name': 'wiki page2', 'id': self.guid2, 'sortOrder': 2, 'children': [
+                    {'name': 'wiki child page1', 'id': self.child_guid1, 'sortOrder': 1, 'children': [], 'fold': False},
+                    {'name': 'wiki child page2', 'id': self.child_guid2, 'sortOrder': 2, 'children': [
+                        {'name': 'wiki child page3', 'id': self.child_guid3, 'sortOrder': 1, 'children': [], 'fold': False}
+                    ], 'fold': False}
+                ], 'fold': False}
+            ]
+        }
+
+    def test_project_update_wiki_page_sort_requires_login(self):
+        url = self.project.api_url_for('project_update_wiki_page_sort')
+        res = self.app.post_json(url, self._wiki_sort_payload(), expect_errors=True)
+        assert_equal(res.status_code, http_status.HTTP_401_UNAUTHORIZED)
+
+    def test_project_update_wiki_page_sort_requires_write_permission(self):
+        read_user = AuthUserFactory()
+        self.project.add_contributor(read_user, permissions=READ, auth=Auth(self.user))
+        url = self.project.api_url_for('project_update_wiki_page_sort')
+        res = self.app.post_json(url, self._wiki_sort_payload(), auth=read_user.auth, expect_errors=True)
+        assert_equal(res.status_code, http_status.HTTP_403_FORBIDDEN)
+
     def test_project_update_wiki_page_sort(self):
         url = self.project.api_url_for('project_update_wiki_page_sort')
         res = self.app.post_json(url, { 'sortedData': [{'name': 'wiki page1', 'id': self.guid1, 'sortOrder': 1, 'children': [], 'fold': False}, {'name': 'wiki page2', 'id': self.guid2, 'sortOrder': 2, 'children': [{'name': 'wiki child page1', 'id': self.child_guid1, 'sortOrder': 1, 'children': [], 'fold': False}, {'name': 'wiki child page2', 'id': self.child_guid2, 'sortOrder': 2, 'children': [{'name': 'wiki child page3', 'id': self.child_guid3, 'sortOrder': 1, 'children': [], 'fold': False}], 'fold': False}], 'fold': False}]}, auth=self.user.auth)
