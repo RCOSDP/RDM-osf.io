@@ -791,7 +791,7 @@ class IndexView(RdmPermissionMixin, UserPassesTestMixin, TemplateView):
 
     def find_bookmark_collection(self, user):
         collection = apps.get_model('osf.Collection')
-        return collection.objects.get(creator=user, is_deleted=False, is_bookmark_collection=True)
+        return collection.objects.get(creator=user, deleted__isnull=True, is_bookmark_collection=True)
 
     def get(self, request, *args, **kwargs):
         user = self.request.user

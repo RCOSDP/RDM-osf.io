@@ -7,6 +7,7 @@ from django.core.exceptions import PermissionDenied
 from tests.base import AdminTestCase
 from osf_tests.factories import (
     AuthUserFactory,
+    BookmarkCollectionFactory,
     InstitutionFactory,
     ProjectFactory
 )
@@ -568,9 +569,6 @@ class TestIndexViewPermission(AdminTestCase):
             views.IndexView.as_view()(request)
 
     def test_allowed_for_super_admin(self):
-        # Only test_func (permission check) is exercised here, not the full
-        # get() flow — IndexView.find_bookmark_collection is currently broken
-        # and fixing it is out of scope for this change.
         request = RequestFactory().get('/fake_path')
         request.user = self.superuser
         view = views.IndexView()
@@ -578,11 +576,16 @@ class TestIndexViewPermission(AdminTestCase):
         nt.assert_true(view.test_func())
 
     def test_allowed_for_institution_admin(self):
-        # Only test_func (permission check) is exercised here, not the full
-        # get() flow — IndexView.find_bookmark_collection is currently broken
-        # and fixing it is out of scope for this change.
         request = RequestFactory().get('/fake_path')
         request.user = self.institution_admin
         view = views.IndexView()
         view.request = request
         nt.assert_true(view.test_func())
+
+    def test_find_bookmark_collection(self):
+        """Collection has no 'is_deleted' field; filtering on it raised FieldError."""
+        # conftest mocks out new_bookmark_collection for speed, so the bookmark
+        # collection normally created with the user has to be added here.
+        bookmark_collection = BookmarkCollectionFactory(creator=self.superuser)
+        view = views.IndexView()
+        nt.assert_equal(view.find_bookmark_collection(self.superuser), bookmark_collection)
