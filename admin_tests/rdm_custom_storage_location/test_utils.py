@@ -19,18 +19,24 @@ from admin.rdm_custom_storage_location.utils import (
     get_ociinstitutions_info,
     get_nextcloudinstitutions_info,
     get_dropboxbusiness_info,
-    get_institutional_storage_information
+    get_institutional_storage_information,
+    is_institution_using_nii_storage,
+    upsert_user_quota_for_institution,
 )
 from mock import patch, MagicMock
 from osf_tests.factories import (
     InstitutionFactory,
     ProjectFactory,
     RegionFactory,
+    UserFactory,
     bulkmount_waterbutler_settings,
     addon_waterbutler_settings,
     AuthUserFactory
 )
 from tests.base import AdminTestCase
+from api.base import settings as api_settings
+from osf.models import UserQuota
+from osf.models.institution_default_max_quota import InstitutionDefaultMaxQuota
 from rest_framework import status as http_status
 
 
@@ -438,3 +444,292 @@ class TestStorageInformationUtils(AdminTestCase):
         )
 
         nt.assert_equal(result, {})
+
+
+@pytest.mark.feature_202210
+class TestIsInstitutionUsingNiiStorage(AdminTestCase):
+
+    def setUp(self):
+        super(TestIsInstitutionUsingNiiStorage, self).setUp()
+        self.institution = InstitutionFactory()
+
+    def test_returns_true_when_no_region_configured(self):
+        """Return True when institution has no region (no storage configured yet)."""
+        result = is_institution_using_nii_storage(self.institution)
+        nt.assert_true(result)
+
+    def test_returns_true_when_region_is_nii_storage(self):
+        """Return True when institution's region is NII_STORAGE type."""
+        from addons.osfstorage.models import Region
+        region = RegionFactory(_id=self.institution._id)
+        region.waterbutler_settings['storage']['type'] = Region.NII_STORAGE
+        region.save()
+
+        result = is_institution_using_nii_storage(self.institution)
+        nt.assert_true(result)
+
+    def test_returns_false_when_region_is_custom_storage(self):
+        """Return False when institution's region is custom (non-NII) storage."""
+        from addons.osfstorage.models import Region
+        region = RegionFactory(_id=self.institution._id)
+        region.waterbutler_settings['storage']['type'] = Region.INSTITUTIONS
+        region.save()
+
+        result = is_institution_using_nii_storage(self.institution)
+        nt.assert_false(result)
+
+
+@pytest.mark.feature_202210
+class TestUpsertUserQuotaForInstitution(AdminTestCase):
+
+    def setUp(self):
+        super(TestUpsertUserQuotaForInstitution, self).setUp()
+        self.institution = InstitutionFactory()
+        self.user = UserFactory()
+        self.user.affiliated_institutions.add(self.institution)
+        self.user.save()
+
+    def test_nii_to_custom_creates_custom_storage_quota_with_default_max(self):
+        """NII → custom storage: upsert CUSTOM_STORAGE UserQuota with DEFAULT_MAX_QUOTA."""
+        result = upsert_user_quota_for_institution(
+            self.institution, provider_short_name='s3', old_is_nii=True
+        )
+        nt.assert_is_none(result)
+
+        user_quota = UserQuota.objects.get(
+            user=self.user, storage_type=UserQuota.CUSTOM_STORAGE
+        )
+        nt.assert_equal(user_quota.max_quota, api_settings.DEFAULT_MAX_QUOTA)
+
+    def test_nii_to_custom_uses_institution_default_max_quota(self):
+        """NII → custom storage: upsert CUSTOM_STORAGE UserQuota with InstitutionDefaultMaxQuota value."""
+        InstitutionDefaultMaxQuota.objects.update_or_create(
+            institution_id=self.institution.id,
+            defaults={'default_max_quota': 500}
+        )
+
+        upsert_user_quota_for_institution(
+            self.institution, provider_short_name='s3', old_is_nii=True
+        )
+
+        user_quota = UserQuota.objects.get(
+            user=self.user, storage_type=UserQuota.CUSTOM_STORAGE
+        )
+        nt.assert_equal(user_quota.max_quota, 500)
+
+    def test_nii_to_custom_updates_existing_quota(self):
+        """NII → custom storage: update max_quota when UserQuota already exists."""
+        UserQuota.objects.create(
+            user=self.user,
+            storage_type=UserQuota.CUSTOM_STORAGE,
+            max_quota=100,
+            used=50,
+        )
+        InstitutionDefaultMaxQuota.objects.update_or_create(
+            institution_id=self.institution.id,
+            defaults={'default_max_quota': 300}
+        )
+
+        upsert_user_quota_for_institution(
+            self.institution, provider_short_name='s3', old_is_nii=True
+        )
+
+        user_quota = UserQuota.objects.get(
+            user=self.user, storage_type=UserQuota.CUSTOM_STORAGE
+        )
+        nt.assert_equal(user_quota.max_quota, 300)
+        nt.assert_equal(user_quota.used, 50)
+
+    def test_custom_to_nii_creates_quota_with_default_max(self):
+        """Custom → NII storage: upsert UserQuota using get_user_quota_type_for_nii_storage."""
+        from addons.osfstorage.models import Region
+        region = RegionFactory(_id=self.institution._id)
+        region.waterbutler_settings['storage']['type'] = Region.NII_STORAGE
+        region.save()
+
+        upsert_user_quota_for_institution(
+            self.institution, provider_short_name='osfstorage', old_is_nii=False
+        )
+
+        user_quota = UserQuota.objects.get(
+            user=self.user, storage_type=UserQuota.CUSTOM_STORAGE
+        )
+        nt.assert_equal(user_quota.max_quota, api_settings.DEFAULT_MAX_QUOTA)
+
+    def test_custom_to_nii_resets_existing_quota_to_default(self):
+        """Custom → NII storage: existing CUSTOM_STORAGE quota is overwritten with DEFAULT_MAX_QUOTA."""
+        region = RegionFactory(_id=self.institution._id)
+        region.waterbutler_settings['storage']['type'] = Region.NII_STORAGE
+        region.save()
+
+        UserQuota.objects.create(
+            user=self.user,
+            storage_type=UserQuota.CUSTOM_STORAGE,
+            max_quota=500,
+            used=30,
+        )
+
+        upsert_user_quota_for_institution(
+            self.institution, provider_short_name='osfstorage', old_is_nii=False
+        )
+
+        user_quota = UserQuota.objects.get(user=self.user, storage_type=UserQuota.CUSTOM_STORAGE)
+        nt.assert_equal(user_quota.max_quota, api_settings.DEFAULT_MAX_QUOTA)
+        nt.assert_equal(user_quota.used, 30)
+
+    def test_no_change_when_already_nii_to_nii(self):
+        """NII re-save (2nd+ time): existing CUSTOM_STORAGE quota must NOT be overwritten."""
+        region = RegionFactory(_id=self.institution._id)
+        region.waterbutler_settings['storage']['type'] = Region.NII_STORAGE
+        region.save()
+
+        UserQuota.objects.create(
+            user=self.user,
+            storage_type=UserQuota.CUSTOM_STORAGE,
+            max_quota=500,
+        )
+
+        upsert_user_quota_for_institution(
+            self.institution,
+            provider_short_name='osfstorage',
+            old_is_nii=True,
+            old_quota_type=UserQuota.CUSTOM_STORAGE,
+        )
+
+        user_quota = UserQuota.objects.get(user=self.user, storage_type=UserQuota.CUSTOM_STORAGE)
+        nt.assert_equal(user_quota.max_quota, 500)
+
+    def test_no_change_when_custom_to_custom(self):
+        """No quota upsert when switching custom → custom (old_is_nii=False)."""
+        upsert_user_quota_for_institution(
+            self.institution, provider_short_name='s3', old_is_nii=False
+        )
+
+        nt.assert_false(UserQuota.objects.filter(user=self.user).exists())
+
+    def test_nii_quota_type_changed_preserves_existing_user_quota(self):
+        """NII quota type changed (no-region → NII-region): existing quota of each user is preserved."""
+        from addons.osfstorage.models import Region
+        region = RegionFactory(_id=self.institution._id)
+        region.waterbutler_settings['storage']['type'] = Region.NII_STORAGE
+        region.save()
+
+        UserQuota.objects.create(
+            user=self.user,
+            storage_type=UserQuota.NII_STORAGE,
+            max_quota=200,
+        )
+
+        upsert_user_quota_for_institution(
+            self.institution,
+            provider_short_name='osfstorage',
+            old_is_nii=True,
+            old_quota_type=UserQuota.NII_STORAGE,
+        )
+
+        # new_quota_type = CUSTOM_STORAGE (institution now has NII region)
+        user_quota = UserQuota.objects.get(user=self.user, storage_type=UserQuota.CUSTOM_STORAGE)
+        nt.assert_equal(user_quota.max_quota, 200)
+
+    def test_nii_quota_type_changed_uses_default_for_users_without_existing_quota(self):
+        """NII quota type changed: users with no existing quota record receive system default."""
+        from addons.osfstorage.models import Region
+        region = RegionFactory(_id=self.institution._id)
+        region.waterbutler_settings['storage']['type'] = Region.NII_STORAGE
+        region.save()
+
+        # No existing UserQuota for user
+        upsert_user_quota_for_institution(
+            self.institution,
+            provider_short_name='osfstorage',
+            old_is_nii=True,
+            old_quota_type=UserQuota.NII_STORAGE,
+        )
+
+        user_quota = UserQuota.objects.get(user=self.user, storage_type=UserQuota.CUSTOM_STORAGE)
+        nt.assert_equal(user_quota.max_quota, api_settings.DEFAULT_MAX_QUOTA)
+
+    def test_no_change_when_old_and_new_quota_type_are_same(self):
+        """No quota upsert when old_quota_type equals new_quota_type (NII quota type unchanged)."""
+        # No region → new_quota_type = NII_STORAGE, old_quota_type = NII_STORAGE → same → return
+        upsert_user_quota_for_institution(
+            self.institution,
+            provider_short_name='osfstorage',
+            old_is_nii=True,
+            old_quota_type=UserQuota.NII_STORAGE,
+        )
+
+        nt.assert_false(UserQuota.objects.filter(user=self.user).exists())
+
+    def test_nii_quota_type_changed_mixed_users(self):
+        """B3: user with existing quota gets preserved value; user without quota gets DEFAULT."""
+        region = RegionFactory(_id=self.institution._id)
+        region.waterbutler_settings['storage']['type'] = Region.NII_STORAGE
+        region.save()
+
+        user2 = UserFactory()
+        user2.affiliated_institutions.add(self.institution)
+        user2.save()
+
+        UserQuota.objects.create(
+            user=self.user,
+            storage_type=UserQuota.NII_STORAGE,
+            max_quota=300,
+        )
+        # user2 has no NII_STORAGE quota
+
+        upsert_user_quota_for_institution(
+            self.institution,
+            provider_short_name='osfstorage',
+            old_is_nii=True,
+            old_quota_type=UserQuota.NII_STORAGE,
+        )
+
+        quota1 = UserQuota.objects.get(user=self.user, storage_type=UserQuota.CUSTOM_STORAGE)
+        quota2 = UserQuota.objects.get(user=user2, storage_type=UserQuota.CUSTOM_STORAGE)
+        nt.assert_equal(quota1.max_quota, 300)
+        nt.assert_equal(quota2.max_quota, api_settings.DEFAULT_MAX_QUOTA)
+
+    def test_non_affiliated_user_quota_not_affected(self):
+        """Users not affiliated with the institution must not have their quota created or modified."""
+        non_affiliated_user = UserFactory()
+        # non_affiliated_user is deliberately NOT added to self.institution
+
+        InstitutionDefaultMaxQuota.objects.update_or_create(
+            institution_id=self.institution.id,
+            defaults={'default_max_quota': 400}
+        )
+
+        upsert_user_quota_for_institution(
+            self.institution, provider_short_name='s3', old_is_nii=True
+        )
+
+        nt.assert_false(
+            UserQuota.objects.filter(user=non_affiliated_user).exists()
+        )
+
+    @patch('admin.rdm_custom_storage_location.utils.UserQuota.objects.update_or_create')
+    def test_integrity_error_falls_back_to_filter_update(self, mock_uoc):
+        """On IntegrityError, fall back to filter().update() to set max_quota."""
+        from django.db import IntegrityError
+        InstitutionDefaultMaxQuota.objects.update_or_create(
+            institution_id=self.institution.id,
+            defaults={'default_max_quota': 200}
+        )
+        mock_uoc.side_effect = IntegrityError('duplicate key')
+
+        UserQuota.objects.create(
+            user=self.user,
+            storage_type=UserQuota.CUSTOM_STORAGE,
+            max_quota=50,
+            used=10,
+        )
+
+        upsert_user_quota_for_institution(
+            self.institution, provider_short_name='s3', old_is_nii=True
+        )
+
+        user_quota = UserQuota.objects.get(
+            user=self.user, storage_type=UserQuota.CUSTOM_STORAGE
+        )
+        nt.assert_equal(user_quota.max_quota, 200)

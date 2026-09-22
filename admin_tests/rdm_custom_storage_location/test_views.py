@@ -17,6 +17,8 @@ from osf_tests.factories import (
     RegionFactory,
     InstitutionFactory,
 )
+from rest_framework import status as http_status
+from osf.models import UserQuota
 
 
 class TestInstitutionDefaultStorage(AdminTestCase):
@@ -115,7 +117,19 @@ class TestInstitutionDefaultStorage(AdminTestCase):
         nt.assert_equal(res.context_data['selected_provider_short_name'], 'osfstorage')
 
     def test_get_custom_storage(self, *args, **kwargs):
-        self.us = RegionFactory()
+        custom_settings = {
+            'storage': {
+                'provider': 'glowcloud',
+                'container': 'osf_storage',
+                'use_public': True,
+                'bucket': 'bucket test',
+                'folder': {'encrypt_uploads': 'encrypt upload test'},
+            },
+            'extended': {'base_folder': 'base folder'},
+            'admin_dbmid': 'abc',
+            'team_folder_id': '1',
+        }
+        self.us = RegionFactory(waterbutler_settings=custom_settings)
         self.us._id = self.institution1._id
         self.us.save()
         res = self.view.get(self.request, *args, **kwargs)
@@ -720,3 +734,103 @@ class TestPermissionUserMapView(AdminTestCase):
         response = self.view_get({'provider': 'test'})
         self.assertEquals(response.status_code, 404)
         self.assertEquals(response.content, b'{"message": "Institution does not exist"}')
+
+
+class TestSaveCredentialsViewUpsertUserQuota(AdminTestCase):
+    """Test that SaveCredentialsView calls upsert_user_quota_for_institution after a successful save."""
+
+    def setUp(self):
+        super(TestSaveCredentialsViewUpsertUserQuota, self).setUp()
+        self.user = AuthUserFactory()
+        self.user.is_staff = True
+        self.user.is_superuser = True
+        self.user.save()
+        self.institution = InstitutionFactory()
+        self.institution_id = self.institution.id
+
+    def _post(self, params):
+        from django.test import RequestFactory
+        request = RequestFactory().post(
+            'fake_path',
+            json.dumps(params),
+            content_type='application/json'
+        )
+        request.user = self.user
+        return views.SaveCredentialsView.as_view()(request, institution_id=self.institution_id)
+
+    @mock.patch('admin.rdm_custom_storage_location.views.utils.upsert_user_quota_for_institution')
+    @mock.patch('admin.rdm_custom_storage_location.views.utils.add_node_settings_to_projects')
+    @mock.patch('admin.rdm_custom_storage_location.views.utils.change_allowed_for_institutions')
+    @mock.patch('admin.rdm_custom_storage_location.views.utils.update_nodes_storage')
+    @mock.patch('admin.rdm_custom_storage_location.views.utils.save_osfstorage_credentials')
+    @mock.patch('admin.rdm_custom_storage_location.views.utils.is_institution_using_nii_storage')
+    def test_upsert_user_quota_called_on_success(
+        self, mock_is_nii, mock_save, mock_update_nodes, mock_change_allowed,
+        mock_add_node, mock_upsert
+    ):
+        """upsert_user_quota_for_institution is called with correct args when save succeeds."""
+        mock_is_nii.return_value = False
+        mock_save.return_value = ({'message': 'NII storage was set successfully'}, http_status.HTTP_200_OK)
+
+        self._post({'provider_short_name': 'osfstorage'})
+
+        # old_quota_type is UserQuota.NII_STORAGE because institution has no region configured
+        mock_upsert.assert_called_once_with(self.institution, 'osfstorage', False, UserQuota.NII_STORAGE)
+
+    @mock.patch('admin.rdm_custom_storage_location.views.utils.upsert_user_quota_for_institution')
+    @mock.patch('admin.rdm_custom_storage_location.views.utils.save_osfstorage_credentials')
+    @mock.patch('admin.rdm_custom_storage_location.views.utils.is_institution_using_nii_storage')
+    def test_upsert_user_quota_not_called_on_failure(
+        self, mock_is_nii, mock_save, mock_upsert
+    ):
+        """upsert_user_quota_for_institution is NOT called when save returns error."""
+        mock_is_nii.return_value = True
+        mock_save.return_value = ({'message': 'Some error'}, http_status.HTTP_400_BAD_REQUEST)
+
+        self._post({'provider_short_name': 'osfstorage'})
+
+        mock_upsert.assert_not_called()
+
+    @mock.patch('admin.rdm_custom_storage_location.views.utils.upsert_user_quota_for_institution')
+    @mock.patch('admin.rdm_custom_storage_location.views.utils.add_node_settings_to_projects')
+    @mock.patch('admin.rdm_custom_storage_location.views.utils.change_allowed_for_institutions')
+    @mock.patch('admin.rdm_custom_storage_location.views.utils.update_nodes_storage')
+    @mock.patch('admin.rdm_custom_storage_location.views.utils.save_osfstorage_credentials')
+    @mock.patch('admin.rdm_custom_storage_location.views.utils.is_institution_using_nii_storage')
+    def test_old_is_nii_captured_before_save(
+        self, mock_is_nii, mock_save, mock_update_nodes, mock_change_allowed,
+        mock_add_node, mock_upsert
+    ):
+        """old_is_nii value is captured before credentials are saved and passed to upsert."""
+        mock_is_nii.return_value = True
+        mock_save.return_value = ({'message': 'NII storage was set successfully'}, http_status.HTTP_200_OK)
+
+        self._post({'provider_short_name': 'osfstorage'})
+
+        # old_quota_type is UserQuota.NII_STORAGE because institution has no region configured
+        mock_upsert.assert_called_once_with(self.institution, 'osfstorage', True, UserQuota.NII_STORAGE)
+
+    @mock.patch('admin.rdm_custom_storage_location.views.utils.upsert_user_quota_for_institution')
+    @mock.patch('admin.rdm_custom_storage_location.views.utils.add_node_settings_to_projects')
+    @mock.patch('admin.rdm_custom_storage_location.views.utils.change_allowed_for_institutions')
+    @mock.patch('admin.rdm_custom_storage_location.views.utils.update_nodes_storage')
+    @mock.patch('admin.rdm_custom_storage_location.views.utils.save_osfstorage_credentials')
+    @mock.patch('admin.rdm_custom_storage_location.views.utils.is_institution_using_nii_storage')
+    def test_old_quota_type_captured_before_save(
+        self, mock_is_nii, mock_save, mock_update_nodes, mock_change_allowed,
+        mock_add_node, mock_upsert
+    ):
+        """old_quota_type is captured before credentials are saved and passed to upsert."""
+        from osf_tests.factories import RegionFactory
+        from addons.osfstorage.models import Region as OsfRegion
+        region = RegionFactory(_id=self.institution._id)
+        region.waterbutler_settings['storage']['type'] = OsfRegion.NII_STORAGE
+        region.save()
+
+        mock_is_nii.return_value = True
+        mock_save.return_value = ({'message': 'NII storage was set successfully'}, http_status.HTTP_200_OK)
+
+        self._post({'provider_short_name': 'osfstorage'})
+
+        # Institution has a NII region → old_quota_type = UserQuota.CUSTOM_STORAGE
+        mock_upsert.assert_called_once_with(self.institution, 'osfstorage', True, UserQuota.CUSTOM_STORAGE)
