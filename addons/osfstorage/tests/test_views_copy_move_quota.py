@@ -325,6 +325,58 @@ class TestCopyHookFolderQuota(StorageTestCase):
 
     @mock.patch('addons.osfstorage.views.update_quota')
     @mock.patch('addons.osfstorage.views.get_project_storage_type', return_value=1)
+    @mock.patch('addons.osfstorage.views.logger')
+    def test_copy_folder_fallback_none_size_logs_warning_and_sets_zero(self, mock_logger, mock_st, mock_uq):
+        """
+        When the source file has no FileInfo
+        AND its latest version has size=None, the clone's FileInfo must be 0
+        and a warning must be logged.
+        """
+        src_folder = self.root_node.append_folder('none_size_folder')
+        v = factories.FileVersionFactory(size=None)
+        f = src_folder.append_file('none_size.txt')
+        f.add_version(v);  f.save()
+        # Intentionally do NOT create a FileInfo for f
+
+        dest_folder = self.root_node.append_folder('dest_none_size')
+        resp = self._copy_folder(src_folder, dest_folder)
+        assert resp.status_code == 201
+
+        cloned = dest_folder.find_child_by_name('none_size_folder')
+        from addons.osfstorage.views import _get_all_descendant_file_ids
+        cloned_ids = _get_all_descendant_file_ids(cloned)
+        for fid in cloned_ids:
+            fi = FileInfo.objects.filter(file_id=fid).first()
+            assert fi is not None
+            assert fi.file_size == 0
+        assert mock_logger.warning.called
+
+    @mock.patch('addons.osfstorage.views.update_quota')
+    @mock.patch('addons.osfstorage.views.get_project_storage_type', return_value=1)
+    @mock.patch('addons.osfstorage.views.logger')
+    def test_copy_folder_fallback_negative_size_logs_warning_and_sets_zero(self, mock_logger, mock_st, mock_uq):
+        """ A negative version size (-1 ="not yet set") must be treated as 0 with a warning """
+        src_folder = self.root_node.append_folder('neg_size_folder')
+        v = factories.FileVersionFactory(size=-1)
+        f = src_folder.append_file('neg_size.txt')
+        f.add_version(v);  f.save()
+        # Intentionally do NOT create a FileInfo for f
+
+        dest_folder = self.root_node.append_folder('dest_neg_size')
+        resp = self._copy_folder(src_folder, dest_folder)
+        assert resp.status_code == 201
+
+        cloned = dest_folder.find_child_by_name('neg_size_folder')
+        from addons.osfstorage.views import _get_all_descendant_file_ids
+        cloned_ids = _get_all_descendant_file_ids(cloned)
+        for fid in cloned_ids:
+            fi = FileInfo.objects.filter(file_id=fid).first()
+            assert fi is not None
+            assert fi.file_size == 0
+        assert mock_logger.warning.called
+
+    @mock.patch('addons.osfstorage.views.update_quota')
+    @mock.patch('addons.osfstorage.views.get_project_storage_type', return_value=1)
     @mock.patch('addons.osfstorage.views._get_all_descendant_file_ids')
     def test_copy_folder_none_copied_from_id_sets_size_zero(self, mock_descendants, mock_st, mock_uq):
         """
@@ -832,6 +884,38 @@ class TestCreateChildQuota(StorageTestCase):
 
         # delta == 0 → update_quota should NOT be called
         assert not mock_uq.called
+
+    @mock.patch('addons.osfstorage.views.update_quota')
+    @mock.patch('addons.osfstorage.views.get_project_storage_type', return_value=1)
+    @mock.patch('addons.osfstorage.views.logger')
+    def test_upload_none_size_logs_warning_and_sets_zero(self, mock_logger, mock_st, mock_uq):
+        """
+        When WaterButler reports size=None for a new upload, FileInfo.file_size
+        must be 0 and a warning must be logged.
+        """
+        res = self._upload(self.root_node, 'none_size.txt', size=None)
+        assert res.status_code in (200, 201)
+        record = self.root_node.find_child_by_name('none_size.txt')
+        fi = FileInfo.objects.filter(file=record).first()
+        assert fi is not None
+        assert fi.file_size == 0
+        assert mock_logger.warning.called
+
+    @mock.patch('addons.osfstorage.views.update_quota')
+    @mock.patch('addons.osfstorage.views.get_project_storage_type', return_value=1)
+    @mock.patch('addons.osfstorage.views.logger')
+    def test_upload_negative_size_logs_warning_and_sets_zero(self, mock_logger, mock_st, mock_uq):
+        """
+        A negative size (-1 = "not yet set") must be treated as 0 with a
+        warning, not stored as-is in FileInfo.file_size.
+        """
+        res = self._upload(self.root_node, 'neg_size.txt', size=-1)
+        assert res.status_code in (200, 201)
+        record = self.root_node.find_child_by_name('neg_size.txt')
+        fi = FileInfo.objects.filter(file=record).first()
+        assert fi is not None
+        assert fi.file_size == 0
+        assert mock_logger.warning.called
 
 
 # ---------------------------------------------------------------------------

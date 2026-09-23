@@ -159,7 +159,15 @@ def osfstorage_copy_hook(source, destination, name=None, **kwargs):
     if getattr(source.target, 'type', '') == 'osf.node' and getattr(destination.target, 'type', '') == 'osf.node':
         if source.is_file:
             latest_version = cloned.versions.order_by('-created').first()
-            new_size = latest_version.size if latest_version and latest_version.size else 0
+            if latest_version and latest_version.size is not None and latest_version.size > 0:
+                new_size = latest_version.size
+            else:
+                if latest_version and (latest_version.size is None or latest_version.size < 0):
+                    logger.warning(
+                        'latest_version.size is %r for cloned file %s (osfstorage_copy_hook); '
+                        'treating size as 0 for quota calculation', latest_version.size, cloned._id
+                    )
+                new_size = 0
             FileInfo.objects.update_or_create(file=cloned, defaults={'file_size': new_size})
         else:
             source_file_ids = _get_all_descendant_file_ids(source)
@@ -185,7 +193,15 @@ def osfstorage_copy_hook(source, destination, name=None, **kwargs):
                     size = 0
                     if node:
                         v = node.versions.order_by('-created').first()
-                        size = (v.size or 0) if v else 0
+                        if v and v.size is not None and v.size > 0:
+                            size = v.size
+                        else:
+                            if v and (v.size is None or v.size < 0):
+                                logger.warning(
+                                    'v.size is %r for source file %s (osfstorage_copy_hook FOLDER branch); '
+                                    'treating size as 0 for quota calculation', v.size, src_id
+                                )
+                            size = 0
                 else:          # src_id is None and not in map
                     size = 0
 
@@ -232,7 +248,15 @@ def osfstorage_move_hook(source, destination, name=None, **kwargs):
     if getattr(source_target, 'type', '') == 'osf.node' and getattr(destination.target, 'type', '') == 'osf.node':
         if source.is_file:
             latest_version = source.versions.order_by('-created').first()
-            new_size = latest_version.size if latest_version and latest_version.size else 0
+            if latest_version and latest_version.size is not None and latest_version.size > 0:
+                new_size = latest_version.size
+            else:
+                if latest_version and (latest_version.size is None or latest_version.size < 0):
+                    logger.warning(
+                        'latest_version.size is %r for moved file %s (osfstorage_move_hook); '
+                        'treating size as 0 for quota calculation', latest_version.size, source._id
+                    )
+                new_size = 0
             # FileInfo: UPSERT
             FileInfo.objects.update_or_create(file=source, defaults={'file_size': new_size})
         else:
@@ -502,10 +526,18 @@ def osfstorage_create_child(file_node, payload, **kwargs):
 
         # Only handle if target is a node
         if getattr(file_node.target, 'type', '') == 'osf.node':
-            new_size = new_version.size if new_version.size and new_version.size > 0 else 0
-            if new_size >= 0:
-                old_info = FileInfo.objects.filter(file=file_node).first()
-                old_size = old_info.file_size if old_info else 0
+            if new_version.size is not None and new_version.size > 0:
+                new_size = new_version.size
+            else:
+                if new_version.size is None or new_version.size < 0:
+                    logger.warning(
+                        'new_version.size is %r for created file %s (osfstorage_create_child); '
+                        'treating size as 0 for quota calculation', new_version.size, file_node._id
+                    )
+                new_size = 0
+
+            old_info = FileInfo.objects.filter(file=file_node).first()
+            old_size = old_info.file_size if old_info else 0
 
             # FileInfo: UPSERT
             FileInfo.objects.update_or_create(
