@@ -32,12 +32,38 @@ def test_get_file_size_nested():
     }
     assert quota.get_file_size(children) == 150
 
+@mock.patch('website.util.quota.logger')
+def test_get_file_size_none_size_treated_as_zero_and_warns(mock_logger):
+    """A child with size=None must not crash get_file_size."""
+    children = {'children': [{'kind': 'file', 'size': None, 'name': 'unknown.gdoc'}]}
+    assert quota.get_file_size(children) == 0
+    assert mock_logger.warning.called
+
+@mock.patch('website.util.quota.logger')
+def test_get_file_size_negative_size_treated_as_zero_and_warns(mock_logger):
+    """A negative child size must be treated as 0."""
+    children = {'children': [{'kind': 'file', 'size': -1, 'name': 'bad.txt'}]}
+    assert quota.get_file_size(children) == 0
+    assert mock_logger.warning.called
+
+@mock.patch('website.util.quota.logger')
+def test_get_file_size_mixed_children_none_and_valid(mock_logger):
+    """A None-size sibling must not swallow the total contributed by valid siblings."""
+    children = {
+        'children': [
+            {'kind': 'file', 'size': 100, 'name': 'ok.txt'},
+            {'kind': 'file', 'size': None, 'name': 'unknown.gdoc'},
+        ]
+    }
+    assert quota.get_file_size(children) == 100
+    assert mock_logger.warning.called
+
 @mock.patch('website.util.quota.ProjectStorageType.objects.get')
 @mock.patch('website.util.quota.AbstractNode.objects.get')
 @mock.patch('website.util.quota.update_quota')
 @pytest.mark.django_db
 def test_handle_move_copy_source_extend_dest_osfstorage(mock_update_quota, mock_node_get, mock_pst_get, mock_node):
-    """source=s3compatinstitutions, dest=osfstorage → update_quota không được gọi vì source không phải osfstorage"""
+    """source=s3compatinstitutions, dest=osfstorage"""
     mock_pst_get.return_value = mock.Mock(storage_type=1)
     mock_node_get.return_value = mock_node
 
@@ -59,7 +85,7 @@ def test_handle_move_copy_source_osfstorage(mock_update_quota, mock_node_get, mo
     mock_node_get.return_value = mock_node
 
     payload = {
-        'destination': {'provider': 's3compatinstitutions', 'size': 123},  # <-- thêm size
+        'destination': {'provider': 's3compatinstitutions', 'size': 123},
         'source': {'provider': 'osfstorage', 'size': 123, 'nid': 'nid1'}
     }
     quota._handle_move_copy(quota.FileLog.FILE_MOVED, mock_node, mock_user, payload)

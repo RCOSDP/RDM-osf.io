@@ -468,7 +468,14 @@ def get_file_size(children):
     size = 0
     for child in children:
         if child['kind'] == 'file':
-            size += int(child['size'])
+            child_size = child['size']
+            if child_size is None or child_size < 0:
+                logger.warning(
+                    'child size is %r for %r; treating size as 0 for quota calculation',
+                    child_size, child.get('name')
+                )
+                child_size = 0
+            size += int(child_size)
         else:
             size += get_file_size(child)
     return size
