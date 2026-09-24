@@ -1866,6 +1866,16 @@ class TestWikiImport(OsfTestCase):
         task_id = response_json['taskId']
         uuid_obj = uuid.UUID(task_id)
         assert uuid_obj
+        task = WikiImportTask.objects.get(task_id=task_id)
+        self.assertEqual(task.node, self.project)
+        self.assertEqual(task.status, WikiImportTask.STATUS_COMPLETED)
+        self.assertIsNotNone(task.process_end)
+        self.assertEqual(
+            WikiImportTask.objects.filter(
+                node=self.project, status=WikiImportTask.STATUS_RUNNING
+            ).count(),
+            0,
+        )
 
     @mock.patch('addons.wiki.utils.check_file_object_in_node')
     def test_project_wiki_validate_for_import_error(self, mock_check_file_object_in_node):
@@ -1964,6 +1974,9 @@ class TestWikiImport(OsfTestCase):
         response_json = res.json
         task_id = response_json['taskId']
         uuid_obj = uuid.UUID(task_id)
+        task = WikiImportTask.objects.get(task_id=task_id)
+        self.assertEqual(task.node, self.project)
+        self.assertEqual(task.status, WikiImportTask.STATUS_RUNNING)
 
     @mock.patch('addons.wiki.utils.check_file_object_in_node')
     def test_project_wiki_import_error(self, mock_check_file_object_in_node):
@@ -1982,6 +1995,43 @@ class TestWikiImport(OsfTestCase):
         url = self.project.api_url_for('project_wiki_import', dir_id='dir_id')
         res = self.app.post_json(url, { 'data': [{'test': 'test1'}] }, expect_errors=True)
         assert_equal(res.status_code, 401)
+
+    @mock.patch('addons.wiki.views.AsyncResult')
+    def test_project_get_task_result_with_admin_permission(self, mock_async_result):
+        mock_res = mock.MagicMock()
+        mock_res.ready.return_value = True
+        mock_res.get.return_value = {'canStartImport': True, 'data': []}
+        mock_async_result.return_value = mock_res
+        WikiImportTask.objects.create(
+            node=self.project,
+            task_id='task-id',
+            status=WikiImportTask.STATUS_COMPLETED,
+            creator=self.user,
+        )
+        url = self.project.api_url_for('project_get_task_result', task_id='task-id')
+        res = self.app.get(url, auth=self.user.auth)
+        assert_equal(res.status_code, http_status.HTTP_200_OK)
+        assert_equal(res.json, {'canStartImport': True, 'data': []})
+
+    @mock.patch('addons.wiki.views.AsyncResult')
+    def test_project_get_task_result_rejects_task_for_other_node(self, mock_async_result):
+        other_project = ProjectFactory(creator=self.user)
+        WikiImportTask.objects.create(
+            node=other_project,
+            task_id='other-node-task-id',
+            status=WikiImportTask.STATUS_COMPLETED,
+            creator=self.user,
+        )
+        url = self.project.api_url_for('project_get_task_result', task_id='other-node-task-id')
+        res = self.app.get(url, auth=self.user.auth, expect_errors=True)
+        assert_equal(res.status_code, http_status.HTTP_404_NOT_FOUND)
+        mock_async_result.assert_not_called()
+
+    def test_project_get_task_result_rejects_unknown_task_id(self):
+        url = self.project.api_url_for('project_get_task_result', task_id='unknown-task-id')
+        res = self.app.get(url, auth=self.user.auth, expect_errors=True)
+        assert_equal(res.status_code, http_status.HTTP_404_NOT_FOUND)
+
 
     @mock.patch('celery.contrib.abortable.AbortableAsyncResult')
     def test_wiki_import_create_or_update_aborted(self, mock_task):
