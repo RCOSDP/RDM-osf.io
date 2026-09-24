@@ -22,7 +22,7 @@ def get_profile_image_url(user, size=settings.PROFILE_IMAGE_MEDIUM):
                              use_ssl=True,
                              size=size)
 
-def serialize_user(user, node=None, admin=False, full=False, is_profile=False, include_node_counts=False):
+def serialize_user(user, node=None, admin=False, full=False, is_profile=False, include_node_counts=False, invite_date=None, include_email=False):
     """
     Return a dictionary representation of a registered user.
 
@@ -34,6 +34,11 @@ def serialize_user(user, node=None, admin=False, full=False, is_profile=False, i
         contrib = user
         user = contrib.user
     fullname = user.display_full_name(node=node)
+    institution = None
+    prefetch_cache = getattr(user, '_prefetched_objects_cache', {})
+    if 'affiliated_institutions' in prefetch_cache:
+        affiliated = list(user.affiliated_institutions.all())
+        institution = sorted(affiliated, key=lambda i: i.pk)[0] if affiliated else None
     idp_attrs = user.get_idp_attr()
 
     # @R2022-48
@@ -92,8 +97,11 @@ def serialize_user(user, node=None, admin=False, full=False, is_profile=False, i
         'mfa_url': mfa_url,  # @R-2023-55
         'is_mfa': is_mfa,  # @R-2023-55
         'have_email': user.have_email,
-        'idp_email': idp_attrs.get('email'),
+        'affiliation': institution.name if institution else '',
+        'invite_date': invite_date,
     }
+    if include_email:
+        ret['email'] = user.username if user.have_email else ''
     if node is not None:
         if admin:
             flags = {
@@ -123,6 +131,7 @@ def serialize_user(user, node=None, admin=False, full=False, is_profile=False, i
     if full:
         # Add emails
         if is_profile:
+            ret['idp_email'] = idp_attrs.get('email')
             ret['emails'] = [
                 {
                     'address': each,
@@ -202,11 +211,13 @@ def serialize_user(user, node=None, admin=False, full=False, is_profile=False, i
     return ret
 
 
-def serialize_contributors(contribs, node, **kwargs):
-    return [
-        serialize_user(contrib, node, **kwargs)
-        for contrib in contribs.iterator()
-    ]
+def serialize_contributors(contribs, node, invite_dates=None, **kwargs):
+    result = []
+    for contrib in contribs:
+        user_obj = contrib.user if isinstance(contrib, Contributor) else contrib
+        date = invite_dates.get(user_obj._id) if invite_dates else None
+        result.append(serialize_user(contrib, node, invite_date=date, **kwargs))
+    return result
 
 
 def serialize_visible_contributors(node):
