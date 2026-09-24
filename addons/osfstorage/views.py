@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from django.db.models import IntegerField
+from django.db.models import IntegerField, Sum
 from django.db.models.functions import Cast
 from rest_framework import status as http_status
 import logging
@@ -19,7 +19,7 @@ from framework.auth.decorators import must_be_signed, must_be_logged_in
 
 from api.caching.tasks import update_storage_usage
 from osf.exceptions import InvalidTagError, TagNotFoundError
-from osf.models import FileVersion, OSFUser, ExportDataRestore, ExportData
+from osf.models import FileVersion, OSFUser, ExportDataRestore, ExportData, FileInfo, BaseFileNode
 from osf.utils.permissions import WRITE
 from osf.utils.requests import check_select_for_update
 from website.project.decorators import (
@@ -28,6 +28,7 @@ from website.project.decorators import (
 from website.project.model import has_anonymous_link
 
 from website.files import exceptions
+from website.util.quota import get_project_storage_type, update_quota
 from addons.osfstorage import utils
 from addons.osfstorage import decorators
 from addons.osfstorage.models import OsfStorageFolder
@@ -124,17 +125,110 @@ def osfstorage_get_revisions(file_node, payload, target, **kwargs):
         ]
     }
 
+def _get_all_descendant_file_ids(folder_node):
+    TRASHED_TYPES = ('osf.trashedfilenode', 'osf.trashedfile', 'osf.trashedfolder')
+
+    file_ids = []
+    folder_ids_to_process = [folder_node.id]
+
+    while folder_ids_to_process:
+        children = BaseFileNode.objects.filter(
+            parent_id__in=folder_ids_to_process,
+            provider='osfstorage',
+        ).exclude(
+            type__in=TRASHED_TYPES
+        ).values('id', 'type')
+
+        next_folder_ids = []
+        for child in children:
+            if child['type'] == 'osf.osfstoragefile':
+                file_ids.append(child['id'])
+            elif child['type'] == 'osf.osfstoragefolder':
+                next_folder_ids.append(child['id'])
+
+        folder_ids_to_process = next_folder_ids
+
+    return file_ids
 
 @decorators.waterbutler_opt_hook
 def osfstorage_copy_hook(source, destination, name=None, **kwargs):
-    ret = source.copy_under(destination, name=name).serialize(), http_status.HTTP_201_CREATED
+    replaced_size = int(kwargs.get('replaced_size', 0))
+    cloned = source.copy_under(destination, name=name)
+
+    # Only handle if source is a node and destination is a node
+    if getattr(source.target, 'type', '') == 'osf.node' and getattr(destination.target, 'type', '') == 'osf.node':
+        if source.is_file:
+            latest_version = cloned.versions.order_by('-created').first()
+            if latest_version and latest_version.size is not None and latest_version.size > 0:
+                new_size = latest_version.size
+            else:
+                if latest_version and (latest_version.size is None or latest_version.size < 0):
+                    logger.warning(
+                        'latest_version.size is %r for cloned file %s (osfstorage_copy_hook); '
+                        'treating size as 0 for quota calculation', latest_version.size, cloned._id
+                    )
+                new_size = 0
+            FileInfo.objects.update_or_create(file=cloned, defaults={'file_size': new_size})
+        else:
+            source_file_ids = _get_all_descendant_file_ids(source)
+            source_size_map = {
+                fi.file_id: fi.file_size
+                for fi in FileInfo.objects.filter(file_id__in=source_file_ids)
+            }
+
+            cloned_file_ids = _get_all_descendant_file_ids(cloned)
+            cloned_files = list(BaseFileNode.objects.filter(
+                id__in=cloned_file_ids
+            ).values('id', 'copied_from_id'))
+
+            file_infos = []
+            new_size = 0
+            for cf in cloned_files:
+                src_id = cf['copied_from_id']
+                if src_id in source_size_map:
+                    size = source_size_map[src_id]
+                elif src_id is not None:
+                    # FileInfo not exist
+                    node = BaseFileNode.objects.filter(id=src_id).first()
+                    size = 0
+                    if node:
+                        v = node.versions.order_by('-created').first()
+                        if v and v.size is not None and v.size > 0:
+                            size = v.size
+                        else:
+                            if v and (v.size is None or v.size < 0):
+                                logger.warning(
+                                    'v.size is %r for source file %s (osfstorage_copy_hook FOLDER branch); '
+                                    'treating size as 0 for quota calculation', v.size, src_id
+                                )
+                            size = 0
+                else:          # src_id is None and not in map
+                    size = 0
+
+                file_infos.append(FileInfo(file_id=cf['id'], file_size=size))
+                new_size += size
+
+            try:
+                FileInfo.objects.bulk_create(file_infos)
+            except IntegrityError:
+                for fi in file_infos:
+                    FileInfo.objects.get_or_create(file_id=fi.file_id, defaults={'file_size': fi.file_size})
+            replaced_size = 0  # osfstorage_delete already subtracted this
+
+        # UserQuota: delta = new_size - replaced_size
+        delta = new_size - replaced_size
+        if delta != 0:
+            storage_type = get_project_storage_type(destination.target)
+            update_quota(destination.target, abs(delta), storage_type, add=(delta > 0))
+
     update_storage_usage(destination.target)
-    return ret
+    return cloned.serialize(), http_status.HTTP_201_CREATED
 
 @decorators.waterbutler_opt_hook
 def osfstorage_move_hook(source, destination, name=None, **kwargs):
     source_target = source.target
     is_check_permission = kwargs.get('is_check_permission')
+    replaced_size = int(kwargs.get('replaced_size', 0))
     try:
         ret = source.move_under(destination, name=name, is_check_permission=is_check_permission).serialize(), http_status.HTTP_200_OK
     except exceptions.FileNodeCheckedOutError:
@@ -149,6 +243,57 @@ def osfstorage_move_hook(source, destination, name=None, **kwargs):
         raise HTTPError(http_status.HTTP_403_FORBIDDEN, data={
             'message_long': 'Cannot move file as it is the primary file of preprint.'
         })
+
+    # Only handle if source is a node and destination is a node
+    if getattr(source_target, 'type', '') == 'osf.node' and getattr(destination.target, 'type', '') == 'osf.node':
+        if source.is_file:
+            latest_version = source.versions.order_by('-created').first()
+            if latest_version and latest_version.size is not None and latest_version.size > 0:
+                new_size = latest_version.size
+            else:
+                if latest_version and (latest_version.size is None or latest_version.size < 0):
+                    logger.warning(
+                        'latest_version.size is %r for moved file %s (osfstorage_move_hook); '
+                        'treating size as 0 for quota calculation', latest_version.size, source._id
+                    )
+                new_size = 0
+            # FileInfo: UPSERT
+            FileInfo.objects.update_or_create(file=source, defaults={'file_size': new_size})
+        else:
+            source_file_ids = _get_all_descendant_file_ids(source)  # recursive
+            new_size = FileInfo.objects.filter(
+                file_id__in=source_file_ids
+            ).aggregate(total=Sum('file_size'))['total'] or 0
+            replaced_size = 0  # osfstorage_delete already subtracted this
+
+        # UserQuota
+        src_storage = get_project_storage_type(source_target)
+        dest_storage = get_project_storage_type(destination.target)
+
+        # "Same UserQuota record" = same (creator, storage_type), matching the criterion
+        # WaterButler's resolve_quota_context() uses for the pre-check (user_guid +
+        # storage_type).
+        # Node identity is NOT the right test: a move to another component owned by the
+        # same creator lands on the very same UserQuota row, so subtracting from the
+        # source and adding to the destination would be two writes against one row --
+        # and update_quota() floors `used` at 0 between them, which permanently corrupts
+        # the row whenever used < new_size.
+        same_user_quota = (
+            source_target.creator_id == destination.target.creator_id and
+            src_storage == dest_storage
+        )
+
+        if same_user_quota:
+            # Net delta is -replaced_size: the moved bytes are already counted in this
+            # very row, only the overwritten bytes are freed. (For folders replaced_size
+            # was reset to 0 above -- osfstorage_delete already subtracted them.)
+            if replaced_size > 0:
+                update_quota(destination.target, replaced_size, dest_storage, add=False)
+        else:
+            update_quota(source_target, new_size, src_storage, add=False)
+            delta = new_size - replaced_size
+            if delta != 0:
+                update_quota(destination.target, abs(delta), dest_storage, add=(delta > 0))
 
     # once the move is complete recalculate storage for both targets if it's a inter-target move.
     if is_check_permission and source_target != destination.target:
@@ -379,6 +524,32 @@ def osfstorage_create_child(file_node, payload, **kwargs):
         if not current_version or not current_version.is_duplicate(new_version):
             update_storage_usage(file_node.target)
 
+        # Only handle if target is a node
+        if getattr(file_node.target, 'type', '') == 'osf.node':
+            if new_version.size is not None and new_version.size > 0:
+                new_size = new_version.size
+            else:
+                if new_version.size is None or new_version.size < 0:
+                    logger.warning(
+                        'new_version.size is %r for created file %s (osfstorage_create_child); '
+                        'treating size as 0 for quota calculation', new_version.size, file_node._id
+                    )
+                new_size = 0
+
+            old_info = FileInfo.objects.filter(file=file_node).first()
+            old_size = old_info.file_size if old_info else 0
+
+            # FileInfo: UPSERT
+            FileInfo.objects.update_or_create(
+                file=file_node, defaults={'file_size': new_size}
+            )
+
+            # UserQuota: delta = new - old
+            delta = new_size - old_size
+            if delta != 0:
+                storage_type = get_project_storage_type(file_node.target)
+                update_quota(file_node.target, abs(delta), storage_type, add=(delta > 0))
+
         version_id = new_version._id
         archive_exists = new_version.archive is not None
     else:
@@ -405,6 +576,17 @@ def osfstorage_delete(file_node, payload, target, **kwargs):
         raise HTTPError(http_status.HTTP_400_BAD_REQUEST)
     if file_node == OsfStorageFolder.objects.get_root(target=target):
             raise HTTPError(http_status.HTTP_400_BAD_REQUEST)
+
+    if getattr(file_node.target, 'type', '') == 'osf.node' and not file_node.is_file:
+        # Since we are deleting a folder, we need to calculate the total size of all descendant files to update quota
+        all_file_ids = _get_all_descendant_file_ids(file_node)
+        total_size = FileInfo.objects.filter(file_id__in=all_file_ids) \
+                                     .aggregate(total=Sum('file_size'))['total'] or 0
+        if total_size > 0:
+            storage_type = get_project_storage_type(target)
+            # Subtract quota BEFORE deletion; also zero FileInfo to avoid race conditions with new file creation during deletion
+            FileInfo.objects.filter(file_id__in=all_file_ids).update(file_size=0)
+            update_quota(target, total_size, storage_type, add=False)
 
     try:
         file_node.delete(user=user)
