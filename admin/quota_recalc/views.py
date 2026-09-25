@@ -1,6 +1,7 @@
 from django.http import JsonResponse
 from django.db import transaction, IntegrityError
 
+from admin.base.utils import superuser_required
 from addons.osfstorage.models import Region
 from api.base import settings as api_settings
 from osf.models import OSFUser, UserQuota, Node
@@ -60,6 +61,7 @@ def calculate_quota(user):
                     user_quota.used = used
                     user_quota.save()
 
+@superuser_required
 def all_users(request, **kwargs):
     c = 0
     for osf_user in OSFUser.objects.exclude(deleted__isnull=False):
@@ -70,6 +72,7 @@ def all_users(request, **kwargs):
         'message': str(c) + ' users\' quota successfully recalculated!'
     })
 
+@superuser_required
 def user(request, guid, **kwargs):
     user = OSFUser.load(guid)
     if user is None:

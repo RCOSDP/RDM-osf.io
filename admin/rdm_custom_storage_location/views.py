@@ -5,7 +5,6 @@ from django.http import HttpResponse, Http404, JsonResponse
 from django.views.generic import TemplateView, View, ListView
 import codecs
 import json
-import hashlib
 from rest_framework import status as http_status
 from mimetypes import MimeTypes
 import os
@@ -19,13 +18,13 @@ from admin.rdm_custom_storage_location import utils
 from osf.models import Institution, OSFUser
 from osf.models.external import ExternalAccountTemporary
 from scripts import refresh_addon_tokens
+from framework.auth import cron_signed_url
 from website import settings as osf_settings
 from distutils.util import strtobool
 from admin.base import settings
 
 logger = logging.getLogger(__name__)
 
-SITE_KEY = 'rdm_custom_storage_location'
 INSTITUTION_NOT_FOUND_MESSAGE = 'Institution does not exist'
 
 class InstitutionalStorageBaseView(RdmPermissionMixin, UserPassesTestMixin):
@@ -522,8 +521,8 @@ class RemoveTemporaryAuthData(InstitutionalStorageBaseView, View):
             'message': 'Garbage data removed!!'
         }, status=http_status.HTTP_200_OK)
 
-def external_acc_update(request, access_token):
-    if hashlib.sha512(SITE_KEY.encode('utf-8')).hexdigest() != access_token.lower():
+def external_acc_update(request, ts, signature):
+    if not cron_signed_url.verify_signed_params(ts, signature):
         return HttpResponse(
             json.dumps({'state': 'fail', 'error': 'access forbidden'}),
             content_type='application/json',
