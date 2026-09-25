@@ -3427,6 +3427,7 @@ class TestYWebsocketToken(OsfTestCase):
             algorithms=[wiki_settings.Y_WEBSOCKET_JWT_ALGORITHM],
         )
         assert_equal(payload['doc_id'], sharejs_uuid)
+        assert_equal(payload['sub'], self.user._id)
 
     def test_token_not_visible_without_write_permission(self):
         WikiPage.objects.create_for_node(self.project, self.wname, 'some content', Auth(self.user))
@@ -3449,5 +3450,9 @@ class TestYWebsocketToken(OsfTestCase):
 
     def test_generate_y_websocket_token_without_secret(self):
         with mock.patch('addons.wiki.settings.Y_WEBSOCKET_SECRET', ''):
-            assert_equal(generate_y_websocket_token('doc-id'), '')
+            assert_equal(generate_y_websocket_token('doc-id', 'user-id'), '')
+
+    def test_generate_y_websocket_token_without_user_id(self):
+        assert_equal(generate_y_websocket_token('doc-id', ''), '')
+        assert_equal(generate_y_websocket_token('doc-id', None), '')
 

@@ -68,17 +68,21 @@ def get_sharejs_uuid(node, wname):
     )) if private_uuid else None
 
 
-def generate_y_websocket_token(doc_id):
+def generate_y_websocket_token(doc_id, user_id):
     """
     Generate a signed JWT for y-websocket connection authorization.
-    Returns an empty string when Y_WEBSOCKET_SECRET is not configured.
+
+    Includes ``sub`` (OSF user GUID) for connection traceability on the
+    y-websocket side. Returns an empty string when Y_WEBSOCKET_SECRET is not
+    configured or required claims are missing.
     """
     secret = wiki_settings.Y_WEBSOCKET_SECRET
-    if not secret or not doc_id:
+    if not secret or not doc_id or not user_id:
         return ''
 
     payload = {
         'doc_id': doc_id,
+        'sub': user_id,
         'exp': timezone.now() + datetime.timedelta(seconds=wiki_settings.Y_WEBSOCKET_TOKEN_TTL),
     }
     token = jwt.encode(

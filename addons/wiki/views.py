@@ -330,7 +330,10 @@ def project_wiki_view(auth, wname, path=None, **kwargs):
         if wiki_key not in node.wiki_private_uuids:
             wiki_utils.generate_private_uuid(node, wiki_name)
         sharejs_uuid = wiki_utils.get_sharejs_uuid(node, wiki_name)
-        y_websocket_token = wiki_utils.generate_y_websocket_token(sharejs_uuid)
+        y_websocket_token = wiki_utils.generate_y_websocket_token(
+            sharejs_uuid,
+            auth.user._id,
+        )
     else:
         if not wiki_page and wiki_key != 'home':
             raise WIKI_PAGE_NOT_FOUND_ERROR
