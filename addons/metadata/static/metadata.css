@@ -1,0 +1,20 @@
+.metadata-form .form-control::placeholder {
+    color: #a6a6a6;
+    opacity: 1;
+}
+
+.metadata-group-bar {
+    border-left: 3px solid #ddd;
+    padding-left: 12px;
+    margin-left: 2em;
+}
+
+.metadata-group-disabled {
+    opacity: 0.6;
+}
+
+.metadata-info-mark {
+    cursor: pointer;
+    margin-left: 6px;
+    color: #3779b3;
+}

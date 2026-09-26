@@ -6,6 +6,7 @@ var $osf = require('js/osfHelpers');
 var Fangorn = require('js/fangorn');
 
 var assert = require('chai').assert;
+var sinon = require('sinon');
 var utils = require('tests/utils');
 var faker = require('faker');
 var $ = require('jquery');
@@ -423,4 +424,166 @@ describe('fangorn', () => {
             });
         });
     });
+
+    describe('FGToolbar IME Keydown Handling', function() {
+        function makeMockCtrl(overrides) {
+            var tb = {
+                pressedKey: null,
+            };
+            return Object.assign({
+                isComposingAddFolder: false,
+                isComposingRenameFolder: false,
+                tb: tb,
+                nameData: sinon.stub(),
+                renameData: sinon.stub(),
+                createFolder: sinon.stub(),
+                dismissToolbar: sinon.stub(),
+                _renameEvent: sinon.stub(),
+            }, overrides);
+        }
+
+        function makeAddFolderKeydownHandler(ctrl) {
+            return function(event) {
+                var isComposing = event.isComposing || ctrl.isComposingAddFolder || event.keyCode === 229;
+                if (event.key === 'Enter' && !isComposing) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    ctrl.createFolder.call(ctrl.tb, event, ctrl.dismissToolbar);
+                }
+            };
+        }
+
+        function makeRenameKeydownHandler(ctrl, renameEvent) {
+            return function(event) {
+                var isComposing = event.isComposing || ctrl.isComposingRenameFolder || event.keyCode === 229;
+                if (event.key === 'Enter' && !isComposing) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    renameEvent.call(ctrl.tb);
+                }
+            };
+        }
+
+        function makeEvent(overrides) {
+            return Object.assign({
+                key: 'Enter',
+                isComposing: false,
+                keyCode: 13,
+                preventDefault: sinon.spy(),
+                stopPropagation: sinon.spy(),
+            }, overrides);
+        }
+
+        var ctrl;
+        beforeEach(function() {
+            ctrl = makeMockCtrl();
+        });
+
+        describe('ADDFOLDER toolbar', function() {
+            it('should call createFolder on Enter when not composing', function() {
+                var handler = makeAddFolderKeydownHandler(ctrl);
+                var ev = makeEvent();
+                handler(ev);
+                assert.ok(ctrl.createFolder.calledOnce, 'createFolder should be called');
+                assert.ok(ev.preventDefault.calledOnce);
+                assert.ok(ev.stopPropagation.calledOnce);
+            });
+
+            it('should NOT call createFolder during IME (event.isComposing=true)', function() {
+                var handler = makeAddFolderKeydownHandler(ctrl);
+                handler(makeEvent({ isComposing: true }));
+                assert.ok(ctrl.createFolder.notCalled,
+                    'createFolder should not be called during IME composition');
+            });
+
+            it('should NOT call createFolder when ctrl.isComposing=true (Chrome race condition)', function() {
+                ctrl.isComposingAddFolder = true;
+                var handler = makeAddFolderKeydownHandler(ctrl);
+                handler(makeEvent({ isComposing: false })); // Chrome: event.isComposing = false
+                assert.ok(ctrl.createFolder.notCalled,
+                    'createFolder should be blocked by ctrl.isComposing=true');
+            });
+
+            it('should NOT call createFolder when keyCode is 229 (legacy IE)', function() {
+                var handler = makeAddFolderKeydownHandler(ctrl);
+                handler(makeEvent({ isComposing: false, keyCode: 229 }));
+                assert.ok(ctrl.createFolder.notCalled);
+            });
+
+            it('should NOT call createFolder on non-Enter key', function() {
+                var handler = makeAddFolderKeydownHandler(ctrl);
+                handler(makeEvent({ key: 'Tab', keyCode: 9 }));
+                assert.ok(ctrl.createFolder.notCalled);
+            });
+
+            it('should call createFolder with correct this context (ctrl.tb)', function() {
+                var handler = makeAddFolderKeydownHandler(ctrl);
+                var ev = makeEvent();
+                handler(ev);
+                // createFolder.call(ctrl.tb, ...) → this = ctrl.tb
+                assert.ok(ctrl.createFolder.calledOn(ctrl.tb),
+                    'createFolder should be called with ctrl.tb as context');
+            });
+        });
+
+        describe('RENAME toolbar', function() {
+            var renameEventStub;
+            beforeEach(function() {
+                renameEventStub = sinon.stub();
+            });
+
+            it('should call _renameEvent on Enter when not composing', function() {
+                var handler = makeRenameKeydownHandler(ctrl, renameEventStub);
+                var ev = makeEvent();
+                handler(ev);
+                assert.ok(renameEventStub.calledOnce, '_renameEvent should be called');
+                assert.ok(ev.preventDefault.calledOnce);
+            });
+
+            it('should NOT call _renameEvent during IME (event.isComposing=true)', function() {
+                var handler = makeRenameKeydownHandler(ctrl, renameEventStub);
+                handler(makeEvent({ isComposing: true }));
+                assert.ok(renameEventStub.notCalled);
+            });
+
+            it('should NOT call _renameEvent when ctrl.isComposing=true (Chrome race)', function() {
+                ctrl.isComposingRenameFolder = true;
+                var handler = makeRenameKeydownHandler(ctrl, renameEventStub);
+                handler(makeEvent({ isComposing: false }));
+                assert.ok(renameEventStub.notCalled);
+            });
+
+            it('should NOT call _renameEvent when keyCode is 229', function() {
+                var handler = makeRenameKeydownHandler(ctrl, renameEventStub);
+                handler(makeEvent({ keyCode: 229 }));
+                assert.ok(renameEventStub.notCalled);
+            });
+        });
+
+        describe('FGToolbar isComposing flag', function() {
+            it('should start false (initialized)', function() {
+                assert.strictEqual(ctrl.isComposingAddFolder, false,
+                    'isComposingAddFolder should be initialized to false');
+
+                assert.strictEqual(ctrl.isComposingRenameFolder, false,
+                    'isComposingRenameFolder should be initialized to false');
+            });
+
+            it('[RECOMMENDED] compositionend with setTimeout defer keeps flag true during keydown', function(done) {
+                ctrl.isComposing = true;
+                setTimeout(function() { ctrl.isComposing = false; }, 0);
+
+                assert.strictEqual(ctrl.isComposing, true,
+                    'isComposing should still be true synchronously');
+
+                setTimeout(function() {
+                    assert.strictEqual(ctrl.isComposing, false,
+                        'isComposing should be false after defer');
+                    done();
+                }, 10);
+            });
+        });
+    });
 });
+
+

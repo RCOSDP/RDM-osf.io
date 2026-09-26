@@ -125,6 +125,7 @@
                 <th>{% trans "Withdrawn" %}</th>
                 <th>{% trans "Embargo" %}</th>
                 <th>{% trans "Contributors" %}</th>
+                <th>{% trans "Groups" %}</th>
             </tr>
         </thead>
         <tbody>
@@ -183,6 +184,15 @@
                     {% for user in node.contributors %}
                         <a href="{{ user.id | reverse_user }}">{{ user.username }}</a>{% if not forloop.last %}, {% endif %}
                     {% endfor %}
+                </td>
+                <td>
+                {% if not node.mapcore_groups %}
+                    {{ None|transValue }}
+                {% else %}
+                    {% for mapcore_group in node.mapcore_groups %}
+                        <a href="{{ mapcore_group.absolute_url }}" target="_blank">{{ mapcore_group.display_name }}</a>{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                {% endif %}
                 </td>
             </tr>
             {% endfor %}

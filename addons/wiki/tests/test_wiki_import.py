@@ -2746,7 +2746,7 @@ class TestWikiViews(OsfTestCase, unittest.TestCase):
                     }
                 ]
             },
-            auth=self.auth
+            auth=self.user.auth
         )
         page_names = ['importpagea1', 'importpageb2', 'wiki child page1', 'wiki child page2', 'wiki child page3']
         result_list = list(WikiPage.objects.filter(page_name__in=page_names).order_by('page_name').values_list('page_name', 'parent_id', 'sort_order'))

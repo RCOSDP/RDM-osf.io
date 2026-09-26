@@ -52,4 +52,6 @@ urlpatterns = [
     url(r'^(?P<node_id>\w+)/view_only_links/$', views.NodeViewOnlyLinksList.as_view(), name=views.NodeViewOnlyLinksList.view_name),
     url(r'^(?P<node_id>\w+)/view_only_links/(?P<link_id>\w+)/$', views.NodeViewOnlyLinkDetail.as_view(), name=views.NodeViewOnlyLinkDetail.view_name),
     url(r'^(?P<node_id>\w+)/wikis/$', views.NodeWikiList.as_view(), name=views.NodeWikiList.view_name),
+    url(r'^(?P<node_id>\w+)/map_core/groups/$', views.NodeMapCoreGroupList.as_view(), name=views.NodeMapCoreGroupList.view_name),
+    url(r'^(?P<node_id>\w+)/map_core/groups/(?P<node_group_id>[0-9]+)/$', views.NodeMapCoreGroupRemove.as_view(), name=views.NodeMapCoreGroupList.view_name),
 ]

@@ -3,6 +3,7 @@ from django import template
 from django.utils.safestring import mark_safe
 import json
 from django.utils.translation import ugettext_lazy as _
+from osf.utils.text_rendering import osf_urlize as custom_osf_urlize
 
 register = template.Library()
 
@@ -13,3 +14,7 @@ def jsonify(o):
 @register.filter
 def transValue(value1):
     return _(str(value1))
+
+@register.filter
+def osf_urlize(text):
+    return custom_osf_urlize(text)

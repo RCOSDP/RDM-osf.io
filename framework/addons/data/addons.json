@@ -768,6 +768,36 @@
                 "status": "partial",
                 "text": "Workflow template metadata is captured when creating a template, but live workflow tasks are not executed inside the template."
             }
+        },
+        "Groups": {
+            "Permissions": {
+                "status": "none",
+                "text": "The GakuNin RDM does not affect the permissions of Groups."
+            },
+            "View / download file versions": {
+                "status": "none",
+                "text": "The Groups add-on does not provide Storage Features."
+            },
+            "Add / update files": {
+                "status": "none",
+                "text": "The Groups add-on does not provide Storage Features."
+            },
+            "Delete files": {
+                "status": "none",
+                "text": "The Groups add-on does not provide Storage Features."
+            },
+            "Logs": {
+                "status": "none",
+                "text": "The Groups add-on does not provide Storage Features."
+            },
+            "Forking": {
+                "status": "none",
+                "text": "Forking a project or component does not copy Groups authorization."
+            },
+            "Registering": {
+                "status": "none",
+                "text": "Groups information will not be registered."
+            }
         }
     },
     "disclaimers": [

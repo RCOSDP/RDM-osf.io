@@ -63,6 +63,7 @@ class RegistrationSchemaBlockSerializer(JSONAPISerializer):
     readonly = ser.CharField(read_only=True)
     sentence = ser.CharField(read_only=True)
     row_addition_caption = ser.CharField(read_only=True)
+    ui = ser.JSONField(read_only=True, required=False)
 
     links = LinksField({
         'self': 'get_absolute_url',

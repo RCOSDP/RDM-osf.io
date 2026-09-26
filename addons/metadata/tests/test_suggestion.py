@@ -130,6 +130,43 @@ class TestSuggestion(BaseAddonTestCase, OsfTestCase):
         assert 'display-fullname' not in r[0]['value']
         assert r[0]['value']['kenkyukikan_mei_ja'] == '研究機関名'
         assert r[0]['value']['kenkyukikan_mei_en'] == 'Research Institute Name'
+        # Enriched fields: kadai_mei split (empty when not set)
+        assert r[0]['value']['kadai_mei_ja'] == ''
+        assert r[0]['value']['kadai_mei_en'] == ''
+
+    def test_suggestion_erad_enriched_fields(self):
+        erad = ERadRecord.objects.create(
+            kenkyusha_no='9999999',
+            kenkyusha_shimei='山田|太郎|Yamada|Taro',
+            kenkyukikan_mei='大学|University',
+            haibunkikan_cd='1020',
+            haibunkikan_mei='国立研究開発法人科学技術振興機構',
+            kadai_mei='テスト課題|Test Project',
+            japan_grant_number='JP20K12345',
+            program_name_ja='テストプログラム',
+            program_name_en='Test Program',
+            funding_stream_code='A1',
+            bunya_cd='289',
+            nendo='2024',
+        )
+        try:
+            self.user.erad = '9999999'
+            self.user.save()
+
+            r = suggestion_metadata('erad:japan_grant_number', 'JP20', None, self.project)
+            assert len(r) == 1
+            v = r[0]['value']
+            assert v['japan_grant_number'] == 'JP20K12345'
+            assert v['haibunkikan_cd'] == '1020'
+            assert v['kadai_mei_ja'] == 'テスト課題'
+            assert v['kadai_mei_en'] == 'Test Project'
+            assert v['kenkyukikan_mei_ja'] == '大学'
+            assert v['kenkyukikan_mei_en'] == 'University'
+            assert v['program_name_ja'] == 'テストプログラム'
+            assert v['program_name_en'] == 'Test Program'
+            assert v['funding_stream_code'] == 'A1'
+        finally:
+            erad.delete()
 
     @mock.patch('addons.metadata.settings.KAKEN_ELASTIC_URI', 'http://localhost:9200')
     @mock.patch('addons.metadata.suggestions.kaken.suggest.KakenElasticsearchService')

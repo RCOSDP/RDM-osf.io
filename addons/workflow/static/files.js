@@ -13,6 +13,60 @@ function WorkflowButtons() {
   self.workflowTemplates = {};
   self.loadingWorkflows = {};
 
+  const FILTER_CLAUSE_RE = /^([A-Za-z0-9:_\-.]+)\s*(==|!=)\s*"([^"]*)"$/;
+  const AND_SEP = ' and ';
+  const FILTER_PREFIX = 'filter=';
+
+  function splitOutsideQuotes(raw, sep) {
+    const out = [];
+    let buf = '';
+    let inQuotes = false;
+    let i = 0;
+    while (i < raw.length) {
+      const ch = raw[i];
+      if (ch === '"') {
+        inQuotes = !inQuotes;
+        buf += ch;
+        i += 1;
+      } else if (!inQuotes && raw.substring(i, i + sep.length) === sep) {
+        out.push(buf);
+        buf = '';
+        i += sep.length;
+      } else {
+        buf += ch;
+        i += 1;
+      }
+    }
+    if (inQuotes) {
+      throw new Error('Unterminated quoted string: ' + raw);
+    }
+    out.push(buf);
+    return out;
+  }
+
+  self.parseFilterExpression = function(raw) {
+    return splitOutsideQuotes(raw, AND_SEP).map(function(clause) {
+      const trimmed = clause.trim();
+      const m = trimmed.match(FILTER_CLAUSE_RE);
+      if (!m) {
+        throw new Error('Invalid filter clause: ' + trimmed);
+      }
+      return { key: m[1], op: m[2], value: m[3] };
+    });
+  };
+
+  self.matchesMetadataFilters = function(data, filters) {
+    if (!filters.length) {
+      return true;
+    }
+    const source = data || {};
+    return filters.every(function(f) {
+      const entry = source[f.key];
+      const value = entry ? entry.value : undefined;
+      return f.op === '==' ? value === f.value : value !== f.value;
+    });
+  };
+
   /**
    * Extract _FILE_METADATA placeholder from field
    */
@@ -25,13 +79,46 @@ function WorkflowButtons() {
       return null;
     }
     const match = placeholder.match(/^_FILE_METADATA\((.+)\)$/);
-    return match ? { schemaName: match[1] } : null;
+    if (!match) {
+      return null;
+    }
+    const segments = splitOutsideQuotes(match[1], ',').map(function(s) {
+      return s.trim();
+    }).filter(function(s) {
+      return s.length > 0;
+    });
+    if (segments.length === 0) {
+      return null;
+    }
+    const schemaName = segments[0];
+    const options = segments.slice(1);
+    const filterOptions = options.filter(function(o) {
+      return o.indexOf(FILTER_PREFIX) === 0;
+    });
+    if (filterOptions.length > 1) {
+      throw new Error("_FILE_METADATA: duplicate 'filter=' option");
+    }
+    const filters = filterOptions.length === 1
+      ? self.parseFilterExpression(filterOptions[0].substring(FILTER_PREFIX.length))
+      : [];
+    const multiSelect = options.some(function(o) {
+      return o.toUpperCase() === 'MULTISELECT';
+    });
+    return { schemaName: schemaName, multiSelect: multiSelect, filters: filters };
+  };
+
+  self.fieldMatches = function(field, schemaName, metadataData) {
+    const meta = self.extractFileMetadata(field);
+    if (meta === null || meta.schemaName !== schemaName) {
+      return false;
+    }
+    return self.matchesMetadataFilters(metadataData, meta.filters);
   };
 
   /**
    * Load workflows for a file
    */
-  self.loadWorkflowsForFile = function(nodeId, filepath, schemaName, callback) {
+  self.loadWorkflowsForFile = function(nodeId, filepath, schemaName, metadataData, callback) {
     const cacheKey = filepath;
 
     if (self.loadingWorkflows[cacheKey]) {
@@ -72,8 +159,7 @@ function WorkflowButtons() {
 
       const filtered = workflows.filter(function(workflow) {
         return workflow.fields.some(function(field) {
-          const metadata = self.extractFileMetadata(field);
-          return metadata !== null && metadata.schemaName === schemaName;
+          return self.fieldMatches(field, schemaName, metadataData);
         });
       });
 
@@ -89,10 +175,9 @@ function WorkflowButtons() {
   /**
    * Start workflow for a file
    */
-  self.startWorkflow = function(nodeId, filepath, workflow, schemaName) {
+  self.startWorkflow = function(nodeId, filepath, workflow, schemaName, metadataData) {
     const targetField = workflow.fields.filter(function(field) {
-      const metadata = self.extractFileMetadata(field);
-      return metadata !== null && metadata.schemaName === schemaName;
+      return self.fieldMatches(field, schemaName, metadataData);
     })[0];
 
     if (!targetField) {
@@ -109,7 +194,7 @@ function WorkflowButtons() {
   /**
    * Show workflow selection dialog
    */
-  self.showWorkflowDialog = function(nodeId, filepath, workflows, schemaName) {
+  self.showWorkflowDialog = function(nodeId, filepath, workflows, schemaName, metadataData) {
     const modal = $('<div class="modal fade"></div>');
     const modalDialog = $('<div class="modal-dialog"></div>');
     const modalContent = $('<div class="modal-content"></div>');
@@ -147,7 +232,7 @@ function WorkflowButtons() {
         const workflowId = select.val();
         const workflow = workflows.find(function(w) { return String(w.id) === String(workflowId); });
         modal.modal('hide');
-        self.startWorkflow(nodeId, filepath, workflow, schemaName);
+        self.startWorkflow(nodeId, filepath, workflow, schemaName, metadataData);
       });
     modalFooter.append(cancelButton);
     modalFooter.append(submitButton);
@@ -167,11 +252,11 @@ function WorkflowButtons() {
   /**
    * Create workflow start button
    */
-  self.createWorkflowButton = function(filepath, item, schemaName, createButton) {
+  self.createWorkflowButton = function(filepath, item, schemaName, metadataData, createButton) {
     const nodeId = item ? item.data.nodeId : contextVars.node.id;
 
     // Load workflows
-    self.loadWorkflowsForFile(nodeId, filepath, schemaName, function(workflows) {
+    self.loadWorkflowsForFile(nodeId, filepath, schemaName, metadataData, function(workflows) {
       m.redraw();
     });
 
@@ -183,7 +268,7 @@ function WorkflowButtons() {
 
     return createButton({
       onclick: function(event) {
-        self.showWorkflowDialog(nodeId, filepath, workflows, schemaName);
+        self.showWorkflowDialog(nodeId, filepath, workflows, schemaName, metadataData);
       },
       icon: 'fa fa-play',
       className: 'text-success'
@@ -228,6 +313,7 @@ function WorkflowButtons() {
       filepath,
       item,
       schemaName,
+      metadataItem.data,
       function(options, label) {
         return m.component(Fangorn.Components.button, options, label);
       }
