@@ -261,7 +261,10 @@ def test_s3_connection(access_key, secret_key, bucket):
     s3_response = {
         'id': user_info.id,
         'display_name': user_info.display_name,
-        'Owner': user_info.Owner,
+        'Owner': {
+            'ID': user_info.id,
+            'DisplayName': user_info.display_name,
+        },
     }
 
     return ({

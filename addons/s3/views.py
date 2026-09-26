@@ -1,7 +1,8 @@
 from rest_framework import status as http_status
 
-from boto import exception
+from botocore import exceptions
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError, transaction
 from flask import request
 
 from framework.exceptions import HTTPError
@@ -58,7 +59,9 @@ s3_set_config = generic_views.set_config(
 def s3_folder_list(node_addon, **kwargs):
     """ Returns all the subsequent folders under the folder id passed.
     """
-    return node_addon.get_folders()
+    path = request.args.get('path', '')
+    folder_id = request.args.get('id', '')
+    return node_addon.get_folders(path=path, folder_id=folder_id)
 
 @must_be_logged_in
 @must_be_rdm_addons_allowed(SHORT_NAME)
@@ -95,16 +98,17 @@ def s3_add_user_account(auth, **kwargs):
     masked_access_key = f'****{access_key[-4:]}' if len(access_key) > 4 else '****'
     display_name = f'{user_info.display_name} ({masked_access_key})'
     try:
-        account = ExternalAccount(
-            provider=SHORT_NAME,
-            provider_name=FULL_NAME,
-            oauth_key=access_key,
-            oauth_secret=secret_key,
-            provider_id=provider_id,
-            display_name=display_name,
-        )
-        account.save()
-    except ValidationError:
+        with transaction.atomic():
+            account = ExternalAccount(
+                provider=SHORT_NAME,
+                provider_name=FULL_NAME,
+                oauth_key=access_key,
+                oauth_secret=secret_key,
+                provider_id=provider_id,
+                display_name=display_name,
+            )
+            account.save()
+    except (ValidationError, IntegrityError):
         # ... or get the old one
         account = ExternalAccount.objects.get(
             provider=SHORT_NAME,
@@ -148,20 +152,15 @@ def create_bucket(auth, node_addon, **kwargs):
 
     try:
         utils.create_bucket(node_addon, bucket_name, bucket_location)
-    except exception.S3ResponseError as e:
+    except exceptions.NoCredentialsError as e:
         return {
-            'message': e.message,
+            'message': str(e),
             'title': 'Problem connecting to S3',
         }, http_status.HTTP_400_BAD_REQUEST
-    except exception.S3CreateError as e:
+    except exceptions.ClientError as e:
         return {
-            'message': e.message,
-            'title': "Problem creating bucket '{0}'".format(bucket_name),
-        }, http_status.HTTP_400_BAD_REQUEST
-    except exception.BotoClientError as e:  # Base class catchall
-        return {
-            'message': e.message,
-            'title': 'Error connecting to S3',
+            'message': str(e),
+            'title': f"Problem creating bucket '{bucket_name}'",
         }, http_status.HTTP_400_BAD_REQUEST
 
     return {}
