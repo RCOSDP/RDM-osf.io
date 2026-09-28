@@ -46,6 +46,19 @@ def test_get_file_size_negative_size_treated_as_zero_and_warns(mock_logger):
     assert quota.get_file_size(children) == 0
     assert mock_logger.warning.called
 
+def test_get_file_size_string_size():
+    """Providers that report size as a str (e.g. s3compat HEAD Content-Length header)
+    must not raise TypeError when compared against 0."""
+    children = {'children': [{'kind': 'file', 'size': '100'}, {'kind': 'file', 'size': '200'}]}
+    assert quota.get_file_size(children) == 300
+
+@mock.patch('website.util.quota.logger')
+def test_get_file_size_negative_string_size_treated_as_zero_and_warns(mock_logger):
+    """A negative child size reported as a str must also be treated as 0."""
+    children = {'children': [{'kind': 'file', 'size': '-1', 'name': 'bad.txt'}]}
+    assert quota.get_file_size(children) == 0
+    assert mock_logger.warning.called
+
 @mock.patch('website.util.quota.logger')
 def test_get_file_size_mixed_children_none_and_valid(mock_logger):
     """A None-size sibling must not swallow the total contributed by valid siblings."""
