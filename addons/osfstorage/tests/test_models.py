@@ -137,6 +137,53 @@ class TestOsfstorageFileNode(StorageTestCase):
             u'sha512': None,
         })
 
+    def test_serialize_size_by_version(self):
+        file = OsfStorageFile(name='versioned_file.txt', target=self.node_settings.owner)
+        file.save()
+
+        version1 = file.create_version(
+            self.user,
+            {
+                u'service': u'cloud',
+                settings.WATERBUTLER_RESOURCE: u'osf',
+                u'object': u'aaa111',
+            }, {
+                u'size': 1000,
+                u'contentType': u'text/plain',
+            })
+
+        version2 = file.create_version(
+            self.user,
+            {
+                u'service': u'cloud',
+                settings.WATERBUTLER_RESOURCE: u'osf',
+                u'object': u'bbb222',
+            }, {
+                u'size': 5000,
+                u'contentType': u'text/plain',
+            })
+
+        # Default serialize (no version arg) returns latest version's size
+        result_default = file.serialize()
+        assert_equal(result_default[u'size'], 5000)
+        assert_equal(result_default[u'version'], 2)
+        assert_equal(result_default[u'modified'], version2.created.isoformat())
+        assert_equal(result_default[u'created'], version1.created.isoformat())
+
+        # Serialize with version=1 returns version 1's size
+        result_v1 = file.serialize(version=1)
+        assert_equal(result_v1[u'size'], 1000)
+        assert_equal(result_v1[u'version'], 2)
+        assert_equal(result_v1[u'modified'], version1.created.isoformat())
+        assert_equal(result_v1[u'created'], version1.created.isoformat())
+
+        # Serialize with version=2 returns version 2's size
+        result_v2 = file.serialize(version=2)
+        assert_equal(result_v2[u'size'], 5000)
+        assert_equal(result_v2[u'version'], 2)
+        assert_equal(result_v2[u'modified'], version2.created.isoformat())
+        assert_equal(result_v2[u'created'], version1.created.isoformat())
+
     def test_get_child_by_name(self):
         child = self.node_settings.get_root().append_file('Test')
         assert_equal(child, self.node_settings.get_root().find_child_by_name('Test'))

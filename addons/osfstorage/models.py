@@ -361,6 +361,7 @@ class OsfStorageFile(OsfStorageFileNode, File):
         earliest_version = self.versions.order_by('created').first()
         ret.update({
             'version': self.versions.count(),
+            'size': version.size if version else ret.get('size'),
             'md5': version.metadata.get('md5') if version else None,
             'sha256': version.metadata.get('sha256') if version else None,
             'sha512': version.metadata.get('sha512') if version else None,

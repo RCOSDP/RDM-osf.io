@@ -105,7 +105,8 @@ def waterbutler_opt_hook(func):
                 'source': source,
                 'destination': dest_parent,
                 'name': payload['destination']['name'],
-                'is_check_permission': is_check_permission
+                'is_check_permission': is_check_permission,
+                'replaced_size': int(payload.get('replaced_size', 0)),
             })
         except KeyError:
             raise HTTPError(http_status.HTTP_400_BAD_REQUEST)
