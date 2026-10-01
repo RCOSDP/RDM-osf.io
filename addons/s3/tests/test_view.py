@@ -433,3 +433,60 @@ class TestS3Utils:
             'LocationConstraint': 'ap-northeast-1'
         }
         assert get_bucket_location_or_error('key', 'secret', 'bucket') == 'ap-northeast-1'
+
+    # G11: the queried prefix comes back in CommonPrefixes and must not list itself
+    @mock.patch('addons.s3.utils.boto3.client')
+    def test_get_bucket_prefixes_skips_the_queried_prefix(self, mock_client):
+        from addons.s3.utils import get_bucket_prefixes
+        mock_client.return_value.list_objects.return_value = {
+            'CommonPrefixes': [
+                {'Prefix': 'parent/'},
+                {'Prefix': 'parent/child/'},
+            ]
+        }
+
+        folders = get_bucket_prefixes('key', 'secret', 'parent/', 'bucket')
+
+        assert len(folders) == 1
+        assert folders[0]['name'] == 'child'
+        assert folders[0]['id'] == 'bucket:/parent/child/'
+        assert folders[0]['path'] == 'parent/child/'
+        assert folders[0]['kind'] == 'folder'
+
+    # G12: a bucket with no sub-prefixes omits CommonPrefixes entirely
+    @mock.patch('addons.s3.utils.boto3.client')
+    def test_get_bucket_prefixes_no_common_prefixes(self, mock_client):
+        from addons.s3.utils import get_bucket_prefixes
+        mock_client.return_value.list_objects.return_value = {}
+        assert get_bucket_prefixes('key', 'secret', '', 'bucket') == []
+
+    # G13: boto failures must become HTTPError, not an uncaught 500
+    @mock.patch('addons.s3.utils.boto3.client')
+    def test_get_bucket_prefixes_missing_credentials_raises_403(self, mock_client):
+        from framework.exceptions import HTTPError
+        from addons.s3.utils import get_bucket_prefixes
+        mock_client.return_value.list_objects.side_effect = NoCredentialsError()
+
+        with pytest.raises(HTTPError) as exc_info:
+            get_bucket_prefixes('key', 'secret', '', 'bucket')
+
+        assert exc_info.value.code == http_status.HTTP_403_FORBIDDEN
+
+    # G14: a ClientError keeps whatever status S3 itself returned
+    @mock.patch('addons.s3.utils.boto3.client')
+    def test_get_bucket_prefixes_client_error_keeps_status(self, mock_client):
+        from botocore.exceptions import ClientError
+        from framework.exceptions import HTTPError
+        from addons.s3.utils import get_bucket_prefixes
+        mock_client.return_value.list_objects.side_effect = ClientError(
+            {
+                'Error': {'Code': 'NoSuchBucket', 'Message': 'denied'},
+                'ResponseMetadata': {'HTTPStatusCode': http_status.HTTP_404_NOT_FOUND},
+            },
+            'ListObjects',
+        )
+
+        with pytest.raises(HTTPError) as exc_info:
+            get_bucket_prefixes('key', 'secret', '', 'bucket')
+
+        assert exc_info.value.code == http_status.HTTP_404_NOT_FOUND

@@ -155,7 +155,13 @@ def get_bucket_prefixes(access_key, secret_key, prefix, bucket_name):
         aws_secret_access_key=secret_key
     )
 
-    result = s3.list_objects(Bucket=bucket_name, Prefix=prefix, Delimiter='/')
+    try:
+        result = s3.list_objects(Bucket=bucket_name, Prefix=prefix, Delimiter='/')
+    except exceptions.NoCredentialsError:
+        raise HTTPError(http_status.HTTP_403_FORBIDDEN)
+    except exceptions.ClientError as e:
+        raise HTTPError(get_status_for_error(e))
+
     folders = []
     for common_prefixes in result.get('CommonPrefixes', []):
         key_name = common_prefixes.get('Prefix')
