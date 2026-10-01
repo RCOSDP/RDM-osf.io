@@ -416,3 +416,20 @@ class TestS3Utils:
     def test_can_list_no_keys(self):
         from addons.s3.utils import can_list
         assert can_list(None, None) is False
+
+    # G9: us-east-1 is reported as a null LocationConstraint, but BUCKET_LOCATIONS
+    # keys that region as ''.  Passing the null through labels the bucket '(None)'.
+    @mock.patch('addons.s3.utils.connect_s3')
+    def test_null_location_constraint_becomes_empty_string(self, mock_connect):
+        from addons.s3.utils import get_bucket_location_or_error
+        mock_connect.return_value.get_bucket_location.return_value = {'LocationConstraint': None}
+        assert get_bucket_location_or_error('key', 'secret', 'bucket') == ''
+
+    # G10: every other region reports its own name and must survive untouched
+    @mock.patch('addons.s3.utils.connect_s3')
+    def test_named_region_is_passed_through(self, mock_connect):
+        from addons.s3.utils import get_bucket_location_or_error
+        mock_connect.return_value.get_bucket_location.return_value = {
+            'LocationConstraint': 'ap-northeast-1'
+        }
+        assert get_bucket_location_or_error('key', 'secret', 'bucket') == 'ap-northeast-1'

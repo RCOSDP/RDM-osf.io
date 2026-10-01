@@ -139,8 +139,9 @@ def get_bucket_location_or_error(access_key, secret_key, bucket_name):
     """Returns the location of a bucket or raises AddonError
     """
     try:
-        # Will raise an exception if bucket_name doesn't exist
-        return connect_s3(access_key, secret_key).get_bucket_location(Bucket=bucket_name)['LocationConstraint']
+        # Will raise an exception if bucket_name doesn't exist.
+        # us-east-1 is reported as a null LocationConstraint; BUCKET_LOCATIONS keys it as ''.
+        return connect_s3(access_key, secret_key).get_bucket_location(Bucket=bucket_name)['LocationConstraint'] or ''
     except exceptions.NoCredentialsError:
         raise InvalidAuthError()
     except exceptions.ClientError:
