@@ -162,5 +162,12 @@ def create_bucket(auth, node_addon, **kwargs):
             'message': str(e),
             'title': f"Problem creating bucket '{bucket_name}'",
         }, http_status.HTTP_400_BAD_REQUEST
+    except exceptions.BotoCoreError as e:
+        # Base class catchall. ClientError is not a BotoCoreError, and NoCredentialsError
+        # is handled above, so neither of the clauses above is shadowed by this one.
+        return {
+            'message': str(e),
+            'title': 'Error connecting to S3',
+        }, http_status.HTTP_400_BAD_REQUEST
 
     return {}

@@ -397,6 +397,23 @@ class TestCreateBucket(S3AddonTestCase, OsfTestCase):
         assert ret.json['title'] == "Problem creating bucket 'valid-bucket-name'"
         assert 'BucketAlreadyExists' in ret.json['message']
 
+    @mock.patch('addons.s3.views.utils.create_bucket')
+    def test_create_bucket_boto_core_error(self, mock_make):
+        # BotoCoreError covers the non-response failures (bad parameters, endpoint
+        # unreachable, ...).  Without the catchall these surface as a 500.
+        from botocore.exceptions import ParamValidationError
+        mock_make.side_effect = ParamValidationError(report='Invalid bucket configuration')
+        url = f'/api/v1/project/{self.project._id}/s3/newbucket/'
+        ret = self.app.post_json(
+            url,
+            {'bucket_name': 'valid-bucket-name', 'bucket_location': ''},
+            auth=self.user.auth,
+            expect_errors=True,
+        )
+        assert ret.status_code == http_status.HTTP_400_BAD_REQUEST
+        assert ret.json['title'] == 'Error connecting to S3'
+        assert 'Invalid bucket configuration' in ret.json['message']
+
 
 class TestS3Utils:
     """Pure unit tests for utility functions — no DB required."""
