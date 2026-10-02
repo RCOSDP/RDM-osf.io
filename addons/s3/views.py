@@ -2,6 +2,7 @@ from rest_framework import status as http_status
 
 from botocore import exceptions
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError, transaction
 from flask import request
 
 from framework.exceptions import HTTPError
@@ -97,16 +98,17 @@ def s3_add_user_account(auth, **kwargs):
     masked_access_key = f'****{access_key[-4:]}' if len(access_key) > 4 else '****'
     display_name = f'{user_info.display_name} ({masked_access_key})'
     try:
-        account = ExternalAccount(
-            provider=SHORT_NAME,
-            provider_name=FULL_NAME,
-            oauth_key=access_key,
-            oauth_secret=secret_key,
-            provider_id=provider_id,
-            display_name=display_name,
-        )
-        account.save()
-    except ValidationError:
+        with transaction.atomic():
+            account = ExternalAccount(
+                provider=SHORT_NAME,
+                provider_name=FULL_NAME,
+                oauth_key=access_key,
+                oauth_secret=secret_key,
+                provider_id=provider_id,
+                display_name=display_name,
+            )
+            account.save()
+    except (ValidationError, IntegrityError):
         # ... or get the old one
         account = ExternalAccount.objects.get(
             provider=SHORT_NAME,
