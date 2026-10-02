@@ -64,7 +64,8 @@ function getNodesOriginal(nodeTree, nodesOriginal) {
         institutions: nodeInstitutions,
         changed: false,
         checked: false,
-        enabled: true
+        enabled: true,
+        mapcoreGroups: nodeTree.node.mapcore_groups || []
     };
 
     if (nodeTree.children) {

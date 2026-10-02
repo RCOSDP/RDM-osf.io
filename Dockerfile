@@ -179,6 +179,7 @@ COPY ./addons/binderhub/static/ ./addons/binderhub/static/
 COPY ./addons/metadata/static/ ./addons/metadata/static/
 COPY ./addons/onlyoffice/static/ ./addons/onlyoffice/static/
 COPY ./addons/workflow/static/ ./addons/workflow/static/
+COPY ./addons/groups/static/ ./addons/groups/static/
 RUN \
     # OSF
     yarn install --frozen-lockfile \

@@ -302,7 +302,7 @@
                                         <span data-bind="text: engine_label"></span>
                                     </td>
                                     <td>
-                                        <a data-bind="visible: nodeUrl, attr: { href: nodeUrl }, text: node_title"></a>
+                                        <span data-bind="visible: nodeUrl, text: node_title"></span>
                                         <span data-bind="visible: !nodeUrl, text: isLocal ? 'This project' : 'Shared'"></span>
                                     </td>
                                     <td>
@@ -401,7 +401,7 @@
                             <li>${_("Read and write files")}</li>
                             <li>${_("Update metadata")}</li>
                             <li>${_("Post comments")}</li>
-                            <li>${_("Access connected services (e.g., WEKO)")}</li>
+                            <li>${_("Access connected services (add-ons, etc.)")}</li>
                         </ul>
                     </div>
                     <div class="alert alert-warning">
@@ -492,7 +492,7 @@
                             <li>${_("Read and write files")}</li>
                             <li>${_("Update metadata")}</li>
                             <li>${_("Post comments")}</li>
-                            <li>${_("Access connected services (e.g., WEKO)")}</li>
+                            <li>${_("Access connected services (add-ons, etc.)")}</li>
                         </ul>
                     </div>
                     <div class="alert alert-warning">
@@ -527,7 +527,7 @@
                             <li>${_("Read and write files")}</li>
                             <li>${_("Update metadata")}</li>
                             <li>${_("Post comments")}</li>
-                            <li>${_("Access connected services (e.g., WEKO)")}</li>
+                            <li>${_("Access connected services (add-ons, etc.)")}</li>
                         </ul>
                     </div>
                     <div class="alert alert-warning">
@@ -562,7 +562,7 @@
                             <li>${_("Read and write files")}</li>
                             <li>${_("Update metadata")}</li>
                             <li>${_("Post comments")}</li>
-                            <li>${_("Access connected services (e.g., WEKO)")}</li>
+                            <li>${_("Access connected services (add-ons, etc.)")}</li>
                         </ul>
                     </div>
                     <div class="alert alert-warning">

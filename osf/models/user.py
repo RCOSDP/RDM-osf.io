@@ -472,6 +472,10 @@ class OSFUser(DirtyFieldsMixin, GuidMixin, BaseModel, AbstractBaseUser, Permissi
     mapcore_api_locked = models.BooleanField(default=False)
     mapcore_refresh_locked = models.BooleanField(default=False)
 
+    # @R2022-48 eduPersonAssurance(ial) and AuthnContextClass(aal) from Shibboleth
+    ial = models.CharField(blank=True, max_length=255, null=True)
+    aal = models.CharField(blank=True, max_length=255, null=True)
+
     def __repr__(self):
         return '<OSFUser({0!r}) with guid {1!r}>'.format(self.username, self._id)
 
@@ -698,7 +702,8 @@ class OSFUser(DirtyFieldsMixin, GuidMixin, BaseModel, AbstractBaseUser, Permissi
         Nodes that user has perms to through contributorship or group membership
         """
         from osf.models import Node
-        return Node.objects.get_nodes_for_user(self)
+        include_mapcore = getattr(self, 'include_mapcore_groups', False)
+        return Node.objects.get_nodes_for_user(self, include_mapcore_groups=include_mapcore)
 
     def set_unusable_username(self):
         """Sets username to an unusable value. Used for, e.g. for invited contributors

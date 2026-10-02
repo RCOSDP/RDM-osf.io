@@ -160,3 +160,14 @@ th.remove {
     font-size: 1.5em;
   }
 }
+
+#groupsNotes {
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+#groupsNotes h4 {
+    color: red;
+    padding: 0;
+    margin: 0;
+}

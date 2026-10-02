@@ -184,11 +184,5 @@ def generate_dataset_metadata(project_metadatas: Any) -> Tuple[List[Dict[str, An
 
 def get_weko_item_id(project_metadatas: Any) -> Union[str, None]:
     '''未病スキーマのプロジェクトメタデータから JAIRO Cloud の item_id を取得'''
-    if len(project_metadatas) != 1:
-        raise ValueError('Choose 1 project metadata to export.')
-    project_metadata = _deep_json_loads(project_metadatas[0])
-    item_id = project_metadata.get('internal:weko-item-id')
-
-    if item_id and item_id.get('value'):
-        return item_id.get('value')
-    return None
+    from .base import get_weko_item_id as _get_weko_item_id
+    return _get_weko_item_id(project_metadatas)

@@ -1030,6 +1030,124 @@ class WorkflowEngineViewTests(OsfTestCase):
             include_form=True,
         )
 
+    @mock.patch('addons.workflow.views.get_workflow_task')
+    def test_retrieve_task_returns_not_found_for_invisible_task(self, mock_get_task):
+        owner = AuthUserFactory()
+        node = self._create_project_with_workflow(owner)
+        engine = self._create_engine(owner=owner)
+
+        self._ensure_engine_admin(owner, engine)
+        mock_get_task.side_effect = HTTPError(
+            http_status.HTTP_404_NOT_FOUND,
+            data={'message': 'Workflow task not found.'},
+        )
+
+        response = self.app.get(
+            self._task_detail_url(node, engine, 'task-other-node'),
+            auth=owner.auth,
+            expect_errors=True,
+        )
+
+        assert response.status_code == http_status.HTTP_404_NOT_FOUND
+
+    @mock.patch('addons.workflow.views.send_workflow_notification')
+    @mock.patch('addons.workflow.views.get_gateway_client')
+    def test_workflow_notification_allows_visible_shared_activation(self, mock_get_client, mock_send):
+        owner = AuthUserFactory()
+        template_node = self._create_project_with_workflow(owner)
+        executor_node = ProjectFactory(creator=owner)
+        executor_node.add_addon('workflow', auth=Auth(owner))
+        engine = self._create_engine(owner=owner)
+
+        self._ensure_engine_admin(owner, engine)
+        definition_id = 'notification-shared-test'
+        WorkflowDefinitionSnapshot.objects.create(
+            engine=engine,
+            definition_id=definition_id,
+            definition_key=definition_id,
+            name='Notification Shared Test',
+            version=1,
+        )
+        template, activation = self._register_template(template_node, owner, engine, definition_id)
+        activation.node = executor_node
+        activation.save(update_fields=['node'])
+
+        process_instance = self._build_process_instance(
+            executor_node,
+            template,
+            activation,
+            process_id='process-shared',
+        )
+
+        mock_client = mock.Mock()
+        mock_client.list_process_instances.return_value = {
+            'data': [process_instance],
+        }
+        mock_get_client.return_value = mock_client
+
+        response = self.app.post_json(
+            api_url_for('workflow_notification', pid=template_node._id, engine_id=engine.engine_id, process_instance_id='process-shared'),
+            {
+                'title': 'Workflow Update',
+                'body': [{'type': 'text/plain', 'content': 'hello'}],
+            },
+            auth=owner.auth,
+        )
+
+        assert response.status_code == http_status.HTTP_200_OK
+        mock_send.assert_called_once()
+
+    @mock.patch('addons.workflow.views.send_workflow_notification')
+    @mock.patch('addons.workflow.views.get_gateway_client')
+    def test_workflow_notification_returns_not_found_for_invisible_shared_activation(self, mock_get_client, mock_send):
+        owner = AuthUserFactory()
+        read_user = AuthUserFactory()
+        template_node = self._create_project_with_workflow(owner)
+        template_node.add_contributor(read_user, permissions='read', auth=Auth(owner), save=True)
+        executor_node = ProjectFactory(creator=owner)
+        executor_node.add_addon('workflow', auth=Auth(owner))
+        engine = self._create_engine(owner=owner)
+
+        self._ensure_engine_admin(owner, engine)
+        self._ensure_engine_admin(read_user, engine)
+        definition_id = 'notification-invisible-test'
+        WorkflowDefinitionSnapshot.objects.create(
+            engine=engine,
+            definition_id=definition_id,
+            definition_key=definition_id,
+            name='Notification Invisible Test',
+            version=1,
+        )
+        template, activation = self._register_template(template_node, owner, engine, definition_id)
+        activation.node = executor_node
+        activation.save(update_fields=['node'])
+
+        process_instance = self._build_process_instance(
+            executor_node,
+            template,
+            activation,
+            process_id='process-hidden',
+        )
+
+        mock_client = mock.Mock()
+        mock_client.list_process_instances.return_value = {
+            'data': [process_instance],
+        }
+        mock_get_client.return_value = mock_client
+
+        response = self.app.post_json(
+            api_url_for('workflow_notification', pid=template_node._id, engine_id=engine.engine_id, process_instance_id='process-hidden'),
+            {
+                'title': 'Workflow Update',
+                'body': [{'type': 'text/plain', 'content': 'hello'}],
+            },
+            auth=read_user.auth,
+            expect_errors=True,
+        )
+
+        assert response.status_code == http_status.HTTP_404_NOT_FOUND
+        mock_send.assert_not_called()
+
     @mock.patch('addons.workflow.views.submit_task_action_async')
     def test_submit_task_action_returns_job_info(self, mock_submit_async):
         owner = AuthUserFactory()
@@ -1110,3 +1228,86 @@ class WorkflowEngineViewTests(OsfTestCase):
         )
 
         assert response.status_code == http_status.HTTP_400_BAD_REQUEST
+
+    def test_upsert_activation_dismiss(self):
+        owner = AuthUserFactory()
+        node = self._create_project_with_workflow(owner)
+
+        engine = self._create_engine(owner=owner)
+        definition_id = 'dismiss-view-test'
+        WorkflowDefinitionSnapshot.objects.create(
+            engine=engine,
+            definition_id=definition_id,
+            definition_key='dismiss-view-test',
+            name='Dismiss View Test',
+            version=1,
+        )
+
+        template, activation = self._register_template(node, owner, engine, definition_id)
+
+        response = self.app.put_json(
+            self._activation_url('upsert_activation', node, template),
+            {'is_dismissed': True},
+            auth=owner.auth,
+        )
+        assert response.status_code == http_status.HTTP_200_OK
+
+        activation.refresh_from_db()
+        assert activation.is_dismissed is True
+        assert activation.is_enabled is False
+
+    def test_list_activations_excludes_dismissed(self):
+        owner = AuthUserFactory()
+        node = self._create_project_with_workflow(owner)
+
+        engine = self._create_engine(owner=owner)
+        definition_id = 'dismissed-list-test'
+        WorkflowDefinitionSnapshot.objects.create(
+            engine=engine,
+            definition_id=definition_id,
+            definition_key='dismissed-list-test',
+            name='Dismissed List Test',
+            version=1,
+        )
+
+        template, activation = self._register_template(node, owner, engine, definition_id)
+        activation.is_dismissed = True
+        activation.is_enabled = False
+        activation.save(update_fields=['is_dismissed', 'is_enabled'])
+
+        response = self.app.get(
+            api_url_for('list_activations', pid=node._id),
+            auth=owner.auth,
+        )
+        assert response.status_code == http_status.HTTP_200_OK
+        assert len(response.json['data']) == 0
+
+    def test_upsert_activation_enable_clears_dismissed(self):
+        owner = AuthUserFactory()
+        node = self._create_project_with_workflow(owner)
+
+        engine = self._create_engine(owner=owner)
+        definition_id = 'reactivate-dismissed-test'
+        WorkflowDefinitionSnapshot.objects.create(
+            engine=engine,
+            definition_id=definition_id,
+            definition_key='reactivate-dismissed-test',
+            name='Reactivate Dismissed Test',
+            version=1,
+        )
+
+        template, activation = self._register_template(node, owner, engine, definition_id)
+        activation.is_dismissed = True
+        activation.is_enabled = False
+        activation.save(update_fields=['is_dismissed', 'is_enabled'])
+
+        response = self.app.put_json(
+            self._activation_url('upsert_activation', node, template),
+            {'is_enabled': True},
+            auth=owner.auth,
+        )
+        assert response.status_code == http_status.HTTP_200_OK
+
+        activation.refresh_from_db()
+        assert activation.is_dismissed is False
+        assert activation.is_enabled is True

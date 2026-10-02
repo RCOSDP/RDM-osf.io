@@ -46,7 +46,8 @@ from website.project import signals as project_signals
 from website import settings, mails, language
 from website.project.licenses import set_license
 from api.base.rdmlogger import RdmLogger, rdmlog
-
+from osf.models.mapcore_node_group import MapCoreNodeGroup
+from osf.models.mapcore_user_group import MapCoreUserGroup
 
 logger = logging.getLogger(__name__)
 
@@ -626,6 +627,9 @@ class AddonModelMixin(models.Model):
         if not config:
             config = apps.get_app_config('addons_{}'.format(addon_model))
         return getattr(config, '{}_settings'.format(self.settings_type))
+
+    def mapcore_groups_addon_enabled(self):
+        return self.has_addon('groups')
 
 
 class NodeLinkMixin(models.Model):
@@ -1939,16 +1943,42 @@ class ContributorMixin(models.Model):
         :returns: User has required permission
         """
         object_type = self.guardian_object_type
+        group_perm = []
+        enabled_groups = False
+        if hasattr(self, 'mapcore_groups_addon_enabled'):
+            enabled_groups = self.mapcore_groups_addon_enabled()
+
+        # Also check Auth Groups linked via MapCoreNodeGroup (by auth_group id)
+        if object_type == 'node' and enabled_groups:
+            try:
+                user_mapcore_group_ids = MapCoreUserGroup.objects.filter(user=user, is_deleted=False).values_list('mapcore_group_id', flat=True)
+                # get auth group ids linked to this object
+                auth_group_ids = MapCoreNodeGroup.objects.filter(node=self, mapcore_group_id__in=user_mapcore_group_ids, is_deleted=False).values_list('group_id', flat=True)
+            except Exception:
+                auth_group_ids = []
+            if auth_group_ids:
+                NodeGroupPermModel = apps.get_model('osf', 'NodeGroupObjectPermission')
+                for gid in auth_group_ids:
+                    perms_qs = NodeGroupPermModel.objects.filter(group_id=gid, content_object_id=self.id)
+                    for perm in list(perms_qs.values_list('permission__codename', flat=True)):
+                        if perm not in group_perm:
+                            group_perm.append(perm)
 
         if not user or user.is_anonymous:
             return False
         perm = '{}_{}'.format(permission, object_type)
+        # If any permission codename matches expected perm, grant access
+        if perm in group_perm:
+            return True
         # Using get_group_perms to get permissions that are inferred through
         # group membership - not inherited from superuser status
         has_permission = perm in get_group_perms(user, self)
         if object_type == 'node':
             if not has_permission and permission == READ and check_parent:
-                return self.is_admin_parent(user)
+                if enabled_groups and is_admin_group_parent(self.root, user_mapcore_group_ids):
+                    return True
+                else:
+                    return self.is_admin_parent(user)
         return has_permission
 
     # TODO: Remove save parameter
@@ -1972,9 +2002,38 @@ class ContributorMixin(models.Model):
         # Overrides guardian mixin - returns readable perms instead of literal perms
         if isinstance(user, AnonymousUser):
             return []
+        enabled_groups = False
+        if hasattr(self, 'mapcore_groups_addon_enabled'):
+            enabled_groups = self.mapcore_groups_addon_enabled()
+        group_perms = []
+        # Also check Auth Groups linked via MapCoreNodeGroup (by auth_group id) if node and groups addon enabled
+        if enabled_groups:
+            try:
+                user_mapcore_group_ids = MapCoreUserGroup.objects.filter(user=user, is_deleted=False).values_list('mapcore_group_id', flat=True)
+                # get auth group ids linked to this object
+                auth_group_ids = MapCoreNodeGroup.objects.filter(node=self, mapcore_group_id__in=user_mapcore_group_ids, is_deleted=False).values_list('group_id', flat=True)
+            except Exception:
+                auth_group_ids = []
+
+            if auth_group_ids:
+                # Try OSF-specific node-group-permission model(s), then fallback to guardian's GroupObjectPermission
+                NodeGroupPermModel = apps.get_model('osf', 'NodeGroupObjectPermission')
+                for gid in auth_group_ids:
+                    perms_qs = NodeGroupPermModel.objects.filter(group_id=gid, content_object_id=self.id)
+                    for perm in list(perms_qs.values_list('permission__codename', flat=True)):
+                        if perm not in group_perms:
+                            group_perms.append(perm)
+
         # If base_perms not on model, will error
         perms = self.base_perms
         user_perms = sorted(set(get_group_perms(user, self)).intersection(perms), key=perms.index)
+
+        # Union distinct permissions from group_perms and perm_names, preserving base_perms order
+        combined_set = set(user_perms) | set(group_perms)
+        if combined_set:
+            user_perms = [p for p in perms if p in combined_set]
+        else:
+            user_perms = []
         return [perm.split('_')[0] for perm in user_perms]
 
     def set_permissions(self, user, permissions, validate=True, save=False):
@@ -2332,3 +2391,19 @@ class EditableFieldsMixin(TitleMixin, DescriptionMixin, CategoryMixin, Contribut
 
     class Meta:
         abstract = True
+
+
+def is_admin_group_parent(parent_node, user_mapcore_group_ids):
+    try:
+        # get auth group ids linked to this object
+        auth_group_ids = MapCoreNodeGroup.objects.filter(node=parent_node, mapcore_group_id__in=user_mapcore_group_ids, is_deleted=False).values_list('group_id', flat=True)
+    except Exception:
+        auth_group_ids = []
+    if auth_group_ids:
+        NodeGroupPermModel = apps.get_model('osf', 'NodeGroupObjectPermission')
+        for gid in auth_group_ids:
+            perms_qs = NodeGroupPermModel.objects.filter(group_id=gid, content_object_id=parent_node.id)
+            group_perm = list(perms_qs.values_list('permission__codename', flat=True))
+            if 'admin_node' in group_perm:
+                return True
+    return False

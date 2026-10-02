@@ -51,6 +51,7 @@ from addons.workflow.services import (
     can_delete_template,
     cancel_workflow_run,
     deactivate_workflow_activation,
+    dismiss_workflow_activation,
     deactivate_workflow_template,
     delete_workflow_activation,
     delete_workflow_engine,
@@ -245,15 +246,14 @@ def _get_engine_or_404(engine_id: str, user) -> WorkflowEngine:
 
     has_institution_access = _user_has_engine_admin_access(user, engine)
     if not has_institution_access:
-        accessible_nodes = AbstractNode.objects.filter(_contributors=user, is_deleted=False)
+        accessible_nodes = AbstractNode.objects.get_nodes_for_user(user, include_mapcore_groups=True)
         has_template_access = WorkflowTemplate.objects.filter(
             node__in=accessible_nodes,
             definition__engine=engine,
         ).exists()
         if not has_template_access:
             has_template_access = WorkflowActivation.objects.filter(
-                node___contributors=user,
-                node__is_deleted=False,
+                node__in=accessible_nodes,
                 template__definition__engine=engine,
             ).exists()
 
@@ -292,12 +292,11 @@ def _get_template_or_404(template_id: str, user) -> WorkflowTemplate:
             data={'message': 'Workflow template not found.'},
         )
 
-    has_direct_access = template.node.contributors.filter(id=user.id).exists()
+    has_direct_access = template.node.is_contributor_or_group_member(user)
     if not has_direct_access:
         has_activation_access = WorkflowActivation.objects.filter(
             template=template,
-            node___contributors=user,
-            node__is_deleted=False,
+            node__in=AbstractNode.objects.get_nodes_for_user(user, include_mapcore_groups=True),
         ).exists()
         if not has_activation_access and not _user_can_access_template_via_visibility(user, template):
             raise HTTPError(
@@ -933,6 +932,7 @@ def list_activations(auth, **kwargs):
 
     activations = WorkflowActivation.objects.filter(
         node=node,
+        is_dismissed=False,
     ).select_related('template__definition__engine', 'template__node', 'activated_by')
 
     data = [_serialize_activation(activation) for activation in activations]
@@ -983,24 +983,40 @@ def upsert_activation(auth, template_id: str, **kwargs):
     except Exception as error:
         raise HTTPError(http_status.HTTP_400_BAD_REQUEST, data={'message': 'Invalid JSON payload.'}) from error
 
+    is_dismissed = payload.get('is_dismissed', False)
     is_enabled = payload.get('is_enabled', True)
-    if not isinstance(is_enabled, bool):
-        raise HTTPError(http_status.HTTP_400_BAD_REQUEST, data={'message': 'is_enabled must be a boolean.'})
 
-    defaults = {
-        'activated_by': user,
-        'is_enabled': is_enabled,
-    }
-    activation, created = WorkflowActivation.objects.get_or_create(
-        node=node,
-        template=template,
-        defaults=defaults,
-    )
-
-    if is_enabled:
-        activate_workflow_activation(activation, user)
+    if is_dismissed:
+        defaults = {
+            'activated_by': user,
+            'is_enabled': False,
+            'is_dismissed': True,
+        }
+        activation, created = WorkflowActivation.objects.get_or_create(
+            node=node,
+            template=template,
+            defaults=defaults,
+        )
+        if not created:
+            dismiss_workflow_activation(activation)
     else:
-        deactivate_workflow_activation(activation)
+        if not isinstance(is_enabled, bool):
+            raise HTTPError(http_status.HTTP_400_BAD_REQUEST, data={'message': 'is_enabled must be a boolean.'})
+
+        defaults = {
+            'activated_by': user,
+            'is_enabled': is_enabled,
+        }
+        activation, created = WorkflowActivation.objects.get_or_create(
+            node=node,
+            template=template,
+            defaults=defaults,
+        )
+
+        if is_enabled:
+            activate_workflow_activation(activation, user)
+        else:
+            deactivate_workflow_activation(activation)
 
     status = http_status.HTTP_201_CREATED if created else http_status.HTTP_200_OK
     return {
@@ -1580,6 +1596,17 @@ def workflow_notification(auth, engine_id: str, process_instance_id: str, **kwar
         )
     response = instance_response['data'][0]
     metadata = _extract_metadata(response)
+    activation_id = str(metadata['activation_id'])
+    visible_activations = _get_visible_activations(node, auth.user)
+    activation = next(
+        (entry for entry in visible_activations if str(entry.id) == activation_id),
+        None,
+    )
+    if activation is None:
+        raise HTTPError(
+            http_status.HTTP_404_NOT_FOUND,
+            data={'message': 'Process instance not found.'},
+        )
 
     send_workflow_notification(
         node,

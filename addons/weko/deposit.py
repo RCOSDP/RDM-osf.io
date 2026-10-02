@@ -202,7 +202,6 @@ def _deposit_metadata(
     task_request_id=None, update_task_state=None,
 ):
 
-    from .schema.constants_mebyo import MEBYO_SCHEMA_NAME
     user = OSFUser.load(user_id)
     logger.info(f'Deposit: {metadata_paths}, {status_path} {task_request_id}')
     node = AbstractNode.load(node_id)
@@ -328,8 +327,9 @@ def _deposit_metadata(
         logger.info(f'Uploading... {file_metadatas}')
 
         # 未病スキーマですでに WEKO 上にアイテムがある場合はバージョンアップ、それ以外の場合は新規作成
-        if ro_crate_schemaname == MEBYO_SCHEMA_NAME and schema.get_weko_item_id(project_metadatas):
-            respbody = c.version_upgrade_item(schema.get_weko_item_id(project_metadatas), files, headers=headers)
+        weko_item_id = schema.get_weko_item_id(project_metadatas) if len(project_metadatas) == 1 else None
+        if weko_item_id:
+            respbody = c.version_upgrade_item(weko_item_id, files, headers=headers)
         else:
             respbody = c.deposit(files, headers=headers)
         logger.info(f'Uploaded: {respbody}')
@@ -365,14 +365,14 @@ def _deposit_metadata(
                 },
             )
 
-        if len(links) > 0 and ro_crate_schemaname == MEBYO_SCHEMA_NAME:
+        is_ingested = any(
+            s['@id'].endswith('/ingested')
+            for s in respbody.get('state', [])
+            if '@id' in s
+        )
+        if is_ingested and len(project_metadatas) == 1:
             project_metadata = DraftRegistration.objects.filter(_id=metadata_node_id).first()
-
-            weko_id = None
-            try:
-                weko_id = respbody['@id'].split('/')[-1]
-            except (KeyError, IndexError, TypeError):
-                pass
+            weko_id = respbody['@id'].split('/')[-1]
 
             if project_metadata and weko_id:
                 update_data = {

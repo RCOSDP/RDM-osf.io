@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from celery import states
+from framework.celery_tasks import app as celery_app
 from rest_framework import status as http_status
 
 import logging
@@ -13,6 +15,7 @@ from framework.exceptions import HTTPError
 from addons.base.tests.views import (
     OAuthAddonConfigViewsTestCaseMixin
 )
+from addons.weko import views
 from addons.weko.tests.utils import WEKOAddonTestCase
 from website.util import api_url_for
 from addons.weko.tests import utils
@@ -207,3 +210,60 @@ class TestWEKOViews(WEKOAddonTestCase, OAuthAddonConfigViewsTestCaseMixin, OsfTe
 
     def test_folder_list(self):
         pass
+
+
+class TestResolveDepositTask(OsfTestCase):
+
+    def _mock_async_result(self, state, infos):
+        # 参照ごとに次の値を返す (尽きたら最後の値を返す)。例外も値として返したいため
+        # side_effectにはリストではなく関数を渡す
+        values = list(infos)
+        def next_info():
+            return values.pop(0) if len(values) > 1 else values[0]
+        aresult = mock.Mock()
+        type(aresult).state = mock.PropertyMock(return_value=state)
+        type(aresult).info = mock.PropertyMock(side_effect=next_info)
+        return aresult
+
+    def _resolve(self, state, infos):
+        aresult = self._mock_async_result(state, infos)
+        with mock.patch.object(celery_app, 'AsyncResult', return_value=aresult):
+            return views._resolve_deposit_task('fake-task-id')
+
+    def test_progress_while_uploading(self):
+        progress, error, result, response = self._resolve(
+            'uploading', [{'progress': 60, 'paths': ['/f.txt']}],
+        )
+        assert_equal(progress, {'state': 'uploading', 'rate': 60})
+        assert_equal(error, None)
+        assert_equal(result, None)
+
+    def test_result_when_deposited(self):
+        progress, error, result, response = self._resolve(
+            states.SUCCESS,
+            [{'result': 'https://weko.test/records/1', 'response': {'links': []}}],
+        )
+        assert_equal(result, 'https://weko.test/records/1')
+        assert_equal(response, {'links': []})
+        assert_equal(progress, None)
+
+    def test_error_when_failed(self):
+        progress, error, result, response = self._resolve(
+            states.FAILURE, [IOError('deposit failed')],
+        )
+        assert_equal(error, 'deposit failed')
+        assert_equal(progress, None)
+
+    def test_task_completing_while_reading_state(self):
+        # 進行中はinfoの参照ごとにバックエンドへ問い合わせるため、'progress'の有無を
+        # 判定した後、値を取り出す前に完了へ遷移すると 'progress' が消える
+        progress, error, result, response = self._resolve(
+            'uploaded',
+            [
+                {'progress': 100, 'paths': ['/f.txt']},
+                {'progress': 100, 'paths': ['/f.txt']},
+                {'result': 'https://weko.test/records/1', 'paths': ['/f.txt']},
+            ],
+        )
+        assert_equal(progress, {'state': 'uploaded', 'rate': 100})
+        assert_equal(error, None)

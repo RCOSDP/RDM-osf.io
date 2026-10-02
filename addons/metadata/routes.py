@@ -61,6 +61,8 @@ api_routes = {
         Rule([
             '/project/<pid>/{}/file_metadata/suggestions/files/<path:filepath>'.format(SHORT_NAME),
             '/project/<pid>/node/<nid>/{}/file_metadata/suggestions/files/<path:filepath>'.format(SHORT_NAME),
+            '/project/<pid>/{}/suggestions'.format(SHORT_NAME),
+            '/project/<pid>/node/<nid>/{}/suggestions'.format(SHORT_NAME),
         ], 'get', views.metadata_file_metadata_suggestions, json_renderer),
         Rule([
             '/{}/packages/projects/'.format(SHORT_NAME),

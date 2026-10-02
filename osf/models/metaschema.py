@@ -215,6 +215,7 @@ class RegistrationSchemaBlock(ObjectIDMixin, BaseModel):
     readonly = models.BooleanField(default=False)
     sentence = models.BooleanField(default=False)
     row_addition_caption = models.TextField(null=True)
+    ui = DateTimeAwareJSONField(null=True, blank=True)
 
     @property
     def absolute_api_v2_url(self):

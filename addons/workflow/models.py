@@ -308,6 +308,7 @@ class WorkflowActivation(BaseModel):
     )
     delegation_tokens = DateTimeAwareJSONField(default=dict, blank=True)
     is_enabled = models.BooleanField(default=True)
+    is_dismissed = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ('node', 'template')
@@ -355,3 +356,34 @@ class WorkflowExecutorToken(BaseModel):
 
     def __str__(self) -> str:  # pragma: no cover
         return f'WorkflowExecutorToken(activation={self.activation_id}, user={self.user_id})'
+
+
+class WorkflowTaskCompletion(BaseModel):
+    """Records the OSFUser who actually submitted (completed) a workflow task.
+
+    Flowable preserves the role-based assignee on historic tasks but does not capture
+    which OSF user performed the action. This model attributes the actual operator
+    so the task list can show their name instead of just the role.
+    """
+
+    node = models.ForeignKey(
+        'osf.AbstractNode',
+        on_delete=models.CASCADE,
+        related_name='workflow_task_completions',
+    )
+    task_id = models.CharField(max_length=64, db_index=True)
+    process_instance_id = models.CharField(max_length=64)
+    completed_by = models.ForeignKey(
+        'osf.OSFUser',
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='+',
+    )
+    completed_at = NonNaiveDateTimeField(default=timezone.now)
+
+    class Meta:
+        unique_together = ('node', 'task_id')
+        ordering = ('-completed_at',)
+
+    def __str__(self) -> str:  # pragma: no cover
+        return f'WorkflowTaskCompletion(node={self.node_id}, task_id={self.task_id})'

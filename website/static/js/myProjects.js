@@ -37,7 +37,8 @@ var sparseNodeFields = String([
     'parent',
     'public',
     'tags',
-    'title'
+    'title',
+    'mapcore_groups'
 ]);
 
 var sparseRegistrationFields = String([
@@ -354,6 +355,8 @@ function _formatDataforPO(item) {
             }
         });
     }
+    var groupList = lodashGet(item, 'attributes.mapcore_groups', []);
+    item.groups = Array.isArray(groupList) ? groupList.join(' ') : (groupList || '');
     item.date = new $osf.FormattableDate(item.attributes.date_modified);
     item.sortDate = item.date.date;
     //
@@ -1205,6 +1208,8 @@ var MyProjects = {
 var Collections = {
     controller : function(args){
         var self = this;
+        self.isComposingAdd = false;
+        self.isComposingRename = false;
         self.collections = args.collections;
         self.pageSize = args.collectionsPageSize;
         self.newCollectionName = m.prop('');
@@ -1539,15 +1544,26 @@ var Collections = {
                         m('.form-group', [
                             m('label[for="addCollInput].f-w-lg.text-bigger', _('Collection name')),
                             m('input[type="text"].form-control#addCollInput', {
-                                onkeyup: function (ev){
-                                    var val = $(this).val();
+                                oncompositionstart: function () {
+                                    ctrl.isComposingAdd = true;
+                                },
+                                oncompositionend: function () {
+                                    ctrl.isComposingAdd = false;
+                                },
+                                oninput: function(ev) {
+                                    var val = ev.target.value;
                                     ctrl.validateName(val);
-                                    if(ctrl.isValid()){
-                                        if(ev.which === 13){
+                                    ctrl.newCollectionName(val);
+                                },
+                                onkeydown: function (ev){
+                                    var isComposing = ev.isComposing || ctrl.isComposingAdd || ev.keyCode === 229;
+                                    if (ev.key === 'Enter' && !isComposing) {
+                                        ev.preventDefault();
+                                        ev.stopPropagation();
+                                        if (ctrl.isValid()) {
                                             ctrl.addCollection();
                                         }
                                     }
-                                    ctrl.newCollectionName(val);
                                 },
                                 onchange: function() {
                                     $osf.trackClick('myProjects', 'add-collection', 'type-collection-name');
@@ -1579,28 +1595,40 @@ var Collections = {
                             $osf.trackClick('myProjects', 'edit-collection', 'click-close-rename-modal');
                         }}, [
                             m('span[aria-hidden="true"]','×')
-                        ]),
-                        m('h3.modal-title', _('Rename collection'))
+                            ]),
+                            m('h3.modal-title', _('Rename collection'))
                     ]),
                     body: m('.modal-body', [
                         m('.form-inline', [
                             m('.form-group', [
                                 m('label[for="addCollInput]', _('Rename to: ')),
                                 m('input[type="text"].form-control.m-l-sm',{
-                                    onkeyup: function(ev){
-                                        var val = $(this).val();
+                                    oncompositionstart: function () {
+                                        ctrl.isComposingRename = true;
+                                    },
+                                    oncompositionend: function () {
+                                        ctrl.isComposingRename = false;
+                                    },
+                                    oninput: function(ev) {
+                                        var val = ev.target.value;
                                         ctrl.validateName(val);
-                                        if(ctrl.isValid()) {
-                                            if (ev.which === 13) { // if enter is pressed
+                                        ctrl.collectionMenuObject().item.renamedLabel = val;
+                                    },
+                                    onkeydown: function(ev){
+                                        var isComposing = ev.isComposing || ctrl.isComposingRename || ev.keyCode === 229;
+                                        if (ev.key === 'Enter' && !isComposing) {
+                                            ev.preventDefault();
+                                            ev.stopPropagation();
+                                            if (ctrl.isValid()) {
                                                 ctrl.renameCollection();
                                             }
                                         }
-                                        ctrl.collectionMenuObject().item.renamedLabel = val;
                                     },
                                     onchange: function() {
                                         $osf.trackClick('myProjects', 'edit-collection', 'type-rename-collection');
                                     },
-                                    value: ctrl.collectionMenuObject().item.renamedLabel}),
+                                    value: ctrl.collectionMenuObject().item.renamedLabel
+                                }),
                                 m('span.help-block', ctrl.validationError())
 
                             ])

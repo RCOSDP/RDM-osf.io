@@ -127,16 +127,17 @@ class InstitutionNodeListExportCsv(RdmPermissionMixin, UserPassesTestMixin, List
         response = HttpResponse(content_type='text/csv')
         writer = csv.writer(response, delimiter=',')
         writer.writerow(['Node id', 'GUID', 'Title', 'Parent', 'Root', 'Date created', 'Public', 'Withdrawn', 'Embargo',
-                         'Contributors'])
+                         'Contributors', 'Groups'])
         for node in node_list:
             parent = getattr(node, 'parent_title', None)
             root = getattr(node, 'root_title', None)
             public = getattr(node, 'is_public', None)
             created = getattr(node, 'created', None).strftime('%Y-%m-%d') if getattr(node, 'created', None) else None
             contributors = getattr(node, 'contributor_names', None)
+            groups = ', '.join([mapcore_group.display_name for mapcore_group in node.mapcore_groups])
             writer.writerow(
                 [node.id, node.guid, node.title, parent, root, created, public, node.retraction, node.embargo,
-                 contributors])
+                 contributors, groups])
         time_now = datetime.today().strftime('%Y%m%d%H%M%S')
         query = 'attachment; filename= export_nodes_{}.csv'.format(time_now)
         response['Content-Disposition'] = query

@@ -383,3 +383,21 @@ class AdminOrPublicOrSuperUser(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return obj.is_public or obj.can_view(auth)
         return obj.has_permission(auth.user, osf_permissions.ADMIN)
+
+
+class GroupsAddonEnabled(permissions.BasePermission):
+    """Checks if the groups addon is enabled for the node."""
+
+    acceptable_models = (AbstractNode,)
+
+    def has_object_permission(self, request, view, obj):
+        # This permission is used on views that are only relevant if the groups addon is enabled.
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        if not isinstance(obj, AbstractNode):
+            return False
+        if not obj.guardian_object_type == 'node':
+            return False
+        if not obj.has_addon('groups'):
+            return False
+        return True

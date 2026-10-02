@@ -247,9 +247,16 @@ $(document).ready(function() {
     });
 
     var bibliographicContribInfoHtml = _('Only bibliographic contributors will be displayed in the Contributors list and in project citations. Non-bibliographic contributors can read and modify the project as normal.');
+    var bibliographicGroupInfoHtml = _('Only bibliographic groups will be displayed in the Groups list and in project citations. Non-bibliographic groups can read and modify the project as normal.');
 
     $('.visibility-info').attr(
         'data-content', bibliographicContribInfoHtml
+    ).popover({
+        trigger: 'hover'
+    });
+
+    $('.visibility-group-info').attr(
+        'data-content', bibliographicGroupInfoHtml
     ).popover({
         trigger: 'hover'
     });

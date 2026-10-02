@@ -17,6 +17,7 @@ var sprintf = require('agh.sprintf').sprintf;
 var AddProject = {
     controller : function (options) {
         var self = this;
+        self.isComposing = false;
         self.defaults = {
             buttonTemplate : m('.btn.btn-primary[data-toggle="modal"][data-target="#addProjectModal"]', _('Create new project')),
             parentID : null,
@@ -192,13 +193,24 @@ var AddProject = {
                         m('.form-group.m-v-sm', [
                             m('label[for="projectName].f-w-lg.text-bigger', _('Title')),
                             m('input[type="text"].form-control.project-name', {
-                                onkeyup: function(ev){
+                                oncompositionstart: function () {
+                                    ctrl.isComposing = true;
+                                },
+                                oncompositionend: function () {
+                                    ctrl.isComposing = false;
+                                },
+                                oninput: function(ev) {
                                     var val = ev.target.value;
                                     ctrl.isValid(val.trim().length > 0);
-                                    if (ev.which === 13) {
+                                    ctrl.newProjectName(val);
+                                },
+                                onkeydown: function(ev){
+                                    var isComposing = ev.isComposing || ctrl.isComposing || ev.keyCode === 229;
+                                    if (ev.key === 'Enter' && !isComposing) {
+                                        ev.preventDefault();
+                                        ev.stopPropagation();
                                         ctrl.add();
                                     }
-                                    ctrl.newProjectName(val);
                                 },
                                 onchange: function(ev) {
                                     //  This will not be reliably running!
@@ -257,7 +269,7 @@ var AddProject = {
                                     onchange : function() {
                                         ctrl.newProjectInheritContribs(this.checked);
                                     }
-                                }), _(' Add contributors from '), m('b', options.parentTitle),
+                                }), _(' Add contributors and groups from '), m('b', options.parentTitle),
                                 m('br'),
                                 m('i', _(' Admins of '), m('b', options.parentTitle), _(' will have read access to this component.'))
                             ),

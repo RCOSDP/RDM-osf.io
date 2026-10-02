@@ -3,7 +3,7 @@
 {% load render_bundle from webpack_loader %}
 {% load spam_extras %}
 {% load static %}
-{% load render_bundle from webpack_loader %}
+{% load filters %}
 {% block title %}
     <title>{% trans "Maintenance State" %}</title>
 {% endblock title %}
@@ -26,7 +26,7 @@
             <td>{{ current_alert.start }} - {{ current_alert.end }} UTC</td>
             <td>
                 {% if current_alert.message %}
-                    {{ current_alert.message }}
+                    {{ current_alert.message|osf_urlize|linebreaksbr }}
                 {% else %}
                     {% trans "The site will undergo maintenance between &lt;localized start time&gt;-&lt;localized end time&gt;. Thank you for your patience." %}
                 {% endif %}
