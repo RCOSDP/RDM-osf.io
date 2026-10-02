@@ -401,6 +401,12 @@ class TestCreateBucket(S3AddonTestCase, OsfTestCase):
 class TestS3Utils:
     """Pure unit tests for utility functions — no DB required."""
 
+    def test_owner_from_dict_without_display_name(self):
+        from addons.s3.utils import Owner
+        owner = Owner.from_dict({'ID': 'owner-id'})
+        assert owner.id == 'owner-id'
+        assert owner.display_name == 'owner-id'
+
     # G7: bucket_exists with empty name → False (early exit, no S3 call)
     def test_bucket_exists_empty_name(self):
         from addons.s3.utils import bucket_exists

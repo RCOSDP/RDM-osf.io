@@ -122,3 +122,19 @@ class TestNodeSettings(OAuthAddonNodeSettingsTestSuiteMixin, unittest.TestCase):
             'id': 'bucket_name:/path_goes_here/with_folder_id'
         }
         assert settings == expected
+
+    @pytest.mark.parametrize('folder_id, expected_bucket', [
+        ('bucket', 'bucket'),
+        ('bucket:/', 'bucket'),
+        ('bucket:/prefix/', 'bucket'),
+    ])
+    def test_serialize_settings_supports_legacy_and_prefixed_folder_ids(self, folder_id, expected_bucket):
+        self.node_settings.folder_id = folder_id
+
+        settings = self.node_settings.serialize_waterbutler_settings()
+
+        assert settings == {
+            'bucket': expected_bucket,
+            'encrypt_uploads': self.node_settings.encrypt_uploads,
+            'id': folder_id,
+        }
