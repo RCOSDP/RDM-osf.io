@@ -46,6 +46,7 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
     folder_name = models.TextField(blank=True, null=True)
     encrypt_uploads = models.BooleanField(default=ENCRYPT_UPLOADS_DEFAULT)
     user_settings = models.ForeignKey(UserSettings, null=True, blank=True, on_delete=models.CASCADE)
+    region = models.CharField(max_length=50, blank=True, null=True)
 
     @property
     def folder_path(self):
@@ -68,6 +69,7 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
             self.external_account.oauth_secret,
             folder_id
         )
+        self.region = bucket_location
         try:
             bucket_location = BUCKET_LOCATIONS[bucket_location]
         except KeyError:
@@ -139,7 +141,8 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
             raise exceptions.AddonError('Cannot serialize settings for S3 addon')
         return {
             'bucket': self.folder_id,
-            'encrypt_uploads': self.encrypt_uploads
+            'encrypt_uploads': self.encrypt_uploads,
+            'region': self.region
         }
 
     def create_waterbutler_log(self, auth, action, metadata):
