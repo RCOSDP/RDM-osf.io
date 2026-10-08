@@ -275,7 +275,7 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
             params={
                 'project': self.owner.parent_id,
                 'node': self.owner._id,
-                'path': path,
+                'path': metadata['materialized'],
                 'urls': urls,
                 'gitlab': {
                     'host': 'https://{0}'.format(self.external_account.display_name),

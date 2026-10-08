@@ -3,6 +3,7 @@ import mock
 from nose.tools import *  # noqa (PEP8 asserts)
 import pytest
 import unittest
+from urllib.parse import quote
 from django.db import IntegrityError
 
 from addons.onedrive.models import OneDriveFile
@@ -100,6 +101,30 @@ class TestNodeSettings(OAuthAddonNodeSettingsTestSuiteMixin, unittest.TestCase):
         )
 
     ## Overrides ##
+
+    def test_create_log(self):
+        # path/materialized are deliberately different here: Google Drive's
+        # 'path' is the percent-encoded, ID-safe value used to build URLs,
+        # while 'materialized' is the decoded display name shown in the log.
+        action = 'file_added'
+        filename = u'テスト.txt'
+        encoded_path = quote(filename)
+        nlog = self.node.logs.count()
+        self.node_settings.create_waterbutler_log(
+            auth=Auth(user=self.user),
+            action=action,
+            metadata={'path': encoded_path, 'materialized': filename},
+        )
+        self.node.reload()
+        assert_equal(self.node.logs.count(), nlog + 1)
+        assert_equal(
+            self.node.logs.latest().action,
+            '{0}_{1}'.format(self.short_name, action),
+        )
+        assert_equal(
+            self.node.logs.latest().params['path'],
+            filename
+        )
 
     def test_set_folder(self):
         folder = {
