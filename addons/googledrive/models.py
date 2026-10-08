@@ -243,7 +243,7 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
             params={
                 'project': self.owner.parent_id,
                 'node': self.owner._id,
-                'path': metadata['path'],
+                'path': metadata['materialized'],
                 'folder': self.folder_path,
 
                 'urls': {

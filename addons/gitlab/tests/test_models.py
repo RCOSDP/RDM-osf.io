@@ -232,6 +232,7 @@ class TestCallbacks(OsfTestCase):
         # GitLabFileMetadata.extra key the commit sha as 'commitSha'.
         metadata = {
             'path': 'proj/file.py',
+            'materialized': 'proj/file.py',
             'extra': {
                 'commitSha': 'deadbeef',
                 'branchName': 'main',
@@ -254,7 +255,7 @@ class TestCallbacks(OsfTestCase):
         )
 
     def test_create_waterbutler_log_without_extra(self):
-        metadata = {'path': '', 'extra': {}}
+        metadata = {'path': '', 'materialized': '', 'extra': {}}
         self.node_settings.create_waterbutler_log(
             self.consolidated_auth, 'folder_downloaded_zip', metadata
         )
@@ -262,6 +263,21 @@ class TestCallbacks(OsfTestCase):
         assert_equal(log.action, 'gitlab_folder_downloaded_zip')
         assert_equal(log.params['urls'], {})
         assert_equal(log.params['gitlab']['sha'], None)
+
+    def test_create_waterbutler_log_uses_materialized_path_for_display(self):
+        # path/materialized are deliberately different here: GitLab's 'path'
+        # is the percent-encoded, ID-safe value used to build URLs, while
+        # 'materialized' is the decoded display name shown in the log.
+        encoded_path = 'proj/%E3%83%86%E3%82%B9%E3%83%88.txt'
+        materialized = u'proj/テスト.txt'
+        metadata = {'path': encoded_path, 'materialized': materialized, 'extra': {}}
+        self.node_settings.create_waterbutler_log(
+            self.consolidated_auth, 'file_added', metadata
+        )
+        log = self.project.logs.latest()
+        assert_equal(log.action, 'gitlab_file_added')
+        assert_equal(log.params['path'], materialized)
+        assert_equal(log.params['urls'], {})
 
 
 class TestGitLabNodeSettings(unittest.TestCase):
