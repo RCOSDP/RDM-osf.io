@@ -38,7 +38,13 @@ def osf_staff_check(user):
 
 
 def osf_superuser_check(user):
-    return user.is_authenticated and user.is_superuser
+    """An inactive or unregistered superuser is not an Integrated Admin."""
+    return bool(
+        user.is_authenticated and
+        user.is_active and
+        user.is_registered and
+        user.is_superuser
+    )
 
 
 def superuser_required(view_func):

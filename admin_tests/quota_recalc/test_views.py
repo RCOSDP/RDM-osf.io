@@ -8,7 +8,7 @@ from nose import tools as nt
 
 from admin.quota_recalc import views
 from api.base import settings as api_settings
-from osf.models import UserQuota
+from osf.models import OSFUser, UserQuota
 from osf_tests.factories import AuthUserFactory, InstitutionFactory, RegionFactory
 from tests.base import AdminTestCase
 
@@ -147,6 +147,35 @@ class TestQuotaRecalcPermission(AdminTestCase):
         request.user = self.superuser
         response = views.user(request, guid=self.target_user._id)
         nt.assert_equal(response.status_code, 200)
+
+    def _invalid_superuser(self, **fields):
+        # queryset.update() skips OSFUser.save(), which would otherwise recompute is_active
+        OSFUser.objects.filter(pk=self.superuser.pk).update(**fields)
+        self.superuser.refresh_from_db()
+        nt.assert_true(self.superuser.is_superuser)
+        return self.superuser
+
+    def _assert_denied(self, view, user, **kwargs):
+        request = RequestFactory().get('/fake_path')
+        request.user = user
+        with nt.assert_raises(PermissionDenied):
+            view(request, **kwargs)
+
+    def test_all_users_denied_for_inactive_superuser(self):
+        user = self._invalid_superuser(is_active=False)
+        self._assert_denied(views.all_users, user)
+
+    def test_all_users_denied_for_unregistered_superuser(self):
+        user = self._invalid_superuser(is_registered=False)
+        self._assert_denied(views.all_users, user)
+
+    def test_user_denied_for_inactive_superuser(self):
+        user = self._invalid_superuser(is_active=False)
+        self._assert_denied(views.user, user, guid=self.target_user._id)
+
+    def test_user_denied_for_unregistered_superuser(self):
+        user = self._invalid_superuser(is_registered=False)
+        self._assert_denied(views.user, user, guid=self.target_user._id)
 
 
 class TestCalculateQuota(AdminTestCase):
