@@ -542,6 +542,25 @@ class TestSendStatMailPermission(AdminTestCase):
         response = views.send_stat_mail(request)
         nt.assert_equal(response.status_code, 200)
 
+    def test_send_stat_mail_denied_for_inactive_superuser(self):
+        # queryset.update() skips OSFUser.save(), which would otherwise recompute is_active
+        OSFUser.objects.filter(pk=self.superuser.pk).update(is_active=False)
+        self.superuser.refresh_from_db()
+        nt.assert_true(self.superuser.is_superuser)
+        request = RequestFactory().get('/fake_path')
+        request.user = self.superuser
+        with nt.assert_raises(PermissionDenied):
+            views.send_stat_mail(request)
+
+    def test_send_stat_mail_denied_for_unregistered_superuser(self):
+        OSFUser.objects.filter(pk=self.superuser.pk).update(is_registered=False)
+        self.superuser.refresh_from_db()
+        nt.assert_true(self.superuser.is_superuser)
+        request = RequestFactory().get('/fake_path')
+        request.user = self.superuser
+        with nt.assert_raises(PermissionDenied):
+            views.send_stat_mail(request)
+
 
 class TestIndexViewPermission(AdminTestCase):
     """IndexView must be restricted to Integrated Admin or Institutional Admin."""
