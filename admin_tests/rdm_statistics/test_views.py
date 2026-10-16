@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 from nose import tools as nt
 from django.test import RequestFactory
+from django.contrib.auth.models import AnonymousUser
+from django.core.exceptions import PermissionDenied
 
 from tests.base import AdminTestCase
 from osf_tests.factories import (
     AuthUserFactory,
+    BookmarkCollectionFactory,
     InstitutionFactory,
     ProjectFactory
 )
@@ -14,6 +17,7 @@ from admin_tests.rdm_statistics import factories as rdm_statistics_factories
 from osf.models.user import Institution
 
 from admin.rdm_statistics import views
+from framework.auth import cron_signed_url
 from mock import patch
 
 import datetime
@@ -179,7 +183,6 @@ class TestclassStatisticsView(AdminTestCase):
         nt.assert_true('current_date' in ctx)
         nt.assert_true('user' in ctx)
         nt.assert_true('provider_data_array' in ctx)
-        nt.assert_true('token' in ctx)
 
 class TestImageView(AdminTestCase):
     """test ImageView"""
@@ -350,9 +353,6 @@ class TestCreateCSV(AdminTestCase):
         self.user.delete()
         self.institution1.delete()
 
-def test_simple_auth():
-    access_key_hexa = '2a85563b2b0f7d3168199f475365f57da1d56e4bb2ce2b7044eb058ae5e287637e7c636a772682d92c8d6b1830b9a97c5a5dc3de7016c60bde4baa7cc3b38aeb'
-    nt.assert_true(views.simple_auth(access_key_hexa))
 
 def test_get_start_date():
     end_date = datetime.datetime.now()
@@ -408,7 +408,8 @@ class TestGatherView(AdminTestCase):
         self.request = RequestFactory().get('/fake_path')
         self.view = views.GatherView()
         self.view = setup_user_view(self.view, self.request, user=self.user)
-        self.view.kwargs = {'institution_id': self.institution1.id, 'access_token': '2A85563B2B0F7D3168199F475365F57DA1D56E4BB2CE2B7044EB058AE5E287637E7C636A772682D92C8D6B1830B9A97C5A5DC3DE7016C60BDE4BAA7CC3B38AEB'.lower()}
+        ts, signature = cron_signed_url.generate_signed_params()
+        self.view.kwargs = {'institution_id': self.institution1.id, 'ts': ts, 'signature': signature}
 
     def tearDown(self):
         super(TestGatherView, self).tearDown()
@@ -426,8 +427,14 @@ class TestGatherView(AdminTestCase):
         # metadata addon is now enabled by default, so we have 3 providers
         nt.assert_equal(len(resp), 3)
 
+    def test_get_forbidden_with_invalid_signature(self):
+        # GatherView.get() reads ts/signature from self.kwargs, set in setUp()
+        self.view.kwargs['signature'] = 'deadbeef'
+        resp = json.loads(self.view.get(self.request).content)
+        nt.assert_equal(resp['state'], 'fail')
+
     def test_send_stat_mail(self, *args, **kwargs):
-        nt.assert_equal(views.send_stat_mail(self.request).status_code, 200)
+        nt.assert_equal(views.send_stat_mail_core(self.request).status_code, 200)
 
     def test_send_error_mail(self, *args, **kwargs):
         ret = views.send_error_mail(Exception())
@@ -505,3 +512,80 @@ class TestGatherView(AdminTestCase):
             provider='osfstorage'
         )
         nt.assert_equal(result['content-type'], 'image/png')
+
+
+class TestSendStatMailPermission(AdminTestCase):
+    """send_stat_mail (No.86, /statistics/test/mail/) must be restricted to Integrated Admin (is_superuser)."""
+
+    def setUp(self):
+        super(TestSendStatMailPermission, self).setUp()
+        self.general_user = AuthUserFactory()
+        self.superuser = AuthUserFactory()
+        self.superuser.is_superuser = True
+        self.superuser.save()
+
+    def test_send_stat_mail_denied_for_general_user(self):
+        request = RequestFactory().get('/fake_path')
+        request.user = self.general_user
+        with nt.assert_raises(PermissionDenied):
+            views.send_stat_mail(request)
+
+    def test_send_stat_mail_denied_for_anonymous(self):
+        request = RequestFactory().get('/fake_path')
+        request.user = AnonymousUser()
+        with nt.assert_raises(PermissionDenied):
+            views.send_stat_mail(request)
+
+    def test_send_stat_mail_allowed_for_superuser(self):
+        request = RequestFactory().get('/fake_path')
+        request.user = self.superuser
+        response = views.send_stat_mail(request)
+        nt.assert_equal(response.status_code, 200)
+
+
+class TestIndexViewPermission(AdminTestCase):
+    """IndexView must be restricted to Integrated Admin or Institutional Admin."""
+
+    def setUp(self):
+        super(TestIndexViewPermission, self).setUp()
+        self.superuser = AuthUserFactory()
+        self.superuser.is_superuser = True
+        self.superuser.save()
+        self.institution_admin = AuthUserFactory()
+        self.institution_admin.is_staff = True
+        self.institution_admin.save()
+        self.general_user = AuthUserFactory()
+
+    def test_denied_for_general_user(self):
+        request = RequestFactory().get('/fake_path')
+        request.user = self.general_user
+        with nt.assert_raises(PermissionDenied):
+            views.IndexView.as_view()(request)
+
+    def test_denied_for_anonymous(self):
+        request = RequestFactory().get('/fake_path')
+        request.user = AnonymousUser()
+        with nt.assert_raises(PermissionDenied):
+            views.IndexView.as_view()(request)
+
+    def test_allowed_for_super_admin(self):
+        request = RequestFactory().get('/fake_path')
+        request.user = self.superuser
+        view = views.IndexView()
+        view.request = request
+        nt.assert_true(view.test_func())
+
+    def test_allowed_for_institution_admin(self):
+        request = RequestFactory().get('/fake_path')
+        request.user = self.institution_admin
+        view = views.IndexView()
+        view.request = request
+        nt.assert_true(view.test_func())
+
+    def test_find_bookmark_collection(self):
+        """Collection has no 'is_deleted' field; filtering on it raised FieldError."""
+        # conftest mocks out new_bookmark_collection for speed, so the bookmark
+        # collection normally created with the user has to be added here.
+        bookmark_collection = BookmarkCollectionFactory(creator=self.superuser)
+        view = views.IndexView()
+        nt.assert_equal(view.find_bookmark_collection(self.superuser), bookmark_collection)
