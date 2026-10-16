@@ -6,5 +6,7 @@
     "github_node_authorized" : "A user authorized the GitHub addon for a project",
     "github_node_deauthorized" : "A user deauthorized the GitHub addon for a project",
     "github_node_deauthorized_no_user" : "GitHub addon for a project deauthorized",
-    "github_repo_linked" : "A user linked a GitHub repo in a project"
+    "github_repo_linked" : "A user linked a GitHub repo in a project",
+    "github_file_downloaded": "A user downloaded a file from a GitHub repo in a project",
+    "github_folder_downloaded_zip": "A user downloaded a folder as a zip from a GitHub repo in a project"
 }

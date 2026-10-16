@@ -6,5 +6,7 @@
     "iqbrims_folder_selected" : "A user linked a IQB-RIMS folder to a project",
     "iqbrims_node_authorized" : "A user authorized the IQB-RIMS addon for a project",
     "iqbrims_node_deauthorized" : "A user deauthorized the IQB-RIMS addon for a project",
-    "iqbrims_node_deauthorized_no_user" : "IQB-RIMS addon for a project deauthorized"
+    "iqbrims_node_deauthorized_no_user" : "IQB-RIMS addon for a project deauthorized",
+    "iqbrims_file_downloaded": "A user downloaded a file from IQB-RIMS in a project",
+    "iqbrims_folder_downloaded_zip": "A user downloaded a folder as a zip from IQB-RIMS in a project"
 }

@@ -103,3 +103,49 @@ class TestOnlyofficeAddon(OsfTestCase):
                                     with mock.patch.object(onlyoffice_util, 'check_proof_key', return_value=mock_proof_key):
                                         res = onlyoffice_check_file_info(file_id='ABCDEFG')
         assert res['BaseFileName'] == 'filename.docx'
+
+
+class TestONLYOFFICEWOPICallbackLogSuppression(OsfTestCase):
+    """addons/onlyoffice/views.py: WOPI PutFile (POST) must pass callback_log='true'
+    explicitly, opting out of the URL-builder's default _internal=True suppression -
+    otherwise ONLYOFFICE saves would silently stop creating their FILE_UPDATED Recent
+    Activity log. Zero test coverage existed for this view before (verified via
+    repo-wide grep for onlyoffice_file_content_view/callback_log)."""
+
+    def test_edit_by_onlyoffice_putfile_suppresses_callback_log_optout(self):
+        mock_jsonobj = {'data': {'auth': 'cookie string', 'file_id': 'ABCDEFG'}}
+        mock_filenode = mock.MagicMock()
+        mock_filenode.name = 'filename.docx'
+        mock_filenode.generate_waterbutler_url = mock.MagicMock(
+            return_value='http://waterbutler.example/v1/resources/abc12/providers/osfstorage/xyz?callback_log=true'
+        )
+        mock_user_info = {'user_id': 'userid', 'full_name': 'fullname', 'display_name': 'dispname'}
+        mock_file_info = {'name': 'filename.docx', 'mtime': '202501010000'}
+        mock_file_version = ''
+
+        mock_request = mock.MagicMock()
+        mock_request.method = 'POST'
+        mock_request.args.get = mock.MagicMock(return_value='access-token-value')
+        mock_request.headers.get = mock.MagicMock(return_value='10')
+
+        mock_put_response = mock.MagicMock()
+        mock_put_response.status_code = 200
+
+        with mock.patch('addons.onlyoffice.views.request', mock_request):
+            with mock.patch.object(BaseFileNode.objects, 'get', return_value=mock_filenode):
+                with mock.patch.object(onlyoffice_util, 'get_user_info', return_value=mock_user_info):
+                    with mock.patch.object(onlyoffice_token, 'decrypt', return_value=mock_jsonobj):
+                        with mock.patch.object(onlyoffice_token, 'check_token', return_value=True):
+                            with mock.patch.object(onlyoffice_token, 'get_cookie', return_value='cookie'):
+                                with mock.patch.object(onlyoffice_util, 'get_file_info', return_value=mock_file_info):
+                                    with mock.patch.object(onlyoffice_util, 'get_file_version', return_value=mock_file_version):
+                                        with mock.patch.object(onlyoffice_util, 'check_proof_key', return_value=True):
+                                            with mock.patch('addons.onlyoffice.views.requests.put', return_value=mock_put_response) as mock_put:
+                                                res = onlyoffice_views.onlyoffice_file_content_view(file_id='ABCDEFG')
+
+        mock_filenode.generate_waterbutler_url.assert_called_once_with(
+            direct=None, _internal=True, callback_log='true', kind='file'
+        )
+        called_url = mock_put.call_args[1]['url']
+        assert 'callback_log=true' in called_url
+        assert res.status_code == 200

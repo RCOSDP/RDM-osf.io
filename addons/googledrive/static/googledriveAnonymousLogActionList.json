@@ -6,5 +6,7 @@
     "googledrive_folder_selected" : "A user linked a Google Drive folder to a project",
     "googledrive_node_authorized" : "A user authorized the Google Drive addon for a project",
     "googledrive_node_deauthorized" : "A user deauthorized the Google Drive addon for a project",
-    "googledrive_node_deauthorized_no_user" : "Google Drive addon for a project deauthorized"
+    "googledrive_node_deauthorized_no_user" : "Google Drive addon for a project deauthorized",
+    "googledrive_file_downloaded": "A user downloaded a file from Google Drive in a project",
+    "googledrive_folder_downloaded_zip": "A user downloaded a folder as a zip from Google Drive in a project"
 }

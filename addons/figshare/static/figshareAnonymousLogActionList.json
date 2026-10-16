@@ -6,5 +6,7 @@
     "figshare_folder_created" : "A user created a folder in figshare in a project",
     "figshare_node_authorized" : "A user authorized the figshare addon for a project",
     "figshare_node_deauthorized" : "A user deauthorized the figshare addon for a project",
-    "figshare_node_deauthorized_no_user" : "figshare addon for a project deauthorized"
+    "figshare_node_deauthorized_no_user" : "figshare addon for a project deauthorized",
+    "figshare_file_downloaded": "A user downloaded a file from figshare in a project",
+    "figshare_folder_downloaded_zip": "A user downloaded a folder as a zip from figshare in a project"
 }

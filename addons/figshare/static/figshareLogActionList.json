@@ -6,5 +6,7 @@
   "figshare_folder_created" : "${user} created folder ${path} in figshare in ${node}",
   "figshare_node_authorized" : "${user} authorized the figshare addon for ${node}",
   "figshare_node_deauthorized" : "${user} deauthorized the figshare addon for ${node}",
-  "figshare_node_deauthorized_no_user" : "figshare addon for ${node} deauthorized"
+  "figshare_node_deauthorized_no_user" : "figshare addon for ${node} deauthorized",
+  "figshare_file_downloaded": "${user} downloaded file ${path} from figshare in ${node}",
+  "figshare_folder_downloaded_zip": "${user} downloaded folder ${path} as a zip from figshare in ${node}"
 }

@@ -4799,3 +4799,37 @@ class TestCollectionProperties:
         assert len(collection_summary) == 3
         urls_actual = {summary['url'] for summary in collection_summary}
         assert self._collection_url(bookmark_collection_public) not in urls_actual
+
+
+@pytest.mark.django_db
+class TestFileDownloadedNodeLog:
+    """osf/models/nodelog.py: FILE_DOWNLOADED/FOLDER_DOWNLOADED_ZIP constants,
+    their inclusion in the actions tuple, and that Node.add_log() accepts them."""
+
+    def test_constants_defined(self):
+        assert NodeLog.FILE_DOWNLOADED == 'file_downloaded'
+        assert NodeLog.FOLDER_DOWNLOADED_ZIP == 'folder_downloaded_zip'
+
+    def test_constants_included_in_actions_tuple(self):
+        assert NodeLog.FILE_DOWNLOADED in NodeLog.actions
+        assert NodeLog.FOLDER_DOWNLOADED_ZIP in NodeLog.actions
+
+    def test_add_log_persists_file_downloaded(self):
+        user = AuthUserFactory()
+        node = ProjectFactory(creator=user)
+        auth = Auth(user)
+        nlogs = node.logs.count()
+        node.add_log(NodeLog.FILE_DOWNLOADED, auth=auth, params={'node': node._id, 'path': '/testfile'})
+        node.reload()
+        assert node.logs.count() == nlogs + 1
+        assert node.logs.latest().action == NodeLog.FILE_DOWNLOADED
+
+    def test_add_log_persists_folder_downloaded_zip(self):
+        user = AuthUserFactory()
+        node = ProjectFactory(creator=user)
+        auth = Auth(user)
+        nlogs = node.logs.count()
+        node.add_log(NodeLog.FOLDER_DOWNLOADED_ZIP, auth=auth, params={'node': node._id, 'path': '/testfolder/'})
+        node.reload()
+        assert node.logs.count() == nlogs + 1
+        assert node.logs.latest().action == NodeLog.FOLDER_DOWNLOADED_ZIP
