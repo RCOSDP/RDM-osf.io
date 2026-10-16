@@ -1,12 +1,26 @@
 from django.conf.urls import include, url
 from django.contrib import admin
+from django.http import Http404
 from admin.base.settings import ADMIN_BASE, DEBUG, ENABLE_LOGIN_FORM
 from admin.base import views
 
 base_pattern = '^{}'.format(ADMIN_BASE)
 
+
+def admin_login_disabled(request):
+    # admin.site.urls provides its own password-based login (AdminSite.login),
+    # which must not exist while password-based login is disabled.
+    raise Http404
+
 admin_urls = [
     url(r'^$', views.home, name='home'),
+]
+
+if not ENABLE_LOGIN_FORM:
+    # must be registered before admin.site.urls, otherwise ^admin/ matches first
+    admin_urls.append(url(r'^admin/login/$', admin_login_disabled, name='admin_login_disabled'))
+
+admin_urls += [
     url(r'^admin/', admin.site.urls),
     url(r'^asset_files/', include('admin.asset_files.urls', namespace='asset_files')),
     url(r'^banners/', include('admin.banners.urls', namespace='banners')),
