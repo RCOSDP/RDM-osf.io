@@ -771,12 +771,40 @@ def serialize_component_wiki(node, auth):
         return component
     return None
 
+
+def _bind_wiki_task_to_node(task_id, node, auth, status, set_process_end=False):
+    """Record task_id as belonging to node for get_task_result authorization.
+
+    Validate tasks must not use STATUS_RUNNING so they do not affect
+    "importing" UI, abort, or concurrent-import checks.
+    """
+    defaults = {
+        'node': node,
+        'status': status,
+        'creator': auth.user if auth else None,
+    }
+    if set_process_end:
+        defaults['process_end'] = timezone.make_naive(timezone.now(), timezone.utc)
+    WikiImportTask.objects.get_or_create(task_id=task_id, defaults=defaults)
+
+
+def _wiki_task_belongs_to_node(task_id, node):
+    return WikiImportTask.objects.filter(task_id=task_id, node=node).exists()
+
+
 @must_be_valid_project
-def project_wiki_validate_for_import(dir_id, node, **kwargs):
+@must_have_permission(ADMIN)
+@must_not_be_registration
+@must_have_addon('wiki', 'node')
+def project_wiki_validate_for_import(dir_id, auth, node, **kwargs):
     wiki_utils.check_file_object_in_node(dir_id, node)
     node_id = node.guids.first()._id
     task = tasks.run_project_wiki_validate_for_import.delay(dir_id, node_id)
     task_id = task.id
+    # Completed + process_end: ownership only; not treated as a running import.
+    _bind_wiki_task_to_node(
+        task_id, node, auth, WikiImportTask.STATUS_COMPLETED, set_process_end=True
+    )
     return {'taskId': task_id}
 
 def project_wiki_validate_for_import_process(dir_id, node):
@@ -904,11 +932,15 @@ def project_wiki_import(dir_id, auth, node, **kwargs):
     data_json = json.dumps(data)
     task = tasks.run_project_wiki_import.delay(data_json, dir_id, current_user_id, node_id)
     task_id = task.id
+    # Bind before returning so polling get_task_result does not race the worker.
+    _bind_wiki_task_to_node(task_id, node, auth, WikiImportTask.STATUS_RUNNING)
+    check_running_task(task_id, node)
     return {'taskId': task_id}
 
 def project_wiki_import_process(data, dir_id, task_id, auth, node):
     logger.info('----WIKI IMPORT DIRECTORY_ID: {}, PROJECT_NAME: {} ----'.format(dir_id, node.title))
-    WikiImportTask.objects.create(node=node, task_id=task_id, status=WikiImportTask.STATUS_RUNNING, creator=auth.user)
+    # May already exist if project_wiki_import bound the task before the worker ran.
+    _bind_wiki_task_to_node(task_id, node, auth, WikiImportTask.STATUS_RUNNING)
     check_running_task(task_id, node)
     ret = []
     wiki_id_list = []
@@ -1306,8 +1338,15 @@ def _create_import_error_list(wiki_infos, imported_list):
     return import_errors
 
 @must_be_valid_project
+@must_have_permission(ADMIN)
+@must_not_be_registration
 @must_have_addon('wiki', 'node')
 def project_get_task_result(task_id, node, **kwargs):
+    if not _wiki_task_belongs_to_node(task_id, node):
+        raise HTTPError(http_status.HTTP_404_NOT_FOUND, data=dict(
+            message_short='Not found',
+            message_long='Task not found.',
+        ))
     res = AsyncResult(task_id, app=celery_app)
     result = None
     if not res.ready():
