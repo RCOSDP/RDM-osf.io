@@ -291,6 +291,9 @@ class SaveCredentialsView(InstitutionalStorageBaseView, View):
                 'message': 'Storage name is missing.'
             }, status=http_status.HTTP_400_BAD_REQUEST)
 
+        old_is_nii = utils.is_institution_using_nii_storage(institution)
+        old_quota_type = institution.get_user_quota_type_for_nii_storage()
+
         result = None
 
         if provider_short_name == 's3':
@@ -436,6 +439,7 @@ class SaveCredentialsView(InstitutionalStorageBaseView, View):
             utils.change_allowed_for_institutions(
                 institution, provider_short_name)
             utils.add_node_settings_to_projects(institution, provider_short_name)
+            utils.upsert_user_quota_for_institution(institution, provider_short_name, old_is_nii, old_quota_type)
         return JsonResponse(result[0], status=status)
 
 
