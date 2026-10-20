@@ -13,6 +13,7 @@ from osf.models import (
     ProjectStorageType
 )
 from django.utils import timezone
+from osf.models.institution_default_max_quota import InstitutionDefaultMaxQuota
 from osf.utils.requests import check_select_for_update
 
 
@@ -72,6 +73,7 @@ def update_user_used_quota(user, storage_type=UserQuota.NII_STORAGE, is_recalcul
         # Get total file size of projects with specified storage_type
         used = used_quota(user._id, storage_type)
 
+    max_quota = get_default_max_quota(user, storage_type)
     try:
         if check_select_for_update():
             user_quota = UserQuota.objects.filter(
@@ -91,10 +93,11 @@ def update_user_used_quota(user, storage_type=UserQuota.NII_STORAGE, is_recalcul
                 UserQuota.objects.create(
                     user=user,
                     storage_type=storage_type,
-                    max_quota=api_settings.DEFAULT_MAX_QUOTA,
+                    max_quota=max_quota,
                     used=used,
                 )
-        except IntegrityError:
+        except IntegrityError as e:
+            logger.warning(u'IntegrityError while creating UserQuota: user={}, storage_type={}: {}'.format(user.id, storage_type, str(e)))
             if is_recalculating_quota and storage_type == UserQuota.CUSTOM_STORAGE:
                 used_quota_for_nii_default_storage = used_quota(user._id, UserQuota.NII_STORAGE)
                 used_quota_for_nii_custom_storage = used_quota(user._id, UserQuota.CUSTOM_STORAGE)
@@ -128,11 +131,12 @@ def abbreviate_size(size):
     return (size, abbr_dict[power])
 
 def get_quota_info(user, storage_type=UserQuota.NII_STORAGE):
+    max_quota = get_default_max_quota(user, storage_type)
     try:
         user_quota = user.userquota_set.get(storage_type=storage_type)
         return (user_quota.max_quota, user_quota.used)
     except UserQuota.DoesNotExist:
-        return (api_settings.DEFAULT_MAX_QUOTA, used_quota(user._id, storage_type))
+        return (max_quota, used_quota(user._id, storage_type))
 
 def get_project_storage_type(node):
     try:
@@ -142,6 +146,17 @@ def get_project_storage_type(node):
 
 @file_signals.file_updated.connect
 def update_used_quota(self, target, user, event_type, payload):
+    # FILE_MOVED and FILE_COPIED carry 'source'/'destination', not 'metadata'.
+    # Handle them first before the metadata_provider guard below.
+    if event_type in (FileLog.FILE_MOVED, FileLog.FILE_COPIED):
+        dest_provider = payload.get('destination', {}).get('provider')
+        if dest_provider == 'osfstorage':
+            return  # Hooks already handled (create_child), SKIP double counting
+        src_provider = payload.get('source', {}).get('provider')
+        if src_provider == 'osfstorage' or src_provider in PROVIDERS:
+            _handle_move_copy(event_type, target, user, payload)
+        return
+
     data = dict(payload.get('metadata')) if payload.get('metadata') else None
     metadata_provider = data.get('provider') if payload.get('metadata') else None
     if metadata_provider == 'osfstorage' or metadata_provider in PROVIDERS:
@@ -180,6 +195,9 @@ def update_used_quota(self, target, user, event_type, payload):
 
         storage_type = get_project_storage_type(target)
         if event_type == FileLog.FILE_ADDED:
+            metadata_provider = (payload.get('metadata') or {}).get('provider')
+            if metadata_provider == 'osfstorage':
+                return
             file_added(target, payload, file_node, storage_type)
         elif event_type == FileLog.FILE_REMOVED:
             if metadata_provider in PROVIDERS:
@@ -214,7 +232,7 @@ def update_used_quota(self, target, user, event_type, payload):
             else:
                 node_removed(target, user, payload, file_node, storage_type)
         elif event_type == FileLog.FILE_UPDATED:
-            file_modified(target, user, payload, file_node, storage_type)
+            file_modified(target, payload, file_node, storage_type)
     else:
         return
 
@@ -223,97 +241,53 @@ def file_added(target, payload, file_node, storage_type):
     file_size = int(payload['metadata']['size'])
     if file_size < 0:
         return
-    try:
-        if check_select_for_update():
-            user_quota = UserQuota.objects.filter(
-                user=target.creator,
-                storage_type=storage_type
-            ).select_for_update().get()
-        else:
-            user_quota = UserQuota.objects.get(
-                user=target.creator,
-                storage_type=storage_type
-            )
-        user_quota.used += file_size
-        user_quota.save()
-    except UserQuota.DoesNotExist:
-        try:
-            with transaction.atomic():
-                UserQuota.objects.create(
-                    user=target.creator,
-                    storage_type=storage_type,
-                    max_quota=api_settings.DEFAULT_MAX_QUOTA,
-                    used=file_size
-                )
-        except IntegrityError:
-            if check_select_for_update():
-                user_quota = UserQuota.objects.filter(
-                    user=target.creator,
-                    storage_type=storage_type
-                ).select_for_update().get()
-            else:
-                user_quota = UserQuota.objects.get(
-                    user=target.creator,
-                    storage_type=storage_type
-                )
-            user_quota.used += file_size
-            user_quota.save()
-
+    update_quota(target, file_size, storage_type, add=True)
     FileInfo.objects.create(file=file_node, file_size=file_size)
 
 def node_removed(target, user, payload, file_node, storage_type):
-    if check_select_for_update():
-        user_quota = UserQuota.objects.filter(
-            user=target.creator,
-            storage_type=storage_type
-        ).select_for_update().first()
-    else:
-        user_quota = UserQuota.objects.filter(
-            user=target.creator,
-            storage_type=storage_type
-        ).first()
-    if user_quota is not None:
-        if 'osf.trashed' not in file_node.type:
-            logging.error('FileNode is not trashed, cannot update used quota!')
-            return
+    if 'osf.trashed' not in file_node.type:
+        logging.error('FileNode is not trashed, cannot update used quota!')
+        return
 
-        for removed_file in get_node_file_list(file_node):
-            try:
-                if check_select_for_update():
-                    file_info = FileInfo.objects.filter(file=removed_file).select_for_update().get()
-                else:
-                    file_info = FileInfo.objects.get(file=removed_file)
-            except FileInfo.DoesNotExist:
-                logging.error('FileInfo not found, cannot update used quota!')
-                continue
+    total_removed = 0
+    for removed_file in get_node_file_list(file_node):
+        try:
+            if check_select_for_update():
+                file_info = FileInfo.objects.filter(file=removed_file).select_for_update().get()
+            else:
+                file_info = FileInfo.objects.get(file=removed_file)
+        except FileInfo.DoesNotExist:
+            logging.error('FileInfo not found, cannot update used quota!')
+            continue
 
-            user_quota.used -= file_info.file_size
-            if user_quota.used < 0:
-                user_quota.used = 0
-            file_info.file_size = 0
-            file_info.save()
-        user_quota.save()
+        total_removed += file_info.file_size
+        file_info.file_size = 0
+        file_info.save()
 
-def file_modified(target, user, payload, file_node, storage_type):
+    if total_removed > 0:
+        update_quota(target, total_removed, storage_type, add=False)
+
+def file_modified(target, payload, file_node, storage_type):
     file_size = int(payload['metadata']['size'])
     if file_size < 0:
         return
-
+    max_quota = get_default_max_quota(target.creator, storage_type)
     try:
         with transaction.atomic():
             if check_select_for_update():
                 user_quota, _ = UserQuota.objects.select_for_update().get_or_create(
                     user=target.creator,
                     storage_type=storage_type,
-                    defaults={'max_quota': api_settings.DEFAULT_MAX_QUOTA}
+                    defaults={'max_quota': max_quota}
                 )
             else:
                 user_quota, _ = UserQuota.objects.get_or_create(
                     user=target.creator,
                     storage_type=storage_type,
-                    defaults={'max_quota': api_settings.DEFAULT_MAX_QUOTA}
+                    defaults={'max_quota': max_quota}
                 )
-    except IntegrityError:
+    except IntegrityError as e:
+        logger.warning(u'IntegrityError while creating UserQuota in file_modified: user={}, storage_type={}: {}'.format(target.creator.id, storage_type, str(e)))
         if check_select_for_update():
             user_quota = UserQuota.objects.filter(user=target.creator, storage_type=storage_type).select_for_update().get()
         else:
@@ -390,3 +364,154 @@ def get_node_file_list(file_node):
                 file_list.append(child_file_node)
 
     return file_list
+
+def _handle_move_copy(event_type, target, user, payload):
+    """Resolve the destination file_node and dispatch to file_moved or file_copied.
+
+    For FILE_MOVED / FILE_COPIED events the relevant file information lives in
+    ``payload['destination']``, not in ``payload['metadata']``. Only extended-storage
+    providers (PROVIDERS) destinations are processed here.
+
+    Scenarios handled:
+    - osfstorage        → extended storage  (quota decreases for source node)
+    - same provider moves / copies (if it involves extended storage)
+
+    (Note: Moves TO osfstorage are handled entirely by OSF hooks, bypassing this flow).
+
+    :param str event_type: FileLog.FILE_MOVED or FileLog.FILE_COPIED
+    :param AbstractNode target: destination project node
+    :param OSFUser user: acting user
+    :param dict payload: full webhook payload
+    """
+
+    if event_type == FileLog.FILE_MOVED:
+        file_moved(target, payload)
+
+def file_moved(target, payload):
+    """Update per-user-per-storage used quota when moving file
+
+    :param Object target: Id of project
+    :param dict payload: The payload of the move operation
+    """
+    if isinstance(target, AbstractNode):
+        file_size = -1
+        dest_size = payload['destination'].get('size', None)
+        children = payload['destination'].get('children', None)
+        # Move file
+        if dest_size is not None:
+            file_size = int(dest_size)
+        # Move folder
+        elif children is not None:
+            file_size = get_file_size(payload['destination'])
+        if file_size < 0:
+            return
+
+        source_node_id = payload['source']['nid']
+        source_node = AbstractNode.objects.get(guids___id=source_node_id)
+        # Move from bulk-mount
+        if payload['source']['provider'] == 'osfstorage' \
+                and source_node.type != 'osf.quickfilesnode':
+            source_storage_type = get_project_storage_type(source_node)
+            update_quota(source_node, file_size, source_storage_type, add=False)
+
+def update_quota(target, file_size, storage_type, add=True):
+    """Add or subtract file_size from UserQuota.used for target.creator.
+
+    This is the single source of truth for UserQuota updates.
+    Both ``file_added`` and ``node_removed`` delegate to this function.
+
+    :param target: AbstractNode whose creator's quota is updated
+    :param int file_size: size in bytes to add or subtract
+    :param int storage_type: UserQuota.NII_STORAGE or CUSTOM_STORAGE
+    :param bool add: True to add (upload), False to subtract (delete)
+    """
+    try:
+        if check_select_for_update():
+            user_quota = UserQuota.objects.filter(
+                user=target.creator,
+                storage_type=storage_type
+            ).select_for_update().get()
+        else:
+            user_quota = UserQuota.objects.get(
+                user=target.creator,
+                storage_type=storage_type
+            )
+        if add:
+            user_quota.used += file_size
+        else:
+            user_quota.used -= file_size
+        if user_quota.used < 0:
+            user_quota.used = 0
+        user_quota.save()
+    except UserQuota.DoesNotExist:
+        if not add:
+            return
+        try:
+            with transaction.atomic():
+                UserQuota.objects.create(
+                    user=target.creator,
+                    storage_type=storage_type,
+                    max_quota=api_settings.DEFAULT_MAX_QUOTA,
+                    used=file_size
+                )
+        except IntegrityError:
+            if check_select_for_update():
+                user_quota = UserQuota.objects.filter(
+                    user=target.creator,
+                    storage_type=storage_type
+                ).select_for_update().get()
+            else:
+                user_quota = UserQuota.objects.get(
+                    user=target.creator,
+                    storage_type=storage_type
+                )
+            user_quota.used += file_size
+            user_quota.save()
+
+def get_file_size(children):
+    children = children.get('children', [])
+    size = 0
+    for child in children:
+        if child['kind'] == 'file':
+            try:
+                child_size = int(child['size'])
+            except (TypeError, ValueError):
+                child_size = None
+            if child_size is None or child_size < 0:
+                logger.warning(
+                    'child size is %r for %r; treating size as 0 for quota calculation',
+                    child_size, child.get('name')
+                )
+                child_size = 0
+            size += int(child_size)
+        else:
+            size += get_file_size(child)
+    return size
+
+def get_default_max_quota(user, storage_type):
+    """
+    Get default max quota for a user based on their affiliated institution.
+
+    If the storage type is CUSTOM_STORAGE, retrieve the default quota
+    configured for the user's affiliated institution. Otherwise, or if no
+    institution-specific quota is configured, return the system default quota.
+    When the institution's region uses NII_STORAGE, always return the system default quota.
+
+    Args:
+        user (OSFUser): The user whose default quota is to be retrieved.
+        storage_type (str): The storage type associated with the user's quota.
+
+    Returns:
+        int: The default maximum quota (in GB) applicable to the user.
+    """
+    if storage_type == UserQuota.CUSTOM_STORAGE:
+        institution = user.representative_affiliated_institution
+        if institution and not Region.objects.filter(
+            _id=institution._id,
+            waterbutler_settings__storage__type=Region.NII_STORAGE
+        ).exists():
+            default_max_quota = InstitutionDefaultMaxQuota.get_quota_by_user(user.id)
+            if default_max_quota is not None:
+                return default_max_quota
+
+    return api_settings.DEFAULT_MAX_QUOTA

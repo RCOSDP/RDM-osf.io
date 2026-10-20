@@ -44,6 +44,7 @@ BINDERHUB_DEPLOYMENT_IMAGES = [
 ]
 
 MATLAB_RELEASES = [
+    'R2026b',
     'R2026a',
     'R2025b',
     'R2025a',
@@ -56,6 +57,7 @@ MATLAB_RELEASES = [
 ]
 
 MATLAB_PRODUCTNAMES_MAP = {
+    'R2026b': gen_product_name_list('addons/binderhub/settings/mpm_inputs/mpm_input_r2026b.txt'),
     'R2026a': gen_product_name_list('addons/binderhub/settings/mpm_inputs/mpm_input_r2026a.txt'),
     'R2025b': gen_product_name_list('addons/binderhub/settings/mpm_inputs/mpm_input_r2025b.txt'),
     'R2025a': gen_product_name_list('addons/binderhub/settings/mpm_inputs/mpm_input_r2025a.txt'),
