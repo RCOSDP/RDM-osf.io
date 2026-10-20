@@ -5982,7 +5982,7 @@ msgstr "登録された管理者が少なくとも1人必要です"
 
 #: website/static/js/contribManager.js:319
 msgid "Must have at least one bibliographic contributor"
-msgstr "少なくとも1人の書誌メンバーが必要です。"
+msgstr "少なくとも1人の目録表示メンバーが必要です。"
 
 #: website/static/js/contribManager.js:375
 msgid "Your contributor list has unsaved changes. Please "
@@ -9582,7 +9582,7 @@ msgid ""
 "Only bibliographic contributors will be displayed in the Contributors "
 "list and in project citations. Non-bibliographic contributors can read "
 "and modify the project as normal."
-msgstr "メンバーリストおよびプロジェクトの引用には、書誌のメンバーのみが表示されます。 書誌以外のメンバーは、通常どおりプロジェクトを読んで修正できます。"
+msgstr "メンバーリストおよびプロジェクトの引用には、目録表示メンバーのみが表示されます。 目録非表示メンバーでも、通常どおりプロジェクトを読んで修正できます。"
 
 #: website/static/js/project.js:238
 msgid "Remove this link?"
@@ -10622,7 +10622,7 @@ msgid ""
 "Only bibliographic groups will be displayed in the Groups "
 "list and in project citations. Non-bibliographic groups can read "
 "and modify the project as normal."
-msgstr "グループリストおよびプロジェクトの引用には、書誌のグループのみが表示されます。 書誌以外のグループは、通常どおりプロジェクトを読んで修正できます。"
+msgstr "グループリストおよびプロジェクトの引用には、目録表示グループのみが表示されます。 目録非表示グループでも、通常どおりプロジェクトを読んで修正できます。"
 
 msgid "A user reordered groups for a project"
 msgstr ""
