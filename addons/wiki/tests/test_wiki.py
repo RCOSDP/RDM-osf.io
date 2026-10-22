@@ -448,6 +448,17 @@ class TestWikiViews(OsfTestCase):
         res = self.app.get(url, expect_errors=True)
         assert_equal(res.status_code, 404)
 
+    def test_wiki_id_url_get_returns_404_for_other_node_wiki(self):
+        other = ProjectFactory(is_public=True, creator=self.user)
+        other_page = WikiPage.objects.create_for_node(
+            other, 'SecretFromOther', 'content', Auth(self.user)
+        )
+        url = self.project.web_url_for(
+            'project_wiki_id_page', wid=other_page._primary_key, _guid=True
+        )
+        res = self.app.get(url, expect_errors=True)
+        assert_equal(res.status_code, 404)
+
     def test_home_is_capitalized_in_web_view(self):
         url = self.project.web_url_for('project_wiki_home', wid='home', _guid=True)
         res = self.app.get(url, auth=self.user.auth).follow(auth=self.user.auth)
@@ -3340,6 +3351,24 @@ class TestWikiPageSort(OsfTestCase):
         self.assertEqual(result_wiki_child_page2, {'parent_id': wiki_page2_id, 'sort_order': 1})
         self.assertEqual(result_wiki_child_page3, {'parent_id': wiki_child_page2_id, 'sort_order': 1})
 
+    def test_bulk_update_wiki_sort_rejects_cross_node_parent(self):
+        other = ProjectFactory(is_public=True, creator=self.user)
+        other_page = WikiPage.objects.create_for_node(
+            other, 'other project wiki', 'content', self.consolidate_auth
+        )
+        other_guid = other_page.guids.first()._id
+        parent_before = self.wiki_page1.parent_id
+        sort_id_list = [self.guid1]
+        sort_num_list = [1]
+        parent_wiki_id_list = [other_guid]
+        with self.assertRaises(HTTPError) as cm:
+            views._bulk_update_wiki_sort(
+                self.project, sort_id_list, sort_num_list, parent_wiki_id_list
+            )
+        self.assertEqual(cm.exception.code, http_status.HTTP_400_BAD_REQUEST)
+        self.wiki_page1.reload()
+        self.assertEqual(self.wiki_page1.parent_id, parent_before)
+
     def _wiki_sort_payload(self):
         return {
             'sortedData': [
@@ -3380,3 +3409,37 @@ class TestWikiPageSort(OsfTestCase):
         self.assertEqual(result_wiki_child_page1, {'parent_id': wiki_page2_id, 'sort_order': 1})
         self.assertEqual(result_wiki_child_page2, {'parent_id': wiki_page2_id, 'sort_order': 2})
         self.assertEqual(result_wiki_child_page3, {'parent_id': wiki_child_page2_id, 'sort_order': 1})
+
+    def test_project_update_wiki_page_sort_rejects_cross_node_parent(self):
+        other = ProjectFactory(is_public=True, creator=self.user)
+        other_page = WikiPage.objects.create_for_node(
+            other, 'other project wiki', 'content', self.consolidate_auth
+        )
+        other_guid = other_page.guids.first()._id
+        parent_before = self.wiki_page1.parent_id
+        url = self.project.api_url_for('project_update_wiki_page_sort')
+        # Nest a local wiki under another project's wiki id as parent.
+        payload = {
+            'sortedData': [
+                {
+                    'name': 'other as parent',
+                    'id': other_guid,
+                    'sortOrder': 1,
+                    'children': [
+                        {
+                            'name': 'wiki page1',
+                            'id': self.guid1,
+                            'sortOrder': 1,
+                            'children': [],
+                            'fold': False,
+                        }
+                    ],
+                    'fold': False,
+                }
+            ]
+        }
+        res = self.app.post_json(url, payload, auth=self.user.auth, expect_errors=True)
+        assert_equal(res.status_code, http_status.HTTP_400_BAD_REQUEST)
+        self.wiki_page1.reload()
+        self.assertEqual(self.wiki_page1.parent_id, parent_before)
+

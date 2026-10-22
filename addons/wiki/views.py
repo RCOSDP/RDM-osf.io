@@ -93,6 +93,10 @@ WIKI_INVALID_VERSION_ERROR = HTTPError(http_status.HTTP_400_BAD_REQUEST, data=di
     message_short='Invalid request',
     message_long='The requested version of this wiki page does not exist.'
 ))
+WIKI_INVALID_PARENT_ERROR = HTTPError(http_status.HTTP_400_BAD_REQUEST, data=dict(
+    message_short='Invalid parent wiki',
+    message_long='Parent wiki page does not exist on this project.',
+))
 
 WIKI_IMPORT_TASK_ALREADY_EXISTS = HTTPError(http_status.HTTP_400_BAD_REQUEST, data=dict(
     message_short='Running Task exists',
@@ -1408,7 +1412,10 @@ def _bulk_update_wiki_sort(node, sort_id_list, sort_num_list, parent_wiki_id_lis
         parent_wiki_id = parent_wiki_id_list[idx]
         setattr(page, 'sort_order', sort_order_number)
         if parent_wiki_id is not None:
-            parent = WikiPage.objects.get(guids___id=parent_wiki_id)
+            # Same-node only; global guid lookup would allow cross-project parents.
+            parent = WikiPage.objects.get_for_node(node, id=parent_wiki_id)
+            if parent is None:
+                raise WIKI_INVALID_PARENT_ERROR
             setattr(page, 'parent', parent)
         else:
             setattr(page, 'parent', None)
