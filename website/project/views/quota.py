@@ -17,10 +17,11 @@ def get_quota_from_pid(pid):
     """Auxiliary function for getting the quota from a project ID.
     Used on requests by waterbutler and the user (from browser)."""
     node = AbstractNode.load(pid)
-    max_quota, used_quota = quota.get_quota_info(
-        node.creator, quota.get_project_storage_type(node)
-    )
+    storage_type = quota.get_project_storage_type(node)
+    max_quota, used_quota = quota.get_quota_info(node.creator, storage_type)
     return {
         'max': max_quota * api_settings.SIZE_UNIT_GB,
-        'used': used_quota
+        'used': used_quota,
+        'user_guid': node.creator._id,
+        'storage_type': storage_type,
     }
