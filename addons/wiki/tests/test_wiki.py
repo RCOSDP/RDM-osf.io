@@ -35,7 +35,7 @@ from addons.wiki.models import WikiImportTask, WikiPage, WikiVersion, render_con
 from addons.wiki.utils import (
     get_sharejs_uuid, generate_private_uuid, share_db, delete_share_doc,
     migrate_uuid, format_wiki_version, serialize_wiki_settings, serialize_wiki_widget,
-    check_file_object_in_node
+    check_file_object_in_node, generate_y_websocket_token
 )
 from addons.wiki.views import WIKI_IMPORT_TASK_ALREADY_EXISTS
 from addons.wiki import tasks
@@ -3380,3 +3380,79 @@ class TestWikiPageSort(OsfTestCase):
         self.assertEqual(result_wiki_child_page1, {'parent_id': wiki_page2_id, 'sort_order': 1})
         self.assertEqual(result_wiki_child_page2, {'parent_id': wiki_page2_id, 'sort_order': 2})
         self.assertEqual(result_wiki_child_page3, {'parent_id': wiki_child_page2_id, 'sort_order': 1})
+
+@pytest.mark.enable_bookmark_creation
+class TestYWebsocketToken(OsfTestCase):
+
+    def setUp(self):
+        super(TestYWebsocketToken, self).setUp()
+        # Class-level @mock.patch is unreliable under pytest here; patch in setUp
+        # so generate_y_websocket_token sees a non-empty secret during the request.
+        self._y_websocket_secret = 'test-y-websocket-secret'
+        self._secret_patcher = mock.patch(
+            'addons.wiki.settings.Y_WEBSOCKET_SECRET',
+            self._y_websocket_secret,
+        )
+        self._secret_patcher.start()
+        self.addCleanup(self._secret_patcher.stop)
+
+        self.user = AuthUserFactory()
+        self.project = ProjectFactory(is_public=True, creator=self.user)
+        self.wname = 'foo.bar'
+        self.wkey = to_mongo_key(self.wname)
+
+    def test_token_generated_for_editor(self):
+        import jwt
+        from addons.wiki import settings as wiki_settings
+
+        url = self.project.web_url_for('project_wiki_view', wname=self.wname)
+        res = self.app.get(url, auth=self.user.auth)
+        assert_equal(res.status_code, 200)
+
+        self.project.reload()
+        body = res.body.decode()
+        sharejs_uuid = get_sharejs_uuid(self.project, self.wname)
+        assert_true(sharejs_uuid)
+        assert_in(sharejs_uuid, body)
+
+        # edit.mako renders `yWebsocketToken: "..."`, not JSON `"yWebsocketToken": "..."`.
+        token_match = re.search(r'yWebsocketToken:\s*"([^"]+)"', body)
+        assert_true(token_match)
+        token = token_match.group(1)
+        assert_true(token)
+
+        payload = jwt.decode(
+            token,
+            self._y_websocket_secret,
+            algorithms=[wiki_settings.Y_WEBSOCKET_JWT_ALGORITHM],
+        )
+        assert_equal(payload['doc_id'], sharejs_uuid)
+        assert_equal(payload['sub'], self.user._id)
+
+    def test_token_not_visible_without_write_permission(self):
+        WikiPage.objects.create_for_node(self.project, self.wname, 'some content', Auth(self.user))
+
+        url = self.project.web_url_for('project_wiki_view', wname=self.wname)
+        # Generate sharejs uuid / token path as an editor first (same pattern as TestWikiUuid).
+        res = self.app.get(url, auth=self.user.auth)
+        assert_equal(res.status_code, 200)
+        self.project.reload()
+        sharejs_uuid = get_sharejs_uuid(self.project, self.wname)
+        assert_true(sharejs_uuid)
+
+        # Users without write permission should not receive uuid or a non-empty token.
+        res = self.app.get(url)
+        assert_equal(res.status_code, 200)
+        body = res.body.decode()
+        assert_not_in(sharejs_uuid, body)
+        token_match = re.search(r'yWebsocketToken:\s*"([^"]+)"', body)
+        assert_false(token_match)
+
+    def test_generate_y_websocket_token_without_secret(self):
+        with mock.patch('addons.wiki.settings.Y_WEBSOCKET_SECRET', ''):
+            assert_equal(generate_y_websocket_token('doc-id', 'user-id'), '')
+
+    def test_generate_y_websocket_token_without_user_id(self):
+        assert_equal(generate_y_websocket_token('doc-id', ''), '')
+        assert_equal(generate_y_websocket_token('doc-id', None), '')
+
