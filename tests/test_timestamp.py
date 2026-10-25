@@ -646,3 +646,18 @@ class TestOSFAbortableResult(OsfTestCase):
         nt.assert_true(task.ready())
         mock_logger.error.assert_any_call('Failed to get task status! Exception message:')
         mock_logger.error.assert_any_call(msg)
+
+
+class TestEnableTimestampGuard(OsfTestCase):
+    """When ENABLE_TIMESTAMP is False, add_token and check_file_timestamp must
+    return immediately, so that no request is sent to the timestamp authority.
+    """
+
+    @mock.patch('website.util.timestamp.settings.ENABLE_TIMESTAMP', False)
+    def test_add_token_disabled(self):
+        # Args are never touched when the guard is effective.
+        nt.assert_is_none(timestamp.add_token(None, None, None))
+
+    @mock.patch('website.util.timestamp.settings.ENABLE_TIMESTAMP', False)
+    def test_check_file_timestamp_disabled(self):
+        nt.assert_is_none(timestamp.check_file_timestamp(None, None, None))

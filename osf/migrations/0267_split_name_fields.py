@@ -11,13 +11,14 @@ noop = migrations.RunPython.noop
 TARGET_SCHEMA_NAME = '公的資金による研究データのメタデータ登録'
 
 
-def migrate_name_fields(*args):
+def migrate_name_fields(apps, schema_editor):
     from addons.metadata.utils import (
         FileMetadataMigrator,
         transform_name_fields_item,
         transform_name_fields_entry,
     )
     migrator = FileMetadataMigrator(
+        apps,
         TARGET_SCHEMA_NAME,
         transform_name_fields_item,
         transform_name_fields_entry,

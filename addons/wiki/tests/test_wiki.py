@@ -35,7 +35,7 @@ from addons.wiki.models import WikiImportTask, WikiPage, WikiVersion, render_con
 from addons.wiki.utils import (
     get_sharejs_uuid, generate_private_uuid, share_db, delete_share_doc,
     migrate_uuid, format_wiki_version, serialize_wiki_settings, serialize_wiki_widget,
-    check_file_object_in_node
+    check_file_object_in_node, generate_y_websocket_token
 )
 from addons.wiki.views import WIKI_IMPORT_TASK_ALREADY_EXISTS
 from addons.wiki import tasks
@@ -1872,11 +1872,21 @@ class TestWikiImport(OsfTestCase):
         mock_check_file_object_in_node.return_value = True
         dir_id = self.root_import_folder1._id
         url = self.project.api_url_for('project_wiki_validate_for_import', dir_id=dir_id)
-        res = self.app.get(url)
+        res = self.app.get(url, auth=self.user.auth)
         response_json = res.json
         task_id = response_json['taskId']
         uuid_obj = uuid.UUID(task_id)
         assert uuid_obj
+        task = WikiImportTask.objects.get(task_id=task_id)
+        self.assertEqual(task.node, self.project)
+        self.assertEqual(task.status, WikiImportTask.STATUS_COMPLETED)
+        self.assertIsNotNone(task.process_end)
+        self.assertEqual(
+            WikiImportTask.objects.filter(
+                node=self.project, status=WikiImportTask.STATUS_RUNNING
+            ).count(),
+            0,
+        )
 
     @mock.patch('addons.wiki.utils.check_file_object_in_node')
     def test_project_wiki_validate_for_import_error(self, mock_check_file_object_in_node):
@@ -1886,7 +1896,7 @@ class TestWikiImport(OsfTestCase):
         ))
         dir_id = self.root_import_folder1._id
         url = self.project.api_url_for('project_wiki_validate_for_import', dir_id=dir_id)
-        res = self.app.get(url, expect_errors=True)
+        res = self.app.get(url, auth=self.user.auth, expect_errors=True)
         self.assertEqual(res.status_code, 400)
         self.assertEqual(res.json['message_short'], 'directory id does not exist')
         self.assertEqual(res.json['message_long'], 'directory id does not exist')
@@ -1975,6 +1985,9 @@ class TestWikiImport(OsfTestCase):
         response_json = res.json
         task_id = response_json['taskId']
         uuid_obj = uuid.UUID(task_id)
+        task = WikiImportTask.objects.get(task_id=task_id)
+        self.assertEqual(task.node, self.project)
+        self.assertEqual(task.status, WikiImportTask.STATUS_RUNNING)
 
     @mock.patch('addons.wiki.utils.check_file_object_in_node')
     def test_project_wiki_import_error(self, mock_check_file_object_in_node):
@@ -1993,6 +2006,43 @@ class TestWikiImport(OsfTestCase):
         url = self.project.api_url_for('project_wiki_import', dir_id='dir_id')
         res = self.app.post_json(url, { 'data': [{'test': 'test1'}] }, expect_errors=True)
         assert_equal(res.status_code, 401)
+
+    @mock.patch('addons.wiki.views.AsyncResult')
+    def test_project_get_task_result_with_admin_permission(self, mock_async_result):
+        mock_res = mock.MagicMock()
+        mock_res.ready.return_value = True
+        mock_res.get.return_value = {'canStartImport': True, 'data': []}
+        mock_async_result.return_value = mock_res
+        WikiImportTask.objects.create(
+            node=self.project,
+            task_id='task-id',
+            status=WikiImportTask.STATUS_COMPLETED,
+            creator=self.user,
+        )
+        url = self.project.api_url_for('project_get_task_result', task_id='task-id')
+        res = self.app.get(url, auth=self.user.auth)
+        assert_equal(res.status_code, http_status.HTTP_200_OK)
+        assert_equal(res.json, {'canStartImport': True, 'data': []})
+
+    @mock.patch('addons.wiki.views.AsyncResult')
+    def test_project_get_task_result_rejects_task_for_other_node(self, mock_async_result):
+        other_project = ProjectFactory(creator=self.user)
+        WikiImportTask.objects.create(
+            node=other_project,
+            task_id='other-node-task-id',
+            status=WikiImportTask.STATUS_COMPLETED,
+            creator=self.user,
+        )
+        url = self.project.api_url_for('project_get_task_result', task_id='other-node-task-id')
+        res = self.app.get(url, auth=self.user.auth, expect_errors=True)
+        assert_equal(res.status_code, http_status.HTTP_404_NOT_FOUND)
+        mock_async_result.assert_not_called()
+
+    def test_project_get_task_result_rejects_unknown_task_id(self):
+        url = self.project.api_url_for('project_get_task_result', task_id='unknown-task-id')
+        res = self.app.get(url, auth=self.user.auth, expect_errors=True)
+        assert_equal(res.status_code, http_status.HTTP_404_NOT_FOUND)
+
 
     @mock.patch('celery.contrib.abortable.AbortableAsyncResult')
     def test_wiki_import_create_or_update_aborted(self, mock_task):
@@ -3442,4 +3492,79 @@ class TestWikiPageSort(OsfTestCase):
         assert_equal(res.status_code, http_status.HTTP_400_BAD_REQUEST)
         self.wiki_page1.reload()
         self.assertEqual(self.wiki_page1.parent_id, parent_before)
+
+@pytest.mark.enable_bookmark_creation
+class TestYWebsocketToken(OsfTestCase):
+
+    def setUp(self):
+        super(TestYWebsocketToken, self).setUp()
+        # Class-level @mock.patch is unreliable under pytest here; patch in setUp
+        # so generate_y_websocket_token sees a non-empty secret during the request.
+        self._y_websocket_secret = 'test-y-websocket-secret'
+        self._secret_patcher = mock.patch(
+            'addons.wiki.settings.Y_WEBSOCKET_SECRET',
+            self._y_websocket_secret,
+        )
+        self._secret_patcher.start()
+        self.addCleanup(self._secret_patcher.stop)
+
+        self.user = AuthUserFactory()
+        self.project = ProjectFactory(is_public=True, creator=self.user)
+        self.wname = 'foo.bar'
+        self.wkey = to_mongo_key(self.wname)
+
+    def test_token_generated_for_editor(self):
+        import jwt
+        from addons.wiki import settings as wiki_settings
+
+        url = self.project.web_url_for('project_wiki_view', wname=self.wname)
+        res = self.app.get(url, auth=self.user.auth)
+        assert_equal(res.status_code, 200)
+
+        self.project.reload()
+        body = res.body.decode()
+        sharejs_uuid = get_sharejs_uuid(self.project, self.wname)
+        assert_true(sharejs_uuid)
+        assert_in(sharejs_uuid, body)
+
+        # edit.mako renders `yWebsocketToken: "..."`, not JSON `"yWebsocketToken": "..."`.
+        token_match = re.search(r'yWebsocketToken:\s*"([^"]+)"', body)
+        assert_true(token_match)
+        token = token_match.group(1)
+        assert_true(token)
+
+        payload = jwt.decode(
+            token,
+            self._y_websocket_secret,
+            algorithms=[wiki_settings.Y_WEBSOCKET_JWT_ALGORITHM],
+        )
+        assert_equal(payload['doc_id'], sharejs_uuid)
+        assert_equal(payload['sub'], self.user._id)
+
+    def test_token_not_visible_without_write_permission(self):
+        WikiPage.objects.create_for_node(self.project, self.wname, 'some content', Auth(self.user))
+
+        url = self.project.web_url_for('project_wiki_view', wname=self.wname)
+        # Generate sharejs uuid / token path as an editor first (same pattern as TestWikiUuid).
+        res = self.app.get(url, auth=self.user.auth)
+        assert_equal(res.status_code, 200)
+        self.project.reload()
+        sharejs_uuid = get_sharejs_uuid(self.project, self.wname)
+        assert_true(sharejs_uuid)
+
+        # Users without write permission should not receive uuid or a non-empty token.
+        res = self.app.get(url)
+        assert_equal(res.status_code, 200)
+        body = res.body.decode()
+        assert_not_in(sharejs_uuid, body)
+        token_match = re.search(r'yWebsocketToken:\s*"([^"]+)"', body)
+        assert_false(token_match)
+
+    def test_generate_y_websocket_token_without_secret(self):
+        with mock.patch('addons.wiki.settings.Y_WEBSOCKET_SECRET', ''):
+            assert_equal(generate_y_websocket_token('doc-id', 'user-id'), '')
+
+    def test_generate_y_websocket_token_without_user_id(self):
+        assert_equal(generate_y_websocket_token('doc-id', ''), '')
+        assert_equal(generate_y_websocket_token('doc-id', None), '')
 

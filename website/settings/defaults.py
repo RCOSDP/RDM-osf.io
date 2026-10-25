@@ -149,6 +149,8 @@ NII_FORMAL_NAME_EN = 'National Institute of Informatics'
 RDM_URL = 'https://rdm.nii.ac.jp/'
 #nii url
 NII_HOMEPAGE_URL = 'https://www.nii.ac.jp/'
+#oasys url
+OASYS_URL = ''
 # support email
 OSF_SUPPORT_EMAIL = 'rdm_support@nii.ac.jp'
 # contact email
@@ -328,6 +330,13 @@ GOOGLE_SITE_VERIFICATION = None
 
 DEFAULT_HMAC_SECRET = 'changeme'
 DEFAULT_HMAC_ALGORITHM = hashlib.sha256
+
+# signed-URL auth for cron-triggered admin endpoints (No.1 external_acc_update,
+# No.82 GatherView). Deliberately separate from DEFAULT_HMAC_SECRET (WaterButler<->OSF)
+# so a leak of one does not affect the other.
+CRON_SIGNED_URL_SECRET = 'changeme'
+CRON_SIGNED_URL_HMAC_ALGORITHM = hashlib.sha256
+CRON_SIGNED_URL_TTL_SECONDS = 100
 WATERBUTLER_URL = 'http://localhost:7777'
 WATERBUTLER_INTERNAL_URL = WATERBUTLER_URL
 

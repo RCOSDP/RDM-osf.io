@@ -10,6 +10,12 @@ from admin.rdm_addons import utils
 import logging
 logging.getLogger('website.project.model').setLevel(logging.DEBUG)
 
+
+class AddonConfig(object):
+    def __init__(self, short_name):
+        self.short_name = short_name
+
+
 class TestRdmAddonOption(AdminTestCase):
     def setUp(self):
         super(TestRdmAddonOption, self).setUp()
@@ -37,3 +43,8 @@ class TestRdmAddonOption(AdminTestCase):
 
         option = utils.get_rdm_addon_option(self.institution.id, 'dropboxbusiness', create=False)
         nt.assert_false(option.is_allowed)
+
+    def test_get_s3compatsigv4_institution_settings_template(self):
+        template = utils.get_institusion_settings_template(AddonConfig('s3compatsigv4'))
+
+        nt.assert_equal(template, 'rdm_addons/addons/s3compatsigv4_institution_settings.html')

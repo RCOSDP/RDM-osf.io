@@ -40,6 +40,7 @@ var s3compatsigv4FolderPickerViewModel = oop.extend(OauthAddonFolderPicker, {
         self.accessKey = ko.observable('');
         self.secretKey = ko.observable('');
         // Treebeard config
+        var superOnPickFolder = self.treebeardOptions.onPickFolder;
         self.treebeardOptions = $.extend(
             {},
             self.treebeardOptions,
@@ -61,9 +62,38 @@ var s3compatsigv4FolderPickerViewModel = oop.extend(OauthAddonFolderPicker, {
                 resolveIcon: function(item) {
                     return m('i.fa.fa-folder-o', ' ');
                 },
+                onPickFolder: function(evt, item) {
+                    // Choosing a bucket from the grid cancels a manual entry.
+                    self.useManualBucketName(false);
+                    return superOnPickFolder.apply(this, arguments);
+                },
             },
             tbOpts
         );
+
+        // Manual bucket entry.
+        // ListBuckets only returns buckets the credentials own, so a bucket shared from
+        // another account -- reachable, and accepted by the server, which validates with
+        // HeadBucket rather than against the bucket listing -- never appears in the grid
+        // above. This lets the user name such a bucket directly.
+        self.useManualBucketName = ko.observable(false);
+        self.manualBucketName = ko.observable('');
+        self.applyManualBucketName = function() {
+            var name = $.trim(self.manualBucketName());
+            if (self.useManualBucketName() && name) {
+                self.selected({name: name, path: name, id: name});
+            }
+        };
+        self.manualBucketName.subscribe(function() {
+            // An empty field leaves nothing selected, so the confirmation block and its
+            // Save button stay hidden until a name is typed.
+            self.selected(null);
+            self.applyManualBucketName();
+        });
+        self.useManualBucketName.subscribe(function() {
+            self.manualBucketName('');
+            self.selected(null);
+        });
 
         // Description about an attached service
         self.attachedService = null;

@@ -10,9 +10,6 @@
         <div class="service-name">
             <a href="${service_url}">
                 <span class="hidden-xs"> ${osf_page_name} </span>
-              % if nav_dropdown:
-                <span class="current-service"><strong>${service_name}</strong></span>
-              % endif
             </a>
         </div>
         % if nav_dropdown:
@@ -21,12 +18,9 @@
                 <span class="fa fa-caret-down fa-2x"></span>
             </button>
             <ul class="dropdown-menu service-dropdown" role="menu">
-                <li><a data-bind="click: trackClick.bind($data, 'Home')" href="${domain}">${osf_page_name}<b>${_("HOME")}</b></a></li>
-                <li><a data-bind="click: trackClick.bind($data, 'Preprints')" href="${domain}preprints/">${osf_page_name}<b>${_("PREPRINTS")}</b></a></li>
-                <li><a data-bind="click: trackClick.bind($data, 'Registries')" href="${domain}registries/">${osf_page_name}<b>${_("REGISTRIES")}</b></a></li>
-                <li><a data-bind="click: trackClick.bind($data, 'Meetings')" href="${domain}meetings/">${osf_page_name}<b>${_("MEETINGS")}</b></a></li>
-                % if institutional_landing_flag:
-                    <li><a data-bind="click: trackClick.bind($data, 'Institutions')" href="${domain}institutions/">${osf_page_name}<b>${_("INSTITUTIONS")}</b></a></li>
+                <li><a data-bind="click: trackClick.bind($data, 'Home')" href="${domain}">${osf_page_name}</a></li>
+                % if oasys_url:
+                    <li><a data-bind="click: trackClick.bind($data, 'JAIRO Cloud Publication Support')" href="${oasys_url}">${_("JAIRO Cloud Publication Support")}</a></li>
                 % endif
             </ul>
         </div>

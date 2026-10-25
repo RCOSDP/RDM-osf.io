@@ -1524,6 +1524,10 @@ msgstr ""
 msgid "INSTITUTIONS"
 msgstr ""
 
+#: website/templates/nav.mako:31
+msgid "JAIRO Cloud Publication Support"
+msgstr ""
+
 #: website/templates/nav.mako:34
 msgid "Toggle navigation"
 msgstr ""
@@ -2869,6 +2873,14 @@ msgstr ""
 
 #: website/templates/project/contributors.mako:46
 msgid "Non-Bibliographic"
+msgstr ""
+
+#: website/templates/project/contributors.mako:187
+msgid "Affiliated Institutions"
+msgstr ""
+
+#: website/templates/project/contributors.mako:188
+msgid "Invite Date"
 msgstr ""
 
 #: website/templates/project/contributors.mako:63

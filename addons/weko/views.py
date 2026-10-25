@@ -1,6 +1,7 @@
 """Views for the WEKO addon."""
 # -*- coding: utf-8 -*-
 import json
+from celery import states
 from rest_framework import status as http_status
 import logging
 
@@ -45,6 +46,28 @@ def _response_files_metadata(addon, files):
             'attributes': files,
         }
     }
+
+def _resolve_deposit_task(task_id):
+    aresult = celery_app.AsyncResult(task_id)
+    # AsyncResult.state/infoは参照のたびにバックエンドへ問い合わせるため、
+    # タスクが進行中の間は参照ごとに内容が変わる。判定と取り出しで同じ値を使う。
+    state = aresult.state
+    info = aresult.info
+    error = None
+    progress = None
+    result = None
+    response = None
+    if state == states.FAILURE:
+        error = str(info)
+    elif info is not None and 'progress' in info:
+        progress = {
+            'state': state,
+            'rate': info['progress'],
+        }
+    elif info is not None and 'result' in info:
+        result = info['result']
+        response = info.get('response')
+    return progress, error, result, response
 
 def _response_file_metadata(addon, path, progress=None, result=None, error=None, response=None):
     attr = {
@@ -281,21 +304,7 @@ def weko_get_publishing_file(auth, did=None, index_id=None, mnode=None, filepath
     task_id = task_info['task_id']
     if task_id is None:
         return _response_file_metadata(addon, filepath)
-    aresult = celery_app.AsyncResult(task_id)
-    error = None
-    progress = None
-    result = None
-    response = None
-    if aresult.failed():
-        error = str(aresult.info)
-    elif aresult.info is not None and 'progress' in aresult.info:
-        progress = {
-            'state': aresult.state,
-            'rate': aresult.info['progress'],
-        }
-    elif aresult.info is not None and 'result' in aresult.info:
-        result = aresult.info['result']
-        response = aresult.info.get('response')
+    progress, error, result, response = _resolve_deposit_task(task_id)
     return _response_file_metadata(addon, filepath, progress=progress, error=error, result=result, response=response)
 
 def _publish_project_metadata(auth, node, addon, index_id, metadata_type, metadata_id, schema_id, project_metadata):
@@ -353,21 +362,7 @@ def _get_publishing_project_metadata_progress(addon, metadata_type, metadata_id)
     task_id = task_info['task_id']
     if task_id is None:
         return _response_project_metadata(addon, metadata_type, metadata_id)
-    aresult = celery_app.AsyncResult(task_id)
-    error = None
-    progress = None
-    result = None
-    response = None
-    if aresult.failed():
-        error = str(aresult.info)
-    elif aresult.info is not None and 'progress' in aresult.info:
-        progress = {
-            'state': aresult.state,
-            'rate': aresult.info['progress'],
-        }
-    elif aresult.info is not None and 'result' in aresult.info:
-        result = aresult.info['result']
-        response = aresult.info.get('response')
+    progress, error, result, response = _resolve_deposit_task(task_id)
     return _response_project_metadata(addon, metadata_type, metadata_id, progress=progress, error=error, result=result, response=response)
 
 

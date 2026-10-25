@@ -5,14 +5,15 @@ from django.test import RequestFactory
 from django.http import Http404
 from django.urls import reverse
 from django.contrib.auth import REDIRECT_FIELD_NAME
+from django.contrib.messages.storage.fallback import FallbackStorage
 from tests.base import AdminTestCase
 from osf_tests.factories import AuthUserFactory, InstitutionFactory
 
 from admin_tests.utilities import setup_form_view, setup_view
 
 from osf.models.user import OSFUser
-from admin.common_auth.views import RegisterUser, ShibLoginView
-from admin.common_auth.forms import UserRegistrationForm
+from admin.common_auth.views import RegisterUser, ShibLoginView, LoginView
+from admin.common_auth.forms import UserRegistrationForm, LoginForm
 
 
 class TestRegisterUser(AdminTestCase):
@@ -356,3 +357,47 @@ class TestShibLoginView(AdminTestCase):
         view = setup_view(ShibLoginView(), request)
         with nt.assert_raises(KeyError):
             view.dispatch(request)
+
+
+class TestLoginViewFormValid(AdminTestCase):
+    """LoginView.form_valid must skip authenticate() entirely when
+    ENABLE_LOGIN_FORM is False, so password-based login stays disabled even via
+    a direct POST to /account/login/."""
+
+    def setUp(self):
+        super(TestLoginViewFormValid, self).setUp()
+        self.view = LoginView()
+        self.request = RequestFactory().post('/account/login/')
+        # django.contrib.messages has a bug which effects unittests
+        # more info here -> https://code.djangoproject.com/ticket/17971
+        setattr(self.request, 'session', 'session')
+        setattr(self.request, '_messages', FallbackStorage(self.request))
+        self.form = LoginForm(data={'email': 'user@example.com', 'password': 'secret'})
+        nt.assert_true(self.form.is_valid())
+        self.view = setup_form_view(self.view, self.request, self.form)
+
+    @mock.patch('admin.common_auth.views.ENABLE_LOGIN_FORM', False)
+    @mock.patch('admin.common_auth.views.authenticate')
+    def test_authenticate_skipped_when_login_form_disabled(self, mock_authenticate):
+        response = self.view.form_valid(self.form)
+        nt.assert_false(mock_authenticate.called)
+        nt.assert_equal(response.status_code, 302)
+        nt.assert_true(response.url.startswith('/account/login'))
+
+    @mock.patch('admin.common_auth.views.ENABLE_LOGIN_FORM', True)
+    @mock.patch('admin.common_auth.views.authenticate', return_value=None)
+    def test_authenticate_called_and_denied_when_login_form_enabled(self, mock_authenticate):
+        response = self.view.form_valid(self.form)
+        nt.assert_true(mock_authenticate.called)
+        nt.assert_equal(response.status_code, 302)
+        nt.assert_true(response.url.startswith('/account/login'))
+
+    @mock.patch('admin.common_auth.views.ENABLE_LOGIN_FORM', True)
+    @mock.patch('admin.common_auth.views.login')
+    @mock.patch('admin.common_auth.views.authenticate')
+    def test_authenticate_called_and_login_succeeds_when_login_form_enabled(self, mock_authenticate, mock_login):
+        mock_authenticate.return_value = AuthUserFactory()
+        response = self.view.form_valid(self.form)
+        nt.assert_true(mock_authenticate.called)
+        nt.assert_true(mock_login.called)
+        nt.assert_equal(response.status_code, 302)
