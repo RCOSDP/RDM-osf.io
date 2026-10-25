@@ -522,6 +522,7 @@ ${parent.javascript_bottom()}
         metadata: {
             registration: true,
             docId: ${ sharejs_uuid | sjson, n },
+            yWebsocketToken: ${ y_websocket_token | sjson, n },
             userId: ${user_id | sjson, n },
             userName: ${ user_full_name | sjson, n },
             userUrl: ${ user_url | sjson, n },
