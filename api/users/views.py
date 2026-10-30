@@ -175,7 +175,7 @@ class UserDetail(JSONAPIBaseView, generics.RetrieveUpdateAPIView, UserMixin):
     """The documentation for this endpoint can be found [here](https://developer.osf.io/#operation/users_read).
     """
     permission_classes = (
-        drf_permissions.IsAuthenticatedOrReadOnly,
+        drf_permissions.IsAuthenticated,
         ReadOnlyOrCurrentUser,
         base_permissions.TokenHasScope,
     )
