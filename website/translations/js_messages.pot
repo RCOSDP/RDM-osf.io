@@ -9332,6 +9332,10 @@ msgid "A user downloaded a folder as a zip from NII Storage in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user opened a file with ONLYOFFICE in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
 msgid "A user downloaded a file from Box in a project"
 msgstr ""
 
@@ -9529,6 +9533,10 @@ msgstr ""
 
 #: website/static/js/logActionsList_extract.js
 msgid "${user} downloaded folder ${path} as a zip from ${storage_name} in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} opened file ${path} in ${storage_name} with ONLYOFFICE in ${node}"
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js

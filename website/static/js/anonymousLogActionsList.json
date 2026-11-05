@@ -97,6 +97,7 @@
     "osf_storage_file_removed" : "A user removed a file from NII Storage in a project",
     "osf_storage_file_downloaded": "A user downloaded a file from NII Storage in a project",
     "osf_storage_folder_downloaded_zip": "A user downloaded a folder as a zip from NII Storage in a project",
+    "onlyoffice_file_opened": "A user opened a file with ONLYOFFICE in a project",
     "affiliated_institution_added": "A user added an affiliation to a project",
     "affiliated_institution_removed": "A user removed an affiliation from a project",
     "preprint_initiated": "A user made a project a preprint",
