@@ -25,4 +25,5 @@ class AdminProfile(models.Model):
             ('delete_preprintrequest', 'Can delete preprints withdrawal requests'),
             ('change_preprintrequest', 'Can update preprints withdrawal requests'),
             ('view_announcement', 'Can view announcement on the RDM Admin app'),
+            ('view_management', 'Can view and run management commands in the admin app.'),
         )
