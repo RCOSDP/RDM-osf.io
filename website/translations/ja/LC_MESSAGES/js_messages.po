@@ -11039,6 +11039,10 @@ msgid "A user downloaded a folder as a zip from NII Storage in a project"
 msgstr "ユーザーがプロジェクトのNII StorageからフォルダをZIPとしてダウンロードしました"
 
 #: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user opened a file with ONLYOFFICE in a project"
+msgstr "ユーザーがプロジェクトのファイルをONLYOFFICEで開きました"
+
+#: website/static/js/anonymousLogActionsList_extract.js
 msgid "A user downloaded a file from Box in a project"
 msgstr "ユーザーがプロジェクトのBoxからファイルをダウンロードしました"
 
@@ -11237,6 +11241,10 @@ msgstr "${user}が${node}の${storage_name}からファイル${path}をダウン
 #: website/static/js/logActionsList_extract.js
 msgid "${user} downloaded folder ${path} as a zip from ${storage_name} in ${node}"
 msgstr "${user}が${node}の${storage_name}からフォルダ${path}をZIPとしてダウンロードしました"
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} opened file ${path} in ${storage_name} with ONLYOFFICE in ${node}"
+msgstr "${user}が${node}の${storage_name}のファイル${path}をONLYOFFICEで開きました"
 
 #: website/static/js/logActionsList_extract.js
 msgid "${user} downloaded file ${path} from Box in ${node}"

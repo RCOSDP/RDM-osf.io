@@ -990,10 +990,17 @@ def addon_view_or_download_file(auth, path, provider, **kwargs):
     else:
         transaction.savepoint_commit(savepoint_id)
 
+    is_render = extras.get('mode') == 'render'
+    wb_url_args = dict(extras, direct=None, version=version.identifier, _internal=is_render)
+    if is_render:
+        # Preview (MFR render) is not a user download: do not record it in Recent Activity.
+        # MFR may drop mode=render before the browser fetches the content, so say it explicitly.
+        wb_url_args['callback_log'] = False
+
     # TODO clean up these urls and unify what is used as a version identifier
     if request.method == 'HEAD':
         return make_response(('', http_status.HTTP_302_FOUND, {
-            'Location': file_node.generate_waterbutler_url(**dict(extras, direct=None, version=version.identifier, _internal=extras.get('mode') == 'render'))
+            'Location': file_node.generate_waterbutler_url(**wb_url_args)
         }))
 
     if action == 'download':
@@ -1002,9 +1009,9 @@ def addon_view_or_download_file(auth, path, provider, **kwargs):
         # avoid rendering files with the same format type.
         if format and '.{}'.format(format.lower()) != extension.lower():
             return redirect('{}/export?format={}&url={}'.format(get_mfr_url(target, provider), format, quote(file_node.generate_waterbutler_url(
-                **dict(extras, direct=None, version=version.identifier, _internal=extras.get('mode') == 'render')
+                **wb_url_args
             ))))
-        return redirect(file_node.generate_waterbutler_url(**dict(extras, direct=None, version=version.identifier, _internal=extras.get('mode') == 'render')))
+        return redirect(file_node.generate_waterbutler_url(**wb_url_args))
 
     if action == 'get_guid':
         draft_id = extras.get('draft')

@@ -6,8 +6,12 @@ import logging
 import requests
 import os
 import time
+import waffle
+from django.db import transaction
+from framework.auth import Auth
 from framework.exceptions import HTTPError
 from framework.auth.decorators import must_be_logged_in
+from osf import features
 from osf.models import (BaseFileNode, Guid, OSFUser)
 
 from . import util as onlyoffice_util
@@ -21,6 +25,9 @@ logger = logging.getLogger(__name__)
 pkhelper = pfkey.ProofKeyHelper()
 
 TIMEOUT = 10
+
+# Opening the editor is not recorded as a user download; it is recorded under this action instead.
+ACTION_FILE_OPENED = 'onlyoffice_file_opened'
 
 #  wopi CheckFileInfo endpoint
 
@@ -160,7 +167,9 @@ def onlyoffice_file_content_view(**kwargs):
 
     if request.method == 'GET':
         #  wopi GetFile endpoint
-        wburl = file_node.generate_waterbutler_url(version=file_version, action='download', direct=None, _internal=True)
+        # ONLYOFFICE's own fetch of the file is not a user download, so skip the callback log
+        # (the "opened" event is recorded separately, see ACTION_FILE_OPENED).
+        wburl = file_node.generate_waterbutler_url(version=file_version, action='download', direct=None, _internal=True, callback_log=False)
         # logger.info('onlyoffice: wburl, cookies = {}  {}'.format(wburl, cookies))
         try:
             response = requests.get(
@@ -187,8 +196,8 @@ def onlyoffice_file_content_view(**kwargs):
         logger.info('ONLYOFFICE: file saved: user id = {}, fullname = {}, file_name = {}'
                     .format(user_info['user_id'], user_info['full_name'], file_info['name']))
 
-        # Explicit opt-out: keep the existing FILE_UPDATED log for ONLYOFFICE saves
-        # instead of letting the URL builder auto-suppress this internal request.
+        # Not required now that the URL builder never auto-suppresses callback_log,
+        # but kept explicit to document that saving must be recorded (FILE_UPDATED).
         wburl = file_node.generate_waterbutler_url(direct=None, _internal=True, callback_log='true', kind='file')
         logger.debug('onlyoffice: wburl = {}'.format(wburl))
 
@@ -317,6 +326,32 @@ def onlyoffice_edit_by_onlyoffice(**kwargs):
             + '&WOPISrc=' + wopi_src
 
     # logger.info('onlyoffice: edit_by_online.index_view wopi_url = {}'.format(wopi_url))
+
+    # Record the "opened" event when the download-history switch is on and wopi_url is set.
+    # Failure is only logged; the savepoint keeps the request transaction usable.
+    if wopi_url and waffle.switch_is_active(features.ENABLE_DOWNLOAD_HISTORY_LOG):
+        try:
+            with transaction.atomic():
+                view_url = target.web_url_for('addon_view_or_download_file', guid=guid, provider=provider, path=path)
+                file_addon = target.get_addon(provider) if hasattr(target, 'get_addon') else None
+                target.add_log(
+                    action=ACTION_FILE_OPENED,
+                    auth=Auth(user=user),
+                    params={
+                        'node': target._id,
+                        'project': getattr(target, 'parent_id', None),
+                        'path': file_node.materialized_path,
+                        'addon': file_addon.config.full_name if file_addon else provider,
+                        'urls': {'view': view_url},
+                    },
+                )
+        except Exception as err:
+            logger.warning(
+                'onlyoffice: edit_by_onlyoffice failed to record the open log. '
+                'file_node._id = {}, materialized_path = {}, user = {}, error = {}'.format(
+                    file_node._id, file_node.materialized_path, user._id, err
+                )
+            )
 
     # Get public key for proof-key check from onlyoffice server, if did not have yet.
     if pkhelper.hasKey() is False:

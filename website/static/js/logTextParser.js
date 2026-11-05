@@ -245,7 +245,14 @@ var LogText = {
 var LogPieces = {
     storage_name: {
         view: function (ctrl, logObject) {
-            return m('span', logObject.attributes.params.storage_name);
+            var params = logObject.attributes.params;
+            // onlyoffice_file_opened can target any storage: show the add-on name unless it is
+            // NII Storage (the same rule as source / destination)
+            if (logObject.attributes.action === 'onlyoffice_file_opened' && params.addon &&
+                    !(params.addon === 'NII Storage' && params.storage_name)) {
+                return m('span', params.addon);
+            }
+            return m('span', params.storage_name);
         }
     },
     // User that took the action
@@ -569,6 +576,7 @@ var LogPieces = {
                     'dataverse_file_downloaded',
                     'iqbrims_file_downloaded',
                     'ociinstitutions_file_downloaded',
+                    'onlyoffice_file_opened',
                     'timestamp_added'];
                     if (acceptableLinkedItems.indexOf(action) !== -1 && logObject.attributes.params.urls) {
                        return logObject.attributes.params.urls.view;

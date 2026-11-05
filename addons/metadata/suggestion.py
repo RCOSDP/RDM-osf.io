@@ -116,7 +116,8 @@ def suggestion_file_metadata_get_value(key, keyword, filepath, node):
         cookie = request.cookies.get(settings.COOKIE_NAME)
         cookies = {settings.COOKIE_NAME: cookie}
 
-        url = waterbutler_api_url_for(node._id, provider, path, _internal=True)
+        # System-initiated read for metadata suggestion: not a user download.
+        url = waterbutler_api_url_for(node._id, provider, path, _internal=True, callback_log=False)
 
         file_size, extension = get_file_size_and_extension(url, cookies)
 

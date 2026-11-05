@@ -1189,7 +1189,8 @@ def _get_md_content_from_wb(data, node, creator_auth, task):
         if task.is_aborted():
             return None
         try:
-            response = requests.get(waterbutler_api_url_for(node_id, 'osfstorage', path='/' + info['_id'], _internal=True), headers=creator_auth)
+            # System-initiated read for wiki import: not a user download.
+            response = requests.get(waterbutler_api_url_for(node_id, 'osfstorage', path='/' + info['_id'], _internal=True, callback_log=False), headers=creator_auth)
             response.raise_for_status()
             data[i]['wiki_content'] = (response._content).decode()
         except Exception as err:

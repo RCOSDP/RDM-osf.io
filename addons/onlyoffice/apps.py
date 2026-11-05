@@ -19,6 +19,9 @@ class AddonAppConfig(BaseAddonAppConfig):
 
     owners = ['node']
 
+    # Must match addons.onlyoffice.views.ACTION_FILE_OPENED.
+    actions = ('onlyoffice_file_opened', )
+
     views = []
     configs = ['node']
 

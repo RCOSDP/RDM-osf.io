@@ -358,6 +358,8 @@ class NodeLogDownloadSerializer(JSONAPISerializer):
             rep['path'] = params.get('path')
         if 'osf_storage' in obj.action:
             rep['path'] = params.get('path')
+        if 'onlyoffice' in obj.action:
+            rep['path'] = params.get('path')
         if 'addon' in obj.action:
             rep['addon'] = params.get('addon')
         if 'tag' in obj.action:

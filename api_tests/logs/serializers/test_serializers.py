@@ -165,6 +165,24 @@ class TestNodeLogDownloadSerializer:
         assert serialized['action'] == 'osf_storage_folder_created'
         assert serialized['path'] == 'test_folder'
 
+    def test_to_representation__action_include_onlyoffice(self):
+        project = ProjectFactory()
+        request = make_drf_request_with_version()
+        log = project.add_log(
+            'onlyoffice_file_opened',
+            auth=Auth(project.creator),
+            params={
+                'project': project.parent_id,
+                'node': project._id,
+                'path': '/test_file.docx',
+                'addon': 'NII Storage',
+                'urls': {'view': 'www.fake.org'},
+            },
+        )
+        serialized = NodeLogDownloadSerializer(log, context={'request': request}).data
+        assert serialized['action'] == 'onlyoffice_file_opened'
+        assert serialized['path'] == '/test_file.docx'
+
     def test_to_representation__action_include_addon(self):
         project = ProjectFactory()
         request = make_drf_request_with_version()

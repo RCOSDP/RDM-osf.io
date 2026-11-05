@@ -335,8 +335,11 @@ class ExportData(base.BaseModel):
                     file_info['size'] = file_versions_info[0]['size']
                     file_info['location'] = file_versions_info[0]['location']
             else:
+                # System-initiated read of the version list for export: not a user download.
+                # NOTE: WaterButler's on_finish() does not treat `versions` as `meta`, so this
+                # must stay explicit even though the request carries no file content.
                 file_version_url = waterbutler_api_url_for(
-                    file.target._id, file_provider, file.path, _internal=True, versions='', **kwargs
+                    file.target._id, file_provider, file.path, _internal=True, versions='', callback_log=False, **kwargs
                 )
                 file_versions_res = requests.get(file_version_url)
                 if file_versions_res.status_code != 200:
@@ -655,9 +658,10 @@ class ExportData(base.BaseModel):
 
     def read_data_file_from_source(self, cookies, project_id, provider, file_path, **kwargs):
         """Get data file from the source storage"""
+        # System-initiated download for export: not a user download.
         url = waterbutler_api_url_for(
             project_id, provider, path=file_path,
-            _internal=True,
+            _internal=True, callback_log=False,
             **kwargs
         )
         return requests.get(url, cookies=cookies, stream=True)
