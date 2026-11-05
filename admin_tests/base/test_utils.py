@@ -17,7 +17,7 @@ from osf_tests.factories import SubjectFactory, UserFactory, RegistrationFactory
 
 from osf.models import Subject, OSFUser, Collection
 from osf.models.provider import rules_to_subjects
-from admin.base.utils import get_subject_rules, change_embargo_date
+from admin.base.utils import get_subject_rules, change_embargo_date, osf_superuser_check
 from osf.admin import OSFUserAdmin
 
 
@@ -255,3 +255,39 @@ class TestSchemaUtils:
     def test_from_json__file_not_found(self):
         with pytest.raises(Exception):
             from_json('file-info-schema2.json')
+
+
+class TestOsfSuperuserCheck(AdminTestCase):
+    """osf_superuser_check must have the same condition as RdmPermissionMixin.is_super_admin."""
+
+    def setUp(self):
+        super(TestOsfSuperuserCheck, self).setUp()
+        self.user = UserFactory()
+        self.user.is_superuser = True
+        self.user.save()
+
+    def _update(self, **fields):
+        # queryset.update() skips OSFUser.save(), which would otherwise recompute is_active
+        OSFUser.objects.filter(pk=self.user.pk).update(**fields)
+        self.user.refresh_from_db()
+
+    def test_valid_superuser(self):
+        assert_true(osf_superuser_check(self.user))
+
+    def test_non_superuser(self):
+        self._update(is_superuser=False)
+        assert_false(osf_superuser_check(self.user))
+
+    def test_inactive_superuser(self):
+        self._update(is_active=False)
+        assert_true(self.user.is_superuser)
+        assert_false(osf_superuser_check(self.user))
+
+    def test_unregistered_superuser(self):
+        self._update(is_registered=False)
+        assert_true(self.user.is_superuser)
+        assert_false(osf_superuser_check(self.user))
+
+    def test_anonymous(self):
+        from django.contrib.auth.models import AnonymousUser
+        assert_false(osf_superuser_check(AnonymousUser()))
