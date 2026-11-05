@@ -1750,6 +1750,29 @@ class TestAddonFileViews(OsfTestCase):
         # Note: version is added but us but all other url params are added as well
         assert_urls_equal(location.url, file_node.generate_waterbutler_url(action='download', direct=None, revision=1, version=''))
 
+    def test_action_download_mode_render_specifies_callback_log_false(self):
+        # MFR may drop mode=render before the browser fetches the content, so the
+        # redirect for a preview must say callback_log=False explicitly.
+        file_node = self.get_test_file()
+        guid = file_node.get_guid(create=True)
+
+        resp = self.app.get('/{}/?action=download&mode=render'.format(guid._id), auth=self.user.auth)
+
+        assert_equals(resp.status_code, 302)
+        args = furl.furl(resp.location).args
+        assert_equal(args['mode'], 'render')
+        assert_equal(args['callback_log'], 'False')
+
+    def test_action_download_without_mode_render_has_no_callback_log(self):
+        # A plain user download keeps the default so that it is recorded.
+        file_node = self.get_test_file()
+        guid = file_node.get_guid(create=True)
+
+        resp = self.app.get('/{}/?action=download'.format(guid._id), auth=self.user.auth)
+
+        assert_equals(resp.status_code, 302)
+        assert_not_in('callback_log', furl.furl(resp.location).args)
+
     @mock.patch('addons.base.views.addon_view_file')
     @pytest.mark.enable_bookmark_creation
     def test_action_view_calls_view_file(self, mock_view_file):
