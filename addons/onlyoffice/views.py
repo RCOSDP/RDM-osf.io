@@ -340,6 +340,7 @@ def onlyoffice_edit_by_onlyoffice(**kwargs):
                 action=ACTION_FILE_OPENED,
                 auth=Auth(user=user),
                 params={
+                    'node': target._id,
                     'project': getattr(target, 'parent_id', None),
                     'path': file_node.materialized_path,
                     'addon': file_addon.config.full_name if file_addon else provider,

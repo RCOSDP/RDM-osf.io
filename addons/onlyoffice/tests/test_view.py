@@ -205,21 +205,22 @@ class TestOnlyofficeOpenLog(OsfTestCase):
         self.user = AuthUserFactory()
         self.project = ProjectFactory(creator=self.user)
 
-    def _make_filenode(self):
+    def _make_filenode(self, target=None):
         mock_filenode = mock.MagicMock()
         mock_filenode.name = 'file.docx'
         mock_filenode._id = 'fileid123'
         mock_filenode.materialized_path = '/file.docx'
-        mock_filenode.target = self.project
+        mock_filenode.target = target or self.project
         mock_filenode.touch = mock.MagicMock(return_value='version1')
         return mock_filenode
 
-    def _call_edit(self, mock_filenode, wopi_client_url=WOPI_CLIENT_URL):
+    def _call_edit(self, mock_filenode, wopi_client_url=WOPI_CLIENT_URL, target=None):
         from osf.models import OSFUser, BaseFileNode
+        target = target or self.project
         with mock.patch('addons.onlyoffice.views.request') as mock_request:
             mock_request.cookies.get.return_value = 'cookie-value'
             mock_request.headers.get.return_value = None
-            with mock.patch.object(Guid, 'load', return_value=mock.MagicMock(referent=self.project)):
+            with mock.patch.object(Guid, 'load', return_value=mock.MagicMock(referent=target)):
                 with mock.patch.object(BaseFileNode, 'resolve_class') as mock_resolve:
                     mock_resolve.return_value.get_or_create.return_value = mock_filenode
                     with mock.patch.object(OSFUser, 'from_cookie', return_value=self.user):
@@ -229,7 +230,7 @@ class TestOnlyofficeOpenLog(OsfTestCase):
                                     with mock.patch.object(onlyoffice_views.pkhelper, 'hasKey', return_value=True):
                                         with mock.patch.object(onlyoffice_token, 'encrypt', return_value='token-value'):
                                             return onlyoffice_edit_by_onlyoffice.__wrapped__(
-                                                guid=self.project._id, provider='osfstorage', path='/file.docx'
+                                                guid=target._id, provider='osfstorage', path='/file.docx'
                                             )
 
     def test_records_open_log_when_switch_on(self):
@@ -243,9 +244,22 @@ class TestOnlyofficeOpenLog(OsfTestCase):
         assert log.params['path'] == '/file.docx'
         assert log.params['addon'] == 'NII Storage'
         assert 'view' in log.params['urls']
-        # Same key as the other file logs (None for a top-level project).
+        # Same keys as the other file logs (project is None for a top-level project).
+        assert log.params['node'] == self.project._id
         assert 'project' in log.params
         assert log.params['project'] == self.project.parent_id
+
+    def test_records_open_log_on_component_with_component_as_node(self):
+        # For a file in a component, params['node'] must be the component, not the parent
+        # project: add_log() otherwise falls back to params['project'].
+        component = NodeFactory(creator=self.user, parent=self.project)
+        with override_switch(features.ENABLE_DOWNLOAD_HISTORY_LOG, active=True):
+            self._call_edit(self._make_filenode(target=component), target=component)
+
+        log = NodeLog.objects.get(action='onlyoffice_file_opened', node=component)
+        assert log.params['node'] == component._id
+        assert log.params['project'] == self.project._id
+        assert log.original_node == component
 
     def test_records_file_log_with_path_when_switch_on(self):
         # add_log() writes FileLog (and the RdmLogger output) only when params['path']
