@@ -17,7 +17,18 @@ var s3FolderPickerViewModel = oop.extend(OauthAddonFolderPicker, {
 
     constructor: function (addonName, url, selector, folderPicker, opts, tbOpts) {
         var self = this;
-        self.super.constructor(addonName, url, selector, folderPicker, tbOpts);
+        self.super.constructor(addonName, url, selector, folderPicker, $.extend({
+            // Every bucket has path '/', which the default handler shows as '/ (Full Amazon S3)'
+            onPickFolder: function (evt, item) {
+                evt.preventDefault();
+                this.selected({
+                    name: item.data.id,
+                    path: item.data.path,
+                    id: item.data.id
+                });
+                return false; // Prevent event propagation
+            }
+        }, tbOpts));
         // Non-OAuth fields
         self.accessKey = ko.observable('');
         self.secretKey = ko.observable('');
