@@ -340,11 +340,19 @@ def project_wiki_view(auth, wname, path=None, **kwargs):
             raise HTTPError(http_status.HTTP_403_FORBIDDEN)
         sharejs_uuid = None
 
-    # Default versions for view and compare
+    # Default versions for view and compare.
+    # Default compare to current so editing vs latest saved matches the dropdown.
     version_settings = {
         'view': view or 'current',
-        'compare': compare or 'previous',
+        'compare': compare or 'current',
     }
+    # format_wiki_version may collapse the prior version number to 'previous'.
+    # Map that back to the dropdown option value.
+    if version_settings['compare'] == 'previous':
+        if len(versions) > 1:
+            version_settings['compare'] = versions[1]['version']
+        else:
+            version_settings['compare'] = 'current'
     import_dirs = _get_import_folder(node)
     alive_task_id = WikiImportTask.objects.values_list('task_id').filter(status=WikiImportTask.STATUS_RUNNING, node=node)
     sortable_pages_ctn = node.wikis.filter(deleted__isnull=True).exclude(page_name='home').count()

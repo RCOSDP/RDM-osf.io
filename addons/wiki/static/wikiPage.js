@@ -161,7 +161,7 @@ var defaultOptions = {
     menuVisible: true,
     canEdit: true,
     viewVersion: 'current',
-    compareVersion: 'previous',
+    compareVersion: 'current',
     urls: {
         content: '',
         draft: '',
