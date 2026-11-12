@@ -1,4 +1,7 @@
+import datetime
+
 import pytest
+from django.utils import timezone
 
 from django.contrib.contenttypes.models import ContentType
 
@@ -8,7 +11,8 @@ from osf.models import BaseFileNode, Folder, File
 from osf_tests.factories import (
     UserFactory,
     ProjectFactory,
-    RegionFactory
+    RegionFactory,
+    FileVersionFactory,
 )
 
 pytestmark = pytest.mark.django_db
@@ -92,3 +96,51 @@ def test_file_update_respects_region(project, user, create_test_file):
     )
     assert new_region != original_region
     assert new_version.region == new_region
+
+
+def test_file_serialize_no_versions(project):
+    from addons.googledrive.models import GoogleDriveFile
+
+    # GoogleDriveFile uses File.serialize directly (no override)
+    gd_file = GoogleDriveFile(name='empty.txt', target=project)
+    gd_file.save()
+
+    result = gd_file.serialize()
+
+    # newest_version is None → all version-derived fields are None
+    assert result['size'] is None
+    assert result['version'] is None
+    assert result['modified'] is None
+    assert result['created'] is None
+    assert result['contentType'] is None
+
+
+def test_file_serialize_newest_version(project):
+    from addons.googledrive.models import GoogleDriveFile
+
+    # GoogleDriveFile uses File.serialize directly (no override)
+    gd_file = GoogleDriveFile(name='multi_version.txt', target=project)
+    gd_file.save()
+
+    # Create v1 first (older DB timestamp), smaller size
+    older_time = timezone.now() - datetime.timedelta(days=1)
+    v1 = FileVersionFactory(identifier='1', size=1000)
+    v1.external_modified = older_time
+    v1.save()
+    gd_file.add_version(v1)
+
+    # Create v2 second (newer DB timestamp), larger size
+    newer_time = timezone.now()
+    v2 = FileVersionFactory(identifier='2', size=5000)
+    v2.external_modified = newer_time
+    v2.save()
+    gd_file.add_version(v2)
+
+    result = gd_file.serialize()
+
+    # newest_version = versions.all().first() ordered by -created → v2
+    assert result['size'] == 5000
+    assert result['version'] == '2'
+    assert result['modified'] == newer_time.isoformat()
+    # created comes from oldest_version (versions.all().last()) → v1
+    assert result['created'] == older_time.isoformat()
