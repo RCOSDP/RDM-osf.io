@@ -557,7 +557,7 @@ class File(models.Model):
         return version
 
     def serialize(self):
-        newest_version = self.versions.all().last()
+        newest_version = self.versions.all().first()
 
         if not newest_version:
             return dict(self._serialize(), **{
@@ -571,6 +571,8 @@ class File(models.Model):
                 'locked': self.locked._id if self.locked else None,
             })
 
+        oldest_version = self.versions.all().last()
+
         return dict(self._serialize(), **{
             'size': newest_version.size,
             'downloads': self.get_download_count(),
@@ -579,7 +581,7 @@ class File(models.Model):
             'version': newest_version.identifier if newest_version else None,
             'contentType': newest_version.content_type if newest_version else None,
             'modified': newest_version.external_modified.isoformat() if newest_version.external_modified else None,
-            'created': self.versions.all().first().external_modified.isoformat() if self.versions.all().first().external_modified else None,
+            'created': oldest_version.external_modified.isoformat() if oldest_version and oldest_version.external_modified else None,
         })
 
     def restore(self, recursive=True, parent=None, save=True, deleted_on=None):

@@ -93,6 +93,10 @@ WIKI_INVALID_VERSION_ERROR = HTTPError(http_status.HTTP_400_BAD_REQUEST, data=di
     message_short='Invalid request',
     message_long='The requested version of this wiki page does not exist.'
 ))
+WIKI_INVALID_PARENT_ERROR = HTTPError(http_status.HTTP_400_BAD_REQUEST, data=dict(
+    message_short='Invalid parent wiki',
+    message_long='Parent wiki page does not exist on this project.',
+))
 
 WIKI_IMPORT_TASK_ALREADY_EXISTS = HTTPError(http_status.HTTP_400_BAD_REQUEST, data=dict(
     message_short='Running Task exists',
@@ -325,10 +329,15 @@ def project_wiki_view(auth, wname, path=None, **kwargs):
         rendered_before_update = False
         markdown = ''
 
+    y_websocket_token = ''
     if can_edit:
         if wiki_key not in node.wiki_private_uuids:
             wiki_utils.generate_private_uuid(node, wiki_name)
         sharejs_uuid = wiki_utils.get_sharejs_uuid(node, wiki_name)
+        y_websocket_token = wiki_utils.generate_y_websocket_token(
+            sharejs_uuid,
+            auth.user._id,
+        )
     else:
         if not wiki_page and wiki_key != 'home':
             raise WIKI_PAGE_NOT_FOUND_ERROR
@@ -366,6 +375,7 @@ def project_wiki_view(auth, wname, path=None, **kwargs):
         'sharejs_uuid': sharejs_uuid or '',
         'sharejs_url': settings.SHAREJS_URL,
         'y_websocket_url': settings.Y_WEBSOCKET_URL,
+        'y_websocket_token': y_websocket_token,
         'is_current': is_current,
         'version_settings': version_settings,
         'pages_current': _get_wiki_pages_latest(node),
@@ -771,12 +781,40 @@ def serialize_component_wiki(node, auth):
         return component
     return None
 
+
+def _bind_wiki_task_to_node(task_id, node, auth, status, set_process_end=False):
+    """Record task_id as belonging to node for get_task_result authorization.
+
+    Validate tasks must not use STATUS_RUNNING so they do not affect
+    "importing" UI, abort, or concurrent-import checks.
+    """
+    defaults = {
+        'node': node,
+        'status': status,
+        'creator': auth.user if auth else None,
+    }
+    if set_process_end:
+        defaults['process_end'] = timezone.make_naive(timezone.now(), timezone.utc)
+    WikiImportTask.objects.get_or_create(task_id=task_id, defaults=defaults)
+
+
+def _wiki_task_belongs_to_node(task_id, node):
+    return WikiImportTask.objects.filter(task_id=task_id, node=node).exists()
+
+
 @must_be_valid_project
-def project_wiki_validate_for_import(dir_id, node, **kwargs):
+@must_have_permission(ADMIN)
+@must_not_be_registration
+@must_have_addon('wiki', 'node')
+def project_wiki_validate_for_import(dir_id, auth, node, **kwargs):
     wiki_utils.check_file_object_in_node(dir_id, node)
     node_id = node.guids.first()._id
     task = tasks.run_project_wiki_validate_for_import.delay(dir_id, node_id)
     task_id = task.id
+    # Completed + process_end: ownership only; not treated as a running import.
+    _bind_wiki_task_to_node(
+        task_id, node, auth, WikiImportTask.STATUS_COMPLETED, set_process_end=True
+    )
     return {'taskId': task_id}
 
 def project_wiki_validate_for_import_process(dir_id, node):
@@ -904,11 +942,15 @@ def project_wiki_import(dir_id, auth, node, **kwargs):
     data_json = json.dumps(data)
     task = tasks.run_project_wiki_import.delay(data_json, dir_id, current_user_id, node_id)
     task_id = task.id
+    # Bind before returning so polling get_task_result does not race the worker.
+    _bind_wiki_task_to_node(task_id, node, auth, WikiImportTask.STATUS_RUNNING)
+    check_running_task(task_id, node)
     return {'taskId': task_id}
 
 def project_wiki_import_process(data, dir_id, task_id, auth, node):
     logger.info('----WIKI IMPORT DIRECTORY_ID: {}, PROJECT_NAME: {} ----'.format(dir_id, node.title))
-    WikiImportTask.objects.create(node=node, task_id=task_id, status=WikiImportTask.STATUS_RUNNING, creator=auth.user)
+    # May already exist if project_wiki_import bound the task before the worker ran.
+    _bind_wiki_task_to_node(task_id, node, auth, WikiImportTask.STATUS_RUNNING)
     check_running_task(task_id, node)
     ret = []
     wiki_id_list = []
@@ -1306,8 +1348,15 @@ def _create_import_error_list(wiki_infos, imported_list):
     return import_errors
 
 @must_be_valid_project
+@must_have_permission(ADMIN)
+@must_not_be_registration
 @must_have_addon('wiki', 'node')
 def project_get_task_result(task_id, node, **kwargs):
+    if not _wiki_task_belongs_to_node(task_id, node):
+        raise HTTPError(http_status.HTTP_404_NOT_FOUND, data=dict(
+            message_short='Not found',
+            message_long='Task not found.',
+        ))
     res = AsyncResult(task_id, app=celery_app)
     result = None
     if not res.ready():
@@ -1408,7 +1457,10 @@ def _bulk_update_wiki_sort(node, sort_id_list, sort_num_list, parent_wiki_id_lis
         parent_wiki_id = parent_wiki_id_list[idx]
         setattr(page, 'sort_order', sort_order_number)
         if parent_wiki_id is not None:
-            parent = WikiPage.objects.get(guids___id=parent_wiki_id)
+            # Same-node only; global guid lookup would allow cross-project parents.
+            parent = WikiPage.objects.get_for_node(node, id=parent_wiki_id)
+            if parent is None:
+                raise WIKI_INVALID_PARENT_ERROR
             setattr(page, 'parent', parent)
         else:
             setattr(page, 'parent', None)

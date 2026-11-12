@@ -266,7 +266,16 @@ class WikiPageNodeManager(models.Manager):
                 deleted__isnull=True,
                 node=node,
             ).order_by('created', 'id').first()
-        return WikiPage.load(id)
+        if id:
+            wiki_page = WikiPage.load(id)
+            # Restrict by node so wid cannot leak another project's page name.
+            if (
+                wiki_page
+                and wiki_page.deleted is None
+                and wiki_page.node_id == node.id
+            ):
+                return wiki_page
+        return None
 
     def get_for_child_nodes(self, node, parent=None):
         if parent:

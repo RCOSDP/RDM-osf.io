@@ -1245,11 +1245,15 @@ class TestWikiViews(OsfTestCase, unittest.TestCase):
         mock_check_file_object_in_node.return_value = True
         dir_id = self.root_import_folder1._id
         url = self.project.api_url_for('project_wiki_validate_for_import', dir_id=dir_id)
-        res = self.app.get(url)
+        res = self.app.get(url, auth=self.user.auth)
         response_json = res.json
         task_id = response_json['taskId']
         uuid_obj = uuid.UUID(task_id)
         assert uuid_obj
+        task = WikiImportTask.objects.get(task_id=task_id)
+        assert_equal(task.node, self.project)
+        assert_equal(task.status, WikiImportTask.STATUS_COMPLETED)
+        assert_is_not_none(task.process_end)
 
     def test_project_wiki_validate_for_import_process(self):
         result = views.project_wiki_validate_for_import_process(
@@ -1323,6 +1327,9 @@ class TestWikiViews(OsfTestCase, unittest.TestCase):
         task_id = response_json['taskId']
         uuid_obj = uuid.UUID(task_id)
         assert_is_not_none(uuid_obj)
+        task = WikiImportTask.objects.get(task_id=task_id)
+        assert_equal(task.node, self.project)
+        assert_equal(task.status, WikiImportTask.STATUS_RUNNING)
 
     @mock.patch('addons.wiki.views._get_md_content_from_wb')
     @mock.patch('addons.wiki.views._get_or_create_wiki_folder')

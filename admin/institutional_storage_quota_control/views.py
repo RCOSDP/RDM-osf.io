@@ -1,16 +1,19 @@
+import logging
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.db import connection, transaction, IntegrityError
 from django.db.models import Subquery, OuterRef
 from django.http import Http404
-
 from admin.institutions.views import QuotaUserList
-from osf.models import Institution, OSFUser, UserQuota
+from osf.models import Institution, OSFUser, UserQuota, InstitutionDefaultMaxQuota
 from admin.base import settings
 from addons.osfstorage.models import Region
 from django.views.generic import ListView, View
 from django.shortcuts import redirect
 from admin.rdm.utils import RdmPermissionMixin
 from django.core.urlresolvers import reverse
+from api.base import settings as api_settings
+
+logger = logging.getLogger(__name__)
 
 
 class InstitutionStorageList(RdmPermissionMixin, UserPassesTestMixin, ListView):
@@ -122,6 +125,22 @@ class UserListByInstitutionStorageID(RdmPermissionMixin, UserPassesTestMixin, Qu
             raise Http404
         return institution
 
+    def get_default_max_quota(self):
+        """Get default max quota for the institution, fallback to DEFAULT_MAX_QUOTA when not found."""
+        try:
+            institution_default_max_quota = InstitutionDefaultMaxQuota.objects.get(
+                institution_id=self.institution_id
+            )
+            return institution_default_max_quota.default_max_quota
+        except InstitutionDefaultMaxQuota.DoesNotExist:
+            return api_settings.DEFAULT_MAX_QUOTA
+
+    def get_context_data(self, **kwargs):
+        """ Add default_max_quota to template context """
+        context = super().get_context_data(**kwargs)
+        context['default_max_quota'] = self.get_default_max_quota()
+        return context
+
 
 class UpdateQuotaUserListByInstitutionStorageID(RdmPermissionMixin, UserPassesTestMixin, View):
     """ Change max quota for an institution's users if that institution is not using NII Storage. """
@@ -163,17 +182,23 @@ class UpdateQuotaUserListByInstitutionStorageID(RdmPermissionMixin, UserPassesTe
         min_value, max_value = connection.ops.integer_field_range('PositiveIntegerField')
         if min_value <= max_quota <= max_value:
             # If max quota value is between 0 and 2147483647, update or create used quota for each user in the institution
-            for user in OSFUser.objects.filter(
-                    affiliated_institutions=self.institution_id):
-                try:
-                    with transaction.atomic():
-                        UserQuota.objects.update_or_create(
-                            user=user,
-                            storage_type=UserQuota.CUSTOM_STORAGE,
-                            defaults={'max_quota': max_quota}
-                        )
-                except IntegrityError:
-                    UserQuota.objects.filter(user=user, storage_type=UserQuota.CUSTOM_STORAGE).update(max_quota=max_quota)
+            with transaction.atomic():
+                InstitutionDefaultMaxQuota.objects.update_or_create(
+                    institution_id=self.institution_id,
+                    defaults={'default_max_quota': max_quota}
+                )
+                for user in OSFUser.objects.filter(
+                        affiliated_institutions=self.institution_id):
+                    try:
+                        with transaction.atomic():
+                            UserQuota.objects.update_or_create(
+                                user=user,
+                                storage_type=UserQuota.CUSTOM_STORAGE,
+                                defaults={'max_quota': max_quota}
+                            )
+                    except IntegrityError as e:
+                        logger.warning(u'IntegrityError while updating UserQuota: user={}, storage_type={}, max_quota={}: {}.'.format(user.id, UserQuota.CUSTOM_STORAGE, max_quota, str(e)))
+                        UserQuota.objects.filter(user=user, storage_type=UserQuota.CUSTOM_STORAGE).update(max_quota=max_quota)
         return redirect(
             'institutional_storage_quota_control:institution_user_list',
             institution_id=self.institution_id

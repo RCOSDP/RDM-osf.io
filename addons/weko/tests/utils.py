@@ -12,9 +12,6 @@ fake_weko_indices = [
         'name': 'Sample Index',
         'children': [
             {
-                'id': 'more',
-            },
-            {
                 'id': 'dummy',
             }
         ],

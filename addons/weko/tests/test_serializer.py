@@ -82,6 +82,42 @@ class TestWEKOSerializer(StorageAddonSerializerTestSuiteMixin, OsfTestCase):
         assert_equal(serialized['ownerName'], self.user_settings.owner.fullname)
         assert_in('savedIndex', serialized)
 
+    def test_serialize_settings_names_indices_in_the_page_language(self):
+        def requests_get(url, **kwargs):
+            if kwargs.get('headers', {}).get('Accept-Language') == 'ja':
+                return utils.MockResponse([{'id': 100, 'name': 'サンプルインデックス'}], 200)
+            return utils.MockResponse([{'id': 100, 'name': 'Sample Index'}], 200)
+
+        with mock.patch.object(type(self.node_settings), 'has_auth', return_value=True), \
+                mock.patch.object(WEKOSerializer, 'credentials_are_valid', return_value=True), \
+                mock.patch('requests.get', side_effect=requests_get), \
+                self.app.app.test_request_context(headers={'Accept-Language': 'ja-JP'}):
+            serialized = self.ser.serialize_settings(self.node_settings, self.user, self.client)
+
+        assert_equal(serialized['indices'], [{
+            'title': 'Sample Index',
+            'localizedTitle': 'サンプルインデックス',
+            'id': 100,
+            'children': [],
+        }])
+
+    def test_serialize_settings_falls_back_to_the_default_name_and_warns(self):
+        def requests_get(url, **kwargs):
+            if kwargs.get('headers', {}).get('Accept-Language') == 'ja':
+                return utils.MockResponse([{'id': 100, 'name': 'サンプルインデックス'}], 200)
+            return utils.MockResponse([{'id': 100, 'name': 'Sample Index'}, {'id': 101, 'name': 'New Index'}], 200)
+
+        with mock.patch.object(type(self.node_settings), 'has_auth', return_value=True), \
+                mock.patch.object(WEKOSerializer, 'credentials_are_valid', return_value=True), \
+                mock.patch('requests.get', side_effect=requests_get), \
+                self.app.app.test_request_context(headers={'Accept-Language': 'ja'}), \
+                self.assertLogs('addons.weko.serializer', level='WARNING') as logs:
+            serialized = self.ser.serialize_settings(self.node_settings, self.user, self.client)
+
+        assert_equal([i['localizedTitle'] for i in serialized['indices']], ['サンプルインデックス', 'New Index'])
+        assert_equal(len(logs.records), 1)
+        assert_in('101', logs.records[0].getMessage())
+
     def test_serialize_settings_authorized_folder_is_set(self):
         pass
 
