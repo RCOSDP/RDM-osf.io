@@ -295,6 +295,26 @@ class TestWikiViews(OsfTestCase):
         res = self.app.get(url, auth=self.user.auth, expect_errors=True)
         assert_equal(res.status_code, 400)
 
+    def test_project_wiki_compare_defaults_to_current(self):
+        # Bare ?compare and omitted compare both default to editing vs latest saved.
+        for url in (
+            self.project.web_url_for('project_wiki_view', wname='home') + '?compare',
+            self.project.web_url_for('project_wiki_view', wname='home'),
+        ):
+            res = self.app.get(url, auth=self.user.auth)
+            assert_equal(res.status_code, 200)
+            assert_in('"compare": "current"', res.text)
+            assert_not_in('"compare": "previous"', res.text)
+
+    def test_project_wiki_compare_previous_maps_to_version_number(self):
+        # home has versions 1 and 2; compare=1 collapses to 'previous' in
+        # format_wiki_version, then views remaps it to the dropdown option value.
+        url = self.project.web_url_for('project_wiki_view', wname='home', compare=1)
+        res = self.app.get(url, auth=self.user.auth)
+        assert_equal(res.status_code, 200)
+        assert_in('"compare": 1', res.text)
+        assert_not_in('"compare": "previous"', res.text)
+
     def test_wiki_page_creation_strips_whitespace(self):
         # Regression test for:
         # https://github.com/CenterForOpenScience/openscienceframework.org/issues/1080

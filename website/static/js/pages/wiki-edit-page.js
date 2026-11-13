@@ -28,7 +28,8 @@ var comparable = (ctx.panelsUsed.indexOf('compare') !== -1);
 var menuVisible = (ctx.panelsUsed.indexOf('menu') !== -1);
 
 var viewVersion = ctx.versionSettings.view || (editable ? 'preview' : 'current');
-var compareVersion = ctx.versionSettings.compare || 'previous';
+// Default Current = editing body vs latest saved. Explicit previous is remapped server-side.
+var compareVersion = ctx.versionSettings.compare || 'current';
 
 var wikiPageOptions = {
     editVisible: editable,
