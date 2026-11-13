@@ -44,6 +44,18 @@ const wikiId = (wikiCtx.wiki.wikiName === 'home') ? wikiCtx.node.id : window.con
 const wsPrefix = (window.location.protocol === 'https:') ? 'wss://' : 'ws://';
 const wsUrl = wsPrefix + window.contextVars.wiki.urls.y_websocket;
 
+function getEditorMarkdown() {
+    var content = '';
+    if (mEdit && typeof mEdit.action === 'function') {
+        mEdit.action((ctx) => {
+            const view = ctx.get(mCore.editorViewCtx);
+            const serializer = ctx.get(mCore.serializerCtx);
+            content = serializer(view.state.doc);
+        });
+    }
+    return content;
+}
+
 import { underlineSchema, underlineInputRule, remarkUnderlineToMarkdown, remarkUnderlineFromMarkdown, toggleUnderlineCommand } from './underline.js';
 import { colortextSchema, colortextInputRule, remarkColortextToMarkdown, remarkColortextFromMarkdown, toggleColortextCommand } from './colortext.js';
 import { extendedImageSchemaPlugin, extendedInsertImageCommand, extendedUpdateImageCommand, updatedInsertImageInputRule } from './image.js';
@@ -239,15 +251,11 @@ function ViewWidget(visible, version, viewText, rendered, contentURL, allowMathj
         var requestURL;
         if (typeof self.version() !== 'undefined') {
             if (self.version() === 'preview') {
-                var toMarkdown = '';
-                if (mEdit !== undefined) {
-                    mEdit.action((ctx) => {
-                        const view = ctx.get(mCore.editorViewCtx);
-                        const serializer = ctx.get(mCore.serializerCtx);
-                        toMarkdown = serializer(view.state.doc);
-                    });
+                var toMarkdown = getEditorMarkdown();
+                // Avoid wiping a preserved draft when the editor was destroyed for version view.
+                if (toMarkdown) {
+                    self.displaySource(toMarkdown);
                 }
-                self.displaySource(toMarkdown);
                 if (document.getElementById("editWysiwyg").style.display === "none"){
                     document.getElementById("mMenuBar").style.display = "";
                     document.getElementById("mEditorFooter").style.display = "";
@@ -256,11 +264,9 @@ function ViewWidget(visible, version, viewText, rendered, contentURL, allowMathj
                 document.getElementById("wikiViewRender").style.display = "none";
             } else {
                 document.getElementById("mMenuBar").style.display = "none";
+                // Hide the live editor while viewing another version. Do not destroy
+                // its DOM/instance; recreating collab state can leave an empty editor.
                 document.getElementById("mEditor").style.display = "none";
-                const milkdownDivs = document.getElementById("mEditor").querySelectorAll('div.milkdown');
-                if (milkdownDivs.length > 0) {
-                    milkdownDivs[0].remove();
-                }
                 document.getElementById("mEditorFooter").style.display = "none";
                 document.getElementById("wikiViewRender").style.display = "";
                 if (self.version() === 'current') {
@@ -545,13 +551,11 @@ function ViewModel(options){
         if (panel === 'compare') {
             if(display && self.compareVis()){
                 self.viewVersion('preview');
-                var toMarkdown = '';
-                mEdit.action((ctx) => {
-                    const view = ctx.get(mCore.editorViewCtx);
-                    const serializer = ctx.get(mCore.serializerCtx);
-                    toMarkdown = serializer(view.state.doc);
-                });
-                self.viewVM.displaySource(toMarkdown);
+                var toMarkdown = getEditorMarkdown();
+                // Avoid clearing Compare's "after" side when the editor markdown is empty.
+                if (toMarkdown) {
+                    self.viewVM.displaySource(toMarkdown);
+                }
             }
         }
 
