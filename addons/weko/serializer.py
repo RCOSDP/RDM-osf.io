@@ -1,11 +1,19 @@
+import logging
+
+from flask_babel import get_locale
+
 from addons.base.serializer import OAuthAddonSerializer
 from . import settings as weko_settings
 from .apps import SHORT_NAME
+from .client import _flatten_indices
 from website.util import api_url_for, web_url_for
 
 from admin.rdm_addons.utils import get_rdm_addon_option
 
 from requests import exceptions as requests_exceptions
+
+
+logger = logging.getLogger(__name__)
 
 
 def get_repository_options(user):
@@ -90,10 +98,14 @@ class WEKOSerializer(OAuthAddonSerializer):
         if self.node_settings.has_auth:
             c = self.node_settings.create_client()
             indices = c.get_indices()
+            # WEKO names indices per language; `title` stays its default name because that is what gets saved.
+            # The browser's Accept-Language is not forwarded: WEKO matches tags exactly and answers "ja-JP" in English
+            localized_indices = c.get_indices(accept_language=get_locale().language)
+            localized_titles = {index.identifier: index.title for index in _flatten_indices(localized_indices)}
 
             result.update({
                 'validCredentials': True,
-                'indices': [self._serialize_index(index) for index in indices],
+                'indices': [self._serialize_index(index, localized_titles) for index in indices],
                 'savedIndex': {
                     'title': self.node_settings.index_title,
                     'id': self.node_settings.index_id,
@@ -136,9 +148,17 @@ class WEKOSerializer(OAuthAddonSerializer):
             result.update(self.serialized_node_settings)
         return result
 
-    def _serialize_index(self, index):
+    def _serialize_index(self, index, localized_titles):
+        if index.identifier in localized_titles:
+            localized_title = localized_titles[index.identifier]
+        else:
+            # WEKO caches the tree per language and refreshes only the languages registered in its
+            # admin settings, so the two trees can disagree; the name is the only thing at stake
+            logger.warning('WEKO returned no localized name for index %s; showing its default name', index.identifier)
+            localized_title = index.title
         return {
             'title': index.title,
+            'localizedTitle': localized_title,
             'id': index.identifier,
-            'children': [self._serialize_index(i) for i in index.children],
+            'children': [self._serialize_index(i, localized_titles) for i in index.children],
         }

@@ -8,6 +8,11 @@ SHAREJS_HOST = 'localhost'
 SHAREJS_PORT = 7007
 SHAREJS_URL = '{}:{}'.format(SHAREJS_HOST, SHAREJS_PORT)
 
+Y_WEBSOCKET_SECRET = os.environ.get('Y_WEBSOCKET_SECRET', '')
+Y_WEBSOCKET_JWT_ALGORITHM = 'HS256'
+# Token validity for WebSocket connection (seconds). Not enforced after connection is established.
+Y_WEBSOCKET_TOKEN_TTL = int(os.environ.get('Y_WEBSOCKET_TOKEN_TTL', 8 * 60 * 60))
+
 Y_WEBSOCKET_HOST = 'localhost'
 Y_WEBSOCKET_PORT = 1234
 Y_WEBSOCKET_URL = '{}:{}'.format(Y_WEBSOCKET_HOST, Y_WEBSOCKET_PORT)

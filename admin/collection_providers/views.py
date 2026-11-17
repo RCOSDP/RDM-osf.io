@@ -4,7 +4,7 @@ from django.http import HttpResponse
 from django.core import serializers
 from django.core.exceptions import ValidationError
 from django.urls import reverse_lazy
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
 from django.views.generic import View, CreateView, ListView, DetailView, UpdateView, DeleteView, TemplateView
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
@@ -228,12 +228,14 @@ class DeleteCollectionProvider(PermissionRequiredMixin, DeleteView):
         return CollectionProvider.objects.get(id=self.kwargs['collection_provider_id'])
 
 
-class CannotDeleteProvider(TemplateView):
+class CannotDeleteProvider(PermissionRequiredMixin, TemplateView):
+    permission_required = 'osf.delete_collectionprovider'
+    raise_exception = True
     template_name = 'collection_providers/cannot_delete.html'
 
     def get_context_data(self, **kwargs):
         context = super(CannotDeleteProvider, self).get_context_data(**kwargs)
-        context['provider'] = CollectionProvider.objects.get(id=self.kwargs['collection_provider_id'])
+        context['provider'] = get_object_or_404(CollectionProvider, id=self.kwargs['collection_provider_id'])
         return context
 
 

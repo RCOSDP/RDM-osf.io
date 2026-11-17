@@ -3319,14 +3319,14 @@ msgstr "読込み"
 #: website/templates/project/contributors.mako:243
 #: website/templates/project/modal_add_contributor.mako:218
 msgid "Bibliographic Contributor"
-msgstr "目録表示メンバー"
+msgstr "目録表示"
 
 #: website/templates/project/contributors.mako:36
 #: website/templates/project/contributors.mako:199
 #: website/templates/project/contributors.mako:246
 #: website/templates/project/modal_add_contributor.mako:221
 msgid "Bibliographic Contributor Information"
-msgstr "目録表示メンバーの情報"
+msgstr "目録表示の情報"
 
 #: website/templates/project/contributors.mako:43
 msgid "Bibliographic"
@@ -3335,6 +3335,14 @@ msgstr "目録で表示"
 #: website/templates/project/contributors.mako:46
 msgid "Non-Bibliographic"
 msgstr "目録で非表示"
+
+#: website/templates/project/contributors.mako:187
+msgid "Affiliated Institutions"
+msgstr "所属機関"
+
+#: website/templates/project/contributors.mako:188
+msgid "Invite Date"
+msgstr "招待日"
 
 #: website/templates/project/contributors.mako:63
 msgid "Drag and drop contributors to change listing order."

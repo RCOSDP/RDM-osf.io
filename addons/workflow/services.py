@@ -216,7 +216,7 @@ def get_user_accessible_templates(user: OSFUser, **filters) -> List[WorkflowTemp
     Returns:
         List of WorkflowTemplate objects the user can access
     """
-    accessible_nodes = AbstractNode.objects.filter(_contributors=user, is_deleted=False)
+    accessible_nodes = AbstractNode.objects.get_nodes_for_user(user, include_mapcore_groups=True)
 
     visibility_filter = Q(pk__in=[])
     visibility_filter |= Q(visibility=WorkflowTemplate.VISIBILITY_PUBLIC)

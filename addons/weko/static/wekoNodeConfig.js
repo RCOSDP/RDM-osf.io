@@ -8,6 +8,7 @@ var bootbox = require('bootbox');
 var Raven = require('raven-js');
 
 var $osf = require('js/osfHelpers');
+require('js/rdmSelect2');
 
 var $modal = $('#wekoInputCredentials');
 
@@ -29,30 +30,52 @@ function _getIndexById(indices, id) {
     return null;
 }
 
-function _getIndexDisplayTitle(index, level) {
-    if (level === 0) {
-        return index.title;
-    }
-    var prefix = '';
-    for (var i = 0; i < level; i ++) {
-        prefix += ' ';
-    }
-    return prefix + '- ' + index.title;
-}
-
-function _flattenIndices(indices, level) {
+function _flattenIndices(indices, ancestorTitles, ancestorLocalizedTitles) {
     const r = [];
     indices.forEach(function(data) {
-        const displayTitle = _getIndexDisplayTitle(data, level);
+        const titles = ancestorTitles.concat([data.title]);
+        const localizedTitles = ancestorLocalizedTitles.concat([data.localizedTitle]);
         r.push(Object.assign({
-            displayTitle: displayTitle,
+            displayTitle: titles.join(' / '),
+            label: localizedTitles.join(' / ') + ' (ID:' + data.id + ')',
         }, data));
-        _flattenIndices(data.children, level + 1).forEach(function(child) {
+        _flattenIndices(data.children, titles, localizedTitles).forEach(function(child) {
             r.push(child);
         });
     });
     return r;
 }
+
+ko.bindingHandlers.wekoIndexSelect2 = {
+    // select2 mirrors the <select>, so the element must be up to date first
+    after: ['options', 'value'],
+    init: function(element, valueAccessor) {
+        const defaults = $.fn.select2.defaults;
+        const labels = valueAccessor().labels;
+        // The localized name and the ID are shown and matched here; the option text stays
+        // the plain path because label-based selection of the <select> relies on it
+        $(element).select2({
+            width: '100%',
+            // The <select> keeps form-control because existing selectors rely on it;
+            // copied onto the select2 box it would draw a second border
+            adaptContainerCssClass: function() {
+                return null;
+            },
+            matcher: function(term, text, option) {
+                return defaults.matcher(term, labels()[option.val()]);
+            },
+            formatResult: function(result, container, query, escapeMarkup) {
+                return defaults.formatResult({text: labels()[result.id]}, container, query, escapeMarkup);
+            },
+            formatSelection: function(data, container, escapeMarkup) {
+                return escapeMarkup(labels()[data.id]);
+            }
+        });
+    },
+    update: function(element, valueAccessor) {
+        $(element).select2('val', ko.unwrap(valueAccessor().value));
+    }
+};
 
 
 function ViewModel(url) {
@@ -118,7 +141,7 @@ function ViewModel(url) {
         setInfoSuccess: ko.pureComputed(function() {
             var filesUrl = window.contextVars.node.urls.web + 'files/';
             return sprintf(_('Successfully linked index "%1$s". Go to the <a href="%2$s">Files page</a> to view your content.'),
-                $osf.htmlEscape(self.options.decodeFolder(self.folder().name)), filesUrl);
+                $osf.htmlEscape(self.savedIndexTitle()), filesUrl);
         }),
         setIndexError: ko.pureComputed(function() {
             return sprintf(_('Could not connect to this index. Please refresh the page or ' +
@@ -172,7 +195,14 @@ function ViewModel(url) {
     });
 
     self.flattenIndices = ko.pureComputed(function() {
-        return _flattenIndices(self.indices(), 0);
+        return _flattenIndices(self.indices(), [], []);
+    });
+    self.indexLabels = ko.pureComputed(function() {
+        const labels = {};
+        self.flattenIndices().forEach(function(index) {
+            labels[index.id] = index.label;
+        });
+        return labels;
     });
 
     // Flashed messages
@@ -335,20 +365,6 @@ ViewModel.prototype.onImportError = function(xhr, status, error) {
             error: error
         }
     });
-};
-
-/**
- * Allows a user to create an access token from the nodeSettings page
- */
-ViewModel.prototype.connectAccount = function() {
-    var self = this;
-
-    window.oauthComplete = function(res) {
-        // Update view model based on response
-        self.changeMessage(self.messages.connectAccountSuccess(), 'text-success', 3000);
-        self.importAuth.call(self);
-    };
-    window.open(self.urls().auth);
 };
 
 ViewModel.prototype.connectExistingAccount = function(account_id) {
