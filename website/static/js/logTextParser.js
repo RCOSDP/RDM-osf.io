@@ -730,7 +730,7 @@ var LogPieces = {
             self.returnLinkForPath = function(logObject) {
                 if (logObject) {
                     var action = logObject.attributes.action;
-                    var acceptableLinkedItems = ['googledrive_file_added', 'googledrive_file_updated'];
+                    var acceptableLinkedItems = ['googledrive_file_added', 'googledrive_file_updated', 'googledrive_file_downloaded'];
                     if (acceptableLinkedItems.indexOf(action) !== -1 && logObject.attributes.params.urls) {
                          return logObject.attributes.params.urls.view;
                     }
