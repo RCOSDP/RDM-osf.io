@@ -742,6 +742,8 @@ class WaterButlerObject(object):
         url = furl.furl(website_settings.WATERBUTLER_INTERNAL_URL)
         file_url = furl.furl(self.links['download'])
         url.path = str(file_url.path)
+        # Suppress logging for metadata asset sync downloads (internal system operation)
+        url.args['callback_log'] = 'false'
         response = requests.get(
             url.url,
             headers={'content-type': 'application/json'},

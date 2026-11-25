@@ -245,7 +245,14 @@ var LogText = {
 var LogPieces = {
     storage_name: {
         view: function (ctrl, logObject) {
-            return m('span', logObject.attributes.params.storage_name);
+            var params = logObject.attributes.params;
+            // onlyoffice_file_opened can target any storage: show the add-on name unless it is
+            // NII Storage (the same rule as source / destination)
+            if (logObject.attributes.action === 'onlyoffice_file_opened' && params.addon &&
+                    !(params.addon === 'NII Storage' && params.storage_name)) {
+                return m('span', params.addon);
+            }
+            return m('span', params.storage_name);
         }
     },
     // User that took the action
@@ -543,6 +550,33 @@ var LogPieces = {
                     'dropboxbusiness_file_added', 'dropboxbusiness_file_updated',
                     's3compatinstitutions_file_added', 's3compatinstitutions_file_updated',
                     'weko_file_added', 'weko_item_deposited',
+                    'file_downloaded',
+                    'osf_storage_file_downloaded',
+                    'box_file_downloaded',
+                    'dropbox_file_downloaded',
+                    'dropboxbusiness_file_downloaded',
+                    'googledrive_file_downloaded',
+                    'github_file_downloaded',
+                    'gitlab_file_downloaded',
+                    'bitbucket_file_downloaded',
+                    's3_file_downloaded',
+                    's3compat_file_downloaded',
+                    's3compatsigv4_file_downloaded',
+                    's3compatb3_file_downloaded',
+                    's3compatinstitutions_file_downloaded',
+                    'swift_file_downloaded',
+                    'onedrive_file_downloaded',
+                    'onedrivebusiness_file_downloaded',
+                    'owncloud_file_downloaded',
+                    'nextcloud_file_downloaded',
+                    'nextcloudinstitutions_file_downloaded',
+                    'azureblobstorage_file_downloaded',
+                    'weko_file_downloaded',
+                    'figshare_file_downloaded',
+                    'dataverse_file_downloaded',
+                    'iqbrims_file_downloaded',
+                    'ociinstitutions_file_downloaded',
+                    'onlyoffice_file_opened',
                     'timestamp_added'];
                     if (acceptableLinkedItems.indexOf(action) !== -1 && logObject.attributes.params.urls) {
                        return logObject.attributes.params.urls.view;
@@ -552,6 +586,15 @@ var LogPieces = {
             };
         },
         view: function (ctrl, logObject) {
+            var action = logObject.attributes.action;
+            if (action.indexOf('folder_downloaded_zip') !== -1) {
+                // Downloading the whole repo/storage as a zip has no real path
+                // providers report this root case as either '' or '/'.
+                var rawPath = logObject.attributes.params.path;
+                if (!rawPath || rawPath === '/') {
+                    return m('span', '');
+                }
+            }
             var url = ctrl.returnLinkForPath(logObject);
             return returnTextParams('path', 'a file', logObject, url);
         }
@@ -687,7 +730,7 @@ var LogPieces = {
             self.returnLinkForPath = function(logObject) {
                 if (logObject) {
                     var action = logObject.attributes.action;
-                    var acceptableLinkedItems = ['googledrive_file_added', 'googledrive_file_updated'];
+                    var acceptableLinkedItems = ['googledrive_file_added', 'googledrive_file_updated', 'googledrive_file_downloaded'];
                     if (acceptableLinkedItems.indexOf(action) !== -1 && logObject.attributes.params.urls) {
                          return logObject.attributes.params.urls.view;
                     }

@@ -7,5 +7,7 @@
     "azureblobstorage_folder_created" : "A user created a folder in an Azure Blob Storage in a project",
     "azureblobstorage_node_authorized" : "A user authorized the Azure Blob Storage addon for a project",
     "azureblobstorage_node_deauthorized" : "A user deauthorized the Azure Blob Storage addon for a project",
-    "azureblobstorage_node_deauthorized_no_user" : "Azure Blob Storage addon for a project deauthorized"
+    "azureblobstorage_node_deauthorized_no_user" : "Azure Blob Storage addon for a project deauthorized",
+    "azureblobstorage_file_downloaded": "A user downloaded a file from an Azure Blob Storage container in a project",
+    "azureblobstorage_folder_downloaded_zip": "A user downloaded a folder as a zip from an Azure Blob Storage container in a project"
 }

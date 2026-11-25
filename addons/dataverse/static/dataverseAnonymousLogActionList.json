@@ -7,5 +7,7 @@
     "dataverse_study_released" : "A user published a new version of a Dataverse dataset to a project",
     "dataverse_node_authorized" : "A user authorized the Dataverse addon for a project",
     "dataverse_node_deauthorized" : "A user deauthorized the Dataverse addon for a project",
-    "dataverse_node_deauthorized_no_user" : "Dataverse addon for a project deauthorized"
+    "dataverse_node_deauthorized_no_user" : "Dataverse addon for a project deauthorized",
+    "dataverse_file_downloaded": "A user downloaded a file from a Dataverse dataset in a project",
+    "dataverse_folder_downloaded_zip": "A user downloaded a folder as a zip from a Dataverse dataset in a project"
 }

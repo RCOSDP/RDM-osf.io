@@ -314,7 +314,7 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
             params={
                 'project': self.owner.parent_id,
                 'node': self.owner._id,
-                'path': path,
+                'path': metadata['materialized'],
                 'urls': urls,
                 'bitbucket': {
                     'user': self.user,

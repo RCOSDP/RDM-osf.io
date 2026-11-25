@@ -225,8 +225,11 @@ class ExportDataRestore(base.BaseModel):
                     file_info['size'] = file_versions_info[-1]['size']
                     file_info['location'] = file_versions_info[-1]['location']
             else:
+                # System-initiated read of the version list for restore: not a user download.
+                # NOTE: WaterButler's on_finish() does not treat `versions` as `meta`, so this
+                # must stay explicit even though the request carries no file content.
                 file_version_url = waterbutler_api_url_for(
-                    file.target._id, file_provider, file.path, _internal=True, versions='', **kwargs
+                    file.target._id, file_provider, file.path, _internal=True, versions='', callback_log=False, **kwargs
                 )
                 file_versions_res = requests.get(file_version_url)
                 if file_versions_res.status_code != 200:

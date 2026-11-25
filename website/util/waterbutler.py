@@ -24,7 +24,8 @@ def download_file(osf_cookie, file_node, download_path, **kwargs):
 
     try:
         response = requests.get(
-            file_node.generate_waterbutler_url(action='download', direct=None, _internal=True, **kwargs),
+            # System-initiated download for internal processing: not a user download.
+            file_node.generate_waterbutler_url(action='download', direct=None, _internal=True, callback_log=False, **kwargs),
             cookies={settings.COOKIE_NAME: osf_cookie},
             stream=True
         )

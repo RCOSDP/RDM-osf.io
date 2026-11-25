@@ -6,5 +6,7 @@
     "onedrive_folder_selected" : "A user linked a Microsoft OneDrive folder to a project",
     "onedrive_node_authorized" : "A user authorized the Microsoft OneDrive addon for a project",
     "onedrive_node_deauthorized" : "A user deauthorized the Microsoft OneDrive addon for a project",
-    "onedrive_node_deauthorized_no_user" : "Microsoft OneDrive addon for a project deauthorized"
+    "onedrive_node_deauthorized_no_user" : "Microsoft OneDrive addon for a project deauthorized",
+    "onedrive_file_downloaded": "A user downloaded a file from Microsoft OneDrive in a project",
+    "onedrive_folder_downloaded_zip": "A user downloaded a folder as a zip from Microsoft OneDrive in a project"
 }

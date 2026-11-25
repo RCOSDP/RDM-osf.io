@@ -4,6 +4,7 @@ import mock
 import pytest
 import unittest
 from nose.tools import *  # noqa
+from urllib.parse import quote
 
 from tests.base import OsfTestCase, get_default_metaschema
 from osf_tests.factories import (
@@ -52,6 +53,30 @@ class TestNodeSettings(models.OAuthAddonNodeSettingsTestSuiteMixin, unittest.Tes
         # Bitbucket doesn't use folderpicker, and the nodesettings model
         # does not need a `set_repo` method
         pass
+
+    def test_create_log(self):
+        # path/materialized are deliberately different here: Bitbucket's
+        # 'path' is the percent-encoded, ID-safe value used to build URLs,
+        # while 'materialized' is the decoded display name shown in the log.
+        action = 'file_added'
+        filename = u'テスト.txt'
+        encoded_path = quote(filename)
+        nlog = self.node.logs.count()
+        self.node_settings.create_waterbutler_log(
+            auth=Auth(user=self.user),
+            action=action,
+            metadata={'path': encoded_path, 'materialized': filename},
+        )
+        self.node.reload()
+        assert_equal(self.node.logs.count(), nlog + 1)
+        assert_equal(
+            self.node.logs.latest().action,
+            '{0}_{1}'.format(self.short_name, action),
+        )
+        assert_equal(
+            self.node.logs.latest().params['path'],
+            filename
+        )
 
     def test_serialize_settings(self):
         # Bitbucket's serialized_settings are a little different from

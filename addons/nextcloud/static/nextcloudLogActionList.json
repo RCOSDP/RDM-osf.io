@@ -6,6 +6,7 @@
     "nextcloud_folder_selected" : "${user} linked Nextcloud folder ${folder} to ${node}",
     "nextcloud_node_authorized" : "${user} authorized the Nextcloud addon for ${node}",
     "nextcloud_node_deauthorized" : "${user} deauthorized the Nextcloud addon for ${node}",
-    "nextcloud_node_deauthorized_no_user" : "Nextcloud addon for ${node} deauthorized"
-
+    "nextcloud_node_deauthorized_no_user" : "Nextcloud addon for ${node} deauthorized",
+    "nextcloud_file_downloaded": "${user} downloaded file ${path} from Nextcloud in ${node}",
+    "nextcloud_folder_downloaded_zip": "${user} downloaded folder ${path} as a zip from Nextcloud in ${node}"
 }

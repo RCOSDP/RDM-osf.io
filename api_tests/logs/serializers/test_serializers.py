@@ -87,16 +87,35 @@ class TestNodeLogDownloadSerializer:
 
         serialized = NodeLogDownloadSerializer(
             log,
-            context={'request': request, 'embed': {'user': self.get_test_context_embed_user}}
+            context={'request': request}
         ).data
         assert_datetime_equal(
             serialized['date'],
             project.logs.first().date
         )
-        assert serialized['user'] == 'test_user'
+        assert serialized['user'] == project.creator.fullname
         assert serialized['project_id'] == project._id
         assert serialized['project_title'] == project.title
         assert serialized['action'] == project.logs.first().action
+
+    def test_to_representation__user_is_none(self):
+        """api/logs/serializers.py: to_representation() reads `user` directly from
+        obj.user.fullname (no more embed-based lookup). NodeLog.user is nullable
+        (system-generated logs), so this branch's `else None` must be exercised -
+        previously only the "user exists" branch had coverage."""
+        project = ProjectFactory()
+        request = make_drf_request_with_version()
+        log = project.add_log(
+            action='osf_storage_file_downloaded',
+            auth=None,
+            params={
+                'node': project._id,
+                'path': 'test_file',
+            },
+        )
+        assert log.user is None
+        serialized = NodeLogDownloadSerializer(log, context={'request': request}).data
+        assert serialized['user'] is None
 
     def test_to_representation__params_include_contributors(self):
         project = ProjectFactory()
@@ -145,6 +164,24 @@ class TestNodeLogDownloadSerializer:
         serialized = NodeLogDownloadSerializer(log, context={'request': request}).data
         assert serialized['action'] == 'osf_storage_folder_created'
         assert serialized['path'] == 'test_folder'
+
+    def test_to_representation__action_include_onlyoffice(self):
+        project = ProjectFactory()
+        request = make_drf_request_with_version()
+        log = project.add_log(
+            'onlyoffice_file_opened',
+            auth=Auth(project.creator),
+            params={
+                'project': project.parent_id,
+                'node': project._id,
+                'path': '/test_file.docx',
+                'addon': 'NII Storage',
+                'urls': {'view': 'www.fake.org'},
+            },
+        )
+        serialized = NodeLogDownloadSerializer(log, context={'request': request}).data
+        assert serialized['action'] == 'onlyoffice_file_opened'
+        assert serialized['path'] == '/test_file.docx'
 
     def test_to_representation__action_include_addon(self):
         project = ProjectFactory()

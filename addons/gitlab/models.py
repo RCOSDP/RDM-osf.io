@@ -263,7 +263,7 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
             sha = None
             urls = {}
         else:
-            sha = metadata['extra']['fileSha']
+            sha = metadata['extra']['commitSha']
             urls = {
                 'view': '{0}?branch={1}'.format(url, sha),
                 'download': '{0}?action=download&branch={1}'.format(url, sha)
@@ -275,7 +275,7 @@ class NodeSettings(BaseOAuthNodeSettings, BaseStorageAddon):
             params={
                 'project': self.owner.parent_id,
                 'node': self.owner._id,
-                'path': path,
+                'path': metadata['materialized'],
                 'urls': urls,
                 'gitlab': {
                     'host': 'https://{0}'.format(self.external_account.display_name),

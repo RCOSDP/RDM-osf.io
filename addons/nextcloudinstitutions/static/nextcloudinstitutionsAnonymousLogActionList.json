@@ -6,5 +6,7 @@
     "nextcloudinstitutions_folder_selected" : "A user linked a Nextcloud (for Institutions) folder in a project",
     "nextcloudinstitutions_node_authorized" : "A user authorized the Nextcloud (for Institutions) addon for a project",
     "nextcloudinstitutions_node_deauthorized" : "A user deauthorized the Nextcloud (for Institutions) addon for a project",
-    "nextcloudinstitutions_node_deauthorized_no_user" : "Nextcloud (for Institutions) addon for a project deauthorized"
+    "nextcloudinstitutions_node_deauthorized_no_user" : "Nextcloud (for Institutions) addon for a project deauthorized",
+    "nextcloudinstitutions_file_downloaded": "A user downloaded a file from Nextcloud (for Institutions) in a project",
+    "nextcloudinstitutions_folder_downloaded_zip": "A user downloaded a folder as a zip from Nextcloud (for Institutions) in a project"
 }

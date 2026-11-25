@@ -6,5 +6,7 @@
     "ociinstitutions_folder_selected" : "A user linked a Oracle Cloud Infrastructure (for Institutions) folder in a project",
     "ociinstitutions_node_authorized" : "A user authorized the Oracle Cloud Infrastructure (for Institutions) addon for a project",
     "ociinstitutions_node_deauthorized" : "A user deauthorized the Oracle Cloud Infrastructure (for Institutions) addon for a project",
-    "ociinstitutions_node_deauthorized_no_user" : "Oracle Cloud Infrastructure (for Institutions) addon for a project deauthorized"
+    "ociinstitutions_node_deauthorized_no_user" : "Oracle Cloud Infrastructure (for Institutions) addon for a project deauthorized",
+    "ociinstitutions_file_downloaded": "A user downloaded a file from Oracle Cloud Infrastructure for Institutions in a project",
+    "ociinstitutions_folder_downloaded_zip": "A user downloaded a folder as a zip from Oracle Cloud Infrastructure for Institutions in a project"
 }

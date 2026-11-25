@@ -91,6 +91,8 @@ def export_files(node, user, current_dir):
         url=waterbutler_api_url_for(
             node_id=node._id,
             _internal=True,
+            # System-initiated download for account export: not a user download.
+            callback_log=False,
             provider='osfstorage',
             zip='',
             cookie=user.get_or_create_cookie(),
