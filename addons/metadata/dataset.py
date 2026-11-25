@@ -8,6 +8,7 @@ from urllib.parse import unquote
 from flask import request
 import requests
 from bs4 import BeautifulSoup
+from celery import states
 
 from framework.exceptions import HTTPError
 from framework.celery_tasks import app as celery_app
@@ -64,17 +65,21 @@ def metadata_import_dataset(auth, provider, filepath, **kwargs):
 @must_have_permission('write')
 def metadata_get_importing_dataset(auth, task_id=None, **kwargs):
     result = celery_app.AsyncResult(task_id)
+    # AsyncResult.state/infoは参照のたびにバックエンドへ問い合わせるため、
+    # タスクが進行中の間は参照ごとに内容が変わる。判定と取り出しで同じ値を使う。
+    state = result.state
+    task_info = result.info
     error = None
     info = {}
-    if result.failed():
-        logger.info(f'Failed: {result.info}: {type(result.info)}')
-        error = str(result.info)
-    elif result.info is not None and auth.user._id != result.info['user']:
+    if state == states.FAILURE:
+        logger.info(f'Failed: {task_info}: {type(task_info)}')
+        error = str(task_info)
+    elif task_info is not None and auth.user._id != task_info['user']:
         raise HTTPError(http_status.HTTP_403_FORBIDDEN)
-    elif result.info is not None:
-        info.update(result.info)
+    elif task_info is not None:
+        info.update(task_info)
     return {
-        'state': result.state,
+        'state': state,
         'info': info,
         'error': error,
     }

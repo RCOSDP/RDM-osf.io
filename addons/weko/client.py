@@ -15,6 +15,19 @@ def _flatten_indices(indices):
     return r
 
 
+def _get_truncated_index_ids(descs):
+    # WEKO replaces the children beyond an index's display number with a "more" entry
+    # unless the index is listed in more_ids
+    r = []
+    for desc in descs:
+        if 'children' not in desc:
+            continue
+        if any(child['id'] == 'more' for child in desc['children']):
+            r.append(str(desc['id']))
+        r += _get_truncated_index_ids(desc['children'])
+    return r
+
+
 def _is_valid_index(desc):
     if 'name' in desc and 'id' in desc:
         return True
@@ -58,11 +71,24 @@ class Client(object):
         results = resp.json().get('results', {})
         return results.get('subitem_mail_address', default_user)
 
-    def get_indices(self):
+    def get_indices(self, accept_language=None):
         """
         Get all indices from the WEKO.
         """
-        root = self._get('api/tree?action=browsing')
+        headers = None if accept_language is None else {'Accept-Language': accept_language}
+        more_ids = []
+        while True:
+            path = 'api/tree?action=browsing'
+            if more_ids:
+                path += '&more_ids=' + '/'.join(more_ids)
+            root = self._get(path, headers=headers)
+            truncated_ids = _get_truncated_index_ids(root)
+            if not truncated_ids:
+                break
+            unexpanded_ids = set(truncated_ids) & set(more_ids)
+            if unexpanded_ids:
+                raise ValueError(f'WEKO did not expand indices: {unexpanded_ids}')
+            more_ids += truncated_ids
         indices = []
         for desc in root:
             if not _is_valid_index(desc):
@@ -97,8 +123,11 @@ class Client(object):
             return self.host
         return self.host[:-6]
 
-    def _get(self, path):
-        resp = requests.get(self._base_host + path, **self._requests_args())
+    def _get(self, path, headers=None):
+        resp = requests.get(
+            self._base_host + path,
+            **self._requests_args(headers=headers)
+        )
         resp.raise_for_status()
         return resp.json()
 

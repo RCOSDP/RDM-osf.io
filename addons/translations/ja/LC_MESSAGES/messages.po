@@ -571,6 +571,10 @@ msgstr "シークレットキー"
 msgid "Create bucket"
 msgstr "バケットを作成"
 
+#: s3compatsigv4/templates/s3compatsigv4_node_settings.mako:72
+msgid "Enter bucket name"
+msgstr "バケット名を入力"
+
 #: s3/templates/s3_node_settings.mako:63
 msgid "Loading buckets..."
 msgstr "バケットをロード中..."

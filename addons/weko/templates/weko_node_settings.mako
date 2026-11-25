@@ -59,13 +59,14 @@
                         <div class="row">
 
                             <!--  Picker -->
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 ${_("Index:")}
                                 <select class="form-control"
                                         data-bind="options: flattenIndices,
                                                    optionsValue: 'id',
                                                    optionsText: 'displayTitle',
-                                                   value: selectedIndexId">
+                                                   value: selectedIndexId,
+                                                   wekoIndexSelect2: {value: selectedIndexId, labels: indexLabels}">
                                 </select>
                             </div>
                         </div>

@@ -25,7 +25,7 @@ from osf_tests.factories import (
     DraftRegistrationFactory,
     ExportDataLocationFactory,
 )
-from website import settings
+from website import settings, mails
 from api.base import settings as api_settings
 from addons.base import views
 from addons.github.exceptions import ApiError
@@ -116,11 +116,32 @@ class TestAddonAuth(OsfTestCase):
         data = jwt.decode(jwe.decrypt(res.json['payload'].encode('utf-8'), self.JWE_KEY), settings.WATERBUTLER_JWT_SECRET, algorithm=settings.WATERBUTLER_JWT_ALGORITHM)['data']
         assert_equal(data['auth'], views.make_auth(self.user))
         assert_equal(data['credentials'], self.node_addon.serialize_waterbutler_credentials())
-        assert_equal(data['settings'], self.node_addon.serialize_waterbutler_settings())
+        expected_settings = self.node_addon.serialize_waterbutler_settings().copy()
+        expected_settings['max_file_size'] = 100
+        assert_equal(data['settings'], expected_settings)
         expected_url = furl.furl(self.node.api_url_for('create_waterbutler_log', _absolute=True, _internal=True))
         observed_url = furl.furl(data['callback_url'])
         observed_url.port = expected_url.port
         assert_equal(expected_url, observed_url)
+
+    def test_auth_max_file_size_honors_high_upload_limit_tag(self):
+        """A user with the `high_upload_limit` system tag gets the high max_file_size
+        sent to WaterButler."""
+        self.user.add_system_tag('high_upload_limit')
+        self.user.save()
+        url = self.build_url()
+        with mock.patch.object(self.node_addon.config, 'high_max_file_size', 500, create=True):
+            res = self.app.get(url, auth=self.user.auth)
+        data = jwt.decode(jwe.decrypt(res.json['payload'].encode('utf-8'), self.JWE_KEY), settings.WATERBUTLER_JWT_SECRET, algorithm=settings.WATERBUTLER_JWT_ALGORITHM)['data']
+        assert_equal(data['settings']['max_file_size'], 500)
+
+    def test_auth_max_file_size_without_high_upload_limit_tag(self):
+        """An untagged user keeps the addon's ordinary limit even when a high limit exists."""
+        url = self.build_url()
+        with mock.patch.object(self.node_addon.config, 'high_max_file_size', 500, create=True):
+            res = self.app.get(url, auth=self.user.auth)
+        data = jwt.decode(jwe.decrypt(res.json['payload'].encode('utf-8'), self.JWE_KEY), settings.WATERBUTLER_JWT_SECRET, algorithm=settings.WATERBUTLER_JWT_ALGORITHM)['data']
+        assert_equal(data['settings']['max_file_size'], 100)
 
     def test_auth_render_action_returns_200(self):
         url = self.build_url(action='render')
@@ -157,7 +178,9 @@ class TestAddonAuth(OsfTestCase):
         data = jwt.decode(jwe.decrypt(res.json['payload'].encode('utf-8'), self.JWE_KEY), settings.WATERBUTLER_JWT_SECRET, algorithm=settings.WATERBUTLER_JWT_ALGORITHM)['data']
         assert_equal(data['auth'], views.make_auth(self.user))
         assert_equal(data['credentials'], self.node_addon.serialize_waterbutler_credentials())
-        assert_equal(data['settings'], self.node_addon.serialize_waterbutler_settings())
+        expected_settings = self.node_addon.serialize_waterbutler_settings().copy()
+        expected_settings['max_file_size'] = 100
+        assert_equal(data['settings'], expected_settings)
         expected_url = furl.furl(self.node.api_url_for('create_waterbutler_log', _absolute=True, _internal=True))
         observed_url = furl.furl(data['callback_url'])
         observed_url.port = expected_url.port
@@ -1230,6 +1253,99 @@ class TestAddonLogs(OsfTestCase):
         assert_equal(self.node.logs.count(), nlogs + 1)
         assert('urls' not in self.node.logs.filter(action='osf_storage_file_added')[0].params)
 
+    @mock.patch('website.mails.send_mail')
+    def test_create_waterbutler_log_quota_exceeded_error(self, mock_send_mail):
+        url = self.node.api_url_for('create_waterbutler_log')
+        payload = self.build_payload(
+            action='move',
+            metadata={'path': 'pizza'},
+            source={
+                'provider': 'github',
+                'materialized': '/src.txt',
+                'path': '/src.txt',
+                'name': 'src.txt',
+                'nid': self.node._id,
+            },
+            destination={
+                'provider': 'github',
+                'materialized': '/dest.txt',
+                'path': '/dest.txt',
+                'name': 'dest.txt',
+                'nid': self.node._id,
+            },
+            errors=['<InvalidParameters(413, {"message_key": "quota_exceeded"})>']
+        )
+        res = self.app.put_json(url, payload, headers={'Content-Type': 'application/json'})
+        assert_equal(res.status_code, 200)
+        assert_true(mock_send_mail.called)
+        call_args = mock_send_mail.call_args[1]
+        assert_equal(call_args['error_info'], {'type': 'quota_exceeded'})
+        assert_equal(mock_send_mail.call_args[0][1], mails.FILE_OPERATION_FAILED)
+
+    @mock.patch('website.mails.send_mail')
+    def test_create_waterbutler_log_oversized_error(self, mock_send_mail):
+        url = self.node.api_url_for('create_waterbutler_log')
+        payload = self.build_payload(
+            action='move',
+            metadata={'path': 'pizza'},
+            source={
+                'provider': 'github',
+                'materialized': '/src.txt',
+                'path': '/src.txt',
+                'name': 'src.txt',
+                'nid': self.node._id,
+            },
+            destination={
+                'provider': 'github',
+                'materialized': '/dest.txt',
+                'path': '/dest.txt',
+                'name': 'dest.txt',
+                'nid': self.node._id,
+            },
+            errors=['<InvalidParameters(413, {"oversized_files": [{"name": "large.zip", "size": 2000000000}], "max_size": 1000000000})>']
+        )
+        res = self.app.put_json(url, payload, headers={'Content-Type': 'application/json'})
+        assert_equal(res.status_code, 200)
+        assert_true(mock_send_mail.called)
+        call_args = mock_send_mail.call_args[1]
+        assert_equal(call_args['error_info'], {
+            'type': 'oversized',
+            'oversized_files': [{'name': 'large.zip', 'size': 2000000000}],
+            'max_size': 1000000000
+        })
+        assert_equal(mock_send_mail.call_args[0][1], mails.FILE_OPERATION_FAILED)
+
+    @mock.patch('addons.base.views.logger.warning')
+    @mock.patch('website.mails.send_mail')
+    def test_create_waterbutler_log_unparseable_error(self, mock_send_mail, mock_logger_warning):
+        url = self.node.api_url_for('create_waterbutler_log')
+        payload = self.build_payload(
+            action='move',
+            metadata={'path': 'pizza'},
+            source={
+                'provider': 'github',
+                'materialized': '/src.txt',
+                'path': '/src.txt',
+                'name': 'src.txt',
+                'nid': self.node._id,
+            },
+            destination={
+                'provider': 'github',
+                'materialized': '/dest.txt',
+                'path': '/dest.txt',
+                'name': 'dest.txt',
+                'nid': self.node._id,
+            },
+            errors=['<InvalidParameters(413, {invalid json})>']
+        )
+        res = self.app.put_json(url, payload, headers={'Content-Type': 'application/json'})
+        assert_equal(res.status_code, 200)
+        assert_true(mock_send_mail.called)
+        assert_true(mock_logger_warning.called)
+        call_args = mock_send_mail.call_args[1]
+        assert_equal(call_args['error_info'], None)
+        assert_equal(mock_send_mail.call_args[0][1], mails.FILE_OPERATION_FAILED)
+
 class TestAddonLogsDifferentProvider(OsfTestCase):
 
     def setUp(self):
@@ -1749,6 +1865,29 @@ class TestAddonFileViews(OsfTestCase):
         location = furl.furl(resp.location)
         # Note: version is added but us but all other url params are added as well
         assert_urls_equal(location.url, file_node.generate_waterbutler_url(action='download', direct=None, revision=1, version=''))
+
+    def test_action_download_mode_render_specifies_callback_log_false(self):
+        # MFR may drop mode=render before the browser fetches the content, so the
+        # redirect for a preview must say callback_log=False explicitly.
+        file_node = self.get_test_file()
+        guid = file_node.get_guid(create=True)
+
+        resp = self.app.get('/{}/?action=download&mode=render'.format(guid._id), auth=self.user.auth)
+
+        assert_equals(resp.status_code, 302)
+        args = furl.furl(resp.location).args
+        assert_equal(args['mode'], 'render')
+        assert_equal(args['callback_log'], 'False')
+
+    def test_action_download_without_mode_render_has_no_callback_log(self):
+        # A plain user download keeps the default so that it is recorded.
+        file_node = self.get_test_file()
+        guid = file_node.get_guid(create=True)
+
+        resp = self.app.get('/{}/?action=download'.format(guid._id), auth=self.user.auth)
+
+        assert_equals(resp.status_code, 302)
+        assert_not_in('callback_log', furl.furl(resp.location).args)
 
     @mock.patch('addons.base.views.addon_view_file')
     @pytest.mark.enable_bookmark_creation

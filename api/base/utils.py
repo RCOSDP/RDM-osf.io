@@ -204,6 +204,14 @@ def is_deprecated(request_version, min_version=None, max_version=None):
     return False
 
 
+# `callback_log` is optional. If omitted, WaterButler sends the completion callback
+# to GRDM as usual (log, timestamp, storage usage, notification, etc.).
+# Pass `callback_log=False` only for a download the system performs for its own processing,
+# so that it is not recorded as a user download in the Recent Activity log.
+# Do not pass it for upload / copy, with one exception: the admin export / restore
+# (admin/rdm_custom_storage_location/export_data/utils.py) passes `callback_log=False`
+# for upload / copy / create folder on purpose. Keep it when changing that code.
+# `_internal` is not the criterion; it only selects WATERBUTLER_INTERNAL_URL.
 def waterbutler_api_url_for(node_id, provider, path='/', _internal=False, base_url=None, **kwargs):
     assert path.startswith('/'), 'Path must always start with /'
     if provider != 'osfstorage':
@@ -213,12 +221,6 @@ def waterbutler_api_url_for(node_id, provider, path='/', _internal=False, base_u
     # furl auto encoding, so urlquote is not necessary as `[urlquote(x) for x in segments]`
     # try to convert segment items to string for furl check
     url.path.segments.extend([str(x) for x in segments])
-
-    # For internal requests, automatically suppress callback logging unless explicitly set.
-    # This prevents internal system operations (metadata sync, exports, etc.) from being
-    # recorded as user downloads in the Recent Activity log.
-    if _internal and 'meta' not in kwargs and 'callback_log' not in kwargs:
-        kwargs['callback_log'] = 'false'
 
     url.args.update(kwargs)
     return url.url

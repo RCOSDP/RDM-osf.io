@@ -2350,6 +2350,18 @@ class TestUtilsForRestoreData(AdminTestCase):
             nt.assert_is_none(response_body)
             nt.assert_is_none(status_code)
 
+    def test_create_folder_specifies_callback_log_false(self):
+        # Admin export / restore never records its own file operations in the Recent Activity log
+        test_response = requests.Response()
+        test_response.status_code = status.HTTP_201_CREATED
+        test_response._content = json.dumps({}).encode('utf-8')
+
+        mock_put = MagicMock()
+        mock_put.return_value = test_response
+        with patch('requests.put', mock_put):
+            utils.create_folder(TEST_PROJECT_ID, TEST_PROVIDER, '/', 'test/', None)
+            nt.assert_in('callback_log=False', mock_put.call_args[0][0])
+
     # upload_file
     def test_upload_file(self):
         test_response = requests.Response()
@@ -2385,6 +2397,18 @@ class TestUtilsForRestoreData(AdminTestCase):
                                                            None)
             nt.assert_is_none(response_body)
             nt.assert_is_none(status_code)
+
+    def test_upload_file_specifies_callback_log_false(self):
+        # Admin export / restore never records its own file operations in the Recent Activity log
+        test_response = requests.Response()
+        test_response.status_code = status.HTTP_201_CREATED
+        test_response._content = json.dumps({}).encode('utf-8')
+
+        mock_put = MagicMock()
+        mock_put.return_value = test_response
+        with patch('requests.put', mock_put):
+            utils.upload_file(TEST_PROJECT_ID, TEST_PROVIDER, '/', {}, 'test.txt', None)
+            nt.assert_in('callback_log=False', mock_put.call_args[0][0])
 
     # update_existing_file
     def test_update_existing_file(self):
@@ -2424,6 +2448,18 @@ class TestUtilsForRestoreData(AdminTestCase):
                                                                     None)
             nt.assert_is_none(response_body)
             nt.assert_is_none(status_code)
+
+    def test_update_existing_file_specifies_callback_log_false(self):
+        # Admin export / restore never records its own file operations in the Recent Activity log
+        test_response = requests.Response()
+        test_response.status_code = status.HTTP_200_OK
+        test_response._content = json.dumps({}).encode('utf-8')
+
+        mock_put = MagicMock()
+        mock_put.return_value = test_response
+        with patch('requests.put', mock_put):
+            utils.update_existing_file(TEST_PROJECT_ID, TEST_PROVIDER, '/', {}, 'test.txt', None)
+            nt.assert_in('callback_log=False', mock_put.call_args[0][0])
 
     # create_folder_path
     def test_create_folder_path__invalid_folder_path(self):
@@ -2781,6 +2817,20 @@ class TestUtilsForRestoreData(AdminTestCase):
                                                              '/test.txt', '/', 'test.txt',
                                                              None)
             nt.assert_equal(response_body, {})
+
+    def test_copy_file_to_other_storage_specifies_callback_log_false(self):
+        # Admin export / restore never records its own file operations in the Recent Activity log
+        test_response = requests.Response()
+        test_response.status_code = status.HTTP_201_CREATED
+        test_response._content = json.dumps({}).encode('utf-8')
+
+        mock_post = MagicMock()
+        mock_post.return_value = test_response
+        with patch('requests.post', mock_post):
+            utils.copy_file_to_other_storage(self.export_data, TEST_PROJECT_ID, TEST_PROVIDER,
+                                             '/test.txt', '/', 'test.txt',
+                                             None)
+            nt.assert_in('callback_log=False', mock_post.call_args[0][0])
 
     def test_copy_file_to_other_storage_failed(self):
         test_response = requests.Response()

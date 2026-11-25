@@ -659,6 +659,11 @@ def get_files_in_path(node_id, provider, path, cookies, **kwargs):
     return file_list
 
 
+# NOTE: create_folder/upload_file/update_existing_file below always pass callback_log=False
+# for folder-create/upload/copy on the destination storage. This is the one intentional
+# exception to the "do not pass it for upload / copy" rule documented on
+# api/base/utils.py:waterbutler_api_url_for -- admin export/restore intentionally never
+# records its own file operations in the Recent Activity log. Keep it when changing this file.
 def create_folder(node_id, provider, parent_path, folder_name, cookies, callback_log=False, base_url=WATERBUTLER_URL, **kwargs):
     kwargs.update({'callback_log': False})
     kwargs.setdefault('kind', 'folder')

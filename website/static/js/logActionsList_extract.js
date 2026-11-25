@@ -98,6 +98,7 @@ var osf_storage_file_updated = _('${user} updated file ${path} in ${storage_name
 var osf_storage_file_removed = _('${user} removed ${path_type} ${path} from ${storage_name} in ${node}');
 var osf_storage_file_downloaded = _('${user} downloaded file ${path} from ${storage_name} in ${node}');
 var osf_storage_folder_downloaded_zip = _('${user} downloaded folder ${path} as a zip from ${storage_name} in ${node}');
+var onlyoffice_file_opened = _('${user} opened file ${path} in ${storage_name} with ONLYOFFICE in ${node}');
 var affiliated_institution_added = _('${user} added ${institution} affiliation to ${node}');
 var affiliated_institution_removed = _('${user} removed ${institution} affiliation from ${node}');
 var preprint_initiated = _('${user} made ${node} a ${preprint} on ${preprint_provider} Preprints');

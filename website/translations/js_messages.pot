@@ -9315,6 +9315,18 @@ msgid ""
 "non-bibliographic group on ${node}"
 msgstr ""
 
+msgid "File「%1$s」is too large (%2$s). Max file size is %3$s."
+msgstr ""
+
+msgid "You do not have enough available quota."
+msgstr ""
+
+msgid "Not enough quota to move/copy the file."
+msgstr ""
+
+msgid "Not enough quota to move/copy. The total size of the folder %1$s."
+msgstr ""
+
 #: website/static/js/anonymousLogActionsList_extract.js
 msgid "A user downloaded a file from a project"
 msgstr ""
@@ -9329,6 +9341,10 @@ msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js
 msgid "A user downloaded a folder as a zip from NII Storage in a project"
+msgstr ""
+
+#: website/static/js/anonymousLogActionsList_extract.js
+msgid "A user opened a file with ONLYOFFICE in a project"
 msgstr ""
 
 #: website/static/js/anonymousLogActionsList_extract.js
@@ -9529,6 +9545,10 @@ msgstr ""
 
 #: website/static/js/logActionsList_extract.js
 msgid "${user} downloaded folder ${path} as a zip from ${storage_name} in ${node}"
+msgstr ""
+
+#: website/static/js/logActionsList_extract.js
+msgid "${user} opened file ${path} in ${storage_name} with ONLYOFFICE in ${node}"
 msgstr ""
 
 #: website/static/js/logActionsList_extract.js

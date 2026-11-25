@@ -500,7 +500,7 @@ $(document).ready(function () {
                     x.item = d.data[i].item;
                     x.path = d.data[i].path;
                 }
-                if (d.data[i].action.includes('osf_storage')){
+                if (d.data[i].action.includes('osf_storage') || d.data[i].action.includes('onlyoffice')){
                     x.path = d.data[i].path;
                 }
                 if (d.data[i].action.includes('addon')){
